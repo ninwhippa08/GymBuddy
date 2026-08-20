@@ -76,6 +76,17 @@ confirmation prompts; the drift this introduces is accepted and documented in §
 | `cnsCost` | 1–3, feeds the CNS account (§7) |
 | `technical` | 1–3, how much freshness the movement needs; drives ordering (§8) |
 | `modalities` | which day types may select it |
+| `prCoef` | multiplier from the referenced PR to this movement's own max. Front squat is `prRef: back-squat, prCoef: 0.85`, so a prescription of 85% reads `0.85 × 0.85 × back-squat PR`. `null` when `loadable` is false |
+| `contactsPerRep` | ground contacts per rep, for the plyometric budget (§4 step 7). Present on every `plyometric` exercise; `0` for upper-body plyos, which cost CNS but not foot contacts |
+| `nominalMeters` | assumed distance per rep, for the internal sprint budget (9.1). Never shown to the user |
+| `plyoIntensity` | `low` `moderate` `high` — selects against the per-level contact bands in basis §4 |
+| `requiresMeasuredGround` | `true` marks the movement as opt-in only; the generator never selects it by default (9.1) |
+
+The file wraps the library in `{ schemaVersion, prRoots, exercises }`. `prRoots`
+is the list of PRs the app expects the user to hold in his head — currently six:
+back squat, deadlift, bench press, overhead press, power clean, snatch. Every
+`prRef` must resolve to one of them. Since the app stores no maxes, this list is
+the whole of what he has to know.
 
 ### 3.2 Session (history record)
 
@@ -357,15 +368,23 @@ never shown to the user as a target to hit.
 - All requirements gathered and all open questions resolved
 
 ### Next step — Phase 1 (see §8)
-Start by running `git init` and making an initial commit of the two docs. The
-repo needs to exist before GitHub Pages can serve anything, and it is the only
-backup the design currently has.
 
-Then, in order:
-1. `data/exercises.json` — seed ~150 exercises across every `pattern` in §3.1.
-   Weight toward the user's background: Olympic derivatives, jumps, bounds, med
-   ball throws, sled, sprint drills, carries, unilateral work — plus a full
-   accessory set for `isolation` days.
+**Done since:** repo initialised, docs committed, remote set to
+`git@github.com:ninwhippa08/GymBuddy.git`. Commits use the GitHub noreply
+identity — never a real address, since the repo is public.
+
+1. ~~`data/exercises.json`~~ — **done.** 186 exercises, all 15 patterns covered,
+   35 of them loadable against the six `prRoots`. Validated for unique ids,
+   resolvable `prRef`s, vocabulary conformance, and 1–3 ranges.
+
+   Two findings for whoever writes the templates:
+   - **`max-strength` has no accessory-tier candidates** (15 primary, 17
+     secondary, 0 accessory). An accessory slot on a max-strength day must draw
+     from the `hypertrophy` pool instead. This is correct as data — accessory
+     work is not max-strength work — so fix it in `templates.js`, not here.
+   - **`aerobic-steady` is the thinnest pool at 9.** Fine for Phase 1; worth
+     widening when the library grows toward 350 in Phase 2.
+
 2. `js/rules.js` — transcribe the tables from `programming-basis.md` §1, §3, §4,
    §5, §7. Constants only, each commented with its source section.
 3. `js/templates.js` — day-type templates for `max-strength`, `power`,
