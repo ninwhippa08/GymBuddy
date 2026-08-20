@@ -1,0 +1,9 @@
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+*.stackdump
+
+# Local tooling artifacts, not part of the app
+skills-lock.json
+.claude/
+.agents/
