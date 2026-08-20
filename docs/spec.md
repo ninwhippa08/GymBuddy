@@ -385,11 +385,34 @@ identity — never a real address, since the repo is public.
    - **`aerobic-steady` is the thinnest pool at 9.** Fine for Phase 1; worth
      widening when the library grows toward 350 in Phase 2.
 
-2. `js/rules.js` — transcribe the tables from `programming-basis.md` §1, §3, §4,
-   §5, §7. Constants only, each commented with its source section.
-3. `js/templates.js` — day-type templates for `max-strength`, `power`,
-   `hypertrophy`, `aerobic-steady` to start.
-4. `js/generator.js` — the pipeline in §4.
+2. ~~`js/rules.js`~~ — **done.** Constants only, no logic. Every value carries a
+   source section and a provenance tag (`[verified]` / `[corroborated]` /
+   `[unverified]`) from the verification pass. Holds the corrected numbers.
+3. ~~`js/templates.js`~~ — **done.** Four day types. Accessory slots filter by
+   the `hypertrophy` modality, which resolves the starvation gap above. Slots
+   carry an explicit `mode` (`load` / `contacts` / `time`). Verified: no starved
+   slots across 16 template slots + 3 mobility/core slots, venue filtering on.
+4. ~~`js/generator.js`~~ — **done.** All ten pipeline steps. Pure — library,
+   profile, history and soreness arrive as arguments, so it runs without a
+   browser. Seeded RNG, so the same seed reproduces a session and a reroll is
+   just a new seed.
+
+   Verified across 800 sessions (4 day types × 5 ramp weeks × 40 seeds): ramp
+   ceiling never exceeded, no repeated exercise inside a session, nothing over
+   70 min, no unfilled slot, mobility block always present. Plus: hurt joints
+   excluded, ban list held, CNS veto fires, neglect scoring avoids yesterday's
+   day type, seeds deterministic.
+
+   **The ramp ceiling is applied twice, deliberately.** Once to the fraction of
+   the movement's own max, once to the displayed multiplier. A snatch pull has
+   `prCoef` 1.15, so 65% of its own max prints as `0.75 × snatch PR` — above the
+   ceiling the app claims to enforce. A ceiling the printed number exceeds is
+   not a ceiling. This makes the app slightly more conservative than the
+   literature strictly requires; that is the intended direction here. Don't
+   "fix" it back without reading basis §3.
+
+### Next up — resume here
+
 5. `index.html` + `js/ui.js` + `style.css` — one workout screen. Large tap
    targets; it gets read mid-set with sweaty hands.
 6. `manifest.json` + `sw.js` — installable and offline.
