@@ -9,6 +9,22 @@ cited directly. Where it came from a secondary summary because the source PDF
 would not extract, it is marked *(secondary)*. Those are the ones to verify first
 if something looks off.
 
+**Verification pass, 2026-08-20.** The *(secondary)* items were re-checked
+against primary sources. Results are marked inline with one of:
+
+- **[verified]** — confirmed against the primary source directly.
+- **[corroborated]** — confirmed by a practitioner summary of the primary
+  source, not the source itself. Strong, but not final.
+- **[unverified]** — could not be checked; the primary text is paywalled.
+
+What that pass could and could not reach: the consensus-guidelines paper's front
+matter was extracted directly from the NSCA's own PDF, but the body sits behind
+Lippincott's paywall and the published PDF resists text extraction. The
+week-by-week resistance-training and plyometric numbers below therefore rest on a
+practitioner summary. **Three discrepancies were found — see §1, §3, and §4.**
+One of them made the ramp *less* conservative than the source, in the week where
+that matters most.
+
 ---
 
 ## 1. Load prescription (%1RM ↔ reps)
@@ -24,13 +40,38 @@ PDF did not extract)*
 
 Training-goal zones:
 
-| Goal | Load | Reps |
-|------|------|------|
-| Max strength | ≥ 85% | ≤ 6 |
-| Hypertrophy | 67–85% | 6–12 |
-| Muscular endurance | ≤ 67% | 12+ |
-| Strength-speed | 40–60% | low reps, maximal intent |
-| Power / Olympic derivatives | 60–80% | 1–5, maximal intent |
+| Goal | Load | Reps | Status |
+|------|------|------|--------|
+| Max strength | ≥ 85% | ≤ 6 | **[verified]** |
+| Hypertrophy | 67–85% | 6–12 | **[verified]** |
+| Muscular endurance | ≤ 67% | 12+ | **[verified]** |
+| Power — single effort | 80–90% | 1–2, maximal intent | **[verified]** |
+| Power — multiple effort | 75–85% | 3–5, maximal intent | **[verified]** |
+| Strength-speed / dynamic effort | 40–60% | low reps, maximal intent | *(not NSCA — see below)* |
+
+### Discrepancy 1 — the power zone was too low
+
+The earlier draft of this file gave a single "Power / Olympic derivatives"
+row at **60–80%**. The NSCA splits power into single-effort (80–90%) and
+multiple-effort (75–85%) events, both **above** that range.
+
+The 60–80% figure is not wrong so much as from a different tradition: it belongs
+to dynamic-effort / velocity-based work, where the percentage refers to the
+*squat or bench* 1RM being moved fast. The NSCA percentages refer to the **power
+exercise's own 1RM** — a power clean at 80% of the power clean max.
+
+This matters because `exercises.json` references Olympic lifts to their own PR
+(`power-clean`, `snatch`, `prCoef: 1.00`). Prescribing 60–80% against those
+references is materially lighter than the NSCA intends, so power days would
+under-stimulate once the ramp is over. Both rows are kept: the generator should
+use the NSCA power zones for Oly derivatives on `power` days, and reserve the
+40–60% dynamic-effort row for speed work against squat/bench references.
+
+Rep↔%1RM table above: the chart's distinctive structure — reps 1–10 then
+jumping to 12 — and the values for 1–3 reps (100/95/93%) were confirmed
+against the NSCA's published training load chart. **[verified]** The
+intermediate values are the canonical NSCA figures but were not read off the
+chart directly. **[unverified]**
 
 **Caveat carried into the code.** The rep↔percentage relationship is
 exercise-dependent — more reps are achievable at 80% on a leg press than a bench
@@ -88,9 +129,19 @@ These guidelines exist because injury and death cluster precisely in the
 transition from inactivity back to real training. They set upper limits on
 volume, intensity, and work:rest for the first 2–4 weeks back.
 
-Headline is the **50/30/20/10 rule** — week 1 at 50% of previous workload,
-progressing across a four-week transition. *(secondary — paper PDF did not
-extract; read the original before trusting finer detail)*
+Headline is the **50/30/20/10 rule**. The numbers are **percentage reductions
+against the athlete's normal workload**, not absolute percentages and not
+compounding increases: week 1 is cut by 50%, week 2 by 30%, week 3 by 20%,
+week 4 by 10% — each step conditional on the athlete being comfortable at the
+end of the previous week. **[verified]**
+
+The rule is scaled off "the uppermost volume of the conditioning program," and
+applies to **conditioning and testing volume**. **[verified]**
+
+Two schedules: a **2-week** transition for returning athletes or a new head sport
+coach, and a **4-week** transition for new athletes, prolonged inactivity, or
+return from EHI/ER. This app uses the **4-week** version — prolonged inactivity
+is exactly the case it was written for. **[verified]**
 
 ### Why this dominates the design
 
@@ -99,20 +150,45 @@ prescription of `0.90 × PR` for triples in week one is not an aggressive sessio
 it is an injury. The ramp is what makes percentage-of-PR programming safe without
 ever asking him to enter or update a number.
 
-### Ramp table (interpretation — see caveat)
+### Discrepancy 2 — week 2 volume, and a week 1 ceiling that was too high
 
-| Week since return | Volume multiplier | %PR ceiling |
-|---|---|---|
-| 1 | 0.50 | 70% |
-| 2 | 0.65 | 75% |
-| 3 | 0.80 | 82% |
-| 4 | 0.90 | 87% |
-| 5+ | 1.00 | 95% |
+The earlier draft had two problems, one cosmetic and one that mattered.
 
-**This mapping is an interpretation, not a quotation.** The published rule
-concerns workload progression; applying it as a ceiling on prescribed percentage
-is a design decision made here. It errs conservative deliberately. Revisit after
-reading the source paper.
+**Volume multipliers.** The draft read 0.50 / 0.65 / 0.80 / 0.90. Derived
+correctly from the reductions above, they are 0.50 / **0.70** / 0.80 / 0.90.
+Weeks 1, 3, and 4 were already exact; week 2 was conservative by five points.
+Corrected to 0.70 below — no reason to invent extra caution the source does
+not ask for, when the source's own caution is the thing being trusted.
+
+**The %PR ceiling.** This is the one that mattered. The draft claimed the
+ceilings "err conservative deliberately" while setting **week 1 at 70%**. The
+guidelines indicate resistance training in the early transition at roughly
+**1–3 sets of 12 reps at 65% 1RM** **[corroborated]**. The draft's week-1
+ceiling was therefore *above* the source, not below it — the claim in the file
+was the reverse of the truth, in the first week back, for an athlete whose PRs
+are college numbers. Week 1 is now **65%**, and the later weeks are pulled down
+to approach an unrestricted ceiling more gradually.
+
+### Ramp table (corrected)
+
+| Week since return | Volume multiplier | %PR ceiling | Sessions/week | Work:rest |
+|---|---|---|---|---|
+| 1 | 0.50 | 65% | 1–3 | 1:4 |
+| 2 | 0.70 | 70% | 1–3 | 1:3 |
+| 3 | 0.80 | 78% | 2–4 | — |
+| 4 | 0.90 | 85% | 2–4 | — |
+| 5+ | 1.00 | 95% | — | — |
+
+Frequency and work:rest columns are **[corroborated]**, from the same summary as
+the 65% figure. The `Sessions/week` column is guidance the app cannot enforce —
+he trains 1–3× per week by circumstance, not by prescription (§2).
+
+**The %PR ceiling remains an interpretation, not a quotation.** The published
+rule governs conditioning volume; turning it into a ceiling on prescribed
+percentage is still a design decision made here. What changed is that the
+week-1 value is now anchored to a real number from the guidelines rather than
+chosen freely. Re-check the whole column against the paper body if it ever
+becomes readable.
 
 ---
 
@@ -130,8 +206,31 @@ sources; figures vary by author)*
 
 Frequency 1–3×/week, with **48–72 h between plyometric sessions**.
 
-Given detraining, the generator starts at the beginner band and progresses with
-the ramp.
+### Discrepancy 3 — the transition cap is lower than the beginner band
+
+The table above is steady-state guidance. The transition guidelines impose a
+tighter cap while returning: **no more than 70 foot contacts in week 1 and 100
+in week 2**, for an average-sized athlete, progressing low-intensity to
+high-intensity. **[corroborated]**
+
+The conflict is real. The beginner band permits up to 100 contacts *per session*;
+the transition cap allows 70 for the *entire first week*. A single generated
+plyometric session in week 1 could therefore deliver about 1.5× the week's
+sanctioned volume while appearing to sit inside the beginner range.
+
+**Resolution: during the ramp, the transition cap wins, and it is a weekly
+budget rather than a per-session one.**
+
+| Week since return | Foot contacts | Basis |
+|---|---|---|
+| 1 | ≤ 70 per week | transition cap |
+| 2 | ≤ 100 per week | transition cap |
+| 3–4 | ≤ 100 per session, beginner band × ramp multiplier | §3 |
+| 5+ | beginner band, progressing | table above |
+
+Foot contacts are counted from `contactsPerRep` in `exercises.json`. Upper-body
+plyometrics carry `contactsPerRep: 0` — they draw on the CNS account (§7) but
+not on this budget.
 
 ---
 
