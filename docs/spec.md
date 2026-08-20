@@ -204,7 +204,7 @@ sets on a conditioning day.
 | Day type | Venue | Volume unit | Intensity (§1) | CNS |
 |---|---|---|---|---|
 | `max-strength` | gym | sets × reps | 85–95% | High |
-| `power` | gym | sets × reps | 40–80%, max intent | High |
+| `power` | gym | sets × reps | 75–85% own max; 40–60% dynamic effort | High |
 | `plyometric` | either | foot contacts (§4) | — | High |
 | `sprint` | outdoor | metres (§5) | — | High |
 | `hypertrophy` | gym | sets × reps | 67–85% | Moderate |
@@ -222,8 +222,8 @@ sessions per week the literature is explicit that multi-joint work comes first
 | Slot | Tier | Pattern | Prescription |
 |---|---|---|---|
 | A | primary | jump/throw | 3 × 3, low contacts — potentiation |
-| B | primary | hinge/pull | Oly derivative, 5–6 × 2–3 @ 60–80% |
-| C | secondary | squat/push | dynamic effort, 6–8 × 3 @ 50–60% |
+| B | primary | hinge/pull | Oly derivative, 5–6 × 2–3 @ 75–85% **of that lift's own max** |
+| C | secondary | squat/push | dynamic effort, 6–8 × 3 @ 40–60% of the squat/bench max |
 | D | accessory | opposing | 3 × 8 @ 70% |
 | E | core+mobility | — | mandatory block |
 

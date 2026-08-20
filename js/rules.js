@@ -1,0 +1,240 @@
+// rules.js -- every training constant the generator uses.
+//
+// This file holds no logic. Each table is transcribed from a section of
+// docs/programming-basis.md and carries a pointer back to it. Changing a
+// training rule should mean editing one constant here, not hunting through
+// generator.js.
+//
+// Provenance tags mirror the basis doc:
+//   [verified]     confirmed against the primary source
+//   [corroborated] confirmed via a practitioner summary of the primary source
+//   [unverified]   could not be checked; primary text paywalled
+
+// --------------------------------------------------------------------------
+// §1  Load prescription
+// --------------------------------------------------------------------------
+
+// Reps achievable at a given fraction of 1RM. Note the chart skips 11.
+// Reps 1-3 [verified] against the NSCA training load chart; the rest are the
+// canonical NSCA values but were not read off the chart directly [unverified].
+export const REP_TO_PCT = Object.freeze({
+  1: 1.00,
+  2: 0.95,
+  3: 0.93,
+  4: 0.90,
+  5: 0.87,
+  6: 0.85,
+  7: 0.83,
+  8: 0.80,
+  9: 0.77,
+  10: 0.75,
+  12: 0.70
+});
+
+// Training-goal zones. `pct` is a fraction of the reference max -- which max
+// depends on the zone, see `reference` below. This distinction is the whole of
+// discrepancy 1 in the basis doc: an Olympic lift at 80% means 80% of the clean,
+// not 80% of the squat.
+export const ZONES = Object.freeze({
+  // [verified]
+  maxStrength: Object.freeze({
+    pct: [0.85, 0.95], reps: [1, 6], reference: 'own', intent: 'grind'
+  }),
+  // [verified]
+  hypertrophy: Object.freeze({
+    pct: [0.67, 0.85], reps: [6, 12], reference: 'own', intent: 'controlled'
+  }),
+  // [verified]
+  muscularEndurance: Object.freeze({
+    pct: [0.50, 0.67], reps: [12, 20], reference: 'own', intent: 'controlled'
+  }),
+  // [verified] -- single-effort power events, e.g. a heavy single clean
+  powerSingle: Object.freeze({
+    pct: [0.80, 0.90], reps: [1, 2], reference: 'own', intent: 'maximal'
+  }),
+  // [verified] -- multiple-effort power, the default for Oly derivatives
+  powerMultiple: Object.freeze({
+    pct: [0.75, 0.85], reps: [3, 5], reference: 'own', intent: 'maximal'
+  }),
+  // Dynamic effort. NOT an NSCA zone -- velocity-based tradition, where the
+  // percentage refers to the squat or bench max being moved fast. Only valid
+  // for exercises whose prRef is a slow-lift root.
+  dynamicEffort: Object.freeze({
+    pct: [0.40, 0.60], reps: [1, 3], reference: 'slow-lift', intent: 'maximal'
+  })
+});
+
+// The generator treats a zone as a centre of mass and jitters inside it rather
+// than prescribing exact percentages. The rep<->percentage relationship is
+// exercise-dependent (more reps at 80% on a leg press than a bench), so the
+// chart is a starting point, not a law. §1.
+export const PCT_JITTER = 0.025;
+
+// --------------------------------------------------------------------------
+// §2  Frequency and volume
+// --------------------------------------------------------------------------
+
+export const VOLUME = Object.freeze({
+  // Never count days -- track a rolling window, so an irregular week cannot
+  // confuse the model. §2 rule 1.
+  ROLLING_WINDOW_DAYS: 7,
+  // History depth the generator loads. spec §4 step 1.
+  HISTORY_DAYS: 14,
+  // 10+ sets per muscle per week produces significantly more growth than fewer
+  // (Schoenfeld dose-response). An aspiration at 1-3 sessions/week, not a
+  // guarantee -- see §2 rule 4 on being honest about the ceiling.
+  SETS_PER_PATTERN_PER_WEEK_TARGET: 10,
+  // Compounds first under low frequency; isolation is what a fourth session
+  // buys. §2 rule 2. Applied as a scoring penalty, not a ban.
+  ISOLATION_PROPOSAL_PENALTY: 0.25
+});
+
+// --------------------------------------------------------------------------
+// §3  Return from inactivity -- the governing constraint
+// --------------------------------------------------------------------------
+
+// The 50/30/20/10 rule is a schedule of percentage REDUCTIONS against normal
+// workload: week 1 cut by 50%, week 2 by 30%, week 3 by 20%, week 4 by 10%,
+// each step conditional on finishing the previous week comfortably. [verified]
+//
+// `pctCeiling` is an interpretation, not a quotation -- the published rule
+// governs conditioning volume, and turning it into a cap on prescribed
+// percentage is a design decision made in this project. Week 1 is anchored to
+// the ~65% 1RM the guidelines indicate for early transition work
+// [corroborated]; the rest of the column is chosen to approach an open ceiling
+// gradually [unverified].
+//
+// This table is the single most important safety feature in the app. His PRs
+// are college numbers and are not currently achievable.
+export const RAMP = Object.freeze([
+  Object.freeze({ week: 1, volume: 0.50, pctCeiling: 0.65, workRest: 4 }),
+  Object.freeze({ week: 2, volume: 0.70, pctCeiling: 0.70, workRest: 3 }),
+  Object.freeze({ week: 3, volume: 0.80, pctCeiling: 0.78, workRest: null }),
+  Object.freeze({ week: 4, volume: 0.90, pctCeiling: 0.85, workRest: null }),
+  Object.freeze({ week: 5, volume: 1.00, pctCeiling: 0.95, workRest: null })
+]);
+
+// Weeks past the end of the table clamp to the last row.
+export const RAMP_WEEKS = RAMP.length;
+
+// --------------------------------------------------------------------------
+// §4  Plyometrics -- volume in foot contacts
+// --------------------------------------------------------------------------
+
+// Steady-state guidance, per session. [unverified -- aggregated from NSCA
+// guidance and practitioner sources; figures vary by author]
+export const PLYO_CONTACTS_PER_SESSION = Object.freeze({
+  beginner: Object.freeze([50, 100]),
+  intermediate: Object.freeze([80, 120]),
+  advanced: Object.freeze([100, 140])
+});
+
+// During the ramp the transition cap wins, and it is a WEEKLY budget, not a
+// per-session one. The beginner band would otherwise permit a single week-1
+// session at ~1.5x the whole week's sanctioned volume. [corroborated]
+// See discrepancy 3 in the basis doc.
+export const PLYO_TRANSITION_WEEKLY_CAP = Object.freeze({
+  1: 70,
+  2: 100
+});
+
+// Weeks 3-4 fall back to the per-session band scaled by the ramp volume
+// multiplier; week 5+ uses the band as published.
+export const PLYO_TRANSITION_LAST_WEEK = 2;
+
+// 48-72 h between plyometric sessions. §4.
+export const PLYO_RECOVERY_HOURS = 48;
+
+// --------------------------------------------------------------------------
+// §5  Sprinting -- volume in metres
+// --------------------------------------------------------------------------
+
+export const SPRINT = Object.freeze({
+  // Internal budgets, estimated from prescribed reps x nominalMeters. Never
+  // shown to the user as a target to hit -- spec 9.1.
+  METERS_PER_SESSION: Object.freeze([200, 800]),
+  METERS_PER_WEEK: Object.freeze([1000, 2000]),
+  // Work:rest for an ~8 s effort is 1:12 to 1:20, i.e. 96-160 s of rest.
+  WORK_REST_RATIO: Object.freeze([12, 20]),
+  ASSUMED_EFFORT_SECONDS: 8,
+  // Efforts at 95-100% need 48 h minimum, 72 h typical, before the next
+  // sprint session. Overshooting weekly volume degrades the FIRST rep of the
+  // following session, and that degraded rep is the injury window.
+  RECOVERY_HOURS: 48,
+  RECOVERY_HOURS_TYPICAL: 72
+});
+
+// --------------------------------------------------------------------------
+// §6  Concurrent training -- ordering is enforced in §8 below
+// --------------------------------------------------------------------------
+
+// Resistance-before-endurance produced 6.91% greater lower-body dynamic
+// strength gain (95% CI 1.96-11.87, p = 0.006). Within a session, lifting
+// always precedes conditioning -- a hard rule, not a preference. §6.
+export const LIFT_BEFORE_CONDITIONING = true;
+
+// Where modalities are separated, >3 h apart avoids acute interference. §6.
+export const MODALITY_SEPARATION_HOURS = 3;
+
+// --------------------------------------------------------------------------
+// §7  CNS load accounting
+// --------------------------------------------------------------------------
+
+// A decaying budget rather than a fixed weekly calendar, so irregular
+// attendance does not break it. Bucket boundaries in hours since the session.
+export const CNS_DECAY = Object.freeze([
+  Object.freeze({ withinHours: 24, retained: 1.00 }),
+  Object.freeze({ withinHours: 48, retained: 0.50 }),
+  Object.freeze({ withinHours: 72, retained: 0.25 }),
+  Object.freeze({ withinHours: Infinity, retained: 0.00 })
+]);
+
+// A high-CNS day type is vetoed while the account sits above this. Tuned
+// against cnsCost 1-3 per exercise over a ~6-slot session: a full hard day
+// lands near 12-15, so this vetoes back-to-back maximal days while still
+// allowing a hard day 48 h after a moderate one.
+export const CNS_VETO_THRESHOLD = 8;
+
+// Day types that draw on the CNS account. §7.
+export const HIGH_CNS_DAY_TYPES = Object.freeze([
+  'max-strength', 'power', 'plyometric', 'sprint'
+]);
+
+// --------------------------------------------------------------------------
+// §8  Session ordering (fixed)
+// --------------------------------------------------------------------------
+
+// Most technical and most neurally demanding work while fresh, conditioning
+// last, mobility and core to close. Derived jointly from the interference
+// finding (§6) and standard practice.
+export const SESSION_ORDER = Object.freeze([
+  'sprint',
+  'plyometric',
+  'power',
+  'max-strength',
+  'hypertrophy',
+  'isolation',
+  'conditioning',
+  'mobility'
+]);
+
+// Within a slot group, lead with the most technical movement. spec §4 step 10.
+export const ORDER_BY_TECHNICAL_DESC = true;
+
+// --------------------------------------------------------------------------
+// §9  Time budget
+// --------------------------------------------------------------------------
+
+export const TIME = Object.freeze({
+  GYM_SESSION_TOTAL_MIN: 70,
+  MAIN_WORK_MAX_MIN: 45,
+  // Mandatory, never randomised out. §9.
+  MOBILITY_CORE_MIN: 25,
+  // Running/cardio is uncapped -- prescribed by time, effort, or interval
+  // structure. spec 9.1.
+  CONDITIONING_MAX_MIN: null,
+  // Used by the PACK step to estimate duration before trimming.
+  SECONDS_PER_REP: 3,
+  DEFAULT_REST_SEC: 120,
+  TRANSITION_SEC_PER_EXERCISE: 90
+});
