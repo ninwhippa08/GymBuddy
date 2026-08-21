@@ -411,11 +411,45 @@ identity — never a real address, since the repo is public.
    literature strictly requires; that is the intended direction here. Don't
    "fix" it back without reading basis §3.
 
+5. ~~`index.html` + `js/ui.js` + `style.css`~~ — **done.** One workout screen.
+   `ui.js` is pure: data in, detached DOM out, `createElement` and
+   `textContent` only, never `innerHTML`. 56px tap targets, and the load line
+   is the largest text on the screen because it is the only thing read
+   mid-set. `js/storage.js` came with it — the ramp needs `returnDate` and the
+   generator needs `history`, so the screen cannot run without persistence.
+
+   Reroll **replaces** today's history entry rather than appending. Two
+   entries for one training day would double-count `patternSets` and
+   `cnsLoad`, and the neglect model reads both.
+
+   One thing to watch: because generating marks a session done (§1), merely
+   opening the app on a rest day writes a completed session. That is §6
+   limitation 1 playing out, and the mitigation named there — a one-tap "did
+   you finish this?" on next launch — is worth doing before the history gets
+   long enough to matter.
+
+6. ~~`manifest.json` + `sw.js`~~ — **done.** Installable and offline.
+   Every path is relative; Pages serves from `/GymBuddy/`, so a leading slash
+   resolves wrong on the real host while passing on localhost. No
+   `skipWaiting` — a worker taking over mid-session would swap the code under
+   a workout being read between sets, so updates land on next launch.
+
+   **`VERSION` in `sw.js` must be bumped by hand on every deploy.** There is
+   no build step to do it. Ship a changed file without bumping it and
+   installed phones keep serving the old cache forever.
+
+   Two bugs that only a real browser could surface, both fixed:
+   - The reps-mode line said `bodyweight`. The generator drops to that mode
+     for anything it has no reference max for — bodyweight, machine **and**
+     dumbbell — and 122 of the library's 151 non-loadable entries hold
+     something, a barbell hip thrust among them. It prints the effort cue now.
+   - Install used a bare `cache.addAll()`, which fetches through the browser's
+     HTTP cache and precached the *previous* deploy's files: version bumped,
+     cache renamed, old bytes inside. Now fetches with `{cache: 'reload'}`.
+     This one would have looked like a broken deploy, not a broken worker.
+
 ### Next up — resume here
 
-5. `index.html` + `js/ui.js` + `style.css` — one workout screen. Large tap
-   targets; it gets read mid-set with sweaty hands.
-6. `manifest.json` + `sw.js` — installable and offline.
 7. Publish to GitHub Pages, install to home screen, use it once for real.
 
 ### Decisions already made — do not relitigate
