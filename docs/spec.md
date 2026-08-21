@@ -466,27 +466,54 @@ identity — never a real address, since the repo is public.
 
 ### Next up — resume here
 
-Install to the home screen and use it once for real. Phase 1 is not finished
-until a session has been read in a gym. Then Phase 2 (§8).
+**Phase 1 has been used in a gym. The feedback is in, and it invalidated three
+things.** See `docs/design-mobility-and-warmup.md` — approved in shape,
+revision 2, no code written yet.
 
-Suggested order for what follows, given how much engine already exists:
+**The immediate next step is an implementation plan for that document.** Nothing
+in it has been built.
 
-1. **"Did you finish this?" on next launch** — §6 limitation 1. Opening the
-   app on a rest day currently writes a completed session, and those phantom
-   entries feed the rolling pattern counts, the CNS account and the neglect
-   scoring that everything in Phase 3 reads. Cheapest to fix while the history
-   is short.
-2. **Soreness body map** — the engine is already done. `eligibleFor` excludes
-   `hurt` joints outright and `fillSlot` downweights `sore` by 0.2; `app.js`
-   passes `soreness: {}` hardcoded. This is a UI job, not a generator job.
-3. **Ban list, then swap** — `eligibleFor` already filters `profile.banned`.
-   Swap needs a small generator function to re-fill one slot (§4.2).
-4. **The five remaining day types, and the library toward 350.** Thinnest
-   pools today: `rotate` 4, `throw` 5, `carry` 6, `pull-v` 7, `lunge` 9.
-5. **Architecture variation last.** `chooseArchitecture` returns `'straight'`
-   because `phase1` defaults true, but flipping that flag is not enough:
-   `prescribe()` only knows straight sets, so EMOM, cluster, complex, circuit
-   and ladder each need a prescription shape. Deepest change in the project.
+What the gym session found, in the order it was found:
+
+1. **Mobility was prescribed by time, ~3 min per movement.** Nobody chose that
+   number — `buildMobilityCore` divides a block budget by the movement count.
+   Static stretches are legitimately time-dosed; dynamic drills are rep-dosed
+   and are harmed by excess volume. Design §4.1–4.2.
+2. **All mobility ran after the main work.** `SESSION_ORDER` ends with
+   `mobility` and `orderClass()` lumps mobility, core and rotate together, so
+   dynamic prep happened after the lifting it was meant to prepare for. This is
+   the finding with real injury relevance. Design §4.2.
+3. **Loaded lifts had no warm-up ramp at all.** Note the inconsistency this
+   exposed: §5.2 already prescribes a progressive ramp for sprints. The
+   principle was accepted and simply never applied to the barbell. Design §4.3.
+4. **The exercise count was unsourced.** Four slots on max-strength and power,
+   five on hypertrophy, invented and then cited to §4.3 of this file — this
+   document citing itself. Design §4.4.
+
+Two constants in the *first* draft of that design were also invented and were
+caught in review: a fixed warm-up ladder, and a purely time-driven exercise
+count. Both are now derived. The lesson generalises — see the design doc's §8
+open questions, which lists what in it remains unsourced.
+
+Build order is design §4.6. Mobility first: it frees the ~13 min the ramps
+spend, and it ships on its own.
+
+Still queued, unchanged by the above:
+
+- **"Did you finish this?" on next launch** — §6 limitation 1. Opening the app
+  on a rest day writes a completed session, and those phantom entries feed the
+  rolling pattern counts, the CNS account and the neglect scoring. Cheapest to
+  fix while the history is short. **Now more urgent:** design §4.4 makes the
+  exercise count read those same `patternSets` counts, so phantom entries will
+  start distorting session *shape*, not just scoring.
+- **Soreness body map** — engine already done; `app.js` passes `soreness: {}`
+  hardcoded. A UI job, not a generator job.
+- **Ban list, then swap** — `eligibleFor` already filters `profile.banned`.
+  Swap needs a small generator function to re-fill one slot (§4.2).
+- **Architecture variation last.** `prescribe()` only knows straight sets, so
+  EMOM, cluster, complex, circuit and ladder each need a prescription shape.
+  Deepest change in the project. Note `setPlan` (design §4.3) is deliberately
+  *not* shaped for these — day types before architectures.
 
 Already done ahead of schedule, despite §8 filing them under Phase 3: neglect
 scoring with reason strings, the decayed CNS account with its veto, and ramp
