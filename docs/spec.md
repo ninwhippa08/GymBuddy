@@ -360,7 +360,8 @@ never shown to the user as a target to hit.
 
 ## 10. Session state — where this stands
 
-**Last worked: 2026-08-20.** Design complete, no code written.
+**Last worked: 2026-08-21.** Phase 1 code complete and deployed. Live at
+https://ninwhippa08.github.io/GymBuddy/
 
 ### Done
 - `docs/programming-basis.md` — research synthesis, 9 rule sets, cited
@@ -448,9 +449,48 @@ identity — never a real address, since the repo is public.
      cache renamed, old bytes inside. Now fetches with `{cache: 'reload'}`.
      This one would have looked like a broken deploy, not a broken worker.
 
+7. **Published.** Live at https://ninwhippa08.github.io/GymBuddy/, served from
+   `main` at repo root. Verified on the live host: all 15 files 200, correct
+   MIME types (`application/javascript` for the modules), service worker
+   active at scope `/GymBuddy/`, all 14 shell entries present in
+   `gymbuddy-v3` and retrievable, library loads, generator runs clean.
+
+   The subpath was tested before deploying, by serving a `git archive` export
+   from a parent directory so the app sat at `/GymBuddy/`. Worth repeating if
+   the path assumptions ever change: localhost serves from `/`, so a
+   leading-slash mistake passes locally and 404s every asset on the real host.
+
+   Note for anyone adding a file to Pages later: enable it from the
+   **repository's** Settings → Pages, not the account-level Pages screen,
+   which only offers domain verification.
+
 ### Next up — resume here
 
-7. Publish to GitHub Pages, install to home screen, use it once for real.
+Install to the home screen and use it once for real. Phase 1 is not finished
+until a session has been read in a gym. Then Phase 2 (§8).
+
+Suggested order for what follows, given how much engine already exists:
+
+1. **"Did you finish this?" on next launch** — §6 limitation 1. Opening the
+   app on a rest day currently writes a completed session, and those phantom
+   entries feed the rolling pattern counts, the CNS account and the neglect
+   scoring that everything in Phase 3 reads. Cheapest to fix while the history
+   is short.
+2. **Soreness body map** — the engine is already done. `eligibleFor` excludes
+   `hurt` joints outright and `fillSlot` downweights `sore` by 0.2; `app.js`
+   passes `soreness: {}` hardcoded. This is a UI job, not a generator job.
+3. **Ban list, then swap** — `eligibleFor` already filters `profile.banned`.
+   Swap needs a small generator function to re-fill one slot (§4.2).
+4. **The five remaining day types, and the library toward 350.** Thinnest
+   pools today: `rotate` 4, `throw` 5, `carry` 6, `pull-v` 7, `lunge` 9.
+5. **Architecture variation last.** `chooseArchitecture` returns `'straight'`
+   because `phase1` defaults true, but flipping that flag is not enough:
+   `prescribe()` only knows straight sets, so EMOM, cluster, complex, circuit
+   and ladder each need a prescription shape. Deepest change in the project.
+
+Already done ahead of schedule, despite §8 filing them under Phase 3: neglect
+scoring with reason strings, the decayed CNS account with its veto, and ramp
+enforcement.
 
 ### Decisions already made — do not relitigate
 - **No framework, no build step, zero dependencies.** The user explicitly
