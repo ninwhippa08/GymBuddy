@@ -839,24 +839,28 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["lumbar","shoulder"], "equipment": ["bodyweight"], "venue": "either",
       "cnsCost": 1, "technical": 1, "unilateral": false,
+      "isometric": true,
       "modalities": ["isolation"] },
 
     { "id": "side-plank", "name": "Side Plank", "pattern": "core", "tier": "core",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["lumbar","shoulder","hip"], "equipment": ["bodyweight"], "venue": "either",
       "cnsCost": 1, "technical": 1, "unilateral": true,
+      "isometric": true,
       "modalities": ["isolation"] },
 
     { "id": "copenhagen-plank", "name": "Copenhagen Plank", "pattern": "core", "tier": "core",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["hip","lumbar","shoulder"], "equipment": ["bench"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": true,
+      "isometric": true,
       "modalities": ["isolation"] },
 
     { "id": "hollow-hold", "name": "Hollow Body Hold", "pattern": "core", "tier": "core",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["lumbar"], "equipment": ["bodyweight"], "venue": "either",
       "cnsCost": 1, "technical": 2, "unilateral": false,
+      "isometric": true,
       "modalities": ["isolation"] },
 
     { "id": "dead-bug", "name": "Dead Bug", "pattern": "core", "tier": "core",
@@ -911,6 +915,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["hip","lumbar","shoulder"], "equipment": ["dip-bar"], "venue": "either",
       "cnsCost": 2, "technical": 3, "unilateral": false,
+      "isometric": true,
       "modalities": ["isolation"] },
 
     { "id": "bear-crawl", "name": "Bear Crawl", "pattern": "core", "tier": "core",
@@ -923,6 +928,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["lumbar","scapula"], "equipment": ["dumbbell"], "venue": "either",
       "cnsCost": 1, "technical": 1, "unilateral": true,
+      "isometric": true,
       "modalities": ["isolation"] },
 
     { "id": "barbell-curl", "name": "Barbell Curl", "pattern": "pull-h", "tier": "accessory",

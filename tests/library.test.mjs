@@ -61,3 +61,20 @@ test('a single hurt joint leaves at least 3 static stretches at the gym', () => 
       `a hurt ${hurt} leaves only ${left.length} static stretches`);
   }
 });
+
+// A plank dosed as "3 x 12 reps" is a wrong instruction, not a vague one --
+// the same failure class as the old "bodyweight" load line. Core holds are
+// dosed by time. design 2.1.
+test('isometric core holds are marked, and only they are', () => {
+  const HOLDS = [
+    'plank', 'side-plank', 'copenhagen-plank',
+    'hollow-hold', 'l-sit', 'suitcase-hold'
+  ];
+  const marked = EX.filter(e => e.isometric === true).map(e => e.id).sort();
+  assert.deepEqual(marked, [...HOLDS].sort());
+  for (const id of HOLDS) {
+    const e = EX.find(x => x.id === id);
+    assert.ok(e, `${id} missing from the library`);
+    assert.equal(e.pattern, 'core', `${id} should be a core-pattern entry`);
+  }
+});
