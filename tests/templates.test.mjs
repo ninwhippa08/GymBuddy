@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PREP_BLOCK, COOLDOWN_BLOCK, TEMPLATES } from '../js/templates.js';
+import { PREP_BLOCK, COOLDOWN_BLOCK, TEMPLATES, validateSlots } from '../js/templates.js';
 import { MODALITIES } from '../js/rules.js';
 
 const groups = [
@@ -34,5 +34,24 @@ test('every modality named anywhere is in the vocabulary', () => {
     if (g.modality == null) continue;
     assert.ok(MODALITIES.includes(g.modality),
       `slot ${g.slot} names unknown modality "${g.modality}"`);
+  }
+});
+
+test('guard throws for unknown modality with locatable message', () => {
+  const bogusSlot = { slot: 'TEST', modality: 'unknown-modality', zone: null };
+  const slotGroups = [['test.location', bogusSlot]];
+
+  assert.throws(
+    () => validateSlots(slotGroups),
+    /unknown modality "unknown-modality"/
+  );
+
+  // Also verify the message includes the slot and location
+  try {
+    validateSlots(slotGroups);
+    assert.fail('should have thrown');
+  } catch (e) {
+    assert.ok(e.message.includes('TEST'), 'message should name the slot');
+    assert.ok(e.message.includes('unknown-modality'), 'message should name the modality');
   }
 });

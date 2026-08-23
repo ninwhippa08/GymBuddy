@@ -224,7 +224,8 @@ export const PREP_BLOCK = Object.freeze({
     Object.freeze({
       slot: 'P1', role: 'prep', tier: ['mobility'], patterns: ['mobility'],
       modality: 'mobility-dynamic', zone: null, mode: 'drill',
-      count: Object.freeze([2, 3]), reps: MOBILITY_DOSE.DYNAMIC_REPS,
+      count: Object.freeze([2, 3]), // [unverified] -- carried over from pre-split short block, not literature-sourced
+      reps: MOBILITY_DOSE.DYNAMIC_REPS,
       effort: 'controlled, full range -- not a stretch', optional: false
     })
   ])
@@ -258,7 +259,7 @@ export const COOLDOWN_BLOCK = Object.freeze({
     Object.freeze({
       slot: 'M1', role: 'mobility', tier: ['mobility'], patterns: ['mobility'],
       modality: 'mobility-static', zone: null, mode: 'hold',
-      count: Object.freeze([2, 3]),
+      count: Object.freeze([2, 3]), // [unverified] -- carried over from pre-split short block, not literature-sourced
       holdSec: MOBILITY_DOSE.STATIC_HOLD_SEC,
       sets: MOBILITY_DOSE.STATIC_HOLD_SETS,
       effort: 'ease in -- no bouncing, no forcing', optional: false
@@ -277,21 +278,25 @@ export const COOLDOWN_BLOCK = Object.freeze({
 // The modality half is what makes the 4.1 migration safe: if any slot still
 // names the pre-split `mobility`, the app refuses to start instead of quietly
 // filling the block from an empty pool.
+export function validateSlots(allSlotGroups) {
+  for (const [where, slot] of allSlotGroups) {
+    if (slot.zone != null && !(slot.zone in ZONES)) {
+      throw new Error(
+        `templates.js: ${where} slot ${slot.slot} names unknown zone "${slot.zone}"`
+      );
+    }
+    if (slot.modality != null && !MODALITIES.includes(slot.modality)) {
+      throw new Error(
+        `templates.js: ${where} slot ${slot.slot} names unknown modality "${slot.modality}"`
+      );
+    }
+  }
+}
+
 const ALL_SLOT_GROUPS = [
   ...Object.entries(TEMPLATES).flatMap(([k, slots]) => slots.map(s => [k, s])),
   ...Object.entries(PREP_BLOCK).flatMap(([k, slots]) => slots.map(s => [`prep.${k}`, s])),
   ...Object.entries(COOLDOWN_BLOCK).flatMap(([k, slots]) => slots.map(s => [`cooldown.${k}`, s]))
 ];
 
-for (const [where, slot] of ALL_SLOT_GROUPS) {
-  if (slot.zone != null && !(slot.zone in ZONES)) {
-    throw new Error(
-      `templates.js: ${where} slot ${slot.slot} names unknown zone "${slot.zone}"`
-    );
-  }
-  if (slot.modality != null && !MODALITIES.includes(slot.modality)) {
-    throw new Error(
-      `templates.js: ${where} slot ${slot.slot} names unknown modality "${slot.modality}"`
-    );
-  }
-}
+validateSlots(ALL_SLOT_GROUPS);
