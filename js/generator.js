@@ -24,7 +24,7 @@ import {
 } from './rules.js';
 
 import {
-  DAY_TYPES, PHASE_1_DAY_TYPES, TEMPLATES, MOBILITY_CORE_BLOCK,
+  DAY_TYPES, PHASE_1_DAY_TYPES, TEMPLATES, PREP_BLOCK, COOLDOWN_BLOCK,
   ARCHITECTURES, PHASE_1_ARCHITECTURE
 } from './templates.js';
 
@@ -435,38 +435,136 @@ export function packToBudget(blocks, budgetMin = TIME.MAIN_WORK_MAX_MIN) {
 }
 
 // --------------------------------------------------------------------------
-// 9  APPEND -- mobility + core, never randomised out
+// 9  PREP and COOL-DOWN -- never randomised out
 // --------------------------------------------------------------------------
 
-export function buildMobilityCore(dayType, library, ctx, rng) {
-  const kind = DAY_TYPES[dayType] ? DAY_TYPES[dayType].mobilityCore : 'full';
-  const groups = MOBILITY_CORE_BLOCK[kind] || MOBILITY_CORE_BLOCK.full;
-  const out = [];
-  const used = new Set();
+// One block became two, because one block could not be in two places. Dynamic
+// drills prepare the work and run before it; static stretching impairs
+// explosive output and runs after. design 4.2, discrepancy 6.
 
+export function buildPrep(dayType, library, ctx, rng) {
+  return buildBlockGroups(groupsFor(PREP_BLOCK, dayType), library, ctx, rng);
+}
+
+export function buildCooldown(dayType, library, ctx, rng) {
+  return buildBlockGroups(groupsFor(COOLDOWN_BLOCK, dayType), library, ctx, rng);
+}
+
+function groupsFor(block, dayType) {
+  const kind = DAY_TYPES[dayType] ? DAY_TYPES[dayType].mobilityCore : 'full';
+  return block[kind] || block.full;
+}
+
+// Mutates ctx.excludeIds on purpose: prep, main work and cool-down draw from
+// one library, and a movement should appear once in a session.
+function buildBlockGroups(groups, library, ctx, rng) {
+  const out = [];
   for (const group of groups) {
     const n = intBetween(rng, group.count);
-    const per = between(rng, group.durationMin) / n;
     for (let i = 0; i < n; i++) {
-      const e = fillSlot(group, library, { ...ctx, excludeIds: used }, rng);
-      if (!e) break;
-      used.add(e.id);
-      out.push({
-        slot: group.slot,
-        role: group.role,
-        exerciseId: e.id,
-        name: e.name,
-        pattern: e.pattern,
-        mode: 'time',
-        durationMin: Math.max(1, Math.round(per)),
-        effort: 'unhurried -- quality over range',
-        sets: 1, reps: 1, restSec: 0,
-        cnsCost: e.cnsCost,
-        optional: false
-      });
+      const e = fillSlot(group, library, ctx, rng);
+      if (!e) break;                       // pool exhausted -- short block
+      ctx.excludeIds.add(e.id);
+      out.push(prescribeMobility(group, e, rng));
     }
   }
   return out;
+}
+
+const roundTo5 = v => Math.round(v / 5) * 5;
+
+// Dosing follows from the tag, which is the point of the 4.1 split. Nothing
+// here divides a budget by a movement count -- that arithmetic was the bug.
+function prescribeMobility(group, e, rng) {
+  const base = {
+    slot: group.slot,
+    role: group.role,
+    exerciseId: e.id,
+    name: e.name,
+    pattern: e.pattern,
+    perSide: !!e.unilateral,
+    cnsCost: e.cnsCost,
+    optional: false
+  };
+
+  if (group.mode === 'drill') {
+    return {
+      ...base, mode: 'drill',
+      sets: 1, reps: intBetween(rng, group.reps),
+      restSec: 0, effort: group.effort
+    };
+  }
+
+  if (group.mode === 'hold') {
+    return {
+      ...base, mode: 'hold',
+      sets: intBetween(rng, group.sets),
+      holdSec: roundTo5(between(rng, group.holdSec)),
+      reps: 1, restSec: 0, effort: group.effort
+    };
+  }
+
+  // group.mode === 'core' -- resolved per exercise: a plank by time, an ab
+  // wheel by reps. design 2.1.
+  if (e.isometric) {
+    return {
+      ...base, mode: 'hold',
+      sets: intBetween(rng, group.sets),
+      holdSec: roundTo5(between(rng, group.holdSec)),
+      reps: 1,
+      restSec: intBetween(rng, group.restSec),
+      effort: 'brace hard -- keep breathing'
+    };
+  }
+  return {
+    ...base, mode: 'reps',
+    sets: intBetween(rng, group.sets),
+    reps: intBetween(rng, group.reps),
+    restSec: intBetween(rng, group.restSec),
+    effort: 'leave 2-3 reps in reserve'
+  };
+}
+
+// Hold the cool-down to its budget so the 60 min session total is a fact
+// rather than an aspiration. Trims in order of how well sourced the number is:
+// core sets are [unverified] (design 8, q4) so they go first; the ACSM hold
+// dose is never shortened, and the stretch count never falls below three.
+export function packCooldown(blocks, budgetMin = TIME.COOLDOWN_MIN) {
+  const out = blocks.slice();
+  let guard = 0;
+
+  while (estimateMinutes(out) > budgetMin && guard++ < 20) {
+    const core = out
+      .filter(b => b.role === 'core' && b.sets > 2)
+      .sort((a, b) => b.sets - a.sets)[0];
+    if (core) { core.sets -= 1; continue; }
+
+    const statics = out.filter(b => b.role === 'mobility');
+    if (statics.length > 3) {
+      out.splice(out.indexOf(statics[statics.length - 1]), 1);
+      continue;
+    }
+    break;                                  // nothing left that may be trimmed
+  }
+
+  return { blocks: out, overBudget: estimateMinutes(out) > budgetMin };
+}
+
+// Ruling A2: the design-5 prep estimate (3 min) assumed bilateral drills, but
+// 5 of the 12 mobility-dynamic movements are unilateral and the `sides`
+// multiplier in estimateMinutes doubles their cost -- so a session that draws
+// several per-side drills can run well past that estimate. Mirrors
+// packCooldown's shape and its one lever: this trims drill COUNT, never the
+// sourced 10-12 rep dose, and never below the sourced 3-drill floor.
+export function packPrep(blocks, budgetMin = TIME.PREP_MIN) {
+  const out = blocks.slice();
+  let guard = 0;
+
+  while (estimateMinutes(out) > budgetMin && out.length > 3 && guard++ < 20) {
+    out.pop();
+  }
+
+  return { blocks: out, overBudget: estimateMinutes(out) > budgetMin };
 }
 
 // --------------------------------------------------------------------------
