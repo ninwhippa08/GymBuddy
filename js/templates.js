@@ -20,7 +20,7 @@
 //   restSec   inclusive [min, max] range
 //   optional  the PACK step drops these first when trimming to 45 min
 
-import { ZONES } from './rules.js';
+import { ZONES, MODALITIES, MOBILITY_DOSE } from './rules.js';
 
 // --------------------------------------------------------------------------
 // Day types -- spec §5
@@ -201,30 +201,67 @@ export const TEMPLATES = Object.freeze({
 });
 
 // --------------------------------------------------------------------------
-// Mobility + core -- appended to every session, never randomised out
+// Prep and cool-down -- appended to every session, never randomised out
 // --------------------------------------------------------------------------
 
-// basis §9. General work, not problem-area targeting -- confirmed in spec §9.
-// The generator fills these from the `mobility` and `core` tiers and holds the
-// total near TIME.MOBILITY_CORE_MIN.
-export const MOBILITY_CORE_BLOCK = Object.freeze({
+// One block became two, because one block could not be in two places. Dynamic
+// drills prepare the work and belong before it; static stretching impairs
+// explosive performance and belongs after it. design 4.2, discrepancy 6.
+//
+// `count` is how many movements the block holds; the dose per movement comes
+// from MOBILITY_DOSE and is stated in the unit the source uses -- reps for
+// drills, seconds for holds.
+export const PREP_BLOCK = Object.freeze({
+  full: Object.freeze([
+    Object.freeze({
+      slot: 'P1', role: 'prep', tier: ['mobility'], patterns: ['mobility'],
+      modality: 'mobility-dynamic', zone: null, mode: 'drill',
+      count: MOBILITY_DOSE.DYNAMIC_DRILLS, reps: MOBILITY_DOSE.DYNAMIC_REPS,
+      effort: 'controlled, full range -- not a stretch', optional: false
+    })
+  ]),
+  short: Object.freeze([
+    Object.freeze({
+      slot: 'P1', role: 'prep', tier: ['mobility'], patterns: ['mobility'],
+      modality: 'mobility-dynamic', zone: null, mode: 'drill',
+      count: Object.freeze([2, 3]), reps: MOBILITY_DOSE.DYNAMIC_REPS,
+      effort: 'controlled, full range -- not a stretch', optional: false
+    })
+  ])
+});
+
+export const COOLDOWN_BLOCK = Object.freeze({
   full: Object.freeze([
     Object.freeze({
       slot: 'M1', role: 'mobility', tier: ['mobility'], patterns: ['mobility'],
-      modality: 'mobility', zone: null, mode: 'time',
-      count: [3, 4], durationMin: [10, 12], optional: false
+      modality: 'mobility-static', zone: null, mode: 'hold',
+      count: MOBILITY_DOSE.STATIC_STRETCHES,
+      holdSec: MOBILITY_DOSE.STATIC_HOLD_SEC,
+      sets: MOBILITY_DOSE.STATIC_HOLD_SETS,
+      effort: 'ease in -- no bouncing, no forcing', optional: false
     }),
     Object.freeze({
+      // modality is null on purpose: core is selected by tier and pattern.
+      // `mode: 'core'` tells the builder to resolve the dose per exercise --
+      // a plank by time, an ab wheel by reps.
       slot: 'M2', role: 'core', tier: ['core'], patterns: ['core', 'rotate'],
-      modality: null, zone: null, mode: 'time',
-      count: [3, 4], durationMin: [10, 13], optional: false
+      modality: null, zone: null, mode: 'core',
+      count: MOBILITY_DOSE.CORE_EXERCISES,
+      sets: MOBILITY_DOSE.CORE_SETS,
+      reps: MOBILITY_DOSE.CORE_REPS,
+      holdSec: MOBILITY_DOSE.CORE_HOLD_SEC,
+      restSec: MOBILITY_DOSE.CORE_REST_SEC,
+      optional: false
     })
   ]),
   short: Object.freeze([
     Object.freeze({
       slot: 'M1', role: 'mobility', tier: ['mobility'], patterns: ['mobility'],
-      modality: 'mobility', zone: null, mode: 'time',
-      count: [2, 3], durationMin: [6, 10], optional: false
+      modality: 'mobility-static', zone: null, mode: 'hold',
+      count: Object.freeze([2, 3]),
+      holdSec: MOBILITY_DOSE.STATIC_HOLD_SEC,
+      sets: MOBILITY_DOSE.STATIC_HOLD_SETS,
+      effort: 'ease in -- no bouncing, no forcing', optional: false
     })
   ])
 });
@@ -233,15 +270,28 @@ export const MOBILITY_CORE_BLOCK = Object.freeze({
 // Sanity guard
 // --------------------------------------------------------------------------
 
-// Every zone a template names must exist in rules.js. Cheap to check at import
-// time, and it turns a typo into an immediate error rather than a silently
-// undefined prescription at the gym door.
-for (const [dayType, slots] of Object.entries(TEMPLATES)) {
-  for (const slot of slots) {
-    if (slot.zone !== null && !(slot.zone in ZONES)) {
-      throw new Error(
-        `templates.js: ${dayType} slot ${slot.slot} names unknown zone "${slot.zone}"`
-      );
-    }
+// Every zone and every modality a slot names must exist in rules.js. Cheap to
+// check at import time, and it turns a typo into an immediate error rather
+// than a silently undefined prescription at the gym door.
+//
+// The modality half is what makes the 4.1 migration safe: if any slot still
+// names the pre-split `mobility`, the app refuses to start instead of quietly
+// filling the block from an empty pool.
+const ALL_SLOT_GROUPS = [
+  ...Object.entries(TEMPLATES).flatMap(([k, slots]) => slots.map(s => [k, s])),
+  ...Object.entries(PREP_BLOCK).flatMap(([k, slots]) => slots.map(s => [`prep.${k}`, s])),
+  ...Object.entries(COOLDOWN_BLOCK).flatMap(([k, slots]) => slots.map(s => [`cooldown.${k}`, s]))
+];
+
+for (const [where, slot] of ALL_SLOT_GROUPS) {
+  if (slot.zone != null && !(slot.zone in ZONES)) {
+    throw new Error(
+      `templates.js: ${where} slot ${slot.slot} names unknown zone "${slot.zone}"`
+    );
+  }
+  if (slot.modality != null && !MODALITIES.includes(slot.modality)) {
+    throw new Error(
+      `templates.js: ${where} slot ${slot.slot} names unknown modality "${slot.modality}"`
+    );
   }
 }
