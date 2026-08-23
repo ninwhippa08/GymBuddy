@@ -14,8 +14,8 @@
 //   6  FILL       choose an exercise per slot
 //   7  PRESCRIBE  sets/reps/percentage, or contacts, or time
 //   8  PACK       estimate duration, trim to the main-work budget
-//   9  APPEND     mobility + core, always
-//  10  ORDER      enforce the fixed sequence
+//   9  PREP/COOL  dynamic prep and static cool-down + core, always appended
+//  10  ORDER      enforce the fixed sequence -- prep first, cool-down last
 
 import {
   ZONES, PCT_JITTER, VOLUME, RAMP, CNS_DECAY, CNS_VETO_THRESHOLD,
@@ -571,11 +571,16 @@ export function packPrep(blocks, budgetMin = TIME.PREP_MIN) {
 // 10  ORDER
 // --------------------------------------------------------------------------
 
-// Map a block to its position in the fixed sequence. Lifting always precedes
-// conditioning; mobility closes. basis §6, §8.
+// Map a block to its position in the fixed sequence. Dynamic prep opens,
+// lifting precedes conditioning, static mobility and core close.
+// basis 6, 8; design 4.2.
 function orderClass(block, slotZone) {
-  if (block.pattern === 'mobility') return 'mobility';
-  if (block.slot === 'M1' || block.slot === 'M2') return 'mobility';
+  // Role first: a prep drill and a cool-down stretch share pattern 'mobility'
+  // and are told apart by role alone. Lumping them was discrepancy 6.
+  if (block.role === 'prep') return 'prep';
+  if (block.role === 'mobility' || block.role === 'core') return 'mobility';
+  // A rotate or core movement that landed in a main-work accessory slot still
+  // closes the session.
   if (block.pattern === 'core' || block.pattern === 'rotate') return 'mobility';
   if (block.pattern === 'sprint') return 'sprint';
   if (block.pattern === 'jump' || block.pattern === 'throw') return 'plyometric';
@@ -643,21 +648,29 @@ export function generate({
   }
 
   const packed = packToBudget(blocks);                                   // 8
-  const mobility = buildMobilityCore(chosen, library, ctx, rng);         // 9
-  const ordered = orderSession(packed.blocks.concat(mobility), zoneBySlot); // 10
+  const prep = buildPrep(chosen, library, ctx, rng);                     // 9a
+  const cooled = packCooldown(
+    buildCooldown(chosen, library, ctx, rng)                             // 9b
+  );
+  const ordered = orderSession(
+    prep.concat(packed.blocks, cooled.blocks), zoneBySlot                // 10
+  );
 
   return finalise({
-    chosen, env, architecture, proposal, ordered, packed, unfilled, state, seed, now
+    chosen, env, architecture, proposal, ordered, packed, cooled,
+    unfilled, state, seed, now
   });
 }
 
 // Denormalise the counters at write time so the next generation never has to
 // recompute them while reading history. spec §3.2.
-function finalise({ chosen, env, architecture, proposal, ordered, packed, unfilled, state, seed, now }) {
+function finalise({ chosen, env, architecture, proposal, ordered, packed, cooled, unfilled, state, seed, now }) {
   const patternSets = {};
   let footContacts = 0, sprintMeters = 0, cnsLoad = 0;
   for (const b of ordered) {
-    patternSets[b.pattern] = (patternSets[b.pattern] || 0) + (b.mode === 'time' ? 0 : b.sets);
+    if (countsTowardVolume(b)) {
+      patternSets[b.pattern] = (patternSets[b.pattern] || 0) + b.sets;
+    }
     footContacts += b.footContacts || 0;
     sprintMeters += b.sprintMeters || 0;
     cnsLoad += b.cnsCost || 0;
@@ -665,7 +678,14 @@ function finalise({ chosen, env, architecture, proposal, ordered, packed, unfill
 
   const warnings = [];
   if (packed.overBudget) warnings.push('over the 45 min main-work budget after trimming');
+  if (cooled && cooled.overBudget) warnings.push('cool-down over its 12 min budget');
   if (unfilled.length) warnings.push(`no eligible exercise for slot ${unfilled.join(', ')}`);
+  // Deviation 4: the static pool is thin, and a sore joint thins it further.
+  // A short cool-down is acceptable; a silent one is not.
+  const statics = ordered.filter(b => b.role === 'mobility').length;
+  if (statics > 0 && statics < 3) {
+    warnings.push(`only ${statics} static stretches available today`);
+  }
 
   // Foot-contact budget: the transition cap wins during the ramp, as a weekly
   // budget rather than a per-session one. basis §4 discrepancy 3.

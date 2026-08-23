@@ -297,5 +297,17 @@ export const TIME = Object.freeze({
   TRANSITION_SEC_PER_EXERCISE: 90,
   // Mobility work has no plates to change. Using the 90 s barbell figure put
   // the 3 min prep block at 8 min. [unverified] as an exact value.
-  MOBILITY_TRANSITION_SEC: 15
+  MOBILITY_TRANSITION_SEC: 15,
+  // [measured] -- not designed, not sourced from literature. design §5's
+  // arithmetic (3 + 45 + 12 = 60) assumed COOLDOWN_MIN as an achievable
+  // estimate, but packCooldown's own sourced floor (3 stretches, 2 core sets)
+  // can sit above that 12 min budget once it has nothing left to trim. Task 6
+  // swept 80,000 sampled sessions and measured a worst case of 63 min on
+  // max-strength (power ties it): 45 min main work at MAIN_WORK_MAX_MIN, 3 min
+  // prep at packPrep's 3-drill floor and under its own budget, 14 min
+  // cool-down over its 12 min budget because packCooldown had already hit its
+  // floor. This constant is that measured 3 min overrun, named so the
+  // duration ceiling test can state its real tolerance instead of asserting
+  // the unattainable 60. Re-derive by sweep, do not round up for headroom.
+  FLOOR_OVERRUN_ALLOWANCE_MIN: 3
 });
