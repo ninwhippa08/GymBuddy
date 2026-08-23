@@ -365,15 +365,49 @@ export function prescribe(slot, exercise, env, rng, state) {
 // 8  PACK
 // --------------------------------------------------------------------------
 
+// Mobility work has no plates to change and no bar to load. Charging it the
+// barbell transition put the 3 min prep block at 8 min.
+const LIGHT_TRANSITION_ROLES = new Set(['prep', 'mobility', 'core']);
+const transitionSec = b =>
+  LIGHT_TRANSITION_ROLES.has(b.role)
+    ? TIME.MOBILITY_TRANSITION_SEC
+    : TIME.TRANSITION_SEC_PER_EXERCISE;
+
 export function estimateMinutes(blocks) {
   let sec = 0;
   for (const b of blocks) {
     if (b.mode === 'time') { sec += (b.durationMin || 0) * 60; continue; }
-    sec += b.sets * b.reps * TIME.SECONDS_PER_REP;
+
+    const sides = b.perSide ? 2 : 1;
+
+    if (b.mode === 'drill') {
+      sec += b.sets * b.reps * TIME.SECONDS_PER_REP * sides;
+      sec += transitionSec(b);
+      continue;
+    }
+    if (b.mode === 'hold') {
+      sec += b.sets * b.holdSec * sides;
+      sec += b.sets * (b.restSec || 0);
+      sec += transitionSec(b);
+      continue;
+    }
+
+    sec += b.sets * b.reps * TIME.SECONDS_PER_REP * sides;
     sec += b.sets * (b.restSec || TIME.DEFAULT_REST_SEC);
-    sec += TIME.TRANSITION_SEC_PER_EXERCISE;
+    sec += transitionSec(b);
   }
   return Math.round(sec / 60);
+}
+
+// Which blocks count as training volume. Mobility and core were excluded
+// before the split too -- they were all mode 'time', which scored zero sets.
+// Keeping them out is parity, not a new decision: the neglect model and the
+// rolling pattern counts read these numbers, and design 4.4 is about to make
+// the exercise count read them as well.
+const VOLUME_MODES = new Set(['load', 'contacts', 'reps']);
+export function countsTowardVolume(block) {
+  if (!VOLUME_MODES.has(block.mode)) return false;
+  return block.role !== 'core';
 }
 
 // Trim to the main-work budget: drop optional blocks last-first, then shave
