@@ -11,6 +11,22 @@
 //   [unverified]   could not be checked; primary text paywalled
 
 // --------------------------------------------------------------------------
+// Vocabulary
+// --------------------------------------------------------------------------
+
+// The closed set of modality values. `templates.js` checks every slot against
+// this at import time, so a typo or a half-done migration is an immediate
+// error rather than a silently empty pool at the gym door.
+//
+// `mobility` split into two on 2026-08-23: dosing follows from the modality,
+// so one value could not carry two dosing units. design 4.1, discrepancy 4.
+export const MODALITIES = Object.freeze([
+  'max-strength', 'power', 'hypertrophy', 'isolation',
+  'plyometric', 'sprint', 'interval', 'aerobic-steady',
+  'mobility-dynamic', 'mobility-static'
+]);
+
+// --------------------------------------------------------------------------
 // §1  Load prescription
 // --------------------------------------------------------------------------
 
@@ -208,6 +224,10 @@ export const HIGH_CNS_DAY_TYPES = Object.freeze([
 // last, mobility and core to close. Derived jointly from the interference
 // finding (§6) and standard practice.
 export const SESSION_ORDER = Object.freeze([
+  // Dynamic preparation first. It used to run last, after the lifting it was
+  // meant to prepare for -- the finding with real injury relevance.
+  // design 4.2, discrepancy 6.
+  'prep',
   'sprint',
   'plyometric',
   'power',
@@ -215,6 +235,8 @@ export const SESSION_ORDER = Object.freeze([
   'hypertrophy',
   'isolation',
   'conditioning',
+  // Static stretching and core close the session: static work impairs
+  // subsequent explosive performance. [corroborated] design 2.2.
   'mobility'
 ]);
 
@@ -222,19 +244,53 @@ export const SESSION_ORDER = Object.freeze([
 export const ORDER_BY_TECHNICAL_DESC = true;
 
 // --------------------------------------------------------------------------
+// §9  Mobility and core doses
+// --------------------------------------------------------------------------
+
+// Inclusive [lo, hi] ranges the generator jitters within. design 2.1, 4.2.
+export const MOBILITY_DOSE = Object.freeze({
+  // 3-4 drills at 10-12 reps. Deliberately does NOT scale with available time:
+  // three sets of dynamic stretching induced acute fatigue and impaired sprint
+  // performance within five minutes. [corroborated]
+  DYNAMIC_DRILLS: Object.freeze([3, 4]),
+  DYNAMIC_REPS: Object.freeze([10, 12]),
+
+  // ACSM: 10-30 s per hold, 2-4 repetitions per muscle group. [corroborated]
+  // The old block spent ~3 min on a single stretch -- 1.5-9x the source.
+  STATIC_STRETCHES: Object.freeze([3, 4]),
+  STATIC_HOLD_SEC: Object.freeze([20, 30]),
+  STATIC_HOLD_SETS: Object.freeze([2, 2]),
+
+  // Core. 3 sets x 10-15 reps is [unverified] as a specific prescription and is
+  // the least-sourced number in the design -- design 8, open question 4. It is
+  // also the first thing packCooldown trims, which is deliberate.
+  CORE_EXERCISES: Object.freeze([2, 2]),
+  CORE_SETS: Object.freeze([3, 3]),
+  CORE_REPS: Object.freeze([10, 15]),
+  CORE_HOLD_SEC: Object.freeze([30, 45]),
+  CORE_REST_SEC: Object.freeze([30, 45])
+});
+
+// --------------------------------------------------------------------------
 // §9  Time budget
 // --------------------------------------------------------------------------
 
 export const TIME = Object.freeze({
-  GYM_SESSION_TOTAL_MIN: 70,
+  // 70 -> 60. The whole saving comes from dosing mobility correctly; main work
+  // is untouched. design 5.
+  GYM_SESSION_TOTAL_MIN: 60,
   MAIN_WORK_MAX_MIN: 45,
-  // Mandatory, never randomised out. §9.
-  MOBILITY_CORE_MIN: 25,
-  // Running/cardio is uncapped -- prescribed by time, effort, or interval
-  // structure. spec 9.1.
+  // Mandatory, never randomised out. Prep is capped by the drill dose rather
+  // than by this figure; it is here so the three budgets can be seen to sum.
+  PREP_MIN: 3,
+  COOLDOWN_MIN: 12,
+  // The withdrawn MOBILITY_CORE_MIN: 25 lived here. It had no source -- every
+  // other number in this file carries one. design discrepancy 5.
   CONDITIONING_MAX_MIN: null,
-  // Used by the PACK step to estimate duration before trimming.
   SECONDS_PER_REP: 3,
   DEFAULT_REST_SEC: 120,
-  TRANSITION_SEC_PER_EXERCISE: 90
+  TRANSITION_SEC_PER_EXERCISE: 90,
+  // Mobility work has no plates to change. Using the 90 s barbell figure put
+  // the 3 min prep block at 8 min. [unverified] as an exact value.
+  MOBILITY_TRANSITION_SEC: 15
 });
