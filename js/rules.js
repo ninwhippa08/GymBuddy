@@ -283,10 +283,13 @@ export const TIME = Object.freeze({
   // Mandatory, never randomised out. Prep is capped by the drill dose rather
   // than by this figure; it is here so the three budgets can be seen to sum.
   PREP_MIN: 3,
+  // Static stretches plus core. design 5 table: 25 -> 12, the whole session
+  // saving. [corroborated] from the per-movement doses in MOBILITY_DOSE.
   COOLDOWN_MIN: 12,
-  // The withdrawn MOBILITY_CORE_MIN: 25 lived here. It had no source -- every
-  // other number in this file carries one. design discrepancy 5.
+  // Running/cardio is uncapped -- prescribed by time, effort, or interval
+  // structure. spec 9.1.
   CONDITIONING_MAX_MIN: null,
+  // Used by the PACK step to estimate duration before trimming.
   SECONDS_PER_REP: 3,
   DEFAULT_REST_SEC: 120,
   TRANSITION_SEC_PER_EXERCISE: 90,
