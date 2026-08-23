@@ -46,7 +46,7 @@ test('prep, static and core contribute nothing to volume accounting', () => {
 });
 
 import { readFileSync } from 'node:fs';
-import { buildPrep, buildCooldown, packCooldown, makeRng } from '../js/generator.js';
+import { buildPrep, buildCooldown, packCooldown, packPrep, makeRng } from '../js/generator.js';
 
 const LIB = JSON.parse(
   readFileSync(new URL('../data/exercises.json', import.meta.url), 'utf8')
@@ -153,5 +153,22 @@ test('packCooldown holds the 12 min budget without gutting the dose', () => {
   }
   for (const b of packed.blocks.filter(b => b.role === 'core')) {
     assert.ok(b.sets >= 2, 'never trims core below 2 sets');
+  }
+});
+
+test('packPrep holds the 3 min budget without gutting the dose', () => {
+  // Four per-side drills price at roughly double a bilateral one (the `sides`
+  // multiplier), which reliably overruns TIME.PREP_MIN -- the exact scenario
+  // ruling A2 describes.
+  const raw = [
+    drill({ perSide: true }), drill({ perSide: true }),
+    drill({ perSide: true }), drill({ perSide: true })
+  ];
+  assert.ok(estimateMinutes(raw) > 3, 'fixture must actually overrun the budget');
+
+  const packed = packPrep(raw);
+  assert.ok(packed.blocks.length >= 3, 'never trims below the sourced floor of 3 drills');
+  for (const b of packed.blocks) {
+    assert.equal(b.reps, 12, 'never shortens the sourced 10-12 rep dose');
   }
 });
