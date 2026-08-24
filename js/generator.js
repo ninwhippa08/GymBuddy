@@ -455,6 +455,16 @@ function groupsFor(block, dayType) {
   return block[kind] || block.full;
 }
 
+// How many static stretches this day type's cool-down actually asks for at
+// minimum. Read off the block rather than hardcoded: COOLDOWN_BLOCK.short
+// asks for [2, 3], so two stretches there is the block SATISFIED, not a thin
+// pool. Judging it against full's floor of 3 warned 49% of aerobic-steady
+// sessions about a shortfall that never happened. T10 finding.
+function staticFloorFor(dayType) {
+  const group = groupsFor(COOLDOWN_BLOCK, dayType).find(g => g.role === 'mobility');
+  return group ? group.count[0] : 0;
+}
+
 // Mutates ctx.excludeIds on purpose: prep, main work and cool-down draw from
 // one library, and a movement should appear once in a session.
 function buildBlockGroups(groups, library, ctx, rng) {
@@ -678,12 +688,12 @@ function finalise({ chosen, env, architecture, proposal, ordered, packed, cooled
 
   const warnings = [];
   if (packed.overBudget) warnings.push('over the 45 min main-work budget after trimming');
-  if (cooled && cooled.overBudget) warnings.push('cool-down over its 12 min budget');
+  if (cooled.overBudget) warnings.push('cool-down over its 12 min budget');
   if (unfilled.length) warnings.push(`no eligible exercise for slot ${unfilled.join(', ')}`);
   // Deviation 4: the static pool is thin, and a sore joint thins it further.
   // A short cool-down is acceptable; a silent one is not.
   const statics = ordered.filter(b => b.role === 'mobility').length;
-  if (statics > 0 && statics < 3) {
+  if (statics > 0 && statics < staticFloorFor(chosen)) {
     warnings.push(`only ${statics} static stretches available today`);
   }
 

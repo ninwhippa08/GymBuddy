@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { generate } from '../js/generator.js';
+import { generate, countsTowardVolume } from '../js/generator.js';
 import { TIME, SESSION_ORDER } from '../js/rules.js';
 import { PHASE_1_DAY_TYPES } from '../js/templates.js';
 
@@ -120,6 +120,18 @@ test('mobility and core contribute nothing to pattern volume', () => {
   for (const s of sessions) {
     assert.equal(s.patternSets.mobility, undefined,
       'mobility work must not be counted as training volume');
+    // The name says "and core", so check the core half too. Core blocks
+    // carry pattern 'core' or 'rotate' and real sets, and a main-work
+    // accessory slot may legitimately land on those same patterns -- so the
+    // claim is arithmetic, not a lookup: patternSets must account for the
+    // main work and for nothing else.
+    const expected = {};
+    for (const b of s.blocks.filter(isMain)) {
+      if (!countsTowardVolume(b)) continue;
+      expected[b.pattern] = (expected[b.pattern] || 0) + b.sets;
+    }
+    assert.deepEqual(s.patternSets, expected,
+      `${s.dayType}/${s.seed}: prep, static or core leaked into pattern volume`);
   }
 });
 
@@ -222,5 +234,23 @@ test('a collapsed static pool is announced, never silently shipped', () => {
           `${blk.name} loads a hurt joint (${a}/${b})`);
       }
     }
+  }
+});
+
+// T10 finding: the shortfall warning compared the stretch count against a
+// hardcoded 3, but aerobic-steady draws COOLDOWN_BLOCK.short, which asks for
+// [2, 3]. Two stretches there is the block being SATISFIED, not a pool that
+// came up short -- and 49% of aerobic-steady sessions were being warned about
+// a shortfall that never happened.
+test('a short cool-down that got what it asked for is not warned about', () => {
+  const twoStretch = sessions.filter(s =>
+    s.dayType === 'aerobic-steady' &&
+    s.blocks.filter(b => b.role === 'mobility').length === 2
+  );
+  assert.ok(twoStretch.length > 0,
+    'no aerobic-steady session drew 2 stretches -- the case is untested');
+  for (const s of twoStretch) {
+    assert.ok(!s.warnings.some(w => w.includes('static stretches')),
+      `${s.dayType}/${s.seed}: warned about 2 stretches when the block asked for 2`);
   }
 });
