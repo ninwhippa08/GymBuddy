@@ -58,6 +58,17 @@ export function loadLine(block) {
   if (block.mode === 'time') {
     return `${block.durationMin} min`;
   }
+  // Dosed in reps because that is the unit the source uses. Printing "3 min"
+  // over a leg swing was the wrong unit, not merely the wrong amount.
+  // design 2.1, discrepancy 4.
+  if (block.mode === 'drill') {
+    return block.perSide ? `${block.reps} reps per side` : `${block.reps} reps`;
+  }
+  if (block.mode === 'hold') {
+    return block.perSide
+      ? `${block.holdSec}s hold per side`
+      : `${block.holdSec}s hold`;
+  }
   if (block.mode === 'contacts') {
     // Throws and slams have no ground contact to count -- the generator sets
     // footContacts to 0 on purpose. "0 contacts" as the headline tells the
@@ -82,6 +93,11 @@ export function loadLine(block) {
 // is a sentence -- too long for a header slot, so it drops to the meta line.
 export function volumeLine(block) {
   if (block.mode === 'time') return '';
+  // A drill is one set by definition; "1 × 12" is noise next to "12 reps".
+  if (block.mode === 'drill') return '';
+  // For a hold the hero line already carries the seconds, so the chip carries
+  // how many of them.
+  if (block.mode === 'hold') return `× ${block.sets}`;
   return `${block.sets} × ${block.reps}`;
 }
 
@@ -133,8 +149,15 @@ function blockGroup(title, blocks) {
 // --------------------------------------------------------------------------
 
 export function renderSession(session, { onReroll } = {}) {
-  const mobility = session.blocks.filter(b => b.role === 'mobility' || b.role === 'core');
-  const main = session.blocks.filter(b => !(b.role === 'mobility' || b.role === 'core'));
+  // Three groups, not two. Prep and cool-down do different jobs at opposite
+  // ends of the session, and one "Mobility & core" heading hid that.
+  // design 4.2, discrepancy 6.
+  const COOLDOWN_ROLES = ['mobility', 'core'];
+  const prep = session.blocks.filter(b => b.role === 'prep');
+  const cooldown = session.blocks.filter(b => COOLDOWN_ROLES.includes(b.role));
+  const main = session.blocks.filter(
+    b => b.role !== 'prep' && !COOLDOWN_ROLES.includes(b.role)
+  );
 
   const facts = [
     session.venue,
@@ -154,8 +177,9 @@ export function renderSession(session, { onReroll } = {}) {
           session.warnings.map(w => el('li', { text: w })))
       : null,
 
+    blockGroup('Prep', prep),
     blockGroup('Main work', main),
-    blockGroup('Mobility & core', mobility),
+    blockGroup('Cool-down', cooldown),
 
     el('div', { class: 'actions' }, [
       el('button', {
