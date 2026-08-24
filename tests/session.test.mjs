@@ -140,3 +140,87 @@ test('the same seed reproduces the same session', () => {
 test('prep leads SESSION_ORDER', () => {
   assert.equal(SESSION_ORDER[0], 'prep');
 });
+
+// --------------------------------------------------------------------------
+// Task 9: adversarial sweep -- sore joints, venue, ban lists
+// --------------------------------------------------------------------------
+
+// Deviation 4 under load: a hurt joint bans every exercise touching it.
+test('a hurt hip still yields a usable cool-down', () => {
+  for (let seed = 1; seed <= 40; seed++) {
+    const s = generate({
+      library: LIB, dayType: 'hypertrophy', seed, now: 1e12,
+      soreness: { hip: 'hurt' }
+    });
+    const statics = s.blocks.filter(b => b.role === 'mobility');
+    // Measured, not guessed: a hurt hip bans 4 of the 7 static stretches and
+    // every seed lands on exactly 3. So 3 is the real floor and >= 2 could not
+    // fail. The brief's `if (statics.length < 3)` branch was unreachable for
+    // this input -- the genuinely short cool-down is covered by the collapse
+    // test below, which does reach the warning.
+    assert.ok(statics.length >= 3,
+      `seed ${seed}: a hurt hip left ${statics.length} stretches`);
+    for (const b of s.blocks) {
+      const e = LIB.find(x => x.id === b.exerciseId);
+      assert.ok(!(e.joints || []).includes('hip'),
+        `${b.name} loads a hurt hip`);
+    }
+  }
+});
+
+test('the outdoor day still gets a split block', () => {
+  for (let seed = 1; seed <= 40; seed++) {
+    const s = generate({ library: LIB, dayType: 'aerobic-steady', seed, now: 1e12 });
+    assert.ok(s.blocks.some(b => b.role === 'prep'));
+    assert.ok(s.blocks.some(b => b.role === 'mobility'));
+    for (const b of s.blocks) {
+      const e = LIB.find(x => x.id === b.exerciseId);
+      assert.ok(e.venue === 'either' || e.venue === 'outdoor',
+        `${b.name} is gym-only on an outdoor day`);
+    }
+  }
+});
+
+test('the session never quietly loses its prep block to a ban list', () => {
+  // Ban four dynamic drills and check the block still fills.
+  const banned = LIB
+    .filter(e => e.modalities.includes('mobility-dynamic'))
+    .slice(0, 4).map(e => e.id);
+  const s = generate({
+    library: LIB, dayType: 'power', seed: 5, now: 1e12, profile: { banned }
+  });
+  assert.ok(s.blocks.filter(b => b.role === 'prep').length >= 3);
+});
+
+// Two hurt joints can collapse the static pool: hip appears in 4 of the 7
+// static stretches, thoracic in 2 more. hip+thoracic leaves exactly one. That
+// is thin, but the contract is that it is never SILENT -- a cool-down below
+// the sourced floor of 3 must say so. This is the case that actually reaches
+// the short-cool-down warning; the single hurt hip never does.
+test('a collapsed static pool is announced, never silently shipped', () => {
+  const COLLAPSING = [
+    ['hip', 'thoracic'], ['hip', 'ankle'], ['hip', 'shoulder'], ['hip', 'scapula']
+  ];
+  for (const [a, b] of COLLAPSING) {
+    for (let seed = 1; seed <= 20; seed++) {
+      const s = generate({
+        library: LIB, dayType: 'hypertrophy', seed, now: 1e12,
+        soreness: { [a]: 'hurt', [b]: 'hurt' }
+      });
+      const statics = s.blocks.filter(x => x.role === 'mobility');
+      assert.ok(statics.length >= 1,
+        `${a}+${b} seed ${seed}: cool-down vanished entirely`);
+      if (statics.length < 3) {
+        assert.ok(s.warnings.some(w => w.includes('static stretches')),
+          `${a}+${b} seed ${seed}: ${statics.length} stretches shipped silently`);
+      }
+      // The ban must hold no matter how thin the pool gets.
+      for (const blk of s.blocks) {
+        const e = LIB.find(x => x.id === blk.exerciseId);
+        const j = e.joints || [];
+        assert.ok(!j.includes(a) && !j.includes(b),
+          `${blk.name} loads a hurt joint (${a}/${b})`);
+      }
+    }
+  }
+});
