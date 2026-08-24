@@ -410,9 +410,10 @@ should follow immediately after.
 The three changes are independent in code but coupled through the time budget,
 so mobility goes first — it is what frees the minutes the ramps spend.
 
-1. **Mobility split** (§4.1, §4.2) — data tagging, then `buildMobilityCore`,
-   then `SESSION_ORDER` and `orderClass`. Self-contained; ships and is testable
-   on its own. Frees ~13 min.
+1. **Mobility split** (§4.1, §4.2) — **SHIPPED 2026-08-24.** Data tagging, then
+   `buildPrep` and `buildCooldown` (the single `buildMobilityCore` named here
+   split in two along with the block itself), then `SESSION_ORDER` and
+   `orderClass`. Self-contained; ships and is testable on its own. Frees ~13 min.
 2. **Warm-up ramps** (§4.3) — `buildRamp()`, `prescribe()` returns `setPlan`,
    `ui.js` renders it, volume accounting excludes warm-ups. Spends a variable
    share of the freed minutes: nothing on light days, more as the return ceiling
@@ -423,6 +424,11 @@ so mobility goes first — it is what frees the minutes the ramps spend.
 4. **New day types** (§4.5) — `isolation` and `plyometric` first, `mobility`
    after §4.1 lands. Last because each new day type must declare its targeted
    patterns for step 3's coverage rule, so step 3 must exist first.
+
+**Status, 2026-08-24: step 1 is shipped. Steps 2, 3 and 4 are unstarted.**
+Step 2 (warm-up ramps, §4.3) is the resume point. Step 3 stays blocked on open
+question 6 — the pattern-level weekly volume figure needs sourcing before §4.4
+can ship at all.
 
 Every step leaves the app shippable. Steps 1 and 2 change what a session
 contains; step 3 changes how many exercises arrive; step 4 changes what kinds of
@@ -559,3 +565,12 @@ clean while two real bugs sat in the code. Both layers are required.
 7. Olympic-derivative warm-up practice (2–3 sets of 3–5 reps at 25–50% 1RM) is
    `[corroborated]` from practitioner sources, not from a trial. It informs the
    `technical: 3` branch in §4.3.
+8. **The `mobility-static` pool is thin, and this is the next data job.**
+   Seven entries, with `hip` in four of them. A single hurt hip leaves exactly
+   three stretches — the sourced floor, with no margin at all — and two hurt
+   joints (hip+thoracic, hip+ankle, hip+shoulder, hip+scapula) collapse it to
+   one or two. The generator warns rather than shipping a short cool-down
+   silently, so this is a thinness problem and not a correctness bug. Widening
+   it needs sourced stretches, not invented ones. Deviation 4; measured at
+   task 9, 2026-08-24. Note that ruling C1's six recovered warm-up drills are
+   all *dynamic* and widen the prep pool instead — they do not help here.

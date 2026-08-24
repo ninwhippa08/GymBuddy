@@ -468,35 +468,59 @@ identity — never a real address, since the repo is public.
 
 **Phase 1 has been used in a gym. The feedback is in, and it invalidated three
 things.** See `docs/design-mobility-and-warmup.md` — approved in shape,
-revision 2, no code written yet.
+revision 2. **Step 1 of its build order shipped 2026-08-24; steps 2–4 have not
+been started.**
 
-**The immediate next step is an implementation plan for that document.** Nothing
-in it has been built.
+**The immediate next step is step 2 — warm-up ramps on loaded compounds,
+design §4.3.**
 
 What the gym session found, in the order it was found:
 
-1. **Mobility was prescribed by time, ~3 min per movement.** Nobody chose that
-   number — `buildMobilityCore` divides a block budget by the movement count.
-   Static stretches are legitimately time-dosed; dynamic drills are rep-dosed
-   and are harmed by excess volume. Design §4.1–4.2.
-2. **All mobility ran after the main work.** `SESSION_ORDER` ends with
-   `mobility` and `orderClass()` lumps mobility, core and rotate together, so
-   dynamic prep happened after the lifting it was meant to prepare for. This is
-   the finding with real injury relevance. Design §4.2.
+1. ~~**Mobility was prescribed by time, ~3 min per movement.**~~ — **done
+   2026-08-24.** The `mobility` modality split into `mobility-dynamic` (dosed
+   in reps) and `mobility-static` (dosed in seconds), and the library was
+   retagged. `loadLine` now prints `12 reps` for a drill and `30s hold` for a
+   stretch, with `per side` where the movement is unilateral. Basis §9,
+   discrepancy 4.
+2. ~~**All mobility ran after the main work.**~~ — **done 2026-08-24.** The one
+   block became two: a prep block of dynamic drills that runs first, and a
+   cool-down of static stretching and core that runs last. `SESSION_ORDER` and
+   `orderClass` sort on role, with no day-type branching, and the session screen
+   renders three groups — Prep, Main work, Cool-down. Basis §8, discrepancy 6.
 3. **Loaded lifts had no warm-up ramp at all.** Note the inconsistency this
    exposed: §5.2 already prescribes a progressive ramp for sprints. The
    principle was accepted and simply never applied to the barbell. Design §4.3.
+   **This is the resume point.**
 4. **The exercise count was unsourced.** Four slots on max-strength and power,
    five on hypertrophy, invented and then cited to §4.3 of this file — this
-   document citing itself. Design §4.4.
+   document citing itself. Design §4.4. **Still blocked** — see finding B below.
 
 Two constants in the *first* draft of that design were also invented and were
 caught in review: a fixed warm-up ladder, and a purely time-driven exercise
 count. Both are now derived. The lesson generalises — see the design doc's §8
 open questions, which lists what in it remains unsourced.
 
-Build order is design §4.6. Mobility first: it frees the ~13 min the ramps
-spend, and it ships on its own.
+#### Two live findings carried out of step 1
+
+**A. The static stretch pool is thin.** Seven `mobility-static` entries, with
+`hip` in four of them. A single hurt hip leaves exactly three stretches — the
+sourced floor, no margin — and two hurt joints collapse it to one or two. The
+generator warns rather than shipping a short cool-down silently, so this is a
+thinness problem and not a correctness bug, but it is the next data job. It
+needs sourced stretches, not invented ones. Design §8 open question 8.
+
+**B. Design §4.4 cannot ship yet.** It reads a pattern-level weekly volume
+share that is not sourced. The ~10-sets-per-week figure is `[verified]` for
+hypertrophy only; transferring it to max-strength and power patterns is
+`[unverified]`, and §4.4's coverage rule leans entirely on that transfer.
+Source it before building step 3. Design §8 open question 6.
+
+Also carried out of step 1: the session total is **63 min measured, not the 60
+the design arithmetic claimed** — see basis §9, discrepancy 7. The 60 is a
+target; 63 is what the floors actually cost in the worst case.
+
+Build order is design §4.6. Step 1 is done and it freed the ~13 min the ramps
+are about to spend.
 
 Still queued, unchanged by the above:
 

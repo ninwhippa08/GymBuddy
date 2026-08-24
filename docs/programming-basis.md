@@ -304,19 +304,78 @@ Derived jointly from the interference finding and standard practice of placing
 the most technical and most neurally demanding work while fresh:
 
 ```
-sprint / plyometric  →  power  →  max strength  →  hypertrophy
-      →  isolation  →  conditioning  →  mobility + core
+prep (dynamic drills)  →  sprint / plyometric  →  power  →  max strength
+      →  hypertrophy  →  isolation  →  conditioning
+      →  cool-down (static stretching + core)
 ```
+
+### Discrepancy 6 — dynamic preparation ran after the work it prepared for
+
+The ordering above originally placed all mobility work last, in a single block.
+The interference reasoning that puts stretching at the end (§6) applies to
+**static** stretching and to conditioning; it does not apply to dynamic drills.
+A drill whose purpose is to prepare the athlete for the main lift cannot run
+after the main lift. **[corroborated]**
+
+**Resolution: the block splits in two. Dynamic drills become a prep block that
+runs first; static stretching and core become a cool-down that runs last.**
+Implemented as `SESSION_ORDER` in `rules.js`.
 
 ---
 
 ## 9. Time budget
 
-- Gym session: **≤ 70 min total**
-- Main work: **≤ 45 min**
-- Mobility + core: **~25 min, mandatory, never randomised out**
-- Running / cardio: **uncapped** — prescribed by distance, time, or interval
-  structure
+Re-derived from per-movement doses rather than asserted. `TIME` in `rules.js`
+holds the same figures.
+
+| Item | Old | New | Constant |
+|---|---|---|---|
+| Prep block (dynamic drills) | — | 3 min | `PREP_MIN` |
+| Main work | 45 min | 45 min | `MAIN_WORK_MAX_MIN` |
+| Cool-down (static + core) | 25 min | 12 min | `COOLDOWN_MIN` |
+| **Gym session total** | **70 min** | **60 min** | `GYM_SESSION_TOTAL_MIN` |
+
+Running / cardio remains **uncapped** — prescribed by distance, time, or
+interval structure, not by a minute budget.
+
+The main-work budget is unchanged. The entire saving comes from dosing the
+mobility work in the unit its own source uses.
+
+### Discrepancy 4 — the mobility block was time-dosed throughout
+
+Static stretching is legitimately dosed by time. Dynamic drills are dosed by
+repetitions, and are actively harmed by excess volume. Prescribing both by
+duration made the dynamic drills wrong in **unit**, not merely in amount: a leg
+swing prescribed as "3 min" is not a small error inside a correct instruction,
+it is the wrong instruction. **[corroborated]**
+
+**Resolution: the `mobility` modality splits into `mobility-dynamic` (dosed in
+reps) and `mobility-static` (dosed in seconds).** See design §4.1.
+
+### Discrepancy 5 — the ~25 minute mobility budget had no source
+
+Every other number in this document carries a section reference and a
+provenance tag. The former §9 was a bare bullet list, and its 25-minute
+mobility figure traced to nothing. Re-derived from the per-movement doses
+above, the real cost is 11–15 min. **The 25-minute figure is withdrawn**, and
+is recorded here only so that its removal is not silent.
+
+### Discrepancy 7 — the re-derived total is a target, not a guarantee
+
+The arithmetic above (3 + 45 + 12 = 60) assumes the cool-down can always be
+packed inside 12 min. It cannot. `packCooldown` has a sourced floor of three
+static stretches and two core sets; once it has trimmed everything trimmable,
+that floor can still cost up to 14 min. **[measured]**
+
+Two independent sweeps agree: 80,000 sampled sessions, and a separate
+4,000-session deterministic sweep, both put the worst case at **63 min** — on
+max-strength, with power tying it. That case is 45 min of main work at the cap,
+3 min of prep at its floor, and a 14 min cool-down sitting over budget.
+
+**Resolution: 60 min is the design target; the honest ceiling is 63 min,
+carried as `FLOOR_OVERRUN_ALLOWANCE_MIN: 3`.** The allowance is measured rather
+than chosen — re-derive it by sweep if either floor changes, and do not round
+it up for headroom.
 
 ---
 

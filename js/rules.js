@@ -9,6 +9,9 @@
 //   [verified]     confirmed against the primary source
 //   [corroborated] confirmed via a practitioner summary of the primary source
 //   [unverified]   could not be checked; primary text paywalled
+//   [measured]     no source exists to check against; the figure comes from
+//                  sweeping generated sessions. Re-derive it by sweep -- never
+//                  by judgement, and never rounded up for headroom.
 
 // --------------------------------------------------------------------------
 // Vocabulary
