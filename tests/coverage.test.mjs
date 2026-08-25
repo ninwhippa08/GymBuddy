@@ -28,6 +28,11 @@ const SESSIONS_BEFORE_REPEAT = 16;
 // [unverified] -- a design floor, open question 1.
 const OPTIONS_PER_JOINT = 3;
 
+// Pools drawn by a TEMPLATE slot normally carry VARIETY. aerobic-steady does
+// not, and the reason is that VARIETY's premise fails there rather than that
+// variety would do harm. See design-library-expansion.md §3.2.
+const VARIETY_EXEMPT_MODALITIES = new Set(['aerobic-steady']);
+
 const JOINTS = [
   'hip', 'knee', 'ankle', 'lumbar', 'thoracic', 'shoulder', 'scapula',
   'elbow', 'wrist'
@@ -87,14 +92,16 @@ function buildPools() {
   const rows = [];
   for (const [dayType, template] of Object.entries(TEMPLATES)) {
     for (const slot of template) {
-      rows.push({ slot, venue: DAY_TYPES[dayType].venue, drawMin: 1, drawMax: 1 });
+      rows.push({ slot, venue: DAY_TYPES[dayType].venue, drawMin: 1, drawMax: 1,
+                  fromTemplate: true });
     }
   }
   for (const block of [PREP_BLOCK, COOLDOWN_BLOCK]) {
     for (const groups of Object.values(block)) {
       for (const g of groups) {
         for (const venue of ['gym', 'outdoor']) {
-          rows.push({ slot: g, venue, drawMin: g.count[0], drawMax: g.count[1] });
+          rows.push({ slot: g, venue, drawMin: g.count[0], drawMax: g.count[1],
+                      fromTemplate: false });
         }
       }
     }
@@ -115,11 +122,16 @@ function buildPools() {
     }
     const survival = full ? worst / full : 0;
 
-    const isMobility = MOBILITY_MODALITIES.has(r.slot.modality) ||
-                       r.slot.tier.includes('core');
+    // "Main-work pool" means a pool a TEMPLATE slot draws -- the work between
+    // the prep and the cool-down. Derived from where the slot came from, not
+    // from a list this file keeps. §3.2. The prep and cool-down pools adapt by
+    // repetition, and so does aerobic-steady, which is the one main-work pool
+    // the rule's premise does not fit.
+    const byRepetition = !r.fromTemplate ||
+                         VARIETY_EXEMPT_MODALITIES.has(r.slot.modality);
 
     const floor = survival > 0 ? Math.ceil(r.drawMin / survival) : null;
-    const variety = isMobility ? null : SESSIONS_BEFORE_REPEAT * r.drawMax;
+    const variety = byRepetition ? null : SESSIONS_BEFORE_REPEAT * r.drawMax;
     const need = Math.max(floor || 0, variety || 0);
 
     // Keep the venue that demands most of the pool.
@@ -127,7 +139,7 @@ function buildPools() {
     const rec = {
       key, venue: r.venue, drawMin: r.drawMin, drawMax: r.drawMax,
       full, worst, worstJoint, survival, floor, variety, need,
-      short: Math.max(0, need - full), isMobility,
+      short: Math.max(0, need - full), byRepetition, fromTemplate: r.fromTemplate,
       modality: r.slot.modality, tier: r.slot.tier
     };
     if (!prev || rec.short > prev.short) pools.set(key, rec);
@@ -190,6 +202,22 @@ test('a closed mobility pool covers every joint in its scope', () => {
   }
 });
 
+test('VARIETY applies to every main-work pool except the named exemptions', () => {
+  const exempt = POOLS
+    .filter(p => p.fromTemplate && p.variety === null)
+    .map(p => p.modality)
+    .sort();
+  assert.deepEqual(exempt, [...VARIETY_EXEMPT_MODALITIES].sort(),
+    'a main-work pool gained or lost its VARIETY target -- design §3.2 needs revisiting');
+
+  for (const p of POOLS) {
+    if (!p.fromTemplate) {
+      assert.equal(p.variety, null,
+        `${p.key} is a prep/cool-down pool and must not carry a VARIETY target`);
+    }
+  }
+});
+
 // Not an assertion -- the derived table, written out so the targets can be read
 // without running anything. §6.
 test('the derived matrix is written to docs/coverage-matrix.md', () => {
@@ -212,7 +240,8 @@ test('the derived matrix is written to docs/coverage-matrix.md', () => {
     lines.push(
       `| \`${p.key}\` | ${p.drawMax} | ${p.full} | ` +
       `${Math.round(p.survival * 100)}%${p.worstJoint ? ` (${p.worstJoint})` : ''} | ` +
-      `${p.floor ?? 'exempt'} | ${p.variety ?? 'coverage'} | ${p.need} | ${p.short} |`
+      `${p.floor ?? 'exempt'} | ${p.variety ?? (p.fromTemplate ? 'repetition' : 'coverage')} | ` +
+      `${p.need} | ${p.short} |`
     );
   }
   lines.push('', '## Joint coverage', '');

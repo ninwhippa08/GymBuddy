@@ -67,6 +67,42 @@ The rule is restricted to main work because its premise is novelty. Varying the
 stimulus is how strength, power and hypertrophy work keeps adapting. That
 premise does not hold everywhere — see 3.3.
 
+**Amended 2026-08-25: `aerobic-steady` is exempt from VARIETY.** It is the one
+main-work pool where the rule's premise fails, and the exemption is recorded here
+rather than applied quietly because it lowers a target.
+
+The honest reason is the *absence* of a basis, not evidence of harm — and that
+distinction matters, because it is weaker than the case made for stretching in
+3.3. A 2026 systematic review and meta-analysis of cross-training between running
+and cycling found **no statistically significant differences** in VO2max or
+running performance between mode-matched and cross-trained groups, with cycling
+substituted for 20–50% of running volume over 4–10 weeks. **[sourced]** Its
+authors are careful that this is an *absence of detected decline* rather than
+proof the modes are interchangeable, and note small, non-significant trends
+favouring whichever modality matched the test, consistent with training
+specificity.
+
+- Menges, T., Dindorf, C., Dully, J., & Fröhlich, M. (2026). Cross-training
+  between running and cycling: effects on VO2max and running performance — a
+  systematic review and meta-analysis. *Frontiers in Sports and Active Living*,
+  8, 1843803. https://doi.org/10.3389/fspor.2026.1843803
+
+So, unlike static stretching, there is no finding that rotating aerobic
+modalities would *defeat* the adaptation. What there is no finding for either is
+that **novelty drives** it — and novelty is the whole premise of VARIETY.
+Aerobic adaptation is driven by accumulated time at intensity, which a single
+movement delivers as well as sixteen. Applying a novelty rule to this pool was
+therefore an unexamined inheritance from the pools where the premise does hold.
+**[unverified]** — a design judgement, revisable if a basis for aerobic movement
+variety appears.
+
+There is a second, practical confirmation: **the movements do not exist.** Ruled
+honestly, outdoor steady-state locomotion offers about ten distinct movements,
+not sixteen. Reaching sixteen would mean entering "Long Run", "Recovery Jog" and
+"Progression Run" as separate rows — the same movement at three doses. That is
+discrepancy 5's failure exactly, and a rule that can only be satisfied by
+padding is a rule that has stopped meaning anything.
+
 ### 3.3 COVERAGE — mobility and core
 
 > Every joint **in the pool's declared scope** carries at least 3 options.
@@ -300,3 +336,13 @@ executable form of this document.
    never asks for more than 3; reconcile if that count is ever sourced.
 3. Whether `elbow` and `wrist` deserve `>= 3` rather than `>= 1` once the athlete
    has been training long enough to have an opinion.
+4. **`aerobic-steady` now has no numeric target at all, and that is a hole.**
+   It is FLOOR-exempt (every entry loads the knee, §5), VARIETY-exempt (§3.2),
+   and outside every COVERAGE scope, so all three rules pass it through and the
+   matrix reads `need 0`. Nothing would flag the pool shrinking back to two
+   entries. The rules as written have no clause for "a pool that adapts by
+   repetition but has no joints to cover", and inventing a number for it is the
+   one thing this document exists to prevent. **Left open deliberately.** The
+   plausible shapes are a mode-coverage rule (≥1 option per locomotion mode the
+   athlete can access) or simply a non-shrink ratchet; both need deciding, not
+   guessing.
