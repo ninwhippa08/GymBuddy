@@ -62,7 +62,18 @@ export const COEF_PROVENANCE = {
   "high-hang-clean"           : { coef: 0.82 , of: "power-clean"     , tag: 'unverified' },
   "snatch-pull"               : { coef: 1.15 , of: "snatch"          , tag: 'unverified' },
   "overhead-squat"            : { coef: 1.1  , of: "snatch"          , tag: 'unverified' },
-  "power-snatch"              : { coef: 1    , of: "snatch"          , tag: 'unverified' },
+  // RESOLVED 2026-08-25 by the athlete: the `snatch` root IS his power snatch,
+  // not a full squat snatch. So parity is definitional rather than a claim,
+  // and [verified] is right on its own terms -- for "what does his PR refer
+  // to" the primary source is him. This retires the ~14% overload risk raised
+  // in design 5.5, and it is the first entry to leave the backlog, so
+  // UNVERIFIED_BUDGET falls 30 -> 29.
+  //
+  // It also makes the three neighbours MORE coherent, not less: snatch-pull at
+  // 1.15 and overhead-squat at 1.10 of a POWER snatch land near 101% and 97%
+  // of a full snatch, which is where coaching guidance puts them. They stay
+  // unverified -- coherence is not a source -- but they no longer look odd.
+  "power-snatch"              : { coef: 1    , of: "snatch"          , tag: 'verified' },
   "hang-power-snatch"         : { coef: 0.9  , of: "snatch"          , tag: 'unverified' },
   "muscle-snatch"             : { coef: 0.65 , of: "snatch"          , tag: 'unverified' },
 };
@@ -70,4 +81,6 @@ export const COEF_PROVENANCE = {
 // The count of unsourced coefficients on the day the register was created.
 // This is a DEBT CEILING, not a target: it may fall, never rise. A new
 // loadable movement must arrive with a sourced coefficient.
-export const UNVERIFIED_BUDGET = 30;
+// Lowered 30 -> 29 on 2026-08-25 when power-snatch was resolved. This is the
+// ratchet working in the direction it was built for.
+export const UNVERIFIED_BUDGET = 29;

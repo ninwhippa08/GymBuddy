@@ -348,7 +348,30 @@ resolutions each need deciding rather than guessing: widen the slot's tier (a
 template change, which §2 puts outside this project); accept a lower repeat
 horizon for this one pool; or accept 13 and record why. See open question 5.
 
-### 5.5 `power-snatch` at 1.00 × `snatch` may prescribe ~14% too much
+### 5.5 `power-snatch` at 1.00 × `snatch` — RESOLVED 2026-08-25
+
+**The athlete's answer: the `snatch` root is his power snatch.** Parity is
+therefore definitional, the coefficient stands unchanged, and the ~14% overload
+described below never existed. Tagged `verified` in the register — for "what
+does his PR refer to", the primary source is him — which retires the first
+entry from the backlog and lowers `UNVERIFIED_BUDGET` from 30 to 29.
+
+It also makes the neighbours more coherent rather than less. `snatch-pull` at
+1.15 and `overhead-squat` at 1.10 of a *power* snatch land near 101% and 97% of
+a full snatch, which is where coaching guidance puts them. They stay
+`unverified` — coherence is not a source — but they no longer look odd, and
+that is mild corroboration that the root always meant a power snatch.
+
+One consequence left open: `ui.js` renders the card as `× Snatch PR`, which is
+now known to mean a power snatch. There is no PR-entry field in the app today,
+so nothing can be mis-entered, but the label should say `Power Snatch` if one
+is ever added. Recorded rather than changed — the root name is user-facing
+text and renaming it is not this project's business.
+
+The original finding follows, kept because the reasoning is what produced the
+question.
+
+#### Original finding
 
 Found while sourcing coefficients, and it is a **dose** finding rather than a
 pool one, so it is flagged rather than fixed.
@@ -483,8 +506,15 @@ executable form of this document.
    or accept 13 and say so. **Doing nothing is a valid choice here** — the
    matrix will keep printing `short 3` until someone decides, which is the
    correct behaviour for an open question.
-6. **What do the `snatch` and `power-clean` PR roots actually refer to?**
-   §5.5. `power-snatch` is priced at parity with `snatch` while the literature
-   says 0.88, so either the root means a power snatch or the app prescribes
-   ~14% too much on that lift. One answer from the athlete settles it, and it
-   moves weight on the bar, so it is the highest-value open question here.
+6. ~~What do the `snatch` and `power-clean` PR roots actually refer to?~~
+   **ANSWERED 2026-08-25: the `snatch` root is his power snatch.** §5.5. The
+   coefficient stands, the overload risk never existed, and the register lost
+   its first backlog entry. Left in the list rather than deleted, because a
+   question that got a real answer is worth as much as one still open.
+
+Also noted 2026-08-25: **question 4 and everything else on the running side is
+deferred at the athlete's request** — he has not yet analysed how the running
+programs are set, and would rather decide than be asked to guess. That covers
+`aerobic-steady`'s missing numeric target (question 4), the strides slot in
+§5.3, and the `locomotion` pools generally. Nothing is blocked by the wait; the
+lifting side is complete except question 5.

@@ -60,6 +60,16 @@ to dynamic-effort / velocity-based work, where the percentage refers to the
 *squat or bench* 1RM being moved fast. The NSCA percentages refer to the **power
 exercise's own 1RM** — a power clean at 80% of the power clean max.
 
+**What each PR root means, recorded 2026-08-25.** Five of the six are
+unambiguous: `back-squat`, `deadlift`, `bench-press`, `overhead-press` and
+`power-clean` name exactly the lift they are. **`snatch` is the exception and
+was ambiguous** — in weightlifting the bare word means the full squat snatch,
+and the library prices `power-snatch` at parity with it, which the literature
+puts at 0.88. **The athlete settled it: the `snatch` root is his POWER snatch.**
+The coefficient is therefore definitional and correct. Recorded here because it
+decides how much weight goes on the bar and nothing else in the repo said it.
+See design-library-expansion.md §5.5.
+
 This matters because `exercises.json` references Olympic lifts to their own PR
 (`power-clean`, `snatch`, `prCoef: 1.00`). Prescribing 60–80% against those
 references is materially lighter than the NSCA intends, so power days would
