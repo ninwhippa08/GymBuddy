@@ -244,3 +244,72 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .btn:active { transform: none; }
 }
+
+/* -------------------------------------------------------------------------
+   Card flip -- cues on the back. design-card-flip.md §5, §6
+   ------------------------------------------------------------------------- */
+
+/* The faces carry the padding now, so the card itself gives it up. */
+.block.has-cues { padding: 0; }
+
+.block-flip {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  /* Without a perspective the rotation reads as a horizontal squash rather
+     than a card turning over. */
+  perspective: 900px;
+}
+
+.block-inner {
+  /* Both faces sit in ONE grid cell, so the card is as tall as the taller of
+     them and the list never reflows mid-flip. Absolute positioning would clip
+     the back; leaving both in normal flow would make the page jump. §5. */
+  display: grid;
+  transform-style: preserve-3d;
+  transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+.block-flip.is-flipped .block-inner { transform: rotateY(180deg); }
+
+.block-face {
+  grid-area: 1 / 1;
+  padding: 16px;
+  backface-visibility: hidden;
+}
+
+.block-face.is-back { transform: rotateY(180deg); }
+
+.cue-list {
+  margin: 10px 0 0;
+  padding-left: 1.15em;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.cue {
+  font-size: 0.95rem;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+/* The card is a real control now, so its focus ring has to be visible. */
+.block-flip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+/* A 3D spin is a genuine vestibular trigger, and this app gets opened by
+   someone who is already tired. Swap instantly instead of turning. §6. */
+@media (prefers-reduced-motion: reduce) {
+  .block-inner { transition: none; }
+}
