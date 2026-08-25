@@ -60,3 +60,52 @@ test('a missing cuesFor is survivable -- the card just does not flip', () => {
   const li = blockCard(BLOCK, undefined);
   assert.equal(li.querySelector('button'), null);
 });
+
+// design-card-flip.md §6. backface-visibility is a paint-time trick: it hides a
+// face from the eye and leaves it in the accessibility tree and the tab order.
+// If aria-hidden does not move with the flip, a screen reader reads both faces.
+test('flipping toggles the class and every aria attribute with it', () => {
+  const li = blockCard(BLOCK, () => CUES);
+  const btn = li.querySelector('button.block-flip');
+  const front = li.querySelector('.is-front');
+  const back = li.querySelector('.is-back');
+
+  assert.equal(btn.classList.contains('is-flipped'), false);
+  assert.equal(btn.getAttribute('aria-pressed'), 'false');
+  assert.equal(back.getAttribute('aria-hidden'), 'true');
+  assert.match(btn.getAttribute('aria-label'), /show cues/);
+
+  btn.dispatch('click');
+
+  assert.equal(btn.classList.contains('is-flipped'), true);
+  assert.equal(btn.getAttribute('aria-pressed'), 'true');
+  assert.equal(front.getAttribute('aria-hidden'), 'true');
+  assert.equal(back.getAttribute('aria-hidden'), 'false');
+  assert.match(btn.getAttribute('aria-label'), /hide cues/);
+});
+
+test('flipping back restores every attribute', () => {
+  const li = blockCard(BLOCK, () => CUES);
+  const btn = li.querySelector('button.block-flip');
+  const front = li.querySelector('.is-front');
+  const back = li.querySelector('.is-back');
+
+  btn.dispatch('click');
+  btn.dispatch('click');
+
+  assert.equal(btn.classList.contains('is-flipped'), false);
+  assert.equal(btn.getAttribute('aria-pressed'), 'false');
+  assert.equal(front.getAttribute('aria-hidden'), 'false');
+  assert.equal(back.getAttribute('aria-hidden'), 'true');
+  assert.match(btn.getAttribute('aria-label'), /show cues/);
+});
+
+test('each card flips independently', () => {
+  const a = blockCard(BLOCK, () => CUES);
+  const b = blockCard(
+    { ...BLOCK, exerciseId: 'front-squat', name: 'Front Squat' }, () => CUES
+  );
+  a.querySelector('button.block-flip').dispatch('click');
+  assert.equal(a.querySelector('button.block-flip').classList.contains('is-flipped'), true);
+  assert.equal(b.querySelector('button.block-flip').classList.contains('is-flipped'), false);
+});
