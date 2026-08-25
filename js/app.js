@@ -56,8 +56,16 @@ function showSession({ reroll = false } = {}) {
     commitSession(session);
   }
 
+  // The library is already in memory; the cues ride along with it rather than
+  // being copied into every saved session. design-card-flip.md §4.
+  const cuesFor = id => {
+    const e = library.find(x => x.id === id);
+    return e && e.cues && e.cues.length ? e.cues : null;
+  };
+
   mount(root, renderSession(session, {
-    onReroll: () => showSession({ reroll: true })
+    onReroll: () => showSession({ reroll: true }),
+    cuesFor
   }));
 }
 

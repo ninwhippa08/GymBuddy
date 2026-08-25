@@ -905,6 +905,13 @@ For `ninety-ninety-hip-switch`:
 Run: `node --test tests/*.test.mjs`
 Expected: PASS — the guard accepts all three.
 
+> **Trap, measured 2026-08-24.** Do NOT rewrite the file with
+> `JSON.stringify(data, null, 2)`. The committed file uses a more compact
+> layout, so a full re-serialise reformats all 186 entries -- a 4,621-line
+> diff for three additions. Harmless here because step 7 reverts it, but the
+> BACKFILL must edit entries in place or every cue commit becomes
+> unreviewable.
+
 - [ ] **Step 4: Serve the app**
 
 ```bash
