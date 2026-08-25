@@ -68,7 +68,8 @@ const CLOSED_POOLS = [
   'secondary+accessory :: sprint :: sprint',
   'primary+secondary :: jump/throw :: power',
   'primary :: squat/hinge/push-h/push-v/pull-v :: max-strength',
-  'accessory :: lunge/carry/rotate :: hypertrophy'
+  'accessory :: lunge/carry/rotate :: hypertrophy',
+  'primary+secondary :: squat/push-h/push-v :: power'
 ];
 
 // ---------------------------------------------------------------------------
