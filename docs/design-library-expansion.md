@@ -299,6 +299,11 @@ New entries use the existing schema unchanged. Rules for authoring:
   (`back-squat`, `deadlift`, `bench-press`, `overhead-press`, `power-clean`,
   `snatch`) and a `prCoef`. **A `prCoef` is a dose and carries a provenance tag.
   The movement itself does not** — an exercise is a name, not a claim.
+  **Enforced since 2026-08-25** by `tests/coef-provenance.mjs` and
+  `tests/coefficients.test.mjs`. Until that day this rule had never been
+  applied and all 30 coefficient claims were unsourced — see basis
+  discrepancy 8. New loadable movements must arrive with a sourced
+  coefficient; the backlog is frozen by a budget that only falls.
 - `requiresMeasuredGround` stays opt-in; it removes an entry from every pool.
 
 Guards, as tests:

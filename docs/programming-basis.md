@@ -430,3 +430,55 @@ This file encodes published population-level guidelines. It cannot account for
 one specific knee or shoulder. The transition-period paper in §3 is worth showing
 to a physio or S&C coach once, because individual injury history is the one input
 this application structurally cannot provide.
+
+### Discrepancy 8 — the load coefficients were never sourced, and the rule saying they must be was never applied
+
+`design-library-expansion.md` §8 states plainly: "A `prCoef` is a dose and
+carries a provenance tag. The movement itself does not." **On 2026-08-25 that
+rule had never once been applied.** All **30** coefficient claims in the library
+had no provenance record of any kind — no field on the entry, nothing in any
+document, nothing in the tests.
+
+This is the project's signature failure, discrepancy 5's exact shape, sitting in
+the one place it matters most. `prCoef` is the multiplier from a held PR to the
+movement actually being prescribed, so a wrong coefficient does not produce a
+vague instruction — **it puts the wrong weight on the bar**, against college
+PRs, for an athlete returning after years off. Every value is *plausible*, which
+is precisely why none of them was ever questioned.
+
+**Eight of the thirty are above 1.00**, and those are the ones to source first,
+because an error there prescribes *more* than the reference PR rather than less:
+
+| movement | coefficient | priced off |
+|---|---|---|
+| `split-jerk` | 1.55 | `overhead-press` |
+| `push-jerk` | 1.45 | `overhead-press` |
+| `push-press` | 1.30 | `overhead-press` |
+| `rack-pull` | 1.15 | `deadlift` |
+| `clean-pull` | 1.15 | `power-clean` |
+| `snatch-pull` | 1.15 | `snatch` |
+| `overhead-squat` | 1.10 | `snatch` |
+| `trap-bar-deadlift` | 1.05 | `deadlift` |
+
+Three further claims sit at exactly 1.00 and are easy to mistake for
+definitional roots — `sumo-deadlift`, `clean-high-pull` and `power-snatch`
+each assert *parity* with their reference, which is a claim like any other.
+
+**Resolution: the debt is registered and frozen, not silently carried.**
+`tests/coef-provenance.mjs` records every coefficient with its reference and a
+tag, and `tests/coefficients.test.mjs` asserts four things: every claim in the
+library is registered, the register names nothing that has been deleted, the
+register's numbers still match the library's (a sidecar's whole risk is drift),
+and the count of `unverified` coefficients never rises above the debt recorded
+on the day the register was created. All thirty start `unverified` because that
+is the honest state. `UNVERIFIED_BUDGET` falls as the backlog is worked off and
+is never raised, so **a movement added tomorrow must arrive with a sourced
+coefficient rather than joining the backlog.**
+
+The register is test-side rather than a new schema field, for the same reason
+the cue guard is: the library is authored in this repo and gated by this suite,
+so a coefficient cannot reach a user without passing through it — and it keeps
+Project A out of the schema, which design §2 requires.
+
+**Not resolved: the thirty numbers themselves are still unsourced.** Registering
+a debt is not paying it. This is the largest open item in the project.
