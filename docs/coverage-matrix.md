@@ -6,7 +6,7 @@ running the suite.
 
 - `SESSIONS_BEFORE_REPEAT` = 16 (athlete's preference)
 - `OPTIONS_PER_JOINT` = 3 ([unverified] design floor)
-- library holds 186 entries
+- library holds 198 entries
 - closed pools: mobility :: mobility :: mobility-static
 
 | pool | draw | have | survival | floor | variety | need | short |
@@ -18,7 +18,6 @@ running the suite.
 | `primary+secondary :: squat/push-h/push-v :: power` | 1 | 9 | 22% (hip) | 5 | 16 | 16 | 7 |
 | `primary+secondary :: jump/throw :: power` | 1 | 10 | 20% (hip) | 5 | 16 | 16 | 6 |
 | `accessory :: lunge/carry/rotate :: hypertrophy` | 1 | 12 | 25% (hip) | 4 | 16 | 16 | 4 |
-| `mobility :: mobility :: mobility-static` | 4 | 6 | 33% (hip) | 9 | coverage | 9 | 3 |
 | `primary :: squat/hinge/push-h/push-v/pull-v :: max-strength` | 1 | 14 | 29% (hip) | 4 | 16 | 16 | 2 |
 | `primary+secondary :: (any) :: max-strength` | 1 | 32 | 41% (hip) | 3 | 16 | 16 | 0 |
 | `secondary+accessory :: (any) :: hypertrophy` | 1 | 63 | 57% (elbow) | 2 | 16 | 16 | 0 |
@@ -26,18 +25,19 @@ running the suite.
 | `primary+secondary :: (any) :: hypertrophy` | 1 | 26 | 42% (lumbar) | 3 | 16 | 16 | 0 |
 | `accessory :: (any) :: isolation` | 1 | 34 | 62% (shoulder) | 2 | 16 | 16 | 0 |
 | `mobility :: mobility :: mobility-dynamic` | 4 | 12 | 50% (hip) | 6 | coverage | 6 | 0 |
+| `mobility :: mobility :: mobility-static` | 4 | 19 | 58% (hip) | 6 | coverage | 6 | 0 |
 | `core :: core/rotate :: (any)` | 2 | 16 | 0% (lumbar) | exempt | coverage | 0 | 0 |
 
 ## Joint coverage
 
 | pool | hip | knee | ankle | lumbar | thoracic | shoulder | scapula | elbow | wrist |
 |---|---|---|---|---|---|---|---|---|---|
-| `mobility-static` (7) | 4 | **2** | **2** | **1** | **2** | **2** | **1** | 0· | 0· |
+| `mobility-static` (19) | 8 | 6 | 4 | 4 | 5 | 5 | 4 | 1· | 0· |
 | `mobility-dynamic` (12) | 6 | **0** | **2** | **1** | 4 | 4 | 3 | 0· | 0· |
 | `core` (16) | 9 | 0· | 0· | 16 | **2** | 10· | 1· | 0· | 0· |
 
 `**n**` is below target. `n·` is outside that pool's scope.
 
-Raw shortfall across all pools: **57** (pools overlap, so an
+Raw shortfall across all pools: **54** (pools overlap, so an
 entry can close more than one).
 

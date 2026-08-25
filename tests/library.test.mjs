@@ -16,15 +16,28 @@ test('the bare "mobility" modality no longer exists anywhere', () => {
     'these entries still carry the pre-split modality');
 });
 
+const splitTags = e => e.modalities.filter(
+  m => m === 'mobility-dynamic' || m === 'mobility-static'
+);
+
 test('every mobility-pattern entry carries exactly one split tag', () => {
   const mob = EX.filter(e => e.pattern === 'mobility');
-  assert.equal(mob.length, 19, 'the mobility pattern should hold 19 entries');
+  // No hardcoded count here any more. It said 19 and the pool is now 31, and a
+  // number every authoring commit has to edit is a number nobody reads. The
+  // invariant was never the size -- it is the tagging, which is now asserted
+  // both ways round and cannot be satisfied by editing a total.
+  assert.ok(mob.length > 0, 'the mobility pattern is empty');
   for (const e of mob) {
-    const tags = e.modalities.filter(
-      m => m === 'mobility-dynamic' || m === 'mobility-static'
-    );
-    assert.equal(tags.length, 1,
-      `${e.id} should carry exactly one of dynamic/static, has ${tags.length}`);
+    assert.equal(splitTags(e).length, 1,
+      `${e.id} should carry exactly one of dynamic/static, has ${splitTags(e).length}`);
+  }
+  // The reverse direction, which the count was standing in for: nothing outside
+  // the mobility pattern may claim a split tag and quietly join those pools.
+  for (const e of EX) {
+    if (splitTags(e).length) {
+      assert.equal(e.pattern, 'mobility',
+        `${e.id} carries a split tag but its pattern is "${e.pattern}"`);
+    }
   }
 });
 

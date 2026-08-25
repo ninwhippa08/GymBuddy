@@ -56,7 +56,7 @@ const FLOOR_EXEMPT = new Set([
 // authoring commit becomes permanent. Empty until the first pool is closed --
 // the alternative, a suite left red for the length of the project, would hide
 // every regression while it ran.
-const CLOSED_POOLS = [];
+const CLOSED_POOLS = ['mobility :: mobility :: mobility-static'];
 
 // ---------------------------------------------------------------------------
 // Derivation

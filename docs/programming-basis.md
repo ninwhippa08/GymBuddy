@@ -367,15 +367,27 @@ packed inside 12 min. It cannot. `packCooldown` has a sourced floor of three
 static stretches and two core sets; once it has trimmed everything trimmable,
 that floor can still cost up to 14 min. **[measured]**
 
-Two independent sweeps agree: 80,000 sampled sessions, and a separate
+Two independent sweeps agreed: 80,000 sampled sessions, and a separate
 4,000-session deterministic sweep, both put the worst case at **63 min** — on
 max-strength, with power tying it. That case is 45 min of main work at the cap,
 3 min of prep at its floor, and a 14 min cool-down sitting over budget.
 
-**Resolution: 60 min is the design target; the honest ceiling is 63 min,
-carried as `FLOOR_OVERRUN_ALLOWANCE_MIN: 3`.** The allowance is measured rather
+**Resolution: 60 min is the design target; the honest ceiling is 64 min,
+carried as `FLOOR_OVERRUN_ALLOWANCE_MIN: 4`.** The allowance is measured rather
 than chosen — re-derive it by sweep if either floor changes, and do not round
 it up for headroom.
+
+**Re-derived 2026-08-24: 63 → 64.** Closing the `mobility-static` pool took it
+from 7 entries to 19, and 7 of the new stretches are per-side. The `sides`
+multiplier in `estimateMinutes` doubles those, so a cool-down drawing several
+unilateral stretches reaches a minute past what the old pool could. 40,000
+deterministic sessions (4 day types × 5 ramp weeks × 2,000 seeds) put the new
+worst case at 64 min on max-strength, and the tail is thin: 63 min ×38,
+64 min ×4 out of 40,000.
+
+This is the allowance behaving as designed rather than a problem: it is a
+measured consequence of the pool, and it will move again as the remaining pools
+are closed. Re-derive it at each pool boundary; do not pre-emptively pad it.
 
 ---
 

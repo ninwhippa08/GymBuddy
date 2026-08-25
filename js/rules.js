@@ -312,5 +312,15 @@ export const TIME = Object.freeze({
   // floor. This constant is that measured 3 min overrun, named so the
   // duration ceiling test can state its real tolerance instead of asserting
   // the unattainable 60. Re-derive by sweep, do not round up for headroom.
-  FLOOR_OVERRUN_ALLOWANCE_MIN: 3
+  //
+  // RE-DERIVED 2026-08-24, from 3 to 4. Closing the mobility-static pool took
+  // it from 7 entries to 19, and 7 of the new stretches are per-side. The
+  // `sides` multiplier in estimateMinutes doubles those, so a cool-down that
+  // draws several unilateral stretches now costs a minute more than the old
+  // pool could reach. 40,000 deterministic sessions (4 day types x 5 ramp
+  // weeks x 2,000 seeds) put the new worst case at 64 min on max-strength,
+  // and only 4 sessions reach it: 63 min x38, 64 min x4.
+  // This number moves with the pool. Expect to re-derive it again as the
+  // remaining pools are closed. design-library-expansion.md.
+  FLOOR_OVERRUN_ALLOWANCE_MIN: 4
 });
