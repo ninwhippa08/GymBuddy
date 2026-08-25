@@ -40,7 +40,7 @@
       "loadable": true, "prRef": "back-squat", "prCoef": 0.90,
       "joints": ["knee","hip","lumbar"], "equipment": ["safety-bar","rack"], "venue": "gym",
       "cnsCost": 3, "technical": 2, "unilateral": false,
-      "modalities": ["max-strength","hypertrophy"] },
+      "modalities": ["max-strength","hypertrophy","power"] },
 
     { "id": "overhead-squat", "name": "Overhead Squat", "pattern": "squat", "tier": "secondary",
       "loadable": true, "prRef": "snatch", "prCoef": 1.10,
@@ -292,7 +292,7 @@
       "loadable": true, "prRef": "bench-press", "prCoef": 0.90,
       "joints": ["shoulder","elbow"], "equipment": ["barbell","bench","rack"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": false,
-      "modalities": ["max-strength","hypertrophy"] },
+      "modalities": ["max-strength","hypertrophy","power"] },
 
     { "id": "floor-press", "name": "Floor Press", "pattern": "push-h", "tier": "secondary",
       "loadable": true, "prRef": "bench-press", "prCoef": 0.92,
@@ -323,6 +323,14 @@
       "joints": ["shoulder","elbow","scapula"], "equipment": ["bodyweight"], "venue": "either",
       "cnsCost": 1, "technical": 1, "unilateral": false,
       "modalities": ["hypertrophy","interval"] },
+
+    { "id": "depth-push-up", "name": "Depth Push-Up", "pattern": "push-h", "tier": "secondary",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["shoulder","elbow","wrist"], "equipment": ["box","bodyweight"], "venue": "gym",
+      "cnsCost": 3, "technical": 3, "unilateral": false,
+      "contactsPerRep": 0, "plyoIntensity": "high",
+      "cues": ["Start with a hand on each of two low boxes and drop to the floor between them.","Catch the fall and drive back up onto the boxes in one motion.","Stay rigid -- the hips must not sag as you land."],
+      "modalities": ["power","plyometric"] },
 
     { "id": "plyo-push-up", "name": "Plyometric Push-Up", "pattern": "push-h", "tier": "secondary",
       "loadable": false, "prRef": null, "prCoef": null,

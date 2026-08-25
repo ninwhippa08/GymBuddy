@@ -103,6 +103,29 @@ not sixteen. Reaching sixteen would mean entering "Long Run", "Recovery Jog" and
 discrepancy 5's failure exactly, and a rule that can only be satisfied by
 padding is a rule that has stopped meaning anything.
 
+**Amended 2026-08-25: for the two dynamic-effort pools, VARIETY's premise is
+sourced rather than assumed.** Working the `power` pools turned up the opposite
+of the aerobic-steady case. The dynamic effort method — submaximal load moved at
+maximal velocity, to train rate of force development — is *built* on rotating the
+variation: a three-week wave, after which the bar type, band tension or
+percentage changes to supply a new stimulus, and upper-body work rotates grip
+within the session. **[sourced]** So for `squat/push-h/push-v :: power` and
+`hinge/pull-h :: power`, novelty is not an inherited assumption; it is the
+method. `16 x drawMax` stands with no exemption argument to answer.
+
+- Westside Barbell, *The WSBB Guide to Dynamic Effort Training*.
+  https://www.westside-barbell.com/blogs/the-blog/the-wsbb-guide-to-dynamic-effort-training
+- GymAware, *The complete guide to Dynamic Effort Method*.
+  https://gymaware.com/the-complete-guide-to-dynamic-effort-method/
+
+The same source closed part of the gap without authoring anything. Bar-type and
+grip rotation are named variations, and the library already held both:
+`safety-bar-squat` and `close-grip-bench-press` were tagged `max-strength` and
+`hypertrophy` only. Tagged `power` on 2026-08-25 — the pool was short on tagging,
+not moves, the same finding as `8ce9c70`. `floor-press` and `incline-bench-press`
+were considered and **not** tagged: they are range-of-motion variants, which is
+not one of the three rotations the source names.
+
 ### 3.3 COVERAGE — mobility and core
 
 > Every joint **in the pool's declared scope** carries at least 3 options.

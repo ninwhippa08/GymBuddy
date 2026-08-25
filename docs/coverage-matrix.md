@@ -6,14 +6,14 @@ running the suite.
 
 - `SESSIONS_BEFORE_REPEAT` = 16 (athlete's preference)
 - `OPTIONS_PER_JOINT` = 3 ([unverified] design floor)
-- library holds 227 entries
+- library holds 228 entries
 - closed pools: mobility :: mobility :: mobility-static, mobility :: mobility :: mobility-dynamic, core :: core/rotate :: (any), secondary+accessory :: sprint :: sprint, primary+secondary :: jump/throw :: power
 
 | pool | draw | have | survival | floor | variety | need | short |
 |---|---|---|---|---|---|---|---|
 | `primary :: hinge/pull-h :: power` | 1 | 9 | 0% (hip) | exempt | 16 | 16 | 7 |
-| `primary+secondary :: squat/push-h/push-v :: power` | 1 | 9 | 22% (hip) | 5 | 16 | 16 | 7 |
 | `primary :: squat/hinge/push-h/push-v/pull-v :: hypertrophy` | 1 | 10 | 30% (lumbar) | 4 | 16 | 16 | 6 |
+| `primary+secondary :: squat/push-h/push-v :: power` | 1 | 12 | 33% (hip) | 3 | 16 | 16 | 4 |
 | `accessory :: lunge/carry/rotate :: hypertrophy` | 1 | 12 | 25% (hip) | 4 | 16 | 16 | 4 |
 | `primary :: squat/hinge/push-h/push-v/pull-v :: max-strength` | 1 | 14 | 29% (hip) | 4 | 16 | 16 | 2 |
 | `primary+secondary :: (any) :: max-strength` | 1 | 32 | 41% (hip) | 3 | 16 | 16 | 0 |
@@ -38,6 +38,6 @@ running the suite.
 
 `**n**` is below target. `n·` is outside that pool's scope.
 
-Raw shortfall across all pools: **26** (pools overlap, so an
+Raw shortfall across all pools: **23** (pools overlap, so an
 entry can close more than one).
 
