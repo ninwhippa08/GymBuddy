@@ -105,7 +105,7 @@ export function volumeLine(block) {
 // Blocks
 // --------------------------------------------------------------------------
 
-function blockCard(block) {
+export function blockCard(block, cuesFor) {
   const volume = volumeLine(block);
 
   // The effort cue is already the headline for contact-less explosive work;
@@ -116,7 +116,7 @@ function blockCard(block) {
   if (block.effort && !heroIsEffort) meta.push(block.effort);
   if (block.optional) meta.push('optional');
 
-  return el('li', { class: 'block' }, [
+  const front = el('div', { class: 'block-face is-front' }, [
     el('div', { class: 'block-head' }, [
       el('h3', { class: 'block-name', text: block.name }),
       volume ? el('span', { class: 'block-volume', text: volume }) : null
@@ -134,13 +134,52 @@ function blockCard(block) {
       ? el('p', { class: 'block-meta', text: meta.filter(Boolean).join(' · ') })
       : null
   ]);
+
+  const cues = typeof cuesFor === 'function' ? cuesFor(block.exerciseId) : null;
+
+  // No cues yet means no flip and no affordance, rather than a card that turns
+  // over to an empty back. design-card-flip.md §7.
+  if (!cues || !cues.length) return el('li', { class: 'block' }, front);
+
+  const back = el('div', { class: 'block-face is-back', 'aria-hidden': 'true' }, [
+    el('h3', { class: 'block-name', text: block.name }),
+    el('ul', { class: 'cue-list' }, cues.map(c => el('li', { class: 'cue', text: c })))
+  ]);
+
+  const inner = el('div', { class: 'block-inner' }, [front, back]);
+
+  // A real button, so keyboard access costs nothing and needs no extra code.
+  // It holds no interactive descendants, so the nesting is legal.
+  const btn = el('button', {
+    class: 'block-flip',
+    type: 'button',
+    'aria-pressed': 'false',
+    'aria-label': `${block.name} — show cues`
+  }, inner);
+
+  // The one handler ui.js owns. It is presentational: it toggles a class on
+  // the node it was just given and touches nothing outside this card, so the
+  // "app.js does the wiring" rule in the file header is intact.
+  btn.addEventListener('click', () => {
+    const flipped = btn.classList.toggle('is-flipped');
+    btn.setAttribute('aria-pressed', String(flipped));
+    // backface-visibility hides a face visually and leaves it in the a11y tree
+    // and the tab order, so the turned-away face is hidden explicitly.
+    front.setAttribute('aria-hidden', String(flipped));
+    back.setAttribute('aria-hidden', String(!flipped));
+    btn.setAttribute('aria-label', `${block.name} — ${flipped ? 'hide' : 'show'} cues`);
+  });
+
+  return el('li', { class: 'block has-cues' }, btn);
 }
 
-function blockGroup(title, blocks) {
+function blockGroup(title, blocks, cuesFor) {
   if (!blocks.length) return null;
   return el('section', { class: 'group' }, [
     el('h2', { class: 'group-title', text: title }),
-    el('ul', { class: 'block-list' }, blocks.map(blockCard))
+    // NOT blocks.map(blockCard) -- map passes the index as the second argument,
+    // which would arrive where cuesFor belongs.
+    el('ul', { class: 'block-list' }, blocks.map(b => blockCard(b, cuesFor)))
   ]);
 }
 
@@ -148,7 +187,7 @@ function blockGroup(title, blocks) {
 // Session screen
 // --------------------------------------------------------------------------
 
-export function renderSession(session, { onReroll } = {}) {
+export function renderSession(session, { onReroll, cuesFor } = {}) {
   // Three groups, not two. Prep and cool-down do different jobs at opposite
   // ends of the session, and one "Mobility & core" heading hid that.
   // design 4.2, discrepancy 6.
@@ -177,9 +216,9 @@ export function renderSession(session, { onReroll } = {}) {
           session.warnings.map(w => el('li', { text: w })))
       : null,
 
-    blockGroup('Prep', prep),
-    blockGroup('Main work', main),
-    blockGroup('Cool-down', cooldown),
+    blockGroup('Prep', prep, cuesFor),
+    blockGroup('Main work', main, cuesFor),
+    blockGroup('Cool-down', cooldown, cuesFor),
 
     el('div', { class: 'actions' }, [
       el('button', {
