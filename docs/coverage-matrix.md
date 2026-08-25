@@ -6,22 +6,22 @@ running the suite.
 
 - `SESSIONS_BEFORE_REPEAT` = 16 (athlete's preference)
 - `OPTIONS_PER_JOINT` = 3 ([unverified] design floor)
-- library holds 235 entries
-- closed pools: mobility :: mobility :: mobility-static, mobility :: mobility :: mobility-dynamic, core :: core/rotate :: (any), secondary+accessory :: sprint :: sprint, primary+secondary :: jump/throw :: power, primary :: squat/hinge/push-h/push-v/pull-v :: max-strength, accessory :: lunge/carry/rotate :: hypertrophy, primary+secondary :: squat/push-h/push-v :: power
+- library holds 239 entries
+- closed pools: mobility :: mobility :: mobility-static, mobility :: mobility :: mobility-dynamic, core :: core/rotate :: (any), secondary+accessory :: sprint :: sprint, primary+secondary :: jump/throw :: power, primary :: squat/hinge/push-h/push-v/pull-v :: max-strength, accessory :: lunge/carry/rotate :: hypertrophy, primary+secondary :: squat/push-h/push-v :: power, primary :: squat/hinge/push-h/push-v/pull-v :: hypertrophy
 
 | pool | draw | have | survival | floor | variety | need | short |
 |---|---|---|---|---|---|---|---|
-| `primary :: hinge/pull-h :: power` | 1 | 9 | 0% (hip) | exempt | 16 | 16 | 7 |
-| `primary :: squat/hinge/push-h/push-v/pull-v :: hypertrophy` | 1 | 10 | 30% (lumbar) | 4 | 16 | 16 | 6 |
-| `primary :: squat/hinge/push-h/push-v/pull-v :: max-strength` | 1 | 16 | 25% (hip) | 4 | 16 | 16 | 0 |
-| `primary+secondary :: (any) :: max-strength` | 1 | 34 | 38% (hip) | 3 | 16 | 16 | 0 |
-| `secondary+accessory :: (any) :: hypertrophy` | 1 | 70 | 54% (hip) | 2 | 16 | 16 | 0 |
-| `accessory :: lunge/hinge/pull-h/carry :: hypertrophy` | 1 | 28 | 46% (hip) | 3 | 16 | 16 | 0 |
+| `primary :: hinge/pull-h :: power` | 1 | 10 | 0% (hip) | exempt | 16 | 16 | 6 |
+| `primary :: squat/hinge/push-h/push-v/pull-v :: max-strength` | 1 | 20 | 30% (hip) | 4 | 16 | 16 | 0 |
+| `primary+secondary :: (any) :: max-strength` | 1 | 37 | 41% (hip) | 3 | 16 | 16 | 0 |
+| `secondary+accessory :: (any) :: hypertrophy` | 1 | 68 | 56% (hip) | 2 | 16 | 16 | 0 |
+| `accessory :: lunge/hinge/pull-h/carry :: hypertrophy` | 1 | 27 | 48% (hip) | 3 | 16 | 16 | 0 |
 | `primary+secondary :: jump/throw :: power` | 1 | 16 | 19% (hip) | 6 | 16 | 16 | 0 |
 | `primary+secondary :: squat/push-h/push-v :: power` | 1 | 16 | 25% (shoulder) | 4 | 16 | 16 | 0 |
-| `primary+secondary :: (any) :: hypertrophy` | 1 | 31 | 45% (hip) | 3 | 16 | 16 | 0 |
+| `primary :: squat/hinge/push-h/push-v/pull-v :: hypertrophy` | 1 | 16 | 38% (hip) | 3 | 16 | 16 | 0 |
+| `primary+secondary :: (any) :: hypertrophy` | 1 | 36 | 44% (hip) | 3 | 16 | 16 | 0 |
 | `accessory :: lunge/carry/rotate :: hypertrophy` | 1 | 17 | 24% (hip) | 5 | 16 | 16 | 0 |
-| `accessory :: (any) :: isolation` | 1 | 35 | 60% (shoulder) | 2 | 16 | 16 | 0 |
+| `accessory :: (any) :: isolation` | 1 | 34 | 59% (shoulder) | 2 | 16 | 16 | 0 |
 | `primary+secondary+accessory :: locomotion :: aerobic-steady` | 1 | 10 | 0% (knee) | exempt | repetition | 0 | 0 |
 | `secondary+accessory :: sprint :: sprint` | 1 | 16 | 0% (ankle) | exempt | 16 | 16 | 0 |
 | `mobility :: mobility :: mobility-dynamic` | 4 | 19 | 42% (hip) | 8 | coverage | 8 | 0 |
@@ -38,6 +38,6 @@ running the suite.
 
 `**n**` is below target. `n·` is outside that pool's scope.
 
-Raw shortfall across all pools: **13** (pools overlap, so an
+Raw shortfall across all pools: **6** (pools overlap, so an
 entry can close more than one).
 

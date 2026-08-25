@@ -54,6 +54,34 @@
       "cnsCost": 2, "technical": 2, "unilateral": false,
       "modalities": ["max-strength","hypertrophy"] },
 
+    { "id": "snatch-grip-deadlift", "name": "Snatch-Grip Deadlift", "pattern": "hinge", "tier": "primary",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["hip","knee","lumbar","thoracic","scapula"], "equipment": ["barbell","plates"], "venue": "gym",
+      "cnsCost": 3, "technical": 2, "unilateral": false,
+      "cues": ["Grip the bar wide, at the rings, so the hips start lower.","Chest up and shoulders pulled back before the bar moves.","Expect a lot less weight than a normal deadlift -- that is the point."],
+      "modalities": ["hypertrophy","max-strength","power"] },
+
+    { "id": "weighted-chin-up", "name": "Weighted Chin-Up", "pattern": "pull-v", "tier": "primary",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["elbow","shoulder","scapula"], "equipment": ["pull-up-bar","plates"], "venue": "gym",
+      "cnsCost": 2, "technical": 1, "unilateral": false,
+      "cues": ["Palms toward you, hands about shoulder width.","Start from a dead hang and pull the collarbones to the bar.","Lower under control -- do not drop out of the top."],
+      "modalities": ["hypertrophy","max-strength"] },
+
+    { "id": "weighted-dip", "name": "Weighted Dip", "pattern": "push-h", "tier": "primary",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["shoulder","elbow","scapula"], "equipment": ["dip-bar","plates"], "venue": "gym",
+      "cnsCost": 2, "technical": 2, "unilateral": false,
+      "cues": ["Lean the torso forward slightly and let the elbows travel back.","Stop when the upper arms reach parallel -- deeper is not better here.","Keep the shoulders down and away from the ears throughout."],
+      "modalities": ["hypertrophy","max-strength"] },
+
+    { "id": "belt-squat", "name": "Belt Squat", "pattern": "squat", "tier": "primary",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["knee","hip"], "equipment": ["machine"], "venue": "gym",
+      "cnsCost": 2, "technical": 1, "unilateral": false,
+      "cues": ["The load hangs from the hips, so the spine carries nothing.","Stand tall and squat between the handles without pulling on them.","Useful on a day when the back is the part that is tired."],
+      "modalities": ["hypertrophy"] },
+
     { "id": "goblet-squat", "name": "Goblet Squat", "pattern": "squat", "tier": "accessory",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["knee","hip"], "equipment": ["dumbbell"], "venue": "gym",
@@ -90,7 +118,7 @@
       "cnsCost": 3, "technical": 3, "unilateral": false,
       "modalities": ["max-strength","hypertrophy"] },
 
-    { "id": "romanian-deadlift", "name": "Romanian Deadlift", "pattern": "hinge", "tier": "secondary",
+    { "id": "romanian-deadlift", "name": "Romanian Deadlift", "pattern": "hinge", "tier": "primary",
       "loadable": true, "prRef": "deadlift", "prCoef": 0.70,
       "joints": ["hip","lumbar"], "equipment": ["barbell","plates"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": false,
@@ -120,7 +148,7 @@
       "cnsCost": 1, "technical": 2, "unilateral": true,
       "modalities": ["hypertrophy"] },
 
-    { "id": "hip-thrust", "name": "Barbell Hip Thrust", "pattern": "hinge", "tier": "accessory",
+    { "id": "hip-thrust", "name": "Barbell Hip Thrust", "pattern": "hinge", "tier": "primary",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["hip"], "equipment": ["barbell","bench","plates"], "venue": "gym",
       "cnsCost": 1, "technical": 1, "unilateral": false,
