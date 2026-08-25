@@ -50,6 +50,13 @@ export const COEF_PROVENANCE = {
   "push-press"                : { coef: 1.3  , of: "overhead-press"  , tag: 'unverified' },
   "z-press"                   : { coef: 0.75 , of: "overhead-press"  , tag: 'unverified' },
   "clean-pull"                : { coef: 1.15 , of: "power-clean"     , tag: 'unverified' },
+  // The first coefficient in this register to arrive sourced rather than
+  // inherited. Coaching sources put the power clean at 80-90% of the full
+  // clean; 85% inverts to 1.18. Two independent sources agree on the band,
+  // neither is a primary study, so: corroborated, not verified.
+  //   https://www.catalystathletics.com/article/2130/
+  //   https://store.torokhtiy.com/blogs/guides/power-clean-standards
+  "squat-clean"               : { coef: 1.18 , of: "power-clean"     , tag: 'corroborated' },
   "clean-high-pull"           : { coef: 1    , of: "power-clean"     , tag: 'unverified' },
   "hang-power-clean"          : { coef: 0.9  , of: "power-clean"     , tag: 'unverified' },
   "high-hang-clean"           : { coef: 0.82 , of: "power-clean"     , tag: 'unverified' },

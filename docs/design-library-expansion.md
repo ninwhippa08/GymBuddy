@@ -308,6 +308,72 @@ a pool changing its mind about which joint kills it is visible rather than
 silent. §6's argument, demonstrated: a survival table written down on 2026-08-24
 would be wrong today, and nothing would have said so.
 
+### 5.4 A pool where VARIETY is right and still cannot be met — found 2026-08-25
+
+`primary :: hinge/pull-h :: power` is the one pool this project did not close.
+It reached **13 of 16** and stopped there deliberately.
+
+Everything honest was already spent on it. `sumo-deadlift` was tagged `power`
+to agree with `deadlift`, which was already tagged. `clean-high-pull` was
+re-tiered to primary to agree with `clean-pull`, which is the same pull
+continued higher. `snatch-grip-deadlift` and `squat-clean` were authored. That
+is 9 → 13, and the remaining three have no honest source:
+
+- **A fourth clean height or a third snatch height.** The library already holds
+  power, hang-power and high-hang cleans. Adding hang-snatch, high-hang-snatch
+  and block-clean is one movement at several bar positions — the exact failure
+  §3.2 refused when it declined to enter "Long Run", "Recovery Jog" and
+  "Progression Run".
+- **Re-tiering assistance lifts into primary.** `muscle-snatch` is a technique
+  drill, `pendlay-row` is an assistance lift, `dumbbell-snatch` and
+  `kettlebell-swing` are secondary by the same convention that puts
+  `dumbbell-bench-press` there. Moving them up to make a count is the tier
+  becoming a knob instead of a claim.
+
+**This is a new shape, and it is not the aerobic-steady case.** There the rule
+was wrong for the pool: novelty does not drive aerobic adaptation, so VARIETY
+was exempted. Here the rule is *right* and sourced — the dynamic effort method
+is built on rotating the variation (§3.2) — and the inventory is simply finite.
+A correct rule that cannot be satisfied is a different problem from an
+incorrect one, and it must not be solved by quietly exempting the pool.
+
+Measured, so Project B has a number rather than an impression: widening the
+slot from `tier: ['primary']` to `['primary', 'secondary']` — which slot C of
+the same day already is — would take the pool to **about 15**, still short.
+So widening helps and does not finish the job.
+
+**Left open, and the pool is NOT in `CLOSED_POOLS`.** The matrix keeps
+reporting `short 3` every run, which is the honest state. The three plausible
+resolutions each need deciding rather than guessing: widen the slot's tier (a
+template change, which §2 puts outside this project); accept a lower repeat
+horizon for this one pool; or accept 13 and record why. See open question 5.
+
+### 5.5 `power-snatch` at 1.00 × `snatch` may prescribe ~14% too much
+
+Found while sourcing coefficients, and it is a **dose** finding rather than a
+pool one, so it is flagged rather than fixed.
+
+The register prices `power-snatch` at parity with the `snatch` root. Peer-
+reviewed modelling of record scores across snatch variations puts the power
+snatch at about **0.88** of the snatch, and coaching sources say the same to
+one decimal. **[sourced]**
+
+- Modelling record scores in the snatch and its variations in the long-term
+  training of young weightlifters. https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6890263/
+
+Both cannot be right, and which is wrong depends on a fact this document does
+not have: **what the athlete's `snatch` PR refers to.** If it is a full squat
+snatch, the app prescribes roughly 14% more than intended on every power snatch
+— an overload, which §8 calls the highest-priority class of coefficient error.
+If the PR is itself a power snatch, the 1.00 is right and the root is merely
+misnamed. The same question applies to `power-clean`, which is a root in its
+own right and so is unaffected, but the asymmetry between the two is itself a
+signal.
+
+**Not changed unilaterally**, because changing it moves weight on the bar. It
+needs one answer from the athlete, and `programming-basis.md` should record
+what each PR root means once it is given.
+
 ## 6  How the rules are expressed
 
 The coverage test **derives** its targets at run time from `TEMPLATES`,
@@ -408,3 +474,17 @@ executable form of this document.
    plausible shapes are a mode-coverage rule (≥1 option per locomotion mode the
    athlete can access) or simply a non-shrink ratchet; both need deciding, not
    guessing.
+5. **`primary :: hinge/pull-h :: power` stopped at 13 of 16 and stays open.**
+   §5.4 has the working. Unlike question 4 this is not a missing rule — the rule
+   is right and sourced, and the movements do not exist at primary tier. Three
+   resolutions, all needing a decision: widen the slot to `['primary',
+   'secondary']` (a template change, §2 excludes it from this project, and it
+   reaches only ~15 anyway); accept a shorter repeat horizon for this one pool;
+   or accept 13 and say so. **Doing nothing is a valid choice here** — the
+   matrix will keep printing `short 3` until someone decides, which is the
+   correct behaviour for an open question.
+6. **What do the `snatch` and `power-clean` PR roots actually refer to?**
+   §5.5. `power-snatch` is priced at parity with `snatch` while the literature
+   says 0.88, so either the root means a power snatch or the app prescribes
+   ~14% too much on that lift. One answer from the athlete settles it, and it
+   moves weight on the bar, so it is the highest-value open question here.

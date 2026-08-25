@@ -116,7 +116,7 @@
       "loadable": true, "prRef": "deadlift", "prCoef": 1.00,
       "joints": ["hip","knee","lumbar"], "equipment": ["barbell","plates"], "venue": "gym",
       "cnsCost": 3, "technical": 3, "unilateral": false,
-      "modalities": ["max-strength","hypertrophy"] },
+      "modalities": ["max-strength","hypertrophy","power"] },
 
     { "id": "romanian-deadlift", "name": "Romanian Deadlift", "pattern": "hinge", "tier": "primary",
       "loadable": true, "prRef": "deadlift", "prCoef": 0.70,
@@ -202,13 +202,20 @@
       "cnsCost": 3, "technical": 3, "unilateral": false,
       "modalities": ["power"] },
 
+    { "id": "squat-clean", "name": "Squat Clean", "pattern": "hinge", "tier": "primary",
+      "loadable": true, "prRef": "power-clean", "prCoef": 1.18,
+      "joints": ["hip","knee","ankle","shoulder","wrist","thoracic"], "equipment": ["barbell","plates"], "venue": "gym",
+      "cnsCost": 3, "technical": 3, "unilateral": false,
+      "cues": ["Pull as for a power clean, then keep dropping into a full front squat.","Meet the bar early -- do not wait and catch it low and slow.","Stand up out of the bottom before thinking about the next rep."],
+      "modalities": ["power","max-strength"] },
+
     { "id": "clean-pull", "name": "Clean Pull", "pattern": "hinge", "tier": "primary",
       "loadable": true, "prRef": "power-clean", "prCoef": 1.15,
       "joints": ["hip","knee","ankle","lumbar"], "equipment": ["barbell","plates"], "venue": "gym",
       "cnsCost": 3, "technical": 2, "unilateral": false,
       "modalities": ["power","max-strength"] },
 
-    { "id": "clean-high-pull", "name": "Clean High Pull", "pattern": "hinge", "tier": "secondary",
+    { "id": "clean-high-pull", "name": "Clean High Pull", "pattern": "hinge", "tier": "primary",
       "loadable": true, "prRef": "power-clean", "prCoef": 1.00,
       "joints": ["hip","knee","shoulder"], "equipment": ["barbell","plates"], "venue": "gym",
       "cnsCost": 3, "technical": 2, "unilateral": false,
