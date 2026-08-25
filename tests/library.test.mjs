@@ -91,3 +91,25 @@ test('isometric core holds are marked, and only they are', () => {
     assert.equal(e.pattern, 'core', `${id} should be a core-pattern entry`);
   }
 });
+
+// A primary-tier lift you can load heavy is, by definition, also a lift you can
+// run at hypertrophy reps. The exception is the speed lifts -- an Olympic lift
+// or a jerk dosed at 8-12 reps is a wrong instruction, not a hard set -- and
+// those are exactly the entries that also carry `power`. So: heavy, primary,
+// and NOT a speed lift implies hypertrophy is available.
+//
+// Written as an invariant rather than a list because a list of "which lifts are
+// hypertrophy lifts" is a fact about the data that every authoring commit would
+// have to edit, and this project has been bitten by that twice.
+test('a primary-tier strength lift that is not a speed lift is available for hypertrophy', () => {
+  const missing = EX.filter(e =>
+    e.tier === 'primary' &&
+    (e.modalities || []).includes('max-strength') &&
+    !(e.modalities || []).includes('power') &&
+    !(e.modalities || []).includes('hypertrophy')
+  ).map(e => e.id);
+
+  assert.deepEqual(missing, [],
+    'these are loadable primary lifts with no speed component, so excluding them ' +
+    'from hypertrophy days is an oversight rather than a decision: ' + missing.join(', '));
+});

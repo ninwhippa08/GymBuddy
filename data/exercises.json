@@ -76,7 +76,7 @@
       "loadable": true, "prRef": "deadlift", "prCoef": 1.00,
       "joints": ["hip","knee","lumbar"], "equipment": ["barbell","plates"], "venue": "gym",
       "cnsCost": 3, "technical": 3, "unilateral": false,
-      "modalities": ["max-strength","power"] },
+      "modalities": ["max-strength","power","hypertrophy"] },
 
     { "id": "trap-bar-deadlift", "name": "Trap Bar Deadlift", "pattern": "hinge", "tier": "primary",
       "loadable": true, "prRef": "deadlift", "prCoef": 1.05,
@@ -88,7 +88,7 @@
       "loadable": true, "prRef": "deadlift", "prCoef": 1.00,
       "joints": ["hip","knee","lumbar"], "equipment": ["barbell","plates"], "venue": "gym",
       "cnsCost": 3, "technical": 3, "unilateral": false,
-      "modalities": ["max-strength"] },
+      "modalities": ["max-strength","hypertrophy"] },
 
     { "id": "romanian-deadlift", "name": "Romanian Deadlift", "pattern": "hinge", "tier": "secondary",
       "loadable": true, "prRef": "deadlift", "prCoef": 0.70,
@@ -496,7 +496,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["shoulder","elbow","scapula"], "equipment": ["pull-up-bar","plates"], "venue": "gym",
       "cnsCost": 3, "technical": 2, "unilateral": false,
-      "modalities": ["max-strength"] },
+      "modalities": ["max-strength","hypertrophy"] },
 
     { "id": "neutral-grip-pull-up", "name": "Neutral-Grip Pull-Up", "pattern": "pull-v", "tier": "accessory",
       "loadable": false, "prRef": null, "prCoef": null,

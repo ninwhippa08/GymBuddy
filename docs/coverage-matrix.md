@@ -11,17 +11,17 @@ running the suite.
 
 | pool | draw | have | survival | floor | variety | need | short |
 |---|---|---|---|---|---|---|---|
-| `primary :: squat/hinge/push-h/push-v/pull-v :: hypertrophy` | 1 | 7 | 29% (lumbar) | 4 | 16 | 16 | 9 |
 | `secondary+accessory :: sprint :: sprint` | 1 | 7 | 0% (hip) | exempt | 16 | 16 | 9 |
 | `primary :: hinge/pull-h :: power` | 1 | 9 | 0% (hip) | exempt | 16 | 16 | 7 |
 | `primary+secondary :: squat/push-h/push-v :: power` | 1 | 9 | 22% (hip) | 5 | 16 | 16 | 7 |
 | `primary+secondary :: jump/throw :: power` | 1 | 10 | 20% (hip) | 5 | 16 | 16 | 6 |
+| `primary :: squat/hinge/push-h/push-v/pull-v :: hypertrophy` | 1 | 10 | 30% (lumbar) | 4 | 16 | 16 | 6 |
 | `accessory :: lunge/carry/rotate :: hypertrophy` | 1 | 12 | 25% (hip) | 4 | 16 | 16 | 4 |
 | `primary :: squat/hinge/push-h/push-v/pull-v :: max-strength` | 1 | 14 | 29% (hip) | 4 | 16 | 16 | 2 |
 | `primary+secondary :: (any) :: max-strength` | 1 | 32 | 41% (hip) | 3 | 16 | 16 | 0 |
 | `secondary+accessory :: (any) :: hypertrophy` | 1 | 63 | 57% (elbow) | 2 | 16 | 16 | 0 |
 | `accessory :: lunge/hinge/pull-h/carry :: hypertrophy` | 1 | 26 | 50% (hip) | 2 | 16 | 16 | 0 |
-| `primary+secondary :: (any) :: hypertrophy` | 1 | 26 | 42% (lumbar) | 3 | 16 | 16 | 0 |
+| `primary+secondary :: (any) :: hypertrophy` | 1 | 29 | 41% (lumbar) | 3 | 16 | 16 | 0 |
 | `accessory :: (any) :: isolation` | 1 | 34 | 62% (shoulder) | 2 | 16 | 16 | 0 |
 | `primary+secondary+accessory :: locomotion :: aerobic-steady` | 1 | 10 | 0% (knee) | exempt | repetition | 0 | 0 |
 | `mobility :: mobility :: mobility-dynamic` | 4 | 19 | 42% (hip) | 8 | coverage | 8 | 0 |
@@ -38,6 +38,6 @@ running the suite.
 
 `**n**` is below target. `n·` is outside that pool's scope.
 
-Raw shortfall across all pools: **44** (pools overlap, so an
+Raw shortfall across all pools: **41** (pools overlap, so an
 entry can close more than one).
 
