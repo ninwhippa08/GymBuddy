@@ -415,10 +415,12 @@ The ratchet test passes with `CUED_POOLS` empty, which proves nothing. Check it 
 ```bash
 node -e "const f='tests/cue-guard.mjs';const fs=require('fs');fs.writeFileSync(f,fs.readFileSync(f,'utf8').replace('export const CUED_POOLS = [];','export const CUED_POOLS = [\'mobility-static\'];'))"
 node --test tests/cues.test.mjs
-git checkout tests/cue-guard.mjs
+# NOT git checkout -- cue-guard.mjs is untracked at this point and git would
+# refuse. Put the empty list back by hand.
+node -e "const f='tests/cue-guard.mjs';const fs=require('fs');fs.writeFileSync(f,fs.readFileSync(f,'utf8').replace(/CUED_POOLS = [[^]]*]/,'CUED_POOLS = []'))"
 ```
 
-Expected: the middle command FAILS with `couch-stretch is in cued pool "mobility-static" but has no cues`, then `git checkout` restores the empty list. If it passed, the ratchet is broken — fix it before continuing.
+Expected: the middle command FAILS with `couch-stretch is in cued pool "mobility-static" but has no cues`, then the restore puts the empty list back. If it passed, the ratchet is broken — fix it before continuing.
 
 - [ ] **Step 6: Commit**
 
