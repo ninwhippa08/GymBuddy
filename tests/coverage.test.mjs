@@ -64,7 +64,8 @@ const FLOOR_EXEMPT = new Set([
 const CLOSED_POOLS = [
   'mobility :: mobility :: mobility-static',
   'mobility :: mobility :: mobility-dynamic',
-  'core :: core/rotate :: (any)'
+  'core :: core/rotate :: (any)',
+  'secondary+accessory :: sprint :: sprint'
 ];
 
 // ---------------------------------------------------------------------------

@@ -189,15 +189,19 @@ fixes them, because the joint is intrinsic to the movement class:
 
 | pool | dies on | entries loading that joint |
 |---|---|---|
-| `core / core+rotate` | lumbar | 16 of 16 |
-| `locomotion / aerobic-steady` | knee | 6 of 6 |
-| `sprint` | hip | 7 of 7 |
+| `core / core+rotate` | lumbar | 19 of 19 |
+| `locomotion / aerobic-steady` | knee | 10 of 10 |
+| `sprint` | ankle | 16 of 16 |
 | `primary / hinge+pull-h / power` | hip | 9 of 9 |
 
-An empty sprint pool on a hurt hip is the **correct** answer. The defect is that
-the generator proposed a sprint day and only then discovered it had nothing to
-put in it. That is day-type proposal logic — Project B. These four pools are
-exempt from FLOOR and carry a permanent exemption note in the test.
+An empty pool on a hurt joint is the **correct** answer. The defect is that the
+generator can commit to a day type before discovering a slot it cannot fill.
+That is day-type proposal logic — Project B. These four pools are exempt from
+FLOOR and carry a permanent exemption note in the test.
+
+Counts are as of each pool's closing commit; the *pools* are the finding, not
+the numbers, and the test measures both fresh on every run. The `sprint` row
+shows why that distinction is load-bearing — see §5.3.
 
 ### 5.1 Ruling C1's six drills cannot reach the mobility pools — found 2026-08-25
 
@@ -250,6 +254,36 @@ only if the slot is ever narrowed to `rotate` alone, or if someone counts the
 rotate pool from the template rather than from the data. **Recorded for Project
 B alongside §5.1** — both are the same question about whether a movement has one
 role or several.
+
+### 5.3 The `sprint` pool is the strides slot, and it changed joints — found 2026-08-25
+
+Closing the pool corrected two things §5 had wrong.
+
+**It is not a sprint day.** `PHASE_1_DAY_TYPES` holds four day types and `sprint`
+is not among them — it arrives in Phase 2. The pool the matrix calls
+`secondary+accessory :: sprint :: sprint` is fed by exactly one slot:
+`AEROBIC_STEADY` slot B, `role: 'strides'`, `optional: true`. So the original
+wording — "the generator proposed a sprint day and only then discovered it had
+nothing to put in it" — described a day type that does not exist yet.
+
+What happens today is benign. `fillSlot` returns nothing, the slot is recorded
+in `unfilled` and skipped, and because it is optional the session is complete
+without it. The Project B question survives the correction, because the same
+shape returns the moment a real sprint day exists: a *required* slot on a day
+the generator has already committed to. Restated, not withdrawn.
+
+**The pool stopped dying on hip and started dying on ankle.** All 7 original
+entries loaded hip, which is what earned the FLOOR exemption. Of the nine drills
+authored to close it, `ankling` honestly loads only ankle and knee — it is a
+foot-and-shin stiffness drill cycling under the hip, and a hurt hip is no reason
+to skip it. That one honest joint list broke the hip collapse. The pool stayed
+exempt anyway, because all 16 entries load the ankle.
+
+Nobody decided this. Survival is measured against the real library on every run,
+and `FLOOR_EXEMPT` is asserted for *exact* equality against what is measured, so
+a pool changing its mind about which joint kills it is visible rather than
+silent. §6's argument, demonstrated: a survival table written down on 2026-08-24
+would be wrong today, and nothing would have said so.
 
 ## 6  How the rules are expressed
 
