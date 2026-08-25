@@ -65,7 +65,8 @@ const CLOSED_POOLS = [
   'mobility :: mobility :: mobility-static',
   'mobility :: mobility :: mobility-dynamic',
   'core :: core/rotate :: (any)',
-  'secondary+accessory :: sprint :: sprint'
+  'secondary+accessory :: sprint :: sprint',
+  'primary+secondary :: jump/throw :: power'
 ];
 
 // ---------------------------------------------------------------------------
