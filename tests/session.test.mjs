@@ -85,15 +85,24 @@ test('no session exceeds 60 minutes plus the measured floor-overrun allowance', 
 // Ruling C8: the 40-seed shared sweep above is too narrow to stand behind a
 // ceiling -- the 63 min figure came from 80,000 samples. This is the
 // reproducible, deterministic replacement for Task 6's deleted throwaway
-// script: a fixed sweep of 1000 seeds per Phase-1 day type, full ramp volume
-// (no returnDate -- see rampWeekFor), so it probes the worst case rather than
-// an arbitrary point in the ramp.
-test('duration sweep (1000 seeds x day type): observed maximum stays within the measured allowance', () => {
+// script: a fixed sweep per Phase-1 day type at full ramp volume (no
+// returnDate -- see rampWeekFor), so it probes the worst case rather than an
+// arbitrary point in the ramp.
+//
+// WIDENED 2026-08-25, 1000 seeds -> 10000. At 1000 this test could no longer
+// fail: closing mobility-dynamic moved the true worst case to 65 min on
+// power/seed 7919, which a 1000-seed sweep never reaches, so the test passed
+// against a stale 4 min allowance. A ceiling test that cannot reach the seed
+// producing the ceiling is not a test. The seed count must stay >= the one
+// the allowance was derived from -- currently 10000 x 4 day types = 40,000.
+// It costs about 7s of the suite's ~9s; that is the price of the number
+// being measured rather than asserted.
+test('duration sweep (10000 seeds x day type): observed maximum stays within the measured allowance', () => {
   const ceiling = TIME.GYM_SESSION_TOTAL_MIN + TIME.FLOOR_OVERRUN_ALLOWANCE_MIN;
   let worst = { durationMin: -1, dayType: null, seed: null };
 
   for (const dayType of PHASE_1_DAY_TYPES) {
-    for (let seed = 1; seed <= 1000; seed++) {
+    for (let seed = 1; seed <= 10000; seed++) {
       const s = generate({ library: LIB, dayType, seed, now: 1e12 });
       if (s.durationMin > worst.durationMin) {
         worst = { durationMin: s.durationMin, dayType, seed };

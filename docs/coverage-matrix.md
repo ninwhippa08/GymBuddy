@@ -6,8 +6,8 @@ running the suite.
 
 - `SESSIONS_BEFORE_REPEAT` = 16 (athlete's preference)
 - `OPTIONS_PER_JOINT` = 3 ([unverified] design floor)
-- library holds 198 entries
-- closed pools: mobility :: mobility :: mobility-static
+- library holds 205 entries
+- closed pools: mobility :: mobility :: mobility-static, mobility :: mobility :: mobility-dynamic
 
 | pool | draw | have | survival | floor | variety | need | short |
 |---|---|---|---|---|---|---|---|
@@ -24,7 +24,7 @@ running the suite.
 | `accessory :: lunge/hinge/pull-h/carry :: hypertrophy` | 1 | 26 | 50% (hip) | 2 | 16 | 16 | 0 |
 | `primary+secondary :: (any) :: hypertrophy` | 1 | 26 | 42% (lumbar) | 3 | 16 | 16 | 0 |
 | `accessory :: (any) :: isolation` | 1 | 34 | 62% (shoulder) | 2 | 16 | 16 | 0 |
-| `mobility :: mobility :: mobility-dynamic` | 4 | 12 | 50% (hip) | 6 | coverage | 6 | 0 |
+| `mobility :: mobility :: mobility-dynamic` | 4 | 19 | 42% (hip) | 8 | coverage | 8 | 0 |
 | `mobility :: mobility :: mobility-static` | 4 | 19 | 58% (hip) | 6 | coverage | 6 | 0 |
 | `core :: core/rotate :: (any)` | 2 | 16 | 0% (lumbar) | exempt | coverage | 0 | 0 |
 
@@ -33,7 +33,7 @@ running the suite.
 | pool | hip | knee | ankle | lumbar | thoracic | shoulder | scapula | elbow | wrist |
 |---|---|---|---|---|---|---|---|---|---|
 | `mobility-static` (19) | 8 | 6 | 4 | 4 | 5 | 5 | 4 | 1· | 0· |
-| `mobility-dynamic` (12) | 6 | **0** | **2** | **1** | 4 | 4 | 3 | 0· | 0· |
+| `mobility-dynamic` (19) | 11 | 3 | 4 | 4 | 5 | 5 | 4 | 0· | 0· |
 | `core` (16) | 9 | 0· | 0· | 16 | **2** | 10· | 1· | 0· | 0· |
 
 `**n**` is below target. `n·` is outside that pool's scope.

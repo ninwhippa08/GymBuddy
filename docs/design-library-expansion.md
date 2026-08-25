@@ -163,6 +163,41 @@ the generator proposed a sprint day and only then discovered it had nothing to
 put in it. That is day-type proposal logic — Project B. These four pools are
 exempt from FLOOR and carry a permanent exemption note in the test.
 
+### 5.1 Ruling C1's six drills cannot reach the mobility pools — found 2026-08-25
+
+Ruling C1 (plan-01) recorded that `a-skip`, `b-skip`, `high-knees`,
+`pogo-hop`, `wall-drill` and `cossack-squat` are genuine dynamic warm-up
+drills and named them the obvious way to fill `mobility-dynamic`'s empty
+`knee` scope. **Closing that pool showed they cannot be, and the reason is
+structural rather than a matter of judgement.**
+
+`eligibleFor` filters a prep slot on `tier` *and* `pattern` as well as
+modality, and both fields are single-valued:
+
+    if (!slot.tier.includes(e.tier)) return false;
+    if (slot.patterns && !slot.patterns.includes(e.pattern)) return false;
+
+`PREP_BLOCK` asks for `tier: ['mobility'], patterns: ['mobility']`. All six
+drills are `tier: accessory` with pattern `sprint`, `plyometric` or
+`hypertrophy`. Adding `mobility-dynamic` to their `modalities` therefore
+does nothing — the tier check rejects them first. The three ways out are all
+blocked here:
+
+1. **Re-tier them to `mobility`.** They leave the sprint pool, which holds 7
+   against a target of 16 and is already the second-shortest in the library.
+   Fixing a covered joint by emptying a short pool is not a trade.
+2. **Author duplicate entries** under near-identical names. Two rows for one
+   movement, and the duplicate-name guard of §8 exists to prevent exactly that.
+3. **Make `tier`/`pattern` multi-valued.** A schema and generator change,
+   which §2 puts outside this project.
+
+**Recorded, not fixed.** `mobility-dynamic`'s `knee` scope was closed with
+three purpose-authored drills instead (Knee CARs, Squat to Stand, Walking Quad
+Pull), so nothing is blocked. But the underlying question — whether one movement
+may serve both as prep and as accessory work — is a Project B question, and it
+is the same shape as the day-type problem in §5: the data model says a movement
+has one role, and training reality says some movements have two.
+
 ## 6  How the rules are expressed
 
 The coverage test **derives** its targets at run time from `TEMPLATES`,

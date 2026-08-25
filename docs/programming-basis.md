@@ -372,8 +372,8 @@ Two independent sweeps agreed: 80,000 sampled sessions, and a separate
 max-strength, with power tying it. That case is 45 min of main work at the cap,
 3 min of prep at its floor, and a 14 min cool-down sitting over budget.
 
-**Resolution: 60 min is the design target; the honest ceiling is 64 min,
-carried as `FLOOR_OVERRUN_ALLOWANCE_MIN: 4`.** The allowance is measured rather
+**Resolution: 60 min is the design target; the honest ceiling is 65 min,
+carried as `FLOOR_OVERRUN_ALLOWANCE_MIN: 5`.** The allowance is measured rather
 than chosen — re-derive it by sweep if either floor changes, and do not round
 it up for headroom.
 
@@ -384,6 +384,20 @@ unilateral stretches reaches a minute past what the old pool could. 40,000
 deterministic sessions (4 day types × 5 ramp weeks × 2,000 seeds) put the new
 worst case at 64 min on max-strength, and the tail is thin: 63 min ×38,
 64 min ×4 out of 40,000.
+
+**Re-derived 2026-08-25: 64 → 65.** Closing the `mobility-dynamic` pool took it
+from 12 entries to 19, and 4 of the 7 new drills are per-side. **This time the
+overrun is the prep block's, not the cool-down's** — the worst case draws three
+unilateral drills out of four (Knee CARs, Leg Swing, Hip CARs) and the `sides`
+multiplier doubles each. 40,000 deterministic sessions put the worst case at
+65 min on power, seed 7919, and exactly one session in 40,000 reaches it:
+63 min ×124, 64 min ×16, 65 min ×1.
+
+The committed sweep in `tests/session.test.mjs` was widened from 1,000 seeds
+per day type to 10,000 at the same time, because at 1,000 it never reached seed
+7919 and so passed against the stale 4 min allowance. A ceiling test that cannot
+reach the seed producing the ceiling is not a test; the sweep's seed count must
+stay at or above the count the allowance was derived from.
 
 This is the allowance behaving as designed rather than a problem: it is a
 measured consequence of the pool, and it will move again as the remaining pools

@@ -320,7 +320,15 @@ export const TIME = Object.freeze({
   // pool could reach. 40,000 deterministic sessions (4 day types x 5 ramp
   // weeks x 2,000 seeds) put the new worst case at 64 min on max-strength,
   // and only 4 sessions reach it: 63 min x38, 64 min x4.
+  //
+  // RE-DERIVED 2026-08-25, from 4 to 5. Closing mobility-dynamic took it from
+  // 12 entries to 19, and 4 of the 7 new drills are per-side. This time the
+  // overrun is the PREP block's, not the cool-down's: the worst case draws 3
+  // unilateral drills out of 4 (Knee CARs, Leg Swing, Hip CARs), which the
+  // `sides` multiplier doubles. 40,000 deterministic sessions put the new
+  // worst case at 65 min on power/seed 7919, and exactly one session reaches
+  // it: 63 min x124, 64 min x16, 65 min x1.
   // This number moves with the pool. Expect to re-derive it again as the
   // remaining pools are closed. design-library-expansion.md.
-  FLOOR_OVERRUN_ALLOWANCE_MIN: 4
+  FLOOR_OVERRUN_ALLOWANCE_MIN: 5
 });

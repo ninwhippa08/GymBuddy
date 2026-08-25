@@ -1025,6 +1025,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["hip"], "equipment": ["bodyweight"], "venue": "either",
       "cnsCost": 1, "technical": 2, "unilateral": false,
+      "cues": ["Sit with both knees bent 90 degrees, front shin and back shin on the floor.","Rotate the knees over to the other side, keeping the chest tall.","Move under control; the hips do the work, not a swing of the torso."],
       "modalities": ["mobility-dynamic"] },
 
     { "id": "couch-stretch", "name": "Couch Stretch", "pattern": "mobility", "tier": "mobility",
@@ -1038,6 +1039,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["hip","thoracic","ankle"], "equipment": ["bodyweight"], "venue": "either",
       "cnsCost": 1, "technical": 2, "unilateral": true,
+      "cues": ["Step into a deep lunge, back leg long, front foot flat.","Drop the same-side elbow toward the instep, then rotate that arm to the ceiling.","Follow the hand with the eyes; one slow rep per side, never a bounce."],
       "modalities": ["mobility-dynamic"] },
 
     { "id": "kneeling-hip-flexor-stretch", "name": "Kneeling Hip Flexor Stretch", "pattern": "mobility", "tier": "mobility",
@@ -1058,48 +1060,56 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["lumbar","thoracic"], "equipment": ["bodyweight"], "venue": "either",
       "cnsCost": 1, "technical": 1, "unilateral": false,
+      "cues": ["On all fours, hands under the shoulders and knees under the hips.","Round the spine one segment at a time, then reverse into extension.","Move with the breath and stop short of any pinch in the low back."],
       "modalities": ["mobility-dynamic"] },
 
     { "id": "thread-the-needle", "name": "Thread the Needle", "pattern": "mobility", "tier": "mobility",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["thoracic","shoulder"], "equipment": ["bodyweight"], "venue": "either",
       "cnsCost": 1, "technical": 1, "unilateral": true,
+      "cues": ["From all fours, slide one arm under the body, palm facing up.","Let that shoulder rest down while the hips stay stacked over the knees.","Return by reaching the same arm to the ceiling, then alternate."],
       "modalities": ["mobility-dynamic"] },
 
     { "id": "banded-shoulder-dislocate", "name": "Banded Shoulder Dislocate", "pattern": "mobility", "tier": "mobility",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["shoulder","scapula"], "equipment": ["bands"], "venue": "either",
       "cnsCost": 1, "technical": 1, "unilateral": false,
+      "cues": ["Hold a light band wide, arms straight, thumbs up.","Sweep the band overhead and behind you, keeping the elbows locked.","Widen the grip until it passes without shrugging or arching the back."],
       "modalities": ["mobility-dynamic"] },
 
     { "id": "scapular-wall-slide", "name": "Scapular Wall Slide", "pattern": "mobility", "tier": "mobility",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["shoulder","scapula","thoracic"], "equipment": ["wall"], "venue": "either",
       "cnsCost": 1, "technical": 2, "unilateral": false,
+      "cues": ["Stand with the back, arms and hands flat against the wall.","Slide the arms overhead without letting the ribs or wrists leave the wall.","Stop where contact breaks; that range is the rep."],
       "modalities": ["mobility-dynamic"] },
 
     { "id": "shoulder-cars", "name": "Shoulder CARs", "pattern": "mobility", "tier": "mobility",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["shoulder","scapula"], "equipment": ["bodyweight"], "venue": "either",
       "cnsCost": 1, "technical": 2, "unilateral": true,
+      "cues": ["Stand tall, one arm straight, and trace the largest circle you can.","Keep the ribs down and the opposite shoulder still.","Slow and deliberate; a single circle should take several seconds."],
       "modalities": ["mobility-dynamic"] },
 
     { "id": "hip-cars", "name": "Hip CARs", "pattern": "mobility", "tier": "mobility",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["hip"], "equipment": ["bodyweight"], "venue": "either",
       "cnsCost": 1, "technical": 2, "unilateral": true,
+      "cues": ["Stand tall, hold something for balance, lift one knee to hip height.","Trace the biggest circle you can with that knee, out and around.","Keep the pelvis square; only the hip moves."],
       "modalities": ["mobility-dynamic"] },
 
     { "id": "ankle-dorsiflexion-rock", "name": "Ankle Dorsiflexion Rock", "pattern": "mobility", "tier": "mobility",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["ankle"], "equipment": ["wall"], "venue": "either",
       "cnsCost": 1, "technical": 1, "unilateral": true,
+      "cues": ["Half-kneeling, front foot flat, heel glued to the floor.","Drive the knee forward over the toes, then rock back out.","The moment the heel lifts you have gone past the range."],
       "modalities": ["mobility-dynamic"] },
 
     { "id": "adductor-rock", "name": "Adductor Rock-Back", "pattern": "mobility", "tier": "mobility",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["hip"], "equipment": ["bodyweight"], "venue": "either",
       "cnsCost": 1, "technical": 1, "unilateral": false,
+      "cues": ["On all fours, extend one leg out to the side with the foot flat.","Rock the hips back toward the heels, then return.","Keep the low back flat; the stretch belongs in the inner thigh."],
       "modalities": ["mobility-dynamic"] },
 
     { "id": "deep-squat-hold", "name": "Deep Squat Hold", "pattern": "mobility", "tier": "mobility",
@@ -1127,6 +1137,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["hip"], "equipment": ["wall"], "venue": "either",
       "cnsCost": 1, "technical": 1, "unilateral": true,
+      "cues": ["Hold a wall for balance and stand tall.","Swing one leg front to back, then side to side, staying relaxed.","Let the range build over reps rather than forcing the first swing."],
       "modalities": ["mobility-dynamic"] },
 
     { "id": "calf-stretch", "name": "Standing Calf Stretch", "pattern": "mobility", "tier": "mobility",
@@ -1224,6 +1235,56 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["hip"], "equipment": ["bodyweight"], "venue": "either",
       "cnsCost": 1, "technical": 1, "unilateral": false,
+      "cues": ["Lie on your back, knees bent, feet flat and close to the hips.","Push through the heels until hips, knees and shoulders line up.","Squeeze the glutes at the top; do not arch the low back to get higher."],
+      "modalities": ["mobility-dynamic"] },
+
+    { "id": "knee-cars", "name": "Knee CARs", "pattern": "mobility", "tier": "mobility",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["knee"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 1, "technical": 2, "unilateral": true,
+      "cues": ["Seated or standing on one leg, hold the thigh still with both hands.","Trace the largest slow circle you can with the heel.","Only the knee moves; if the hip joins in, shrink the circle."],
+      "modalities": ["mobility-dynamic"] },
+
+    { "id": "ankle-cars", "name": "Ankle CARs", "pattern": "mobility", "tier": "mobility",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["ankle"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 1, "technical": 2, "unilateral": true,
+      "cues": ["Seated, lift one foot clear of the floor and hold the shin still.","Trace the biggest circle you can with the toes, both directions.","Keep the knee quiet; the movement is all ankle."],
+      "modalities": ["mobility-dynamic"] },
+
+    { "id": "squat-to-stand", "name": "Squat to Stand", "pattern": "mobility", "tier": "mobility",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["hip","knee","ankle"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 1, "technical": 2, "unilateral": false,
+      "cues": ["Feet shoulder width, reach down and hold on under the toes.","Pull yourself into a deep squat and lift the chest tall.","Keep the grip and straighten the legs to stand; repeat smoothly."],
+      "modalities": ["mobility-dynamic"] },
+
+    { "id": "walking-quad-pull", "name": "Walking Quad Pull", "pattern": "mobility", "tier": "mobility",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["knee","hip"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 1, "technical": 1, "unilateral": true,
+      "cues": ["Walking forward, catch one ankle behind you and pull the heel to the hip.","Stand tall and squeeze the glute on that side.","Hold for a step, release into the next stride, then alternate."],
+      "modalities": ["mobility-dynamic"] },
+
+    { "id": "inchworm", "name": "Inchworm", "pattern": "mobility", "tier": "mobility",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["lumbar","hip","shoulder","scapula"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 1, "technical": 2, "unilateral": false,
+      "cues": ["From standing, hinge over and walk the hands out to a straight plank.","Keep the hips level and the ribs down as you walk out.","Walk the feet back to the hands, legs as long as is comfortable."],
+      "modalities": ["mobility-dynamic"] },
+
+    { "id": "scorpion", "name": "Scorpion", "pattern": "mobility", "tier": "mobility",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["lumbar","thoracic","hip"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 1, "technical": 2, "unilateral": true,
+      "cues": ["Lie face down with the arms out wide and the palms flat.","Reach one heel across and behind toward the opposite hand.","Keep both shoulders down; rotate only as far as they stay on the floor."],
+      "modalities": ["mobility-dynamic"] },
+
+    { "id": "bodyweight-hip-hinge", "name": "Bodyweight Hip Hinge", "pattern": "mobility", "tier": "mobility",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["lumbar","hip"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 1, "technical": 2, "unilateral": false,
+      "cues": ["Feet hip width, hands on the belly and low back to feel the position.","Push the hips back and let the chest fall, keeping the back flat.","Go only as low as the back stays flat, then drive the hips forward."],
       "modalities": ["mobility-dynamic"] }
 
   ]
