@@ -399,6 +399,14 @@ per day type to 10,000 at the same time, because at 1,000 it never reached seed
 reach the seed producing the ceiling is not a test; the sweep's seed count must
 stay at or above the count the allowance was derived from.
 
+**Re-derived again 2026-08-25 on closing the `core` pool: the ceiling HELD at
+65 min and the allowance stays 5.** Three core entries were added and none is a
+per-side hold, so the cool-down's floor cost did not move. The distribution did:
+the tail thickened from 65 min ×1 to 65 min ×4 out of 40,000, and the worst case
+moved from power/seed 7919 to max-strength/seed 9. Recorded because a
+re-derivation that changes nothing is still a re-derivation — the rule is to
+measure at every pool boundary, not only when a number is expected to move.
+
 This is the allowance behaving as designed rather than a problem: it is a
 measured consequence of the pool, and it will move again as the remaining pools
 are closed. Re-derive it at each pool boundary; do not pre-emptively pad it.

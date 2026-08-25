@@ -198,6 +198,23 @@ may serve both as prep and as accessory work — is a Project B question, and it
 is the same shape as the day-type problem in §5: the data model says a movement
 has one role, and training reality says some movements have two.
 
+### 5.2 The core slot's `rotate` branch is almost dead — found 2026-08-25
+
+The same single-valued-`tier` fact has a second consequence, found while
+closing the `core` pool. `COOLDOWN_BLOCK`'s core slot asks for
+`tier: ['core'], patterns: ['core', 'rotate']`, but of the four `rotate`
+entries in the library three are `tier: accessory` — `cable-woodchop`,
+`landmine-rotation` and `half-kneeling-cable-chop`. Only `russian-twist`
+is both. **Naming `rotate` in that slot therefore buys exactly one entry**,
+and a reader of the template would reasonably assume it buys four.
+
+Harmless today: pattern does not restrict inside the pool, since the slot admits
+both patterns, so the drawn set is simply every `tier: core` entry. It matters
+only if the slot is ever narrowed to `rotate` alone, or if someone counts the
+rotate pool from the template rather than from the data. **Recorded for Project
+B alongside §5.1** — both are the same question about whether a movement has one
+role or several.
+
 ## 6  How the rules are expressed
 
 The coverage test **derives** its targets at run time from `TEMPLATES`,

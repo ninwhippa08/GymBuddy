@@ -58,7 +58,8 @@ const FLOOR_EXEMPT = new Set([
 // every regression while it ran.
 const CLOSED_POOLS = [
   'mobility :: mobility :: mobility-static',
-  'mobility :: mobility :: mobility-dynamic'
+  'mobility :: mobility :: mobility-dynamic',
+  'core :: core/rotate :: (any)'
 ];
 
 // ---------------------------------------------------------------------------
