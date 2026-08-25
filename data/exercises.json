@@ -378,13 +378,13 @@
       "loadable": true, "prRef": "overhead-press", "prCoef": 1.45,
       "joints": ["shoulder","elbow","knee","hip"], "equipment": ["barbell","rack"], "venue": "gym",
       "cnsCost": 3, "technical": 3, "unilateral": false,
-      "modalities": ["power"] },
+      "modalities": ["power","max-strength"] },
 
     { "id": "split-jerk", "name": "Split Jerk", "pattern": "push-v", "tier": "primary",
       "loadable": true, "prRef": "overhead-press", "prCoef": 1.55,
       "joints": ["shoulder","elbow","knee","hip","ankle"], "equipment": ["barbell","rack"], "venue": "gym",
       "cnsCost": 3, "technical": 3, "unilateral": false,
-      "modalities": ["power"] },
+      "modalities": ["power","max-strength"] },
 
     { "id": "z-press", "name": "Z Press", "pattern": "push-v", "tier": "secondary",
       "loadable": true, "prRef": "overhead-press", "prCoef": 0.75,
@@ -560,6 +560,27 @@
       "cnsCost": 2, "technical": 1, "unilateral": false,
       "modalities": ["interval","hypertrophy"] },
 
+    { "id": "curtsy-lunge", "name": "Curtsy Lunge", "pattern": "lunge", "tier": "accessory",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["knee","hip"], "equipment": ["dumbbell"], "venue": "either",
+      "cnsCost": 1, "technical": 2, "unilateral": true,
+      "cues": ["Step one foot back and across behind the other, like a curtsy.","Keep the hips square to the front -- do not let them open up.","Drive back up through the front heel, not the back toe."],
+      "modalities": ["hypertrophy"] },
+
+    { "id": "zercher-carry", "name": "Zercher Carry", "pattern": "carry", "tier": "accessory",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["elbow","thoracic","lumbar","hip"], "equipment": ["barbell"], "venue": "gym",
+      "cnsCost": 2, "technical": 2, "unilateral": false,
+      "cues": ["Carry the bar in the crooks of the elbows with the hands clasped.","Ribs down and elbows up -- the bar is trying to fold you forward.","Short steps, hard brace, shallow breaths."],
+      "modalities": ["hypertrophy","interval"] },
+
+    { "id": "landmine-rainbow", "name": "Landmine Rainbow", "pattern": "rotate", "tier": "accessory",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["shoulder","thoracic","lumbar","hip"], "equipment": ["landmine"], "venue": "gym",
+      "cnsCost": 2, "technical": 2, "unilateral": false,
+      "cues": ["Hold the bar end at chest height, both hands, arms nearly straight.","Sweep it hip to hip in an arc and let the trunk turn with it.","Move the bar with the trunk -- do not throw it with the arms."],
+      "modalities": ["hypertrophy","isolation"] },
+
     { "id": "cable-woodchop", "name": "Cable Woodchop", "pattern": "rotate", "tier": "accessory",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["thoracic","lumbar","hip"], "equipment": ["cable"], "venue": "gym",
@@ -570,7 +591,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["thoracic","lumbar","shoulder"], "equipment": ["landmine","barbell"], "venue": "gym",
       "cnsCost": 1, "technical": 2, "unilateral": false,
-      "modalities": ["isolation","power"] },
+      "modalities": ["isolation","power","hypertrophy"] },
 
     { "id": "russian-twist", "name": "Russian Twist", "pattern": "rotate", "tier": "core",
       "loadable": false, "prRef": null, "prCoef": null,
@@ -583,7 +604,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["thoracic","lumbar","hip"], "equipment": ["cable"], "venue": "gym",
       "cnsCost": 1, "technical": 2, "unilateral": true,
-      "modalities": ["isolation"] },
+      "modalities": ["isolation","hypertrophy"] },
 
     { "id": "box-jump", "name": "Box Jump", "pattern": "jump", "tier": "primary",
       "loadable": false, "prRef": null, "prCoef": null,

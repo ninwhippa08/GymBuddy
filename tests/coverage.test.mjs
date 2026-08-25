@@ -66,7 +66,9 @@ const CLOSED_POOLS = [
   'mobility :: mobility :: mobility-dynamic',
   'core :: core/rotate :: (any)',
   'secondary+accessory :: sprint :: sprint',
-  'primary+secondary :: jump/throw :: power'
+  'primary+secondary :: jump/throw :: power',
+  'primary :: squat/hinge/push-h/push-v/pull-v :: max-strength',
+  'accessory :: lunge/carry/rotate :: hypertrophy'
 ];
 
 // ---------------------------------------------------------------------------
