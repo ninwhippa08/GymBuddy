@@ -32,6 +32,22 @@ export function cueProblems(entry) {
       problems.push(`cue ${i + 1} is ${c.length} chars, over the ${MAX_CUE_CHARS} limit`);
     }
   });
+  // A cue may not restate the entry's own load coefficient. The front of the
+  // card already prints the multiplier the generator computed, so a percentage
+  // in the prose is redundant AND it is a second copy of a number that can
+  // drift -- the same failure the coefficient register exists to prevent, moved
+  // into user-facing text where no test would otherwise look. Effort
+  // percentages on unloaded movements ("reach about 90% by the end" on a
+  // build-up run) are a different claim and are left alone.
+  if (entry.loadable === true && entry.prCoef != null) {
+    entry.cues.forEach((c, i) => {
+      if (typeof c === 'string' && /\d+\s*%|\btimes your\b/.test(c)) {
+        problems.push(
+          `cue ${i + 1} quotes a load percentage; the card already prints the multiplier`);
+      }
+    });
+  }
+
   const seen = new Set();
   for (const c of entry.cues) {
     const k = String(c).trim().toLowerCase();

@@ -48,6 +48,16 @@ test('a duplicated cue inside one entry is rejected', () => {
   assert.match(cueProblems(withCues(['same', 'same']))[0], /duplicate/i);
 });
 
+test('a loaded lift may not restate its coefficient in prose', () => {
+  const loaded = cues => ({ id: 'x', name: 'X', loadable: true, prCoef: 0.85, cues });
+  assert.match(cueProblems(loaded(['Expect roughly 85% of your back squat.']))[0], /percentage/);
+  assert.match(cueProblems(loaded(['About 1.15 times your power clean.']))[0], /percentage/);
+  // The same sentence on a movement with no coefficient is an effort cue.
+  assert.deepEqual(
+    cueProblems({ id: 'x', name: 'X', loadable: false, prCoef: null,
+                  cues: ['Reach about 90% by the end, then float.'] }), []);
+});
+
 test('the whole library passes the guard', () => {
   for (const e of LIB) {
     assert.deepEqual(cueProblems(e), [], `${e.id}: ${cueProblems(e).join('; ')}`);

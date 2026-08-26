@@ -23,7 +23,7 @@
       "loadable": true, "prRef": "back-squat", "prCoef": 0.85,
       "joints": ["knee","hip","lumbar","thoracic","wrist"], "equipment": ["barbell","rack"], "venue": "gym",
       "cnsCost": 3, "technical": 3, "unilateral": false,
-      "cues": ["Elbows high, bar resting on your shoulders -- the fingers only guide it.","When the elbows drop the bar follows, so keep them up all the way.","Stay upright and sit straight down between the hips.","Expect roughly 85% of your back squat."],
+      "cues": ["Elbows high, bar resting on your shoulders -- the fingers only guide it.","When the elbows drop the bar follows, so keep them up all the way.","Stay upright and sit straight down between the hips.","Expect noticeably less than your back squat."],
       "modalities": ["max-strength","power","hypertrophy"] },
 
     { "id": "box-squat", "name": "Box Squat", "pattern": "squat", "tier": "secondary",
@@ -128,7 +128,7 @@
       "loadable": true, "prRef": "deadlift", "prCoef": 0.70,
       "joints": ["hip","lumbar"], "equipment": ["barbell","plates"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": false,
-      "cues": ["Start standing, then push the hips back with only a soft bend in the knee.","The bar stays in contact with your thighs the whole way down.","Stop when the hamstrings run out, not when the bar reaches the floor.","Much lighter than a deadlift -- around 70% is normal."],
+      "cues": ["Start standing, then push the hips back with only a soft bend in the knee.","The bar stays in contact with your thighs the whole way down.","Stop when the hamstrings run out, not when the bar reaches the floor.","Much lighter than a deadlift -- this is a hamstring lift, not a pull."],
       "modalities": ["hypertrophy","max-strength"] },
 
     { "id": "deficit-deadlift", "name": "Deficit Deadlift", "pattern": "hinge", "tier": "secondary",
