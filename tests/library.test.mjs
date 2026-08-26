@@ -113,3 +113,23 @@ test('a primary-tier strength lift that is not a speed lift is available for hyp
     'these are loadable primary lifts with no speed component, so excluding them ' +
     'from hypertrophy days is an oversight rather than a decision: ' + missing.join(', '));
 });
+
+// An id is the only handle anything has on an exercise. `cuesFor` looks one up
+// with `find`, the generator excludes what it has already drawn by id, and the
+// coverage matrix counts bodies in a pool. A second entry under the same id
+// breaks all three quietly: the first copy shadows the second, so cues written
+// for the second are never rendered, and both copies are counted as separate
+// movements when a pool is measured.
+//
+// Five of these were live on 2026-08-26 -- depth-jump, hurdle-hop, tuck-jump,
+// split-jump and lateral-bound, each added twice by two different authoring
+// passes. Nothing in the suite noticed.
+test('no id appears twice in the library', () => {
+  const seen = new Map();
+  const dupes = [];
+  for (const e of EX) {
+    if (seen.has(e.id)) dupes.push(e.id);
+    seen.set(e.id, true);
+  }
+  assert.deepEqual(dupes, [], `duplicated ids: ${dupes.join(', ')}`);
+});
