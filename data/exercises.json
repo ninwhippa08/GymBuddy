@@ -432,19 +432,19 @@
       "modalities": ["max-strength","hypertrophy"] },
 
     { "id": "push-press", "name": "Push Press", "pattern": "push-v", "tier": "primary",
-      "loadable": true, "prRef": "overhead-press", "prCoef": 1.30,
+      "loadable": true, "prRef": "overhead-press", "prCoef": 1.10,
       "joints": ["shoulder","elbow","knee","hip"], "equipment": ["barbell","rack"], "venue": "gym",
       "cnsCost": 3, "technical": 2, "unilateral": false,
       "modalities": ["power","max-strength"] },
 
     { "id": "push-jerk", "name": "Push Jerk", "pattern": "push-v", "tier": "primary",
-      "loadable": true, "prRef": "overhead-press", "prCoef": 1.45,
+      "loadable": true, "prRef": "overhead-press", "prCoef": 1.24,
       "joints": ["shoulder","elbow","knee","hip"], "equipment": ["barbell","rack"], "venue": "gym",
       "cnsCost": 3, "technical": 3, "unilateral": false,
       "modalities": ["power","max-strength"] },
 
     { "id": "split-jerk", "name": "Split Jerk", "pattern": "push-v", "tier": "primary",
-      "loadable": true, "prRef": "overhead-press", "prCoef": 1.55,
+      "loadable": true, "prRef": "overhead-press", "prCoef": 1.38,
       "joints": ["shoulder","elbow","knee","hip","ankle"], "equipment": ["barbell","rack"], "venue": "gym",
       "cnsCost": 3, "technical": 3, "unilateral": false,
       "modalities": ["power","max-strength"] },

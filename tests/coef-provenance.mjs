@@ -45,9 +45,54 @@ export const COEF_PROVENANCE = {
   "romanian-deadlift"         : { coef: 0.7  , of: "deadlift"        , tag: 'unverified' },
   "barbell-row"               : { coef: 0.55 , of: "deadlift"        , tag: 'unverified' },
   "pendlay-row"               : { coef: 0.5  , of: "deadlift"        , tag: 'unverified' },
-  "split-jerk"                : { coef: 1.55 , of: "overhead-press"  , tag: 'unverified' },
-  "push-jerk"                 : { coef: 1.45 , of: "overhead-press"  , tag: 'unverified' },
-  "push-press"                : { coef: 1.3  , of: "overhead-press"  , tag: 'unverified' },
+  // THE OVERHEAD-PRESS LADDER, SOURCED 2026-08-25. All three were high.
+  //
+  // The root is a STRICT press: `overhead-press` lists joints shoulder/elbow/
+  // lumbar/scapula and NO knee or hip, so the library itself says no leg drive.
+  // Every number below is therefore a ratio against a strict standing press.
+  //
+  // Two independent derivations, agreeing to within 2% on all three rungs:
+  //
+  //   (a) Jim Schmitz -- three-time US Olympic weightlifting team coach --
+  //       gives the ladder as a worked example: "If you MP 80 kg, then you
+  //       should PP about 90 kg and PJ 100 kg and split jerk 110 kg."
+  //       That is 1.125 / 1.25 / 1.375.
+  //       https://ironmind.com/articles/jim-schmitz-on-the-lifts/Push-Press-Push-Jerk-aka-Power-Jerk/
+  //
+  //   (b) Anchor the top rung on measured data, then walk down it. WODconnect
+  //       reports means over 90,000 users: male press 61.1 kg, split jerk
+  //       84.14 kg, a ratio of 1.38. Push press is programmed at ~80% of jerk
+  //       max (0.80 x 1.38 = 1.10); the push jerk gives way to the split jerk
+  //       at ~85-90% of it (0.90 x 1.38 = 1.24).
+  //       https://www.wodconnect.com/blog/posts/the-correlation-between-overhead-press-and-jerk
+  //       https://www.performancemenu.com/article/1205/Maximizing-the-Push-Press-for-the-Jerk/
+  //
+  // Where the two bands differ the LOWER value is taken, on §8's asymmetry: a
+  // low coefficient wastes a set, a high one puts weight overhead that cannot
+  // be stabilised.
+  //
+  // A THIRD SOURCE DISAGREES AND IS REJECTED, on the record. Strength Level's
+  // per-lift means (press 57 kg, push press 82, push jerk 89) imply 1.44 and
+  // 1.56 -- both far higher, and the push jerk figure ALONE EXCEEDS the split
+  // jerk figure the other two sources give. A push jerk cannot beat a split
+  // jerk; that is what the split is for. The tell is that those averages are
+  // unpaired -- the population logging strict presses is not the population
+  // logging push jerks -- so they cannot yield a within-athlete ratio.
+  // Rejected for failing the ordering the movements themselves impose, not for
+  // being inconvenient.
+  //
+  // 'corroborated', not 'verified': a coach's prescription and a commercial
+  // user database agree, but neither is a peer-reviewed study. Same standard
+  // as squat-clean above.
+  //
+  // STILL OPEN, AND IT SCALES ALL THREE: what does his `overhead-press` PR
+  // actually refer to? The snatch-root question, one lift over. If the number
+  // he holds is a push press or a football-era "max overhead" rather than a
+  // strict press, every rung here is inflated on top of an inflated root.
+  // Asked, not assumed -- see design §5.5 for the precedent.
+  "split-jerk"                : { coef: 1.38 , of: "overhead-press"  , tag: 'corroborated' },
+  "push-jerk"                 : { coef: 1.24 , of: "overhead-press"  , tag: 'corroborated' },
+  "push-press"                : { coef: 1.1  , of: "overhead-press"  , tag: 'corroborated' },
   "z-press"                   : { coef: 0.75 , of: "overhead-press"  , tag: 'unverified' },
   "clean-pull"                : { coef: 1.15 , of: "power-clean"     , tag: 'unverified' },
   // The first coefficient in this register to arrive sourced rather than
@@ -83,4 +128,7 @@ export const COEF_PROVENANCE = {
 // loadable movement must arrive with a sourced coefficient.
 // Lowered 30 -> 29 on 2026-08-25 when power-snatch was resolved. This is the
 // ratchet working in the direction it was built for.
-export const UNVERIFIED_BUDGET = 29;
+// Lowered 29 -> 26 the same day when the overhead-press ladder was sourced --
+// the first entries paid off by RESEARCH rather than by a definition, and all
+// three proved to be overloads: 1.55 / 1.45 / 1.30 became 1.38 / 1.24 / 1.10.
+export const UNVERIFIED_BUDGET = 26;

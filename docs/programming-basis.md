@@ -459,16 +459,16 @@ is precisely why none of them was ever questioned.
 **Eight of the thirty are above 1.00**, and those are the ones to source first,
 because an error there prescribes *more* than the reference PR rather than less:
 
-| movement | coefficient | priced off |
-|---|---|---|
-| `split-jerk` | 1.55 | `overhead-press` |
-| `push-jerk` | 1.45 | `overhead-press` |
-| `push-press` | 1.30 | `overhead-press` |
-| `rack-pull` | 1.15 | `deadlift` |
-| `clean-pull` | 1.15 | `power-clean` |
-| `snatch-pull` | 1.15 | `snatch` |
-| `overhead-squat` | 1.10 | `snatch` |
-| `trap-bar-deadlift` | 1.05 | `deadlift` |
+| movement | coefficient | priced off | state |
+|---|---|---|---|
+| ~~`split-jerk`~~ | ~~1.55~~ → **1.38** | `overhead-press` | sourced 2026-08-25 |
+| ~~`push-jerk`~~ | ~~1.45~~ → **1.24** | `overhead-press` | sourced 2026-08-25 |
+| ~~`push-press`~~ | ~~1.30~~ → **1.10** | `overhead-press` | sourced 2026-08-25 |
+| `rack-pull` | 1.15 | `deadlift` | unsourced |
+| `clean-pull` | 1.15 | `power-clean` | unsourced |
+| `snatch-pull` | 1.15 | `snatch` | unsourced |
+| `overhead-squat` | 1.10 | `snatch` | unsourced |
+| `trap-bar-deadlift` | 1.05 | `deadlift` | unsourced |
 
 Three further claims sit at exactly 1.00 and are easy to mistake for
 definitional roots — `sumo-deadlift`, `clean-high-pull` and `power-snatch`
@@ -492,3 +492,22 @@ Project A out of the schema, which design §2 requires.
 
 **Not resolved: the thirty numbers themselves are still unsourced.** Registering
 a debt is not paying it. This is the largest open item in the project.
+
+**Paid down 2026-08-25 — the overhead-press ladder, and it was wrong in the
+dangerous direction.** `split-jerk`, `push-jerk` and `push-press` were the first
+three coefficients sourced by research rather than settled by a definition, and
+**all three were overloads**: 1.55 / 1.45 / 1.30 became 1.38 / 1.24 / 1.10, a
+cut of 11–15% on the weight the app would have put overhead. Two independent
+derivations — a US Olympic weightlifting coach's worked ladder and a 90,000-user
+dataset walked down through published programming percentages — agree to within
+2% on all three rungs. Tagged `corroborated`. The full reasoning, including a
+third source rejected for implying a push jerk heavier than a split jerk, is in
+`design-library-expansion.md` §5.6. `UNVERIFIED_BUDGET` falls 29 → 26.
+
+**This is the first evidence about the backlog as a whole, and it is not
+reassuring.** The one prior resolution (`power-snatch`, §5.5) left its number
+unchanged, which invited the reading that the values were fine and only the
+paperwork was missing. Three for three in the other direction says otherwise:
+these were inherited plausible-looking numbers, and plausible-looking numbers
+drifted high. **The remaining five above 1.00 should be assumed high until
+sourced, not assumed fine because they are believable.**

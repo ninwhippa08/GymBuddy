@@ -397,6 +397,61 @@ signal.
 needs one answer from the athlete, and `programming-basis.md` should record
 what each PR root means once it is given.
 
+### 5.6 The overhead-press ladder was high on all three rungs — sourced 2026-08-25
+
+The first coefficients paid off the discrepancy 8 backlog by **research** rather
+than by a definition, and unlike `power-snatch` they did not survive it.
+
+| movement | was | now | change |
+|---|---|---|---|
+| `split-jerk` | 1.55 | **1.38** | −11% |
+| `push-jerk` | 1.45 | **1.24** | −14% |
+| `push-press` | 1.30 | **1.10** | −15% |
+
+The root is a **strict** press, and the library says so itself: `overhead-press`
+lists joints `shoulder / elbow / lumbar / scapula` with **no knee or hip**, so
+there is no leg drive in it. Every rung is a ratio against a strict standing
+press.
+
+Two independent derivations agree to within 2% on all three rungs:
+
+- **A coach's worked ladder.** Jim Schmitz, three-time US Olympic weightlifting
+  team coach: *"If you MP 80 kg, then you should PP about 90 kg and PJ 100 kg
+  and split jerk 110 kg"* — 1.125 / 1.25 / 1.375.
+  https://ironmind.com/articles/jim-schmitz-on-the-lifts/Push-Press-Push-Jerk-aka-Power-Jerk/
+- **Measured data at the top rung, then walk down.** WODconnect's means over
+  90,000 users put the male press at 61.1 kg and the split jerk at 84.14 kg — a
+  ratio of **1.38**. The push press is programmed at ~80% of jerk max
+  (0.80 × 1.38 = 1.10) and the push jerk gives way to the split jerk at ~85–90%
+  of it (0.90 × 1.38 = 1.24).
+  https://www.wodconnect.com/blog/posts/the-correlation-between-overhead-press-and-jerk
+  https://www.performancemenu.com/article/1205/Maximizing-the-Push-Press-for-the-Jerk/
+
+Where the two bands differ, the **lower** value is taken, on §8's asymmetry: a
+low coefficient wastes a set, a high one puts weight overhead that cannot be
+stabilised. Tagged `corroborated`, not `verified` — a coach's prescription and a
+commercial user database agree, but neither is a peer-reviewed study.
+
+**A third source disagrees and is rejected, on the record.** Strength Level's
+per-lift means — press 57 kg, push press 82 kg, push jerk 89 kg — imply 1.44 and
+1.56. Both are far higher, and its **push jerk figure alone exceeds the split
+jerk figure the other two sources give**. A push jerk cannot beat a split jerk;
+the split exists precisely to get more weight overhead. The tell is that those
+averages are *unpaired* — the population logging strict presses is not the
+population logging push jerks — so they cannot yield a within-athlete ratio. It
+is rejected for failing an ordering the movements themselves impose, which is a
+reason, not a preference. **Lesson worth carrying: a large-N average is not
+evidence of a ratio unless the N is the same people.**
+
+**Open, and it scales all three: what does his `overhead-press` PR refer to?**
+This is §5.5's question one lift over. If the number he holds is a push press,
+or a football-era "max overhead" taken with leg drive, then the root is not
+strict and every rung here is inflated on top of an inflated root — the same
+compounding error, in the same direction. **Asked, not assumed.** Unlike the
+snatch, the coefficients were still corrected: they are wrong against a strict
+root and *less* wrong against a loose one, so the change is an improvement
+either way and does not depend on the answer.
+
 ## 6  How the rules are expressed
 
 The coverage test **derives** its targets at run time from `TEMPLATES`,
