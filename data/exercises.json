@@ -166,6 +166,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["hip","ankle","lumbar"], "equipment": ["dumbbell"], "venue": "either",
       "cnsCost": 1, "technical": 2, "unilateral": true,
+      "cues": ["Bell in the hand opposite the standing leg.","Hinge over the standing leg and let the free leg travel back behind you.","Hips stay square to the floor -- do not let the free hip roll open.","Balance gives out before the hamstring does; touch a wall if you need to."],
       "modalities": ["hypertrophy"] },
 
     { "id": "hip-thrust", "name": "Barbell Hip Thrust", "pattern": "hinge", "tier": "primary",
@@ -179,12 +180,14 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["knee","hip"], "equipment": ["ghd"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": false,
+      "cues": ["Knees just behind the pad, feet locked in, body in one line to the head.","Lower under control without folding at the hips.","Pull yourself back up with the hamstrings, keeping that same straight line.","Brutal the first time. Push off a wall or use a band until it is not."],
       "modalities": ["hypertrophy"] },
 
     { "id": "nordic-curl", "name": "Nordic Hamstring Curl", "pattern": "hinge", "tier": "accessory",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["knee"], "equipment": ["bodyweight"], "venue": "either",
       "cnsCost": 2, "technical": 2, "unilateral": false,
+      "cues": ["Kneel with the ankles held down and the body straight from knee to head.","Lower as slowly as you can and catch yourself on the hands.","Push off the floor to get back up; the lowering is the whole exercise.","Famous for wrecking hamstrings for days. Two or three reps is a first go."],
       "modalities": ["hypertrophy"] },
 
     { "id": "kettlebell-swing", "name": "Kettlebell Swing", "pattern": "hinge", "tier": "secondary",
@@ -198,12 +201,14 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["lumbar","hip"], "equipment": ["ghd"], "venue": "gym",
       "cnsCost": 1, "technical": 1, "unilateral": false,
+      "cues": ["Pads at the hip crease so the hips can move freely over them.","Round down under control, then extend to a straight line and stop there.","Do not arch past straight at the top. The lower back gains nothing there."],
       "modalities": ["hypertrophy","isolation"] },
 
     { "id": "cable-pull-through", "name": "Cable Pull-Through", "pattern": "hinge", "tier": "accessory",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["hip"], "equipment": ["cable"], "venue": "gym",
       "cnsCost": 1, "technical": 1, "unilateral": false,
+      "cues": ["Face away from the low pulley with the rope passed between the legs.","Push the hips back until the hamstrings load and the chest falls forward.","Stand up by squeezing the glutes, never by pulling with the arms."],
       "modalities": ["hypertrophy","isolation"] },
 
     { "id": "power-clean", "name": "Power Clean", "pattern": "hinge", "tier": "primary",
@@ -287,6 +292,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["hip","knee","shoulder","wrist"], "equipment": ["kettlebell"], "venue": "either",
       "cnsCost": 2, "technical": 2, "unilateral": true,
+      "cues": ["Hike the bell back between the legs exactly as you would to swing it.","Snap the hips and keep it close, steering it around the wrist.","Catch it in the rack with the forearm vertical and the bell resting.","If it thumps the wrist you are casting it out instead of steering it."],
       "modalities": ["power","interval"] },
 
     { "id": "walking-lunge", "name": "Walking Lunge", "pattern": "lunge", "tier": "accessory",
@@ -659,18 +665,21 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["lumbar","scapula","wrist"], "equipment": ["dumbbell"], "venue": "either",
       "cnsCost": 1, "technical": 1, "unilateral": true,
+      "cues": ["One bell in one hand and nothing in the other.","Stand dead upright -- do not lean away from the weight to balance it.","Walk the same distance on each side.","The side WITHOUT the bell is doing the work. That is the whole point."],
       "modalities": ["hypertrophy","isolation"] },
 
     { "id": "front-rack-carry", "name": "Front-Rack Carry", "pattern": "carry", "tier": "accessory",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["thoracic","lumbar","shoulder"], "equipment": ["kettlebell"], "venue": "either",
       "cnsCost": 2, "technical": 1, "unilateral": false,
+      "cues": ["Bells in the rack, elbows down, forearms vertical against the ribs.","Ribs down and the breathing steady; it will want to go shallow.","Walk tall, and stop when the elbows start to drop."],
       "modalities": ["hypertrophy","interval"] },
 
     { "id": "overhead-carry", "name": "Overhead Carry", "pattern": "carry", "tier": "accessory",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["shoulder","scapula","lumbar"], "equipment": ["kettlebell"], "venue": "either",
       "cnsCost": 2, "technical": 2, "unilateral": true,
+      "cues": ["Lock the bell out overhead with the arm beside the ear, not in front.","Ribs down and the shoulder pushed up into the bell the whole way.","Walk slowly and look straight ahead.","Stop the moment the arm drifts forward. That is the shoulder giving up."],
       "modalities": ["hypertrophy"] },
 
     { "id": "trap-bar-carry", "name": "Trap Bar Carry", "pattern": "carry", "tier": "secondary",
@@ -684,6 +693,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["lumbar","thoracic","hip"], "equipment": ["sandbag"], "venue": "either",
       "cnsCost": 2, "technical": 1, "unilateral": false,
+      "cues": ["Hug the bag high on the chest with the arms locked underneath it.","Stand tall and let it rest against you rather than holding it away.","Breathing is the limit here, not the arms. Keep the steps steady."],
       "modalities": ["interval","hypertrophy"] },
 
     { "id": "curtsy-lunge", "name": "Curtsy Lunge", "pattern": "lunge", "tier": "accessory",
@@ -1347,6 +1357,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["knee"], "equipment": ["machine"], "venue": "gym",
       "cnsCost": 1, "technical": 1, "unilateral": false,
+      "cues": ["Pad just above the heels with the hips flat on the bench.","Curl the heels towards the backside and squeeze at the top.","Lower slowly and stop just short of the weight touching down."],
       "modalities": ["isolation","hypertrophy"] },
 
     { "id": "wrist-curl", "name": "Wrist Curl", "pattern": "pull-h", "tier": "accessory",
