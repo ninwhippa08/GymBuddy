@@ -47,12 +47,25 @@ export const COEF_PROVENANCE = {
   // 1.20-1.40 (competitive powerlifters produce ~21% more force from just
   // above the kneecap than from the floor), so 1.15 is probably LOW.
   //
-  // It is not raised anyway, because the joints field is not user-facing. The
-  // card says "Rack Pull" and nothing else, so he sets the pins wherever he
-  // likes -- and a coefficient sourced for an above-knee pull is an OVERLOAD
-  // on a below-knee one. Sourcing has to wait on the entry saying where the
-  // pins go. Raising it now would be sourcing the number for a movement the
-  // app does not actually prescribe.
+  // It was not raised, because the joints field is not user-facing. The card
+  // said "Rack Pull" and nothing else, so he set the pins wherever he liked --
+  // and a coefficient sourced for an above-knee pull is an OVERLOAD on a
+  // below-knee one.
+  //
+  // HALF FIXED 2026-08-25: the entry is now "Rack Pull (Above Knee)" and its
+  // first cue says to set the pins just above the kneecaps. That closes the
+  // ambiguity -- 1.15 is now a claim about a movement the app actually
+  // prescribes, rather than a gamble on where the pins ended up. THIS IS A
+  // SAFETY FIX INDEPENDENT OF THE COEFFICIENT'S VALUE.
+  //
+  // STILL UNVERIFIED, and the reason changed. The evidence that pointed at
+  // 1.20-1.40 does not survive inspection: the widely repeated "~21% more
+  // force above the kneecap" traces to isometric force-plate work (Beckham et
+  // al., n=14, floor < knee < lockout), and FORCE PRODUCED AT A POSITION IS
+  // NOT A 1RM RATIO. The direction is peer-reviewed; the multiplier is not.
+  // The coaching "20-40% more" is a working-load range, not a max. So the
+  // question is now well-posed and still unanswered -- which is progress, and
+  // is not the same as being sourced.
   "rack-pull"                 : { coef: 1.15 , of: "deadlift"        , tag: 'unverified' },
   // SOURCED 2026-08-25, AND IT SURVIVED UNCHANGED -- the first one to. Three
   // peer-reviewed 1RM comparisons of the hexagonal against the straight bar:

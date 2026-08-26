@@ -130,7 +130,11 @@
       "cnsCost": 3, "technical": 3, "unilateral": false,
       "modalities": ["max-strength"] },
 
-    { "id": "rack-pull", "name": "Rack Pull", "pattern": "hinge", "tier": "secondary",
+    { "id": "rack-pull", "name": "Rack Pull (Above Knee)", "pattern": "hinge", "tier": "secondary",
+      "cues": ["Set the pins so the bar starts just above your kneecaps.",
+               "Higher pins mean a shorter pull -- the load is not comparable to a floor deadlift.",
+               "Shoulders back and lats tight before you break it off the pins.",
+               "Lower it back to the pins under control; do not bounce it."],
       "loadable": true, "prRef": "deadlift", "prCoef": 1.15,
       "joints": ["hip","lumbar"], "equipment": ["barbell","rack","plates"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": false,
