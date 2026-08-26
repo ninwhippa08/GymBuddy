@@ -60,9 +60,14 @@ to dynamic-effort / velocity-based work, where the percentage refers to the
 *squat or bench* 1RM being moved fast. The NSCA percentages refer to the **power
 exercise's own 1RM** — a power clean at 80% of the power clean max.
 
-**What each PR root means, recorded 2026-08-25.** Five of the six are
-unambiguous: `back-squat`, `deadlift`, `bench-press`, `overhead-press` and
-`power-clean` name exactly the lift they are. **`snatch` is the exception and
+**What each PR root means, recorded 2026-08-25.** Five of the six were
+called unambiguous: `back-squat`, `deadlift`, `bench-press`, `overhead-press`
+and `power-clean` "name exactly the lift they are". **Two have since been
+confirmed with him rather than assumed, and `overhead-press` is one of them —
+his PR is a STRICT standing press, no leg drive** (design §5.6). That matters
+because the whole jerk ladder is priced against it. It also shows "unambiguous"
+was doing more work than it earned: it was an assumption in the same clothes as
+the one that turned out to be wrong about `snatch`. **`snatch` is the exception and
 was ambiguous** — in weightlifting the bare word means the full squat snatch,
 and the library prices `power-snatch` at parity with it, which the literature
 puts at 0.88. **The athlete settled it: the `snatch` root is his POWER snatch.**

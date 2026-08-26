@@ -471,6 +471,24 @@ the low camp, and the closest population match in the evidence is WODconnect's,
 whose users perform both lifts. **The 1.38 / 1.24 / 1.10 ladder stands, and the
 reason it stands is a fact about him rather than a fact about the sources.**
 
+**RESOLVED 2026-08-25 by the athlete: his `overhead-press` PR is a STRICT
+standing press.** The library's reading was right, the ladder needs no further
+adjustment, and the compounding risk described below is retired. Recorded like
+the snatch root in §5.5 — for "what does his PR refer to", the primary source is
+him.
+
+Worth noting what the question cost and what it bought. `programming-basis.md`
+already called five of the six roots "unambiguous", `overhead-press` among them,
+and that was an *assumption* dressed as an observation — the same assumption
+that had gone unexamined about `snatch` until it turned out to be wrong. Asking
+was cheap; being right by luck is not a method. **The answer confirms the low
+camp twice over:** a lifter whose held PR is a strict press is a lifter who
+presses, which is exactly the population whose jerk-to-press ratio is 1.38
+rather than 1.67.
+
+The original open question follows, kept because it is the reasoning that
+produced the answer.
+
 **Open, and it scales all three: what does his `overhead-press` PR refer to?**
 This is §5.5's question one lift over. If the number he holds is a push press,
 or a football-era "max overhead" taken with leg drive, then the root is not
@@ -581,6 +599,14 @@ again, and it is not a source.
 
 **Flagged rather than guessed at.** Quietly lowering it would be this project's
 signature failure wearing a safety costume — an invented constant is not made
+**DECIDED 2026-08-25 by the athlete: leave it at 1.10, tagged as standing
+debt.** Not deferred — decided, and it should not be reopened without new
+information. The reasoning he was given and accepted: the value is honest about
+its own weakness, §5.9 shows the ramp clamp pins the movement's displayed load
+throughout the return weeks anyway, and a mobility gate is a Project B feature
+rather than a data change. `overhead-squat` therefore stays in
+`UNVERIFIED_BUDGET`, which is the correct place for a number nobody can source.
+
 sound by pointing in the cautious direction. The real options are his: drop the
 movement from loaded prescription, gate it behind a mobility check (Project B),
 or accept a tagged standing debt.

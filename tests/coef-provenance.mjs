@@ -115,11 +115,12 @@ export const COEF_PROVENANCE = {
   // user database agree, but neither is a peer-reviewed study. Same standard
   // as squat-clean above.
   //
-  // STILL OPEN, AND IT SCALES ALL THREE: what does his `overhead-press` PR
-  // actually refer to? The snatch-root question, one lift over. If the number
-  // he holds is a push press or a football-era "max overhead" rather than a
-  // strict press, every rung here is inflated on top of an inflated root.
-  // Asked, not assumed -- see design §5.5 for the precedent.
+  // ROOT CONFIRMED 2026-08-25 BY THE ATHLETE: his `overhead-press` PR is a
+  // STRICT standing press, no leg drive. The library's reading was right and
+  // the ladder needs no further adjustment. Asked rather than assumed, on the
+  // §5.5 precedent -- and the answer independently supports the low camp, since
+  // a lifter whose held PR is a strict press is a lifter who presses, which is
+  // the population whose jerk-to-press ratio is 1.38 rather than 1.67.
   "split-jerk"                : { coef: 1.38 , of: "overhead-press"  , tag: 'corroborated' },
   "push-jerk"                 : { coef: 1.24 , of: "overhead-press"  , tag: 'corroborated' },
   "push-press"                : { coef: 1.1  , of: "overhead-press"  , tag: 'corroborated' },
@@ -182,6 +183,10 @@ export const COEF_PROVENANCE = {
   //
   // FLAGGED FOR HIM rather than guessed at. Inventing a lower number would be
   // this project's signature failure wearing a safety costume.
+  //
+  // HIS DECISION, 2026-08-25: leave it at 1.10 as tagged standing debt. Decided,
+  // not deferred -- do not reopen without new information. It stays in
+  // UNVERIFIED_BUDGET, which is the right place for a number nobody can source.
   "overhead-squat"            : { coef: 1.1  , of: "snatch"          , tag: 'unverified' },
   // RESOLVED 2026-08-25 by the athlete: the `snatch` root IS his power snatch,
   // not a full squat snatch. So parity is definitional rather than a claim,
