@@ -124,7 +124,24 @@ export const COEF_PROVENANCE = {
   "push-jerk"                 : { coef: 1.24 , of: "overhead-press"  , tag: 'corroborated' },
   "push-press"                : { coef: 1.1  , of: "overhead-press"  , tag: 'corroborated' },
   "z-press"                   : { coef: 0.75 , of: "overhead-press"  , tag: 'unverified' },
-  "clean-pull"                : { coef: 1.15 , of: "power-clean"     , tag: 'unverified' },
+  // SOURCED 2026-08-25, unchanged, TOGETHER WITH snatch-pull -- they stand or
+  // fall on the same argument. Greg Everett, Catalyst Athletics: "typically
+  // pulls are done with 80-105% of the lifter's best snatch or clean."
+  //   https://www.catalystathletics.com/article/1728/
+  //
+  // 1.15 looks OUTSIDE that band until the roots are taken into account, and
+  // this is the whole point: BOTH ROOTS ARE POWER VARIANTS. The power clean is
+  // 80-90% of the clean (Everett again, article 2130 -- already cited for
+  // squat-clean above), so 1.15 x 0.85 lands the clean pull at ~98% of the
+  // FULL clean. Inside the band, near its top.
+  //
+  // Near the top is the right end for him specifically. Everett's caveat is
+  // that 80-105% is "far too light" for lifters with a surplus of strength
+  // relative to technical ability -- which is the exact description of a
+  // retired college football athlete whose Olympic technique is years stale.
+  // The band is sourced; placing him at its top is reasoning from his case,
+  // so: corroborated, not verified.
+  "clean-pull"                : { coef: 1.15 , of: "power-clean"     , tag: 'corroborated' },
   // The first coefficient in this register to arrive sourced rather than
   // inherited. Coaching sources put the power clean at 80-90% of the full
   // clean; 85% inverts to 1.18. Two independent sources agree on the band,
@@ -135,7 +152,36 @@ export const COEF_PROVENANCE = {
   "clean-high-pull"           : { coef: 1    , of: "power-clean"     , tag: 'unverified' },
   "hang-power-clean"          : { coef: 0.9  , of: "power-clean"     , tag: 'unverified' },
   "high-hang-clean"           : { coef: 0.82 , of: "power-clean"     , tag: 'unverified' },
-  "snatch-pull"               : { coef: 1.15 , of: "snatch"          , tag: 'unverified' },
+  // SOURCED 2026-08-25, unchanged -- same argument as clean-pull above, and
+  // the arithmetic is even cleaner because §5.5 established that the `snatch`
+  // root IS his power snatch. A power snatch is ~0.88 of the full snatch
+  // (PMC6890263, cited in §5.5), so 1.15 x 0.88 puts the snatch pull at ~101%
+  // of the full snatch: inside Everett's 80-105% band, at the top end where a
+  // strength-surplus lifter belongs.
+  //
+  // Note what happened here. The register already observed that these two
+  // "no longer look odd" once the root was resolved, and explicitly refused to
+  // count that as a source -- "coherence is not a source". It still isn't. What
+  // changed is that a sourced BAND now exists to check the coherent value
+  // against, and it falls inside. Coherence pointed; the band is the evidence.
+  "snatch-pull"               : { coef: 1.15 , of: "snatch"          , tag: 'corroborated' },
+  // INVESTIGATED 2026-08-25 AND LEFT UNSOURCED, for a different reason than
+  // rack-pull's. There is no strength ratio to find, because THE OVERHEAD SQUAT
+  // IS NOT STRENGTH-LIMITED. Asked directly what the snatch:overhead-squat
+  // ratio should be, Everett declines to give one and treats the gap as a
+  // mobility and stability problem: "you don't necessarily need to overhead
+  // squat more than you snatch."
+  //   https://www.catalystathletics.com/article/2130/
+  //
+  // So a coefficient is the wrong instrument here. It predicts load from a PR,
+  // and the binding constraint is shoulder, thoracic and ankle mobility -- for
+  // a returning athlete, the thing most likely to have decayed. The number is
+  // not defensible and not obviously wrong either: 1.10 of a POWER snatch is
+  // ~97% of a full snatch, which satisfies Everett's "not necessarily more".
+  // That is coherence again, and coherence is not a source.
+  //
+  // FLAGGED FOR HIM rather than guessed at. Inventing a lower number would be
+  // this project's signature failure wearing a safety costume.
   "overhead-squat"            : { coef: 1.1  , of: "snatch"          , tag: 'unverified' },
   // RESOLVED 2026-08-25 by the athlete: the `snatch` root IS his power snatch,
   // not a full squat snatch. So parity is definitional rather than a claim,
@@ -163,4 +209,8 @@ export const COEF_PROVENANCE = {
 // three proved to be overloads: 1.55 / 1.45 / 1.30 became 1.38 / 1.24 / 1.10.
 // Lowered 26 -> 25 for trap-bar-deadlift, which was sourced and kept its
 // value -- the debt falls when a number gains a source, not when it changes.
-export const UNVERIFIED_BUDGET = 25;
+// Lowered 25 -> 23 for the two Olympic pulls, also unchanged. Of the eight
+// coefficients above 1.00, five are now sourced (three moved, two held) and
+// three are blocked on something other than reading: rack-pull and
+// overhead-squat below, and the root question in the ladder above.
+export const UNVERIFIED_BUDGET = 23;

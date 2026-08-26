@@ -465,9 +465,9 @@ because an error there prescribes *more* than the reference PR rather than less:
 | ~~`push-jerk`~~ | ~~1.45~~ → **1.24** | `overhead-press` | sourced 2026-08-25 |
 | ~~`push-press`~~ | ~~1.30~~ → **1.10** | `overhead-press` | sourced 2026-08-25 |
 | `rack-pull` | 1.15 | `deadlift` | **blocked** — pin height unstated |
-| `clean-pull` | 1.15 | `power-clean` | unsourced |
-| `snatch-pull` | 1.15 | `snatch` | unsourced |
-| `overhead-squat` | 1.10 | `snatch` | unsourced |
+| `clean-pull` | **1.15** | `power-clean` | sourced 2026-08-25, unchanged |
+| `snatch-pull` | **1.15** | `snatch` | sourced 2026-08-25, unchanged |
+| `overhead-squat` | 1.10 | `snatch` | **blocked** — mobility-limited, no ratio exists |
 | `trap-bar-deadlift` | **1.05** | `deadlift` | sourced 2026-08-25, unchanged |
 
 Three further claims sit at exactly 1.00 and are easy to mistake for
@@ -527,3 +527,37 @@ having. It is fixed by authoring — state the pin height, then price it — not
 more reading. Full reasoning in `design-library-expansion.md` §5.7, including
 the question to ask of every coefficient still in the backlog: *does this number
 assume a version of the movement the athlete cannot see?*
+**Closed out 2026-08-25 — all eight above 1.00 have now been worked, and they
+ended in three different states.**
+
+| outcome | movements | what it means |
+|---|---|---|
+| **moved** | `split-jerk` 1.55→1.38, `push-jerk` 1.45→1.24, `push-press` 1.30→1.10 | inherited values were overloads by 11–15% |
+| **held** | `trap-bar-deadlift` 1.05, `clean-pull` 1.15, `snatch-pull` 1.15 | sourced and unchanged — the evidence brackets them |
+| **blocked** | `rack-pull` 1.15, `overhead-squat` 1.10 | not sourceable as posed; the obstacle is not a lack of reading |
+
+Five of eight are now `corroborated`; `UNVERIFIED_BUDGET` falls 30 → 23.
+
+**Three findings the exercise produced that outlive the numbers:**
+
+1. **Half the backlog was fine.** The three that moved invited the conclusion
+   that every inherited number is inflated; the three that held refute it. The
+   sourcing exercise is a *test* the numbers can pass, and a project that
+   assumed otherwise would rewrite good values on suspicion.
+2. **Two coefficients are blocked on things reading cannot fix.** `rack-pull`
+   depends on a pin height the athlete is never told; `overhead-squat` is
+   mobility-limited, so no strength ratio predicts it and Everett declines to
+   give one. **A coefficient may not depend on knowledge the user does not
+   have, and it is the wrong instrument for a lift that strength does not
+   limit.**
+3. **A ratio is a fact about a population, not about two movements.** The jerk
+   ladder's sources disagree by 20% and agree on everything except the
+   strict-press anchor — the one rung that depends on who is lifting. Resolving
+   it required knowing which population the athlete belongs to, not finding a
+   better source. Expect this wherever a coefficient spans training cultures.
+
+**What remains of discrepancy 8:** 23 coefficients, all at or below 1.00, where
+an error under-prescribes rather than overloads. That is a genuinely lower
+priority than the eight above — but the ratchet holds, so it cannot grow, and a
+new loadable movement must still arrive sourced.
+

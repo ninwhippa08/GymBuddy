@@ -443,6 +443,34 @@ is rejected for failing an ordering the movements themselves impose, which is a
 reason, not a preference. **Lesson worth carrying: a large-N average is not
 evidence of a ratio unless the N is the same people.**
 
+#### Amended later the same day — a fourth source disagrees, and why the low camp still wins
+
+Found *after* the change was committed, while sourcing the Olympic lifts. A set
+of ratios anchored on the split jerk circulates widely — push jerk ≈ 95% of it,
+push press ≈ 80%, **strict press ≈ 60%** — which inverts to a split jerk of
+**1.67** × strict press and a push jerk of 1.58. That is far above the 1.38 and
+1.24 committed above, and close to the Strength Level figures rejected in this
+section. **Recorded because it was found, not because it is convincing:** it
+surfaced in aggregated search results and could not be confirmed on the page it
+was attributed to, so it is unattributed and is not a citation.
+
+Its *structure* is worth keeping even so, because it explains the whole dispute.
+Its two internal rungs — push jerk 95% of the split jerk, push press 80% —
+**agree with the walk-down used above** (0.90 and 0.80). Every source agrees on
+the shape of the ladder. **The entire disagreement is the strict-press anchor**,
+and that is the one rung that is population-dependent: a weightlifter almost
+never trains a strict press and so has a huge jerk relative to it, while an
+athlete who presses regularly does not. Hence 1.67 for one population and 1.38
+for another, from ratios that are otherwise identical.
+
+**Which population is he in?** Not the weightlifter's. He is a retired college
+football athlete returning after years off — a background that presses and does
+not specialise in the jerk, with jerk technique that has decayed while pressing
+strength has not. His jerk is limited by technique, not by his press. That is
+the low camp, and the closest population match in the evidence is WODconnect's,
+whose users perform both lifts. **The 1.38 / 1.24 / 1.10 ladder stands, and the
+reason it stands is a fact about him rather than a fact about the sources.**
+
 **Open, and it scales all three: what does his `overhead-press` PR refer to?**
 This is §5.5's question one lift over. If the number he holds is a push press,
 or a football-era "max overhead" taken with leg drive, then the root is not
@@ -506,6 +534,56 @@ place for it.
 *does this number assume a version of the movement the athlete has no way of
 knowing about?* `snatch-pull` and `clean-pull` are the immediate suspects —
 pull height is exactly as unstated as pin height.
+
+### 5.8 The Olympic pulls hold; `overhead-squat` is the wrong instrument — 2026-08-25
+
+**`clean-pull` and `snatch-pull`, both 1.15 — sourced, unchanged.** They stand
+or fall together. Greg Everett: *"typically pulls are done with 80–105% of the
+lifter's best snatch or clean."*
+https://www.catalystathletics.com/article/1728/
+
+1.15 looks *outside* that band until the roots are accounted for, and that is
+the whole point: **both roots are power variants.**
+
+| pull | × root | root as fraction of the full lift | effective % of full lift |
+|---|---|---|---|
+| `clean-pull` | 1.15 × power clean | 0.80–0.90 (Everett) | ~98% |
+| `snatch-pull` | 1.15 × power snatch | ~0.88 (PMC6890263, §5.5) | ~101% |
+
+Both land inside the sourced band, near its top — which is the right end for
+*him*. Everett's caveat is that 80–105% is "far too light" for lifters with a
+surplus of strength relative to technical ability, and that is a precise
+description of a retired college football athlete whose Olympic technique is
+years stale. The band is sourced; placing him at the top of it is reasoning from
+his case, so both are `corroborated`, not `verified`.
+
+**Note what did and did not count as evidence here.** §5.5 already observed that
+these two "no longer look odd" once the snatch root was resolved, and explicitly
+refused to treat that as a source — *coherence is not a source*. It still isn't.
+What changed is that a sourced **band** now exists to check the coherent value
+against, and the value falls inside it. Coherence pointed at the answer; the
+band is what made it evidence.
+
+**`overhead-squat` 1.10 — investigated, left unsourced, and for a different
+reason than `rack-pull`'s.** There is no strength ratio to find. Asked directly
+what the snatch-to-overhead-squat ratio should be, Everett declines to give one
+and treats the gap as a mobility and stability problem: *"you don't necessarily
+need to overhead squat more than you snatch."*
+https://www.catalystathletics.com/article/2130/
+
+**A coefficient is the wrong instrument for this movement.** It predicts a load
+from a PR, and the binding constraint here is shoulder, thoracic and ankle
+mobility — which, for an athlete returning after years off, is exactly the
+quality most likely to have decayed while strength did not. The number is
+neither defensible nor obviously wrong: 1.10 of a *power* snatch is ~97% of a
+full snatch, satisfying Everett's "not necessarily more". That is coherence
+again, and it is not a source.
+
+**Flagged rather than guessed at.** Quietly lowering it would be this project's
+signature failure wearing a safety costume — an invented constant is not made
+sound by pointing in the cautious direction. The real options are his: drop the
+movement from loaded prescription, gate it behind a mobility check (Project B),
+or accept a tagged standing debt.
 
 ## 6  How the rules are expressed
 
