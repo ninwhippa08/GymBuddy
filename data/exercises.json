@@ -1028,18 +1028,21 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["ankle","knee","hip"], "equipment": ["open-space"], "venue": "outdoor",
       "cnsCost": 1, "technical": 1, "unilateral": false,
+      "cues": ["Conversational: you should be able to talk in full sentences throughout.","If you cannot, you are running a tempo run by accident.","Land under your hips with a quiet, quick turnover."],
       "modalities": ["aerobic-steady"] },
 
     { "id": "tempo-run", "name": "Tempo Run", "pattern": "locomotion", "tier": "primary",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["ankle","knee","hip"], "equipment": ["open-space"], "venue": "outdoor",
       "cnsCost": 2, "technical": 1, "unilateral": false,
+      "cues": ["Comfortably hard -- sustainable, but talking is down to short phrases.","Hold one steady effort instead of starting fast and fading.","Ease into the first minute; do not sprint the opening."],
       "modalities": ["aerobic-steady","interval"] },
 
     { "id": "run-interval", "name": "Running Intervals", "pattern": "locomotion", "tier": "primary",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["ankle","knee","hip"], "equipment": ["open-space"], "venue": "outdoor",
       "cnsCost": 2, "technical": 1, "unilateral": false,
+      "cues": ["Hard efforts with real recovery between them, not one continuous run.","Run the first interval at a pace you could repeat on the last one.","Keep walking or jogging through the recovery -- standing still stiffens you."],
       "modalities": ["interval"] },
 
     { "id": "fartlek", "name": "Fartlek", "pattern": "locomotion", "tier": "secondary",
