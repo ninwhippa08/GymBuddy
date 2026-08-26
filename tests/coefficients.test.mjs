@@ -6,6 +6,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { COEF_PROVENANCE, UNVERIFIED_BUDGET } from './coef-provenance.mjs';
+import { prescribe, makeRng } from '../js/generator.js';
 
 const DATA = JSON.parse(
   readFileSync(new URL('../data/exercises.json', import.meta.url), 'utf8')
@@ -57,4 +58,53 @@ test('the number of unsourced coefficients never rises above the recorded debt',
     `${unverified.length} unsourced coefficients against a budget of ${UNVERIFIED_BUDGET}. ` +
     'A new loadable movement must arrive with a sourced coefficient, and ' +
     'UNVERIFIED_BUDGET is lowered as the backlog is worked off, never raised.');
+});
+
+// --------------------------------------------------------------------------
+// What a coefficient above 1.00 actually does to the number he reads.
+//
+// design-library-expansion.md §5.9. `prescribe` clamps twice -- on the
+// fraction of the movement's own max, and again on the displayed multiplier --
+// so for prCoef > 1.00 the second clamp binds almost everywhere during the
+// ramp. These two tests keep that measured fact from silently changing, in
+// either direction: if a future edit makes the coefficient matter earlier, or
+// makes it matter less, one of them fails and the change has to be deliberate.
+
+const WEEK_1_CEILING = 0.65;   // RAMP[0].pctCeiling
+const above = LIB.filter(e => e.loadable && e.prCoef != null && e.prCoef > 1.0 && e.id !== e.prRef);
+
+const slotFor = zone => ({
+  slot: 'primary', role: 'main', mode: 'load', zone,
+  sets: [3, 5], reps: [3, 5], restSec: [120, 180]
+});
+
+test('in week 1 back, a coefficient above 1.00 prints the ceiling and nothing else', () => {
+  assert.ok(above.length >= 5, 'expected the above-1.00 group to exist');
+  for (const ex of above) {
+    for (const zone of ['powerMultiple', 'maxStrength', 'hypertrophy']) {
+      for (let seed = 1; seed <= 50; seed++) {
+        const b = prescribe(slotFor(zone), ex, { volumeMultiplier: 1, pctCeiling: WEEK_1_CEILING },
+                            makeRng(seed), {});
+        assert.equal(b.displayMultiplier, WEEK_1_CEILING,
+          `${ex.id} in ${zone} seed ${seed} printed ${b.displayMultiplier}, not the ceiling`);
+      }
+    }
+  }
+});
+
+// The sharper form of the same fact, and the reason §5.9 tempers §5.6: during
+// the early ramp the coefficient is INERT. Corrupting it does not move the
+// number he reads, which is also why thirty wrong coefficients could sit in the
+// library for months without ever producing a surprising session.
+test('during the early ramp the coefficient is inert -- corrupting it changes nothing', () => {
+  for (const ex of above) {
+    const wrong = { ...ex, prCoef: ex.prCoef * 1.5 };
+    for (let seed = 1; seed <= 25; seed++) {
+      const env = { volumeMultiplier: 1, pctCeiling: WEEK_1_CEILING };
+      const good = prescribe(slotFor('powerMultiple'), ex,    env, makeRng(seed), {});
+      const bad  = prescribe(slotFor('powerMultiple'), wrong, env, makeRng(seed), {});
+      assert.equal(bad.displayMultiplier, good.displayMultiplier,
+        `${ex.id}: a 50% wrong coefficient moved the week-1 number, which §5.9 says it cannot`);
+    }
+  }
 });

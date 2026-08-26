@@ -585,6 +585,68 @@ sound by pointing in the cautious direction. The real options are his: drop the
 movement from loaded prescription, gate it behind a mobility check (Project B),
 or accept a tagged standing debt.
 
+### 5.9 Measured: the display clamp had already absorbed the overload — 2026-08-25
+
+**This section tempers the three above it.** Having corrected the ladder, the
+obvious question was how much weight actually came off the bar. The answer is:
+almost none, and the reason is a feature that was already there.
+
+`generator.js` clamps **twice** — once on the fraction of the movement's own max,
+and again on the number the athlete reads:
+
+```js
+let display = pct * exercise.prCoef;
+if (display > env.pctCeiling) { display = env.pctCeiling; ... }
+```
+
+For any `prCoef` above 1.00 that second clamp binds almost everywhere. Sweeping
+every ramp ceiling against every zone the lifts can draw:
+
+| lift | wk 1 (.65) | wk 2 (.70) | wk 3 (.78) | wk 4 (.85) | wk 5+ (.95) |
+|---|---|---|---|---|---|
+| `split-jerk` | pinned | pinned | pinned | pinned | 3 values |
+| `push-jerk` | pinned | pinned | pinned | 3 values | 11 values |
+| `push-press` | pinned | pinned | 5 values | 11 values | 20 values |
+| `snatch-pull` / `clean-pull` / `rack-pull` | pinned | pinned | 2 values | 8 values | 17 values |
+
+"Pinned" means the displayed multiplier is **exactly the ramp ceiling**,
+whatever the zone, the reps or the coefficient. Through the first two weeks back
+— and for the split jerk through week four — every one of these lifts prints the
+ceiling and nothing else.
+
+**So what did the correction actually change?** Only `push-press`, and only at
+the higher ceilings: 11 of 11 sampled power-zone prescriptions at week 5+, the
+largest drop **0.12 × PR**. `split-jerk`'s displayed multiplier does not change
+in any zone at any week. The coefficient that was 12% too high was **inert**.
+
+**Three things follow, and the third is the useful one.**
+
+1. **The correction was still right, and its value is smaller than §5.6 implies.**
+   The numbers should be true whether or not a clamp hides them, and they bite
+   at week 5+, which is where he ends up. But §5.6's framing — three overloads
+   averted — describes the *coefficients*, not the prescriptions. The bar was
+   never loaded 11–15% heavy, because the clamp caught it first. **Recorded
+   because the earlier claim was stronger than the measurement supports.**
+2. **This is how the debt survived unnoticed.** basis §8 asks why thirty
+   plausible numbers were never questioned. For the dangerous ones, part of the
+   answer is that they were barely observable: a wrong coefficient above 1.00
+   mostly could not move the printed figure, so it could not produce the
+   surprising session that would have prompted the question.
+3. **The clamp is doing more than basis §3 claims for it.** §3 calls the second
+   clamp "slightly stricter than the literature requires". For every lift above
+   1.00 it is not slightly stricter — during the ramp it is *the entire
+   prescription*, and the training zone has no effect on the displayed load at
+   all. A max-strength split jerk and a power split jerk print the same number
+   in week 3. That may well be acceptable for a returning athlete, and it is
+   certainly safe, but **it is not what §3 describes and it was not measured
+   before now.**
+
+**Open for him, not decided here:** whether a lift whose printed load is pinned
+to the ceiling for four weeks should be prescribed at all in those weeks, or
+whether the pinning is the correct conservative answer and only the
+documentation is wrong. This is a *ramp* question, so it is outside Project A —
+it belongs with basis §3.
+
 ## 6  How the rules are expressed
 
 The coverage test **derives** its targets at run time from `TEMPLATES`,
