@@ -335,12 +335,14 @@
       "loadable": true, "prRef": "bench-press", "prCoef": 1.00,
       "joints": ["shoulder","elbow","scapula"], "equipment": ["barbell","bench","rack"], "venue": "gym",
       "cnsCost": 3, "technical": 2, "unilateral": false,
+      "cues": ["Shoulder blades pulled together and down, feet planted on the floor.","Bar to the lower chest with the elbows around 45 degrees, not flared wide.","Push yourself away from the bar as much as you push the bar off you.","Use a spotter or set the rack pins for anything heavy."],
       "modalities": ["max-strength","hypertrophy","power"] },
 
     { "id": "incline-bench-press", "name": "Incline Bench Press", "pattern": "push-h", "tier": "primary",
       "loadable": true, "prRef": "bench-press", "prCoef": 0.85,
       "joints": ["shoulder","elbow","scapula"], "equipment": ["barbell","bench","rack"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": false,
+      "cues": ["Bench at about 30 degrees -- steeper turns it into a shoulder press.","Bar to the upper chest, just below the collarbone.","Shoulder blades stay pinned back even on the incline."],
       "modalities": ["max-strength","hypertrophy"] },
 
     { "id": "close-grip-bench-press", "name": "Close-Grip Bench Press", "pattern": "push-h", "tier": "secondary",
@@ -449,24 +451,28 @@
       "loadable": true, "prRef": "overhead-press", "prCoef": 1.00,
       "joints": ["shoulder","elbow","lumbar","scapula"], "equipment": ["barbell","rack"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": false,
+      "cues": ["Strict: no dip and no leg drive. Everything overhead is priced off this PR.","Squeeze the glutes and brace so the lower back does not arch.","Move your head back out of the way, then push it through as the bar passes.","Finish with the bar over mid-foot and the biceps by your ears."],
       "modalities": ["max-strength","hypertrophy"] },
 
     { "id": "push-press", "name": "Push Press", "pattern": "push-v", "tier": "primary",
       "loadable": true, "prRef": "overhead-press", "prCoef": 1.10,
       "joints": ["shoulder","elbow","knee","hip"], "equipment": ["barbell","rack"], "venue": "gym",
       "cnsCost": 3, "technical": 2, "unilateral": false,
+      "cues": ["A short dip and drive from the legs, then press it the rest of the way.","The dip is shallow and straight down -- do not let it become a squat.","Legs start the bar, arms finish it.","Heavier than a strict press because the legs get it moving."],
       "modalities": ["power","max-strength"] },
 
     { "id": "push-jerk", "name": "Push Jerk", "pattern": "push-v", "tier": "primary",
       "loadable": true, "prRef": "overhead-press", "prCoef": 1.24,
       "joints": ["shoulder","elbow","knee","hip"], "equipment": ["barbell","rack"], "venue": "gym",
       "cnsCost": 3, "technical": 3, "unilateral": false,
+      "cues": ["Dip and drive as in a push press, then drop back under the bar.","Receive it in a quarter squat with the arms already locked out.","Stand it up only once the bar is stable overhead."],
       "modalities": ["power","max-strength"] },
 
     { "id": "split-jerk", "name": "Split Jerk", "pattern": "push-v", "tier": "primary",
       "loadable": true, "prRef": "overhead-press", "prCoef": 1.38,
       "joints": ["shoulder","elbow","knee","hip","ankle"], "equipment": ["barbell","rack"], "venue": "gym",
       "cnsCost": 3, "technical": 3, "unilateral": false,
+      "cues": ["Dip and drive, then split the feet front and back as you punch under it.","Front shin vertical, back knee soft, both feet landing at the same time.","The arms lock before the feet land, not after.","Recover the front foot first, then bring the back foot in."],
       "modalities": ["power","max-strength"] },
 
     { "id": "z-press", "name": "Z Press", "pattern": "push-v", "tier": "secondary",
@@ -515,6 +521,7 @@
       "loadable": true, "prRef": "deadlift", "prCoef": 0.55,
       "joints": ["shoulder","elbow","lumbar","scapula"], "equipment": ["barbell","plates"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": false,
+      "cues": ["Hinge to roughly 45 degrees and hold that angle for the whole set.","Pull to the belly button rather than the chest, elbows kept in.","Lower it under control -- no dropping and rebounding off the bottom.","If your torso rises to move the bar, it is too heavy."],
       "modalities": ["max-strength","hypertrophy"] },
 
     { "id": "pendlay-row", "name": "Pendlay Row", "pattern": "pull-h", "tier": "secondary",
@@ -587,6 +594,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["shoulder","elbow","scapula"], "equipment": ["pull-up-bar","plates"], "venue": "gym",
       "cnsCost": 3, "technical": 2, "unilateral": false,
+      "cues": ["Hang the plate or belt so it will not swing into your legs.","Start from a dead hang with the shoulder blades set.","Chin clearly over the bar, then lower all the way under control.","Add weight only once the bodyweight version is easy for reps."],
       "modalities": ["max-strength","hypertrophy"] },
 
     { "id": "neutral-grip-pull-up", "name": "Neutral-Grip Pull-Up", "pattern": "pull-v", "tier": "accessory",
