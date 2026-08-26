@@ -360,24 +360,28 @@
       "loadable": true, "prRef": "bench-press", "prCoef": 0.90,
       "joints": ["shoulder","elbow"], "equipment": ["barbell","bench","rack"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": false,
+      "cues": ["Hands about shoulder-width -- close, not touching in the middle.","Elbows tuck in towards the ribs and the bar lands on the lower chest.","Keep the wrists stacked over the elbows rather than bent back.","The triceps run out before the chest does, so the last rep arrives early."],
       "modalities": ["max-strength","hypertrophy","power"] },
 
     { "id": "floor-press", "name": "Floor Press", "pattern": "push-h", "tier": "secondary",
       "loadable": true, "prRef": "bench-press", "prCoef": 0.92,
       "joints": ["shoulder","elbow"], "equipment": ["barbell","plates"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": false,
+      "cues": ["Lie on the floor under the bar with the knees bent and the feet flat.","Lower until the upper arms rest on the floor, pause, then press.","The floor sets the depth -- do not bounce the elbows off it.","No leg drive and no arch, so it is all shoulder, triceps and chest."],
       "modalities": ["max-strength"] },
 
     { "id": "pause-bench-press", "name": "Pause Bench Press", "pattern": "push-h", "tier": "secondary",
       "loadable": true, "prRef": "bench-press", "prCoef": 0.92,
       "joints": ["shoulder","elbow","scapula"], "equipment": ["barbell","bench","rack"], "venue": "gym",
       "cnsCost": 3, "technical": 2, "unilateral": false,
+      "cues": ["Lower to the chest and hold it there, dead still, for a full one-count.","Stay tight through the pause: shoulder blades pinned, feet planted.","Press from a dead stop -- there is no stretch left to help you.","It takes the bounce away, which is exactly why it feels heavier."],
       "modalities": ["max-strength"] },
 
     { "id": "dumbbell-bench-press", "name": "Dumbbell Bench Press", "pattern": "push-h", "tier": "secondary",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["shoulder","elbow","scapula"], "equipment": ["dumbbell","bench"], "venue": "gym",
       "cnsCost": 2, "technical": 1, "unilateral": false,
+      "cues": ["Start with the bells on the thighs and kick them up as you lie back.","Elbows at about 45 degrees from the ribs, not flared straight out.","Press up and slightly together without clashing them at the top.","The stretch at the bottom is the point; go lower than a bar would allow."],
       "modalities": ["hypertrophy"] },
 
     { "id": "incline-dumbbell-press", "name": "Incline Dumbbell Press", "pattern": "push-h", "tier": "accessory",
@@ -438,6 +442,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["shoulder","elbow","scapula"], "equipment": ["dip-bar"], "venue": "either",
       "cnsCost": 2, "technical": 2, "unilateral": false,
+      "cues": ["Start locked out with the shoulders pulled down away from the ears.","Lower until the upper arms are about parallel, leaning slightly forward.","Press back to straight arms without bouncing out of the bottom.","Hard on the front of the shoulder. Shorten the range if it pinches."],
       "modalities": ["hypertrophy","max-strength"] },
 
     { "id": "landmine-press", "name": "Landmine Press", "pattern": "push-h", "tier": "accessory",
@@ -490,12 +495,14 @@
       "loadable": true, "prRef": "overhead-press", "prCoef": 0.75,
       "joints": ["shoulder","elbow","lumbar","thoracic"], "equipment": ["barbell","rack"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": false,
+      "cues": ["Sit on the floor with the legs straight out and the bar at the shoulders.","Brace hard -- there are no legs and no bench to hide behind here.","Press straight up and finish with the bar over the middle of the head.","Ribs stay down. Not being able to lean back is the whole point of it."],
       "modalities": ["max-strength"] },
 
     { "id": "seated-dumbbell-press", "name": "Seated Dumbbell Press", "pattern": "push-v", "tier": "secondary",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["shoulder","elbow"], "equipment": ["dumbbell","bench"], "venue": "gym",
       "cnsCost": 2, "technical": 1, "unilateral": false,
+      "cues": ["Sit tall with the back supported and the bells at shoulder height.","Press up and slightly in until the arms lock out over the shoulders.","Lower to at least ear height every rep; do not cut the range short.","Ribs down against the pad -- arching turns it into an incline press."],
       "modalities": ["hypertrophy"] },
 
     { "id": "arnold-press", "name": "Arnold Press", "pattern": "push-v", "tier": "accessory",
@@ -595,12 +602,14 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["shoulder","elbow","scapula"], "equipment": ["pull-up-bar"], "venue": "either",
       "cnsCost": 2, "technical": 2, "unilateral": false,
+      "cues": ["Hands just outside the shoulders, palms forward, hanging with long arms.","Pull the elbows down to the ribs and bring the chest towards the bar.","Come all the way back to straight arms between reps.","No kick and no swing. If the reps run out, use a band or a partner lift."],
       "modalities": ["max-strength","hypertrophy"] },
 
     { "id": "chin-up", "name": "Chin-Up", "pattern": "pull-v", "tier": "secondary",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["shoulder","elbow","scapula"], "equipment": ["pull-up-bar"], "venue": "either",
       "cnsCost": 2, "technical": 2, "unilateral": false,
+      "cues": ["Palms towards you, hands about shoulder-width, arms long at the bottom.","Drive the elbows down and in; the biceps take much more of this one.","Chin clears the bar without craning the neck to get it there.","Usually the easier of the two, so it is the one to add reps on first."],
       "modalities": ["hypertrophy","max-strength"] },
 
     { "id": "weighted-pull-up", "name": "Weighted Pull-Up", "pattern": "pull-v", "tier": "primary",
