@@ -302,6 +302,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["knee","hip","ankle"], "equipment": ["dumbbell","bench"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": true,
+      "cues": ["Back foot on the bench, front foot far enough out to sit straight down.","Drop the back knee towards the floor; the front shin stays near upright.","Keep the weight through the front heel -- the back leg only balances you.","If the front knee aches, step the front foot further out and go again."],
       "modalities": ["hypertrophy","max-strength"] },
 
     { "id": "split-squat", "name": "Split Squat", "pattern": "lunge", "tier": "accessory",
@@ -314,6 +315,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["knee","hip","thoracic"], "equipment": ["barbell","rack"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": true,
+      "cues": ["Bar in a front rack, elbows high and ribs down before you step.","Step out far enough that the front shin is still upright at the bottom.","Push back through the front heel with the torso vertical the whole way.","Elbows dropping is the sign to stop -- the bar rolls off a soft rack."],
       "modalities": ["hypertrophy","max-strength"] },
 
     { "id": "step-up", "name": "Step-Up", "pattern": "lunge", "tier": "accessory",
@@ -537,6 +539,7 @@
       "loadable": true, "prRef": "deadlift", "prCoef": 0.50,
       "joints": ["shoulder","elbow","lumbar","scapula"], "equipment": ["barbell","plates"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": false,
+      "cues": ["Hinge to a flat back near parallel to the floor and hold it there.","The bar starts on the floor and returns to the floor every single rep.","Pull it to the lower ribs fast; the torso does not rise with the bar.","The moment the chest lifts to help, the set is finished."],
       "modalities": ["max-strength","power"] },
 
     { "id": "dumbbell-row", "name": "Single-Arm Dumbbell Row", "pattern": "pull-h", "tier": "accessory",
@@ -567,6 +570,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["shoulder","elbow","lumbar","scapula"], "equipment": ["landmine","barbell"], "venue": "gym",
       "cnsCost": 2, "technical": 1, "unilateral": false,
+      "cues": ["Straddle the bar, hinge to a flat back, and take the handle with long arms.","Pull the handle to the stomach with the elbows tracking close to the body.","Let the shoulder blades spread at the bottom, then draw them back together.","Keep the hips still. If you have to heave it up, take a plate off."],
       "modalities": ["hypertrophy"] },
 
     { "id": "seal-row", "name": "Seal Row", "pattern": "pull-h", "tier": "accessory",
@@ -628,6 +632,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["scapula","lumbar","wrist"], "equipment": ["dumbbell"], "venue": "either",
       "cnsCost": 2, "technical": 1, "unilateral": false,
+      "cues": ["Pick the bells up like a deadlift, then stand tall and walk.","Shoulders back and down, ribs stacked over the hips, no leaning away.","Walk at a normal pace. Do not shuffle, and do not race the clock.","Grip usually quits first. Put them down before the back starts to bend."],
       "modalities": ["hypertrophy","interval"] },
 
     { "id": "suitcase-carry", "name": "Suitcase Carry", "pattern": "carry", "tier": "accessory",
@@ -652,6 +657,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["scapula","lumbar","wrist"], "equipment": ["trap-bar","plates"], "venue": "gym",
       "cnsCost": 2, "technical": 1, "unilateral": false,
+      "cues": ["Deadlift the frame up, then walk it without letting it swing.","Stand tall between the handles, arms long, shoulders pulled back.","Short controlled steps -- a swinging bar drags you side to side.","Set it down under control. A dropped frame is how toes get broken."],
       "modalities": ["hypertrophy","interval"] },
 
     { "id": "sandbag-carry", "name": "Sandbag Bear Hug Carry", "pattern": "carry", "tier": "accessory",
