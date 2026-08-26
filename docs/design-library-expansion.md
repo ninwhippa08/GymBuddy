@@ -452,6 +452,61 @@ snatch, the coefficients were still corrected: they are wrong against a strict
 root and *less* wrong against a loose one, so the change is an improvement
 either way and does not depend on the answer.
 
+### 5.7 `trap-bar-deadlift` survived; `rack-pull` cannot be priced yet — 2026-08-25
+
+Two claims priced off the `deadlift` root, and they ended differently.
+
+**`trap-bar-deadlift` 1.05 — sourced, unchanged.** Three peer-reviewed 1RM
+comparisons of the hexagonal against the straight bar:
+
+| study | straight | hex | difference |
+|---|---|---|---|
+| Swinton et al. 2011 (n=19 powerlifters) | 245 kg | 265 kg | +8% |
+| Lake et al. 2017 (n=11) | 183 ± 22 kg | 194 ± 20 kg | +6%, p = 0.003 |
+| Camara et al. 2016 | 181 ± 27 kg | 181 ± 28 kg | none |
+
+https://pmc.ncbi.nlm.nih.gov/articles/PMC5969032/ — Lake et al., which reports
+its own result and cites the other two.
+
+The literature spans 0–8% and **1.05 sits in the middle of that spread**, so the
+inherited value needed no correction. This is the first coefficient to survive
+being sourced, and it matters that it did: it shows the exercise is a test the
+numbers can pass, not a ritual that always ends in a change. Had the spread
+bracketed 1.15, the number would have moved.
+
+Tagged `corroborated` rather than `verified` **despite** all three sources being
+primary studies, because they *disagree*. 1.05 is a central estimate across a
+spread, not a measurement of one. **A tag describes the strength of the claim,
+not the prestige of the citation** — worth stating, because the temptation with
+a peer-reviewed citation in hand is to reach for `verified`.
+
+**`rack-pull` 1.15 — investigated and deliberately left `unverified`.** Not
+skipped. Stopped, and the reason is the finding.
+
+A rack pull's load is set almost entirely by **pin height**, and this entry does
+not say where the pins go. Its joints — `hip` and `lumbar`, with **no knee** —
+encode an above-knee pull, and for that the evidence puts the load at
+**1.20–1.40**: competitive powerlifters produce roughly 21% more force with the
+bar just above the kneecap than from the floor. So 1.15 is probably *low*.
+
+**It is not raised anyway, and that is the point.** The joints field is not
+user-facing. The card says "Rack Pull" and nothing more, so the pins go wherever
+he puts them — and a coefficient sourced for an above-knee pull is an
+**overload** on a below-knee one. The library knows something the athlete is
+never told, and a coefficient may not depend on knowledge the user does not
+have.
+
+**The fix is an authoring change, not a research one:** say where the pins go,
+in the name or the cue, and then price it. Cue backfill for main work is already
+a scoped task, so this rides along with it rather than becoming its own project.
+Until then the number stays unsourced and in the budget, which is the honest
+place for it.
+
+**Generalise this before pricing the rest.** Ask of every remaining coefficient:
+*does this number assume a version of the movement the athlete has no way of
+knowing about?* `snatch-pull` and `clean-pull` are the immediate suspects —
+pull height is exactly as unstated as pin height.
+
 ## 6  How the rules are expressed
 
 The coverage test **derives** its targets at run time from `TEMPLATES`,

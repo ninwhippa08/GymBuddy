@@ -38,8 +38,38 @@ export const COEF_PROVENANCE = {
   "pause-bench-press"         : { coef: 0.92 , of: "bench-press"     , tag: 'unverified' },
   "close-grip-bench-press"    : { coef: 0.9  , of: "bench-press"     , tag: 'unverified' },
   "incline-bench-press"       : { coef: 0.85 , of: "bench-press"     , tag: 'unverified' },
+  // INVESTIGATED 2026-08-25 AND DELIBERATELY LEFT UNSOURCED. Not skipped --
+  // stopped, for a reason that is itself the finding. See design §5.7.
+  //
+  // A rack pull's load is set almost entirely by PIN HEIGHT, and this entry
+  // does not say where the pins go. Its joints -- hip and lumbar, NO KNEE --
+  // encode an above-knee pull, and for that the evidence puts the load at
+  // 1.20-1.40 (competitive powerlifters produce ~21% more force from just
+  // above the kneecap than from the floor), so 1.15 is probably LOW.
+  //
+  // It is not raised anyway, because the joints field is not user-facing. The
+  // card says "Rack Pull" and nothing else, so he sets the pins wherever he
+  // likes -- and a coefficient sourced for an above-knee pull is an OVERLOAD
+  // on a below-knee one. Sourcing has to wait on the entry saying where the
+  // pins go. Raising it now would be sourcing the number for a movement the
+  // app does not actually prescribe.
   "rack-pull"                 : { coef: 1.15 , of: "deadlift"        , tag: 'unverified' },
-  "trap-bar-deadlift"         : { coef: 1.05 , of: "deadlift"        , tag: 'unverified' },
+  // SOURCED 2026-08-25, AND IT SURVIVED UNCHANGED -- the first one to. Three
+  // peer-reviewed 1RM comparisons of the hexagonal against the straight bar:
+  //   Swinton et al. 2011 (n=19 powerlifters): 265 vs 245 kg, +8%
+  //   Lake et al. 2017 (n=11): 194 +/- 20 vs 183 +/- 22 kg, +6%, p=0.003
+  //   Camara et al. 2016: 181 +/- 27 vs 181 +/- 28 kg, NO difference
+  //     https://pmc.ncbi.nlm.nih.gov/articles/PMC5969032/  (reports its own
+  //     result and cites the other two)
+  // The literature spans 0% to 8% and 1.05 sits in the middle of that spread,
+  // so the inherited value needed no correction. That is the honest reading,
+  // not a rescue: had the spread bracketed 1.15 the number would have moved.
+  //
+  // 'corroborated' rather than 'verified' DESPITE the sources being primary
+  // studies, because they DISAGREE. 1.05 is a central estimate across a
+  // spread, not a measurement of it. A tag describes the strength of the
+  // claim, not the prestige of the citation.
+  "trap-bar-deadlift"         : { coef: 1.05 , of: "deadlift"        , tag: 'corroborated' },
   "sumo-deadlift"             : { coef: 1    , of: "deadlift"        , tag: 'unverified' },
   "deficit-deadlift"          : { coef: 0.85 , of: "deadlift"        , tag: 'unverified' },
   "romanian-deadlift"         : { coef: 0.7  , of: "deadlift"        , tag: 'unverified' },
@@ -131,4 +161,6 @@ export const COEF_PROVENANCE = {
 // Lowered 29 -> 26 the same day when the overhead-press ladder was sourced --
 // the first entries paid off by RESEARCH rather than by a definition, and all
 // three proved to be overloads: 1.55 / 1.45 / 1.30 became 1.38 / 1.24 / 1.10.
-export const UNVERIFIED_BUDGET = 26;
+// Lowered 26 -> 25 for trap-bar-deadlift, which was sourced and kept its
+// value -- the debt falls when a number gains a source, not when it changes.
+export const UNVERIFIED_BUDGET = 25;

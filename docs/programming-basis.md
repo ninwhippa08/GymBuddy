@@ -464,11 +464,11 @@ because an error there prescribes *more* than the reference PR rather than less:
 | ~~`split-jerk`~~ | ~~1.55~~ → **1.38** | `overhead-press` | sourced 2026-08-25 |
 | ~~`push-jerk`~~ | ~~1.45~~ → **1.24** | `overhead-press` | sourced 2026-08-25 |
 | ~~`push-press`~~ | ~~1.30~~ → **1.10** | `overhead-press` | sourced 2026-08-25 |
-| `rack-pull` | 1.15 | `deadlift` | unsourced |
+| `rack-pull` | 1.15 | `deadlift` | **blocked** — pin height unstated |
 | `clean-pull` | 1.15 | `power-clean` | unsourced |
 | `snatch-pull` | 1.15 | `snatch` | unsourced |
 | `overhead-squat` | 1.10 | `snatch` | unsourced |
-| `trap-bar-deadlift` | 1.05 | `deadlift` | unsourced |
+| `trap-bar-deadlift` | **1.05** | `deadlift` | sourced 2026-08-25, unchanged |
 
 Three further claims sit at exactly 1.00 and are easy to mistake for
 definitional roots — `sumo-deadlift`, `clean-high-pull` and `power-snatch`
@@ -511,3 +511,19 @@ paperwork was missing. Three for three in the other direction says otherwise:
 these were inherited plausible-looking numbers, and plausible-looking numbers
 drifted high. **The remaining five above 1.00 should be assumed high until
 sourced, not assumed fine because they are believable.**
+
+**Amended the same day, after the deadlift pair.** `trap-bar-deadlift` was
+sourced and **kept its value**: three peer-reviewed 1RM comparisons put the hex
+bar between 0% and 8% above the straight bar, and 1.05 sits in the middle of
+that spread. So the backlog is not uniformly inflated, and the exercise is a
+test the numbers can pass rather than a ritual that always ends in a change.
+Four sourced, three moved, one held.
+
+**`rack-pull` was investigated and deliberately left unsourced, which is a
+result in its own right.** Its load is set by pin height, the entry does not say
+where the pins go, and the joints that imply an above-knee pull are not
+user-facing. A coefficient may not depend on knowledge the athlete has no way of
+having. It is fixed by authoring — state the pin height, then price it — not by
+more reading. Full reasoning in `design-library-expansion.md` §5.7, including
+the question to ask of every coefficient still in the backlog: *does this number
+assume a version of the movement the athlete cannot see?*
