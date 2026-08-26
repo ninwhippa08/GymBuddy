@@ -15,7 +15,8 @@ export const MAX_CUES = 4;
 // Pools whose cues are written. Adding a line here is how a backfill commit
 // becomes permanent -- an entry added to a cued pool later cannot arrive blank.
 export const CUED_POOLS = [
-  'mobility-static', 'mobility-dynamic', 'core', 'sprint', 'primary', 'secondary'
+  'mobility-static', 'mobility-dynamic', 'core', 'sprint',
+  'primary', 'secondary', 'accessory'
 ];
 
 export function cueProblems(entry) {

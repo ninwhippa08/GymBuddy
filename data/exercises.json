@@ -404,12 +404,14 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["shoulder","elbow"], "equipment": ["dumbbell","bench"], "venue": "gym",
       "cnsCost": 1, "technical": 1, "unilateral": false,
+      "cues": ["Bench at about thirty degrees. Steeper turns it into a shoulder press.","Bells at the outside of the chest, elbows about 45 degrees from the ribs.","Press up and slightly together, then lower back into a real stretch."],
       "modalities": ["hypertrophy"] },
 
     { "id": "push-up", "name": "Push-Up", "pattern": "push-h", "tier": "accessory",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["shoulder","elbow","scapula"], "equipment": ["bodyweight"], "venue": "either",
       "cnsCost": 1, "technical": 1, "unilateral": false,
+      "cues": ["Hands under the shoulders, body in one line from the heels to the head.","Elbows back at about 45 degrees, not flared straight out to the sides.","Chest to the floor, then push the floor away and spread the shoulder blades.","Hips sagging is the sign the set is over, not the arms giving out."],
       "modalities": ["hypertrophy","interval"] },
 
     { "id": "depth-push-up", "name": "Depth Push-Up", "pattern": "push-h", "tier": "secondary",
@@ -466,18 +468,21 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["shoulder","elbow","thoracic"], "equipment": ["landmine","barbell"], "venue": "gym",
       "cnsCost": 1, "technical": 1, "unilateral": true,
+      "cues": ["Bar end at the shoulder, opposite foot forward, ribs down.","Press up and forward along the arc the bar already wants to travel.","Do not lean back to finish a rep. If you have to, take weight off."],
       "modalities": ["hypertrophy"] },
 
     { "id": "machine-chest-press", "name": "Machine Chest Press", "pattern": "push-h", "tier": "accessory",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["shoulder","elbow"], "equipment": ["machine"], "venue": "gym",
       "cnsCost": 1, "technical": 1, "unilateral": false,
+      "cues": ["Set the seat so the handles sit at about armpit height.","Press out without letting the shoulders roll forward off the pad.","Stop just short of locking the elbows and control the way back."],
       "modalities": ["hypertrophy","isolation"] },
 
     { "id": "cable-fly", "name": "Cable Fly", "pattern": "push-h", "tier": "accessory",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["shoulder"], "equipment": ["cable"], "venue": "gym",
       "cnsCost": 1, "technical": 1, "unilateral": false,
+      "cues": ["Slight forward lean with a soft bend held in the elbows.","Bring the hands together in an arc -- the elbow angle never changes.","Let the chest stretch at the back of the movement without forcing it."],
       "modalities": ["isolation","hypertrophy"] },
 
     { "id": "overhead-press", "name": "Overhead Press", "pattern": "push-v", "tier": "primary",
@@ -736,12 +741,14 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["thoracic","lumbar","hip"], "equipment": ["cable"], "venue": "gym",
       "cnsCost": 1, "technical": 1, "unilateral": true,
+      "cues": ["Stand side-on to the pulley with the feet planted wide.","Turn from the hips and ribs; the arms only carry the handle across.","Let the back heel turn with you rather than grinding it into the floor.","Same number of reps facing each way."],
       "modalities": ["isolation","hypertrophy"] },
 
     { "id": "landmine-rotation", "name": "Landmine Rotation", "pattern": "rotate", "tier": "accessory",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["thoracic","lumbar","shoulder"], "equipment": ["landmine","barbell"], "venue": "gym",
       "cnsCost": 1, "technical": 2, "unilateral": false,
+      "cues": ["Hold the bar end at arms length in front of the chest.","Swing it side to side by turning the trunk, not by steering with the arms.","Let the hips and feet turn with it. The knees must not twist underneath."],
       "modalities": ["isolation","power","hypertrophy"] },
 
     { "id": "russian-twist", "name": "Russian Twist", "pattern": "rotate", "tier": "core",
@@ -755,6 +762,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["thoracic","lumbar","hip"], "equipment": ["cable"], "venue": "gym",
       "cnsCost": 1, "technical": 2, "unilateral": true,
+      "cues": ["One knee down, the other foot forward, hips square and tall.","Pull the handle across by turning the ribs, not by rowing with the arms.","Kneeling takes the legs out, so the trunk has nowhere to pass the work."],
       "modalities": ["isolation","hypertrophy"] },
 
     { "id": "box-jump", "name": "Box Jump", "pattern": "jump", "tier": "primary",
@@ -859,12 +867,14 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["ankle"], "equipment": ["bodyweight"], "venue": "either",
       "cnsCost": 1, "technical": 1, "unilateral": false, "contactsPerRep": 1, "plyoIntensity": "low",
+      "cues": ["Small fast hops on the balls of the feet with the knees nearly straight.","All the spring comes from the ankles; the legs stay stiff.","Minimum time on the floor. Height is not the point here."],
       "modalities": ["plyometric"] },
 
     { "id": "line-hop", "name": "Line Hop", "pattern": "jump", "tier": "accessory",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["ankle","knee"], "equipment": ["bodyweight"], "venue": "either",
       "cnsCost": 1, "technical": 1, "unilateral": false, "contactsPerRep": 1, "plyoIntensity": "low",
+      "cues": ["Hop back and forth over a line, both feet together, as fast as you can.","Stay on the balls of the feet with light, quick contacts.","Feet and ankles are the target, so end the set when the rhythm breaks."],
       "modalities": ["plyometric","interval"] },
 
     { "id": "med-ball-slam", "name": "Med Ball Slam", "pattern": "throw", "tier": "secondary",
@@ -1097,6 +1107,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["ankle","knee","hip"], "equipment": ["hill"], "venue": "either",
       "cnsCost": 1, "technical": 1, "unilateral": false,
+      "cues": ["A steady hill, or a treadmill raised enough that it stops being flat.","Stay upright and off the handrails -- hanging on removes the exercise.","Breathing hard but still able to talk. That is the whole prescription."],
       "modalities": ["aerobic-steady"] },
 
     { "id": "assault-bike", "name": "Air Bike", "pattern": "locomotion", "tier": "secondary",
@@ -1117,6 +1128,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["ankle","knee"], "equipment": ["jump-rope"], "venue": "either",
       "cnsCost": 1, "technical": 2, "unilateral": false, "contactsPerRep": 1, "plyoIntensity": "low",
+      "cues": ["The rope is the right length when the handles reach your armpits.","Turn it with the wrists, and hop just high enough to clear it.","Land on the balls of the feet with the knees soft on every contact.","The calves and ankles take all of this, so build the time up slowly."],
       "modalities": ["aerobic-steady","interval","plyometric"] },
 
     { "id": "sled-drag", "name": "Sled Drag", "pattern": "locomotion", "tier": "secondary",
@@ -1325,12 +1337,14 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["elbow"], "equipment": ["cable"], "venue": "gym",
       "cnsCost": 1, "technical": 1, "unilateral": false,
+      "cues": ["Elbows pinned at the sides and staying there for the whole set.","Push down to straight arms and squeeze at the bottom.","Only the forearms move. Leaning into it makes it a chest exercise."],
       "modalities": ["isolation","hypertrophy"] },
 
     { "id": "skullcrusher", "name": "Skullcrusher", "pattern": "push-h", "tier": "accessory",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["elbow"], "equipment": ["barbell","bench"], "venue": "gym",
       "cnsCost": 1, "technical": 1, "unilateral": false,
+      "cues": ["Bar over the shoulders with the elbows pointing at the ceiling.","Lower to the forehead or just behind it, keeping the upper arms still.","Extend back up without letting the elbows drift towards the hips.","Rough on the elbows. Use an EZ bar, and stop the set if it pinches."],
       "modalities": ["isolation","hypertrophy"] },
 
     { "id": "overhead-tricep-extension", "name": "Overhead Tricep Extension", "pattern": "push-v", "tier": "accessory",

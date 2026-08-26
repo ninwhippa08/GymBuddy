@@ -242,6 +242,13 @@ affordance and no flip — rather than a card that flips to an empty back.
 During the backfill this means some cards flip and some do not. That reads as
 honest progress; eight dead flips per session reads as a broken feature.
 
+**The backfill finished on 2026-08-26 and every entry in the library now has
+cues, so in practice no card takes this branch any more.** It stays, and stays
+tested. `cues` is still an optional field and the next entry authored into a
+pool that is not in `CUED_POOLS` will arrive without them; a card that flips to
+an empty back is exactly what this branch exists to prevent, and it costs one
+`if`.
+
 ## 8  Testing
 
 `tests/ui.test.mjs` covers only `loadLine` and `volumeLine` today, because they
@@ -277,6 +284,9 @@ which is the one branch of section 5.1 no measurement here has exercised.
 4. `cuesFor` wiring through `app.js`
 5. browser verification, including a phone
 6. backfill pool by pool, in Project A's order, `mobility-static` first
+   -- **complete 2026-08-26.** All seven pools in `CUED_POOLS`; 235 of 235
+   entries cued, 157 with three lines and 78 with four; longest cue 82
+   characters against a cap of 90.
 
 Steps 1–5 are one branch. Step 6 is one commit per pool and interleaves with
 Project A: a pool authored by Project A arrives with its cues already written.
