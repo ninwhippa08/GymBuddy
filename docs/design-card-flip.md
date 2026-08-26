@@ -67,6 +67,34 @@ const CUED_POOLS = ['mobility-static'];         // after the first backfill
 
 This is the same shape as the coverage matrix: a floor that only ever rises.
 
+
+### 3.2 The four-cue card has never actually been rendered — noted 2026-08-25
+
+The guard allows 1–4 cues and §2 says "three or four", so four is by design. But
+until the primary-tier backfill **no entry in the library had ever carried more
+than three**, and the largest back face ever rendered was 3 lines totalling 212
+characters (`ruck-march`).
+
+The backfill created **22 entries with four cues, the largest 283 characters**
+(`power-clean`) — a third more text than the card back has ever been asked to
+hold. `MAX_CUE_CHARS = 90` is documented as "what keeps the back of a card the
+size of the front"; that reasoning was calibrated against three lines, not four.
+
+**Nothing is known to be wrong.** The guard passes, `card.test.mjs` passes, and
+the DOM shim confirms every cue renders as its own line. But the shim cannot
+measure a box, and this project has been burned exactly here twice: a 600-session
+headless sweep stayed green while a real browser found a mislabelled unit and a
+service worker caching the previous deploy. **A layout that only a browser can
+falsify has changed, so it needs a browser.**
+
+**Added to the athlete's existing card-flip pass** — the one that already owes
+keyboard (Tab / Enter / Space / focus ring) and phone verification. One extra
+thing to look at: open a `power-clean` or `overhead-press` card and check the
+back does not clip, scroll or grow past the front. **If it does, the fix is
+trivial and needs no redesign** — drop the fourth cue on the 22 entries that
+have one; every one of them was written so the first three carry the movement
+and the fourth adds an expectation or a warning.
+
 ## 4  Where the text comes from
 
 `blockCard` receives a block, which carries `exerciseId` and `name` but no prose.
