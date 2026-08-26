@@ -46,6 +46,13 @@ class Element {
     this.childNodes = [];
     this.listeners = {};
     this.classList = new ClassList(this);
+    // Layout, or the absence of it. The shim cannot lay anything out, so every
+    // face is 0 tall until a test says otherwise -- and ui.js is written to
+    // leave the height alone at 0 rather than write a wrong one. What the
+    // height should actually BE is a question only a browser can answer.
+    // design-card-flip.md 5.1.
+    this.style = {};
+    this.offsetHeight = 0;
   }
 
   set textContent(v) { this.childNodes = [new TextNode(v)]; }

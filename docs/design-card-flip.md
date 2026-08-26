@@ -1,6 +1,7 @@
 # Design — movement cues on the back of the card
 
-Status: approved 2026-08-24, not yet implemented.
+Status: approved 2026-08-24, built; verified in desktop Chrome at phone size
+2026-08-26 (sections 3.3 and 5.1). Still owed: a real phone.
 Sits before: `design-library-expansion.md` (Project A).
 Reason for that order: cues are a field on every exercise. Authoring them after
 the expansion would mean writing them twice for the ~76 entries Project A adds —
@@ -95,6 +96,42 @@ trivial and needs no redesign** — drop the fourth cue on the 22 entries that
 have one; every one of them was written so the first three carry the movement
 and the fourth adds an expectation or a warning.
 
+### 3.3 What the browser actually said — 2026-08-26
+
+Run in Chrome at 375×667, device pixel ratio 2.
+
+**The back was never the problem.** Four cues render as four lines, nothing
+clips, nothing scrolls, the card is exactly as tall as its content. The grid
+stack in section 5 does its job. Keyboard came back clean in the same pass:
+real `<button>`, `aria-pressed` toggling, the label swapping show/hide, both
+faces' `aria-hidden` swapping, a visible 2px focus ring, and Enter and Space
+both operating the card.
+
+**The front was.** Measured natural heights:
+
+| face | height |
+|---|---|
+| front of a primary lift (`power-clean`, load mode) | 126px |
+| back, four cues | 251px |
+| back, three cues (median of the 114 that had them) | 203px |
+
+The card took the taller face, so an **unflipped** `power-clean` was 253px tall
+with 126px of it empty — the name and the load in the top half, a void in the
+bottom half. It read as broken rather than as a card waiting to be turned over.
+Primary lifts are the worst case because they also have the shortest fronts: no
+effort line, just a name, a multiplier and a rest.
+
+So the fear was wrong and the instinct was right — something only a browser
+could have found. Two other fixes were tried in the same session and rejected on
+the evidence: vertically centring the front splits one void into two and breaks
+the alignment of names down the list, and tightening the cue typography only
+takes the back from 251px to 219px.
+
+Dropping the fourth cue — the fix planned above — would have taken the void
+from 125px to 77px. It was not taken. It treats the symptom on 22 entries while
+77px of the same void is already shipped on the 114 three-cue ones. Section 5.1
+is what shipped instead.
+
 ## 4  Where the text comes from
 
 `blockCard` receives a block, which carries `exerciseId` and `name` but no prose.
@@ -134,6 +171,51 @@ Both faces are placed in **one CSS grid cell** (`grid-area: 1 / 1`). The card is
 then as tall as the taller face, always. Nothing jumps and nothing clips. The
 cost is a little unused height on cards whose front is short; the 90-character
 cue cap keeps that small.
+
+### 5.1 The card takes the height of the face you are looking at — 2026-08-26
+
+The cost above turned out not to be little. Section 3.3 has the measurements: on
+a primary lift the unflipped card was twice the height of the content on it.
+
+The taller-of-the-two rule is replaced by **the height of the face turned
+towards you**. The faces still share one grid cell, so neither can ever clip the
+other; what changed is that **the face turned away is taken out of flow**, which
+leaves the one still in flow to decide how tall the card is.
+
+```css
+.block-flip:not(.is-flipped) .block-face.is-back,
+.block-flip.is-flipped   .block-face.is-front { position: absolute; top: 0; left: 0; width: 100%; }
+```
+
+That is CSS alone, and it is why the height is right on the **first paint**,
+before any script has measured anything. It is also why a rotated phone needs no
+help: the height is `auto`, so it re-resolves with the wrapping.
+
+**What section 5 rejected, and why this is not that.** Section 5 chose the
+taller face precisely so the list would not jump on every flip, and a height
+that follows the visible face does move the cards below it. The difference is
+that it *eases*. An `auto` height cannot be transitioned, so `blockCard`
+pins the number the CSS would have produced — `btn.style.height` from the
+visible face's `offsetHeight` — and the same 0.45s curve as the rotation carries
+it. The list settles over the turn instead of snapping at the click. Under
+`prefers-reduced-motion` the height transition is dropped with the rotation.
+
+`overflow: hidden` goes on `.block-flip`, not on `.block-inner`: anything other
+than `visible` on a `preserve-3d` element flattens it and the flip stops being a
+flip. It matters for one moment only — mid-turn the growing face is briefly
+taller than the box holding it, and at that moment the card is edge-on.
+
+A pinned pixel height goes stale when a cue re-wraps. One `ResizeObserver` per
+card, watching both faces, re-pins it — a rotated phone, a resized window, a
+font arriving late. It also fires once on its own as the card is laid out, which
+is what sets the first height, and there is no resize listener to remember to
+remove. Node has none, so the tests take the branch that skips it.
+
+Verified in Chrome at 375×667: first paint 126px with no inline height, the
+observer then pinning 126px; flipped, 126 → 240px at 220ms → 251px settled, back
+fully visible, `transform-style` still `preserve-3d` and the mid-flip matrix a
+real Y rotation. Widened to 820px while flipped, the pin followed 251px → 231px
+as a cue unwrapped.
 
 ## 6  Accessibility
 
@@ -180,6 +262,12 @@ What the shim makes testable:
 **The shim is a supplement, not a substitute.** This project has already been
 bitten once: a headless sweep passed clean while two real bugs sat in the code.
 The feature is not done until it has been flipped in a real browser on a phone.
+
+As of 2026-08-26 the browser half of that is done and is written up in
+sections 3.3 and 5.1: Chrome at 375x667, which found a real defect the shim
+could not see. **The phone half is still owed** -- iOS Safari rather than
+Chrome, a thumb rather than a click, and `prefers-reduced-motion` turned on,
+which is the one branch of section 5.1 no measurement here has exercised.
 
 ## 9  Build order
 

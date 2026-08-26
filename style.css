@@ -266,6 +266,13 @@ body {
   /* Without a perspective the rotation reads as a horizontal squash rather
      than a card turning over. */
   perspective: 900px;
+  /* The card is as tall as the face you are looking at (§5.1). Mid-turn the
+     growing face is briefly taller than the box that holds it, so it is
+     clipped -- at that point the card is edge-on and there is nothing to see.
+     Overflow lives here and not on .block-inner: anything but `visible` on a
+     preserve-3d element flattens it and the flip stops being a flip. */
+  overflow: hidden;
+  transition: height 0.45s cubic-bezier(0.2, 0.7, 0.3, 1);
 }
 
 .block-inner {
@@ -273,6 +280,7 @@ body {
      them and the list never reflows mid-flip. Absolute positioning would clip
      the back; leaving both in normal flow would make the page jump. §5. */
   display: grid;
+  position: relative;                 /* the containing block for §5.1 */
   transform-style: preserve-3d;
   transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.3, 1);
 }
@@ -286,6 +294,20 @@ body {
 }
 
 .block-face.is-back { transform: rotateY(180deg); }
+
+/* The face turned away is taken OUT OF FLOW, so the one still in flow decides
+   how tall the card is. Both faces remain in the same grid cell and neither is
+   ever clipped by the other.
+   This is what makes the height correct on the very first paint, before any
+   script has measured anything -- ui.js only pins the number so the change can
+   be eased instead of snapping. §5.1. */
+.block-flip:not(.is-flipped) .block-face.is-back,
+.block-flip.is-flipped .block-face.is-front {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
 
 .cue-list {
   margin: 10px 0 0;
@@ -312,4 +334,5 @@ body {
    someone who is already tired. Swap instantly instead of turning. §6. */
 @media (prefers-reduced-motion: reduce) {
   .block-inner { transition: none; }
+  .block-flip { transition: none; }
 }

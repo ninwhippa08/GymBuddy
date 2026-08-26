@@ -157,6 +157,20 @@ export function blockCard(block, cuesFor) {
     'aria-label': `${block.name} — show cues`
   }, inner);
 
+  // The card takes the height of the face turned TOWARDS you, not the height
+  // of the taller face. CSS alone already gets this right -- the turned-away
+  // face is out of flow -- but auto heights cannot be eased, and a card that
+  // doubles in height the instant it is clicked throws the list below it down
+  // the screen. Writing the number the CSS would have produced lets the same
+  // 0.45s transition carry it. design-card-flip.md §5.1.
+  const fit = () => {
+    const face = btn.classList.contains('is-flipped') ? back : front;
+    // Detached, or the first frame: no measurement to trust yet. The CSS is
+    // already correct without us, so leave it alone rather than pin the card
+    // to zero and animate it open on load.
+    if (face.offsetHeight) btn.style.height = `${face.offsetHeight}px`;
+  };
+
   // The one handler ui.js owns. It is presentational: it toggles a class on
   // the node it was just given and touches nothing outside this card, so the
   // "app.js does the wiring" rule in the file header is intact.
@@ -168,7 +182,19 @@ export function blockCard(block, cuesFor) {
     front.setAttribute('aria-hidden', String(flipped));
     back.setAttribute('aria-hidden', String(!flipped));
     btn.setAttribute('aria-label', `${block.name} — ${flipped ? 'hide' : 'show'} cues`);
+    fit();
   });
+
+  // A cue that wraps onto another line changes the face's height -- a rotated
+  // phone, a resized window, a font arriving late. One observer per card keeps
+  // the pinned height honest without a resize listener to remember to remove,
+  // and it fires once on its own the moment the card is laid out. Node has no
+  // ResizeObserver, so the tests take the branch that skips it.
+  if (typeof ResizeObserver === 'function') {
+    const ro = new ResizeObserver(fit);
+    ro.observe(front);
+    ro.observe(back);
+  }
 
   return el('li', { class: 'block has-cues' }, btn);
 }

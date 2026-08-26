@@ -109,3 +109,41 @@ test('each card flips independently', () => {
   assert.equal(a.querySelector('button.block-flip').classList.contains('is-flipped'), true);
   assert.equal(b.querySelector('button.block-flip').classList.contains('is-flipped'), false);
 });
+
+// --------------------------------------------------------------------------
+// Height. design-card-flip.md 5.1
+//
+// The shim cannot measure a box, so these check the RULE -- the card takes the
+// height of the face turned towards you -- against heights a test supplies.
+// The numbers below are the ones a real Chrome measured at 375px: a primary
+// lift's front is 126px and its four-cue back is 251px.
+// --------------------------------------------------------------------------
+
+test('an unflipped card is sized to its front, a flipped one to its back', () => {
+  const li = blockCard(BLOCK, () => CUES);
+  const btn = li.querySelector('button.block-flip');
+  li.querySelector('.is-front').offsetHeight = 126;
+  li.querySelector('.is-back').offsetHeight = 251;
+
+  btn.dispatch('click');
+  assert.equal(btn.style.height, '251px');
+
+  btn.dispatch('click');
+  assert.equal(btn.style.height, '126px');
+});
+
+test('a card that has not been laid out yet is left alone, not pinned to zero', () => {
+  // Both faces measure 0 -- detached, or the first frame. Writing "0px" here
+  // would collapse the card and then animate it open on load.
+  const li = blockCard(BLOCK, () => CUES);
+  const btn = li.querySelector('button.block-flip');
+  btn.dispatch('click');
+  assert.equal(btn.style.height, undefined);
+});
+
+test('a card renders where ResizeObserver does not exist', () => {
+  // Node has none, so every other test in this file already proves it. This
+  // one says so out loud, because the guard around it is easy to delete.
+  assert.equal(typeof globalThis.ResizeObserver, 'undefined');
+  assert.ok(blockCard(BLOCK, () => CUES).querySelector('button.block-flip'));
+});
