@@ -315,18 +315,27 @@ Consistent with the rest of the project, numbers carry their status.
 `[corroborated]`; `SPRINT.METERS_PER_SESSION`, `WORK_REST_RATIO` and
 `RECOVERY_HOURS`; `CNS_DECAY` and `CNS_VETO_THRESHOLD`.
 
-**To be sourced before implementation, marked `[unverified]` until then:**
+**Sourced below.** Athlete context driving these choices throughout: a
+retired college football athlete, returning after a long inactive period,
+training 1-3x/week irregularly — not a competitive endurance athlete. Values
+lean conservative accordingly.
 
-1. Stage 3 and stage 4 prep counts, and the build-up target percentages
-   (~80% / ~95%).
-2. Interval work and rest durations, and the 1:1 to 1:2 work:rest ratio.
-3. Every threshold in `chronicBoost`: the 28-day window, the `gymShare`
-   trigger, the `weeksSinceEasyWeek` trigger, and the boost magnitude and cap.
-   The underlying concept — managing acute against chronic load — is
-   well-established; the specific numbers are not yet read off a source.
+| Constant | Value | Tag | Source |
+|---|---|---|---|
+| `PREP_INTEGRATE_COUNT` | 2 (easy run, intervals); 3 (sprint, plyometric) | `[unverified]` | No literature pins a stage-3 movement count. Scales qualitatively with session CNS demand, same judgement call as the core-count line at `js/rules.js:267`. The RAMP warm-up protocol (Jeffreys) sources the four-stage *structure* (design §10 note above), not this count. |
+| `PREP_POTENTIATE_COUNT` | 0 (easy run); 2 (interval); 3-4 (sprint); 2-3 (plyometric) | `[unverified]` | Same reasoning — count scales with day-type intensity by design judgement, not a sourced figure. Easy run's 0 follows directly from design §5.1: build-ups before a conversational run defeat the point of an easy day. |
+| `BUILDUP_PCT_INTERVAL` | ~80% effort | `[corroborated]` | Progressive-intensity sprint-prep literature (Simperingham et al., "Gradual vs. Maximal Acceleration: Their Influence on the Prescription of Maximal Speed Sprinting in Team Sport Athletes," *Sports* 2018, PMC6162480) uses staged sub-maximal efforts building through the 60-90% band before high-intensity running. 80% sits inside that band, below the near-maximal target reserved for sprint day. Prescribed as effort, not pace, per the terrain-agnostic constraint (design §5, spec 9.1). |
+| `BUILDUP_PCT_SPRINT` | ~95% effort | `[corroborated]` | Same literature defines 90-95%+ as the conventional near-maximal band immediately preceding an all-out rep; 95% is its typical top edge. Also consistent with the ≥95% "true sprint" threshold reported in the same source. |
+| `INTERVAL_WORK_SEC` | 60-90 s | `[corroborated]` | Multiple independent secondary sources on running-interval and HIIT prescription converge on 60-90 s as a standard hard-effort bout duration. No single named position stand pins this exact range, hence corroborated rather than verified. Seconds, not metres — required by the terrain-agnostic constraint (design §5). |
+| `INTERVAL_REST_RATIO` | 1-2x work duration (work:rest 1:1 to 1:2) | `[corroborated]` | Same interval-training sources: 1:1 is the common baseline for aerobic-interval recovery, extending toward 1:2 for harder or longer reps. Mirrors the existing `SPRINT.WORK_REST_RATIO` house style (`js/rules.js:177`). |
+| `CHRONIC_WINDOW_DAYS` | 28 | `[corroborated]` | The acute:chronic workload ratio literature (Gabbett 2016, *Br J Sports Med*, "The training-injury prevention paradox"; Hulin et al. 2016) standardizes on a rolling 7-day acute / 28-day chronic pairing. Read via secondary sources agreeing on this figure, not the primary papers directly, hence corroborated not verified. Borrowed as a *window length* only — this app's chronic term is a boost on session selection, not an injury-risk ratio, so only the window duration is imported, none of ACWR's risk thresholds. |
+| `GYM_SHARE_TRIGGER` | 0.70 (70% of chronic load from gym day types) | `[unverified]` | No source sets a gym-share fraction for anything resembling this term — a modality split of workload does not appear in the ACWR literature, which totals load regardless of source. Chosen conservatively high so one heavy lifting week does not fire the boost; only a sustained lifting-dominated block does, appropriate given 1-3x/week irregular attendance where the share swings on its own week to week. |
+| `WEEKS_TRIGGER` | 4 | `[corroborated]` | Resistance-training deload-frequency literature (coach-practice survey, PMC9811819, "You can't shoot another bullet until you've reloaded the gun," 2023; corroborating practical-guidance sources) converges on roughly 4-8 weeks between lighter weeks, with 4 at the cited low end. Borrowed by analogy only: that literature governs when a *lifter* should deload, not when running should be boosted — this app reuses the interval length, not the underlying claim, per the analogy-not-application distinction (design §7.2). |
+| `CHRONIC_BOOST_MAX` | 1.5 (chronicBoost caps at 1.5x) | `[unverified]` | No source for a boost magnitude exists — the term itself is this app's invention (design §7.2), not a published construct. Capped modestly so the boost-never-veto rule (design §7.3.1) holds: even at the cap, `min(daysSince, 21)` from raw neglect can still dominate the score for a badly-neglected day type. |
 
-The four-stage prep structure itself is standard practice and needs no
-numeric sourcing.
+The four-stage prep structure itself is standard practice (the RAMP protocol —
+Raise, Activate/mobilise, Potentiate — Jeffreys) and needs no numeric
+sourcing; only the counts and percentages above did.
 
 ## 11. Known limitations
 
