@@ -16,12 +16,14 @@
       "loadable": true, "prRef": "back-squat", "prCoef": 1.00,
       "joints": ["knee","hip","lumbar"], "equipment": ["barbell","rack"], "venue": "gym",
       "cnsCost": 3, "technical": 3, "unilateral": false,
+      "cues": ["Bar on the shelf of your shoulders, not your neck; squeeze the shoulder blades.","Big breath in and brace before you unrack, not after.","Sit down between your hips, knees tracking over your toes.","Drive the whole foot into the floor on the way up."],
       "modalities": ["max-strength","power","hypertrophy"] },
 
     { "id": "front-squat", "name": "Front Squat", "pattern": "squat", "tier": "primary",
       "loadable": true, "prRef": "back-squat", "prCoef": 0.85,
       "joints": ["knee","hip","lumbar","thoracic","wrist"], "equipment": ["barbell","rack"], "venue": "gym",
       "cnsCost": 3, "technical": 3, "unilateral": false,
+      "cues": ["Elbows high, bar resting on your shoulders -- the fingers only guide it.","When the elbows drop the bar follows, so keep them up all the way.","Stay upright and sit straight down between the hips.","Expect roughly 85% of your back squat."],
       "modalities": ["max-strength","power","hypertrophy"] },
 
     { "id": "box-squat", "name": "Box Squat", "pattern": "squat", "tier": "secondary",
@@ -40,6 +42,7 @@
       "loadable": true, "prRef": "back-squat", "prCoef": 0.90,
       "joints": ["knee","hip","lumbar"], "equipment": ["safety-bar","rack"], "venue": "gym",
       "cnsCost": 3, "technical": 2, "unilateral": false,
+      "cues": ["The padded yoke sits on your shoulders; hold the handles in front of you.","It tips you forward more than a straight bar -- fight to stay upright.","Useful on days your shoulders will not let you hold a normal bar."],
       "modalities": ["max-strength","hypertrophy","power"] },
 
     { "id": "overhead-squat", "name": "Overhead Squat", "pattern": "squat", "tier": "secondary",
@@ -104,24 +107,28 @@
       "loadable": true, "prRef": "deadlift", "prCoef": 1.00,
       "joints": ["hip","knee","lumbar"], "equipment": ["barbell","plates"], "venue": "gym",
       "cnsCost": 3, "technical": 3, "unilateral": false,
+      "cues": ["Bar over mid-foot, shins almost touching it before you take your grip.","Chest up, lats tight, and pull the slack out of the bar before you pull.","Push the floor away rather than yanking the bar up.","Finish standing tall -- do not lean back at the top."],
       "modalities": ["max-strength","power","hypertrophy"] },
 
     { "id": "trap-bar-deadlift", "name": "Trap Bar Deadlift", "pattern": "hinge", "tier": "primary",
       "loadable": true, "prRef": "deadlift", "prCoef": 1.05,
       "joints": ["hip","knee","lumbar"], "equipment": ["trap-bar","plates"], "venue": "gym",
       "cnsCost": 3, "technical": 2, "unilateral": false,
+      "cues": ["Stand in the middle of the bar with the handles level at your sides.","More like a squat than a straight-bar pull -- the knees bend more.","Chest up, push the floor away, stand tall to finish.","Expect a little more than your straight-bar deadlift."],
       "modalities": ["max-strength","power","hypertrophy"] },
 
     { "id": "sumo-deadlift", "name": "Sumo Deadlift", "pattern": "hinge", "tier": "primary",
       "loadable": true, "prRef": "deadlift", "prCoef": 1.00,
       "joints": ["hip","knee","lumbar"], "equipment": ["barbell","plates"], "venue": "gym",
       "cnsCost": 3, "technical": 3, "unilateral": false,
+      "cues": ["Wide stance, toes turned out, hands gripping inside your knees.","Open the hips and push the knees out as you set up.","The bar stays against your legs the whole way up.","Hips and shoulders rise together -- do not let the hips shoot up first."],
       "modalities": ["max-strength","hypertrophy","power"] },
 
     { "id": "romanian-deadlift", "name": "Romanian Deadlift", "pattern": "hinge", "tier": "primary",
       "loadable": true, "prRef": "deadlift", "prCoef": 0.70,
       "joints": ["hip","lumbar"], "equipment": ["barbell","plates"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": false,
+      "cues": ["Start standing, then push the hips back with only a soft bend in the knee.","The bar stays in contact with your thighs the whole way down.","Stop when the hamstrings run out, not when the bar reaches the floor.","Much lighter than a deadlift -- around 70% is normal."],
       "modalities": ["hypertrophy","max-strength"] },
 
     { "id": "deficit-deadlift", "name": "Deficit Deadlift", "pattern": "hinge", "tier": "secondary",
@@ -156,6 +163,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["hip"], "equipment": ["barbell","bench","plates"], "venue": "gym",
       "cnsCost": 1, "technical": 1, "unilateral": false,
+      "cues": ["Shoulder blades on the bench, feet flat, shins vertical at the top.","Pad the bar across your hips -- it will dig in otherwise.","Squeeze the glutes to finish and keep your ribs down.","Chin tucked: look forward, not up at the ceiling."],
       "modalities": ["hypertrophy","isolation"] },
 
     { "id": "glute-ham-raise", "name": "Glute-Ham Raise", "pattern": "hinge", "tier": "accessory",
