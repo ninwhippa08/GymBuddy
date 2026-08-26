@@ -30,12 +30,14 @@
       "loadable": true, "prRef": "back-squat", "prCoef": 0.90,
       "joints": ["knee","hip","lumbar"], "equipment": ["barbell","rack","box"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": false,
+      "cues": ["Set the box so the hip crease lands just below the top of the knee.","Sit BACK onto it with the shins upright, then pause without rocking.","Stay tight on the box -- do not relax onto it and bounce back up.","The box sets the depth, so every rep in the set is the same depth."],
       "modalities": ["max-strength","power","hypertrophy"] },
 
     { "id": "pause-squat", "name": "Pause Squat", "pattern": "squat", "tier": "secondary",
       "loadable": true, "prRef": "back-squat", "prCoef": 0.85,
       "joints": ["knee","hip","lumbar"], "equipment": ["barbell","rack"], "venue": "gym",
       "cnsCost": 3, "technical": 3, "unilateral": false,
+      "cues": ["Squat to your normal depth and hold there for a full two-count.","Stay braced through the pause; the bar must not drift forward.","Drive straight up out of the hole with no bounce -- that is the whole point.","It will feel far heavier than the same bar squatted at normal speed."],
       "modalities": ["max-strength","hypertrophy"] },
 
     { "id": "safety-bar-squat", "name": "Safety Bar Squat", "pattern": "squat", "tier": "primary",
@@ -49,12 +51,14 @@
       "loadable": true, "prRef": "snatch", "prCoef": 1.10,
       "joints": ["knee","hip","lumbar","thoracic","shoulder"], "equipment": ["barbell","rack"], "venue": "gym",
       "cnsCost": 2, "technical": 3, "unilateral": false,
+      "cues": ["Snatch grip, bar locked out and stacked over the middle of the foot.","Push up into the bar the whole way down; the arms never soften.","Go only as deep as you can hold the bar back -- ankles and shoulders decide.","Mobility fails here long before strength does. End the set when it drifts."],
       "modalities": ["power"] },
 
     { "id": "zercher-squat", "name": "Zercher Squat", "pattern": "squat", "tier": "secondary",
       "loadable": true, "prRef": "back-squat", "prCoef": 0.65,
       "joints": ["knee","hip","lumbar","elbow"], "equipment": ["barbell","rack"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": false,
+      "cues": ["Bar in the crook of the elbows, hands together, elbows in front of the ribs.","Sit straight down with the chest tall; the bar is trying to fold you over.","Brace hard -- this position gives out at the trunk before the legs do.","It bruises the elbows at first; a towel over the bar makes it tolerable."],
       "modalities": ["max-strength","hypertrophy"] },
 
     { "id": "snatch-grip-deadlift", "name": "Snatch-Grip Deadlift", "pattern": "hinge", "tier": "primary",
@@ -135,6 +139,7 @@
       "loadable": true, "prRef": "deadlift", "prCoef": 0.85,
       "joints": ["hip","knee","lumbar"], "equipment": ["barbell","plates"], "venue": "gym",
       "cnsCost": 3, "technical": 3, "unilateral": false,
+      "cues": ["Stand on a plate or a low block -- an inch or two, no more.","Same setup as a floor pull, with more knee bend and a longer way to travel.","Hold the back angle; the deficit exposes a rounding back faster than the floor.","Longer range, so the bar is lighter than what you pull from the floor."],
       "modalities": ["max-strength"] },
 
     { "id": "rack-pull", "name": "Rack Pull (Above Knee)", "pattern": "hinge", "tier": "secondary",
@@ -151,6 +156,7 @@
       "loadable": true, "prRef": "back-squat", "prCoef": 0.40,
       "joints": ["hip","lumbar"], "equipment": ["barbell","rack"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": false,
+      "cues": ["Bar on the back as for a squat, feet hip-width, knees softly bent.","Push the hips straight back and let the chest fall towards parallel.","Stop where the lower back would round, not where the hamstrings complain.","Start lighter than feels necessary. This one is not worth being brave on."],
       "modalities": ["hypertrophy","max-strength"] },
 
     { "id": "single-leg-rdl", "name": "Single-Leg Romanian Deadlift", "pattern": "hinge", "tier": "accessory",
@@ -182,6 +188,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["hip","lumbar"], "equipment": ["kettlebell"], "venue": "either",
       "cnsCost": 2, "technical": 2, "unilateral": false,
+      "cues": ["Hike the bell back between the legs with the forearms against the thighs.","Snap the hips through -- the arms are ropes and do not lift anything.","The bell floats to chest height and no higher; it is a hinge, not a squat.","Finish every rep standing tall with the glutes locked."],
       "modalities": ["power","interval","hypertrophy"] },
 
     { "id": "back-extension", "name": "Back Extension", "pattern": "hinge", "tier": "accessory",
@@ -263,12 +270,14 @@
       "loadable": true, "prRef": "snatch", "prCoef": 0.65,
       "joints": ["hip","shoulder","thoracic"], "equipment": ["barbell","plates"], "venue": "gym",
       "cnsCost": 2, "technical": 3, "unilateral": false,
+      "cues": ["Snatch grip, pull from the hip or the floor, and never re-bend the knees.","Pull the bar up the body and turn it over without dropping under it.","Punch it to lockout overhead with the feet flat and still.","Light and fast. This is a technique drill, not a lift to test."],
       "modalities": ["power"] },
 
     { "id": "dumbbell-snatch", "name": "Dumbbell Snatch", "pattern": "hinge", "tier": "secondary",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["hip","knee","shoulder"], "equipment": ["dumbbell"], "venue": "either",
       "cnsCost": 2, "technical": 2, "unilateral": true,
+      "cues": ["One bell between the feet, hinge down and take it with a flat back.","Drive the hips and keep it close to the body, elbow leading high.","Punch the hand up and lock the arm out as you drop under it.","Same reps on each side, and change hands without resting between them."],
       "modalities": ["power","interval"] },
 
     { "id": "kettlebell-clean", "name": "Kettlebell Clean", "pattern": "hinge", "tier": "accessory",
