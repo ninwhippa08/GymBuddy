@@ -436,6 +436,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["shoulder","elbow","wrist"], "equipment": ["bodyweight"], "venue": "either",
       "cnsCost": 2, "technical": 2, "unilateral": false, "contactsPerRep": 0, "plyoIntensity": "moderate",
+      "cues": ["Set up as for a normal push-up: hands under the shoulders, body rigid.","Drop under control, then push hard enough that the hands leave the floor.","Land on soft elbows and go straight into the next rep.","End the set when the hands stop leaving the floor, not when you tire."],
       "modalities": ["power","plyometric"] },
 
     { "id": "dip", "name": "Dip", "pattern": "push-h", "tier": "secondary",
@@ -732,6 +733,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["knee","hip"], "equipment": ["box","bench"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": false, "contactsPerRep": 1, "plyoIntensity": "moderate",
+      "cues": ["Sit on the bench with the feet flat and the shins upright.","No rocking. Every rep starts from a dead stop with no wind-up.","Swing the arms and jump up, landing soft on the box in a quarter squat.","Step down, sit, reset. The pause between reps is the whole exercise."],
       "modalities": ["plyometric","power"] },
 
     { "id": "countermovement-jump", "name": "Countermovement Jump", "pattern": "jump", "tier": "primary",
@@ -773,6 +775,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["ankle","knee","hip"], "equipment": ["box"], "venue": "gym",
       "cnsCost": 1, "technical": 2, "unilateral": false, "contactsPerRep": 1, "plyoIntensity": "low",
+      "cues": ["Step off a low box -- do not jump off it.","Land on both feet in a quarter squat and freeze there.","The rep is judged on the landing: no wobble and no extra hop.","This is the landing the harder jumps already assume you can do."],
       "modalities": ["plyometric"] },
 
     { "id": "hurdle-hop", "name": "Hurdle Hop", "pattern": "jump", "tier": "primary",
@@ -833,6 +836,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["shoulder","thoracic","lumbar"], "equipment": ["med-ball"], "venue": "either",
       "cnsCost": 2, "technical": 1, "unilateral": false,
+      "cues": ["Reach the ball overhead with the ribs down, not arched back.","Slam it straight down in front of the feet with the whole body.","The hips and trunk do it; the arms only steer the ball.","Catch the bounce or let it die, but never chase it with a rounded back."],
       "modalities": ["power","interval"] },
 
     { "id": "med-ball-chest-pass", "name": "Med Ball Chest Pass", "pattern": "throw", "tier": "primary",
@@ -1037,18 +1041,21 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["ankle","knee","hip"], "equipment": ["open-space"], "venue": "outdoor",
       "cnsCost": 2, "technical": 1, "unilateral": false,
+      "cues": ["Run easy, then pick a landmark ahead and push to it, then ease off.","The hard pieces go by feel, not by a watch -- twenty seconds to two minutes.","Recover at a jog rather than a walk before the next push.","Finish feeling like you had one more push in you. If not, they were too long."],
       "modalities": ["interval","aerobic-steady"] },
 
     { "id": "shuttle-run", "name": "Shuttle Run", "pattern": "locomotion", "tier": "secondary",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["ankle","knee","hip"], "equipment": ["open-space"], "venue": "outdoor",
       "cnsCost": 2, "technical": 2, "unilateral": false,
+      "cues": ["Mark two lines and run between them, touching the line every time.","Start slowing early and turn on a bent knee, never a locked leg.","Push hard out of the turn -- the change of direction is the training.","Turns punish stiff knees and ankles, so stop when they get sloppy."],
       "modalities": ["interval"] },
 
     { "id": "stair-run", "name": "Stair Run", "pattern": "locomotion", "tier": "secondary",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["ankle","knee","hip"], "equipment": ["stairs"], "venue": "outdoor",
       "cnsCost": 2, "technical": 1, "unilateral": false,
+      "cues": ["Run up on the balls of the feet with short, quick steps.","Drive the knees and use the arms; stay tall instead of folding forward.","Walk back down every single time. Running down is where stairs hurt people.","One step at a time to start. Two at a time is a different exercise."],
       "modalities": ["interval","aerobic-steady"] },
 
     { "id": "incline-walk", "name": "Incline Walk", "pattern": "locomotion", "tier": "accessory",
@@ -1061,12 +1068,14 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["knee","hip","shoulder"], "equipment": ["machine"], "venue": "gym",
       "cnsCost": 2, "technical": 1, "unilateral": false,
+      "cues": ["Set the seat so the knee stays slightly bent at the bottom of the stroke.","Push and pull with the arms as well as the legs from the first second.","The resistance is made by your own effort, so the pace is entirely yours.","It is harder than it looks. Go slower than you think on the first interval."],
       "modalities": ["interval","aerobic-steady"] },
 
     { "id": "rower", "name": "Rowing Erg", "pattern": "locomotion", "tier": "secondary",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["knee","hip","lumbar","shoulder"], "equipment": ["machine"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": false,
+      "cues": ["Feet strapped, shins upright at the catch, arms long and shoulders loose.","Legs first, then the back opens, then the arms -- in that order.","Come back arms, then back, then knees. Never pull with a rounded back.","Watch the pace, not the stroke rate. Long strong strokes beat fast ones."],
       "modalities": ["interval","aerobic-steady"] },
 
     { "id": "jump-rope", "name": "Jump Rope", "pattern": "locomotion", "tier": "accessory",
@@ -1079,6 +1088,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["knee","hip","ankle"], "equipment": ["sled"], "venue": "either",
       "cnsCost": 2, "technical": 1, "unilateral": false,
+      "cues": ["Load it so you can keep walking. A sled you have to fight is too heavy.","Lean into the strap and drive through the legs with short steady steps.","Keep the arms relaxed -- the legs and hips move the sled, not the grip.","If there is room to drag it backwards, that is kinder on the knees."],
       "modalities": ["interval","hypertrophy"] },
 
     { "id": "ruck-march", "name": "Ruck March", "pattern": "locomotion", "tier": "accessory",

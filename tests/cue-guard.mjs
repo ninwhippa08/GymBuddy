@@ -4,13 +4,19 @@
 // repo and gated by this suite, so a malformed entry can never reach a user.
 // The app does not need to re-check at runtime.
 
-export const MAX_CUE_CHARS = 90;   // what keeps the back of a card the size of the front
+// Was "what keeps the back of a card the size of the front". It is not that any
+// more -- since design-card-flip.md 5.1 the card takes the height of the face
+// turned towards you, so a longer back costs nothing structural. The cap now
+// buys the thing it was really always buying: a line you can read standing up
+// between sets. The longest cue in the library is 82 characters.
+export const MAX_CUE_CHARS = 90;
 export const MAX_CUES = 4;
 
 // Pools whose cues are written. Adding a line here is how a backfill commit
 // becomes permanent -- an entry added to a cued pool later cannot arrive blank.
-// Empty until the first backfill; this plan ships the mechanism, not the text.
-export const CUED_POOLS = ['mobility-static', 'mobility-dynamic', 'core', 'sprint', 'primary'];
+export const CUED_POOLS = [
+  'mobility-static', 'mobility-dynamic', 'core', 'sprint', 'primary', 'secondary'
+];
 
 export function cueProblems(entry) {
   const problems = [];
