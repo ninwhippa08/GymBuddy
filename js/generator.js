@@ -314,6 +314,21 @@ export function prescribe(slot, exercise, env, rng, state) {
 
   block.sets = sets;
   block.reps = reps;
+
+  // An interval derives its rest from its own work, so it must come before the
+  // restSec line below -- an interval slot names a ratio, not a rest range.
+  if (slot.mode === 'interval') {
+    const workSec = Math.round(between(rng, slot.workSec) / 5) * 5;
+    block.workSec = workSec;
+    // Work:rest, not a fixed rest. A 90 s effort and a 30 s effort do not
+    // recover in the same time. INTERVAL_REST_RATIO 1-2x, [corroborated];
+    // mirrors the SPRINT.WORK_REST_RATIO house style at js/rules.js:177.
+    block.restSec = Math.round(workSec * between(rng, slot.restRatio) / 5) * 5;
+    block.reps = 1;
+    block.effort = slot.effort || 'hard, but repeatable to the last rep';
+    return block;
+  }
+
   block.restSec = Math.round(between(rng, slot.restSec) / 15) * 15;
 
   if (slot.mode === 'contacts') {

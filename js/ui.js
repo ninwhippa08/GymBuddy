@@ -86,6 +86,12 @@ export function loadLine(block) {
     // instruction, not a vague one. The effort cue is the prescription.
     return block.effort || 'leave 2-3 reps in reserve';
   }
+  // Work and rest in seconds. There is no load reference for an interval, so
+  // the fallthrough below would read displayMultiplier off an object that has
+  // none. design-running-programming.md §8.
+  if (block.mode === 'interval') {
+    return `${block.sets} × ${block.workSec} s`;
+  }
   return `${block.displayMultiplier.toFixed(2)} × ${titleCase(block.prRef)} PR`;
 }
 
@@ -98,6 +104,8 @@ export function volumeLine(block) {
   // For a hold the hero line already carries the seconds, so the chip carries
   // how many of them.
   if (block.mode === 'hold') return `× ${block.sets}`;
+  // The hero line carries the work; the chip carries the rest.
+  if (block.mode === 'interval') return `${block.restSec} s rest`;
   return `${block.sets} × ${block.reps}`;
 }
 
