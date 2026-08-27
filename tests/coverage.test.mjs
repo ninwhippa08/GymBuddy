@@ -49,11 +49,19 @@ const COVERAGE_SCOPE = {
 // Pools that lose EVERY entry to one hurt joint, because the joint is
 // intrinsic to the movement class. An empty sprint pool on a hurt hip is the
 // correct answer; proposing the day was the mistake. Handed to Project B.
-// Named individually so a fifth cannot appear silently. §5.
+// Named individually so an eighth cannot appear silently. §5.
+//
+// The three running-prep stages joined this list when the four-stage block
+// landed: a warm-up jog, a sprint drill and a build-up run all die on a hurt
+// ankle, and a running warm-up that cannot run is the correct empty answer.
+// plan-03 task-5.
 const FLOOR_EXEMPT = new Set([
   'core :: core/rotate :: (any)',
+  'accessory :: run :: aerobic-steady',
+  'accessory :: sprint-drill/agility :: (any)',
+  'secondary :: sprint :: sprint :: submaximal',
   'primary+secondary+accessory :: run/erg :: aerobic-steady',
-  'secondary+accessory :: sprint :: sprint',
+  'secondary+accessory :: sprint :: sprint :: submaximal',
   'primary :: hinge/pull-h :: power'
 ]);
 
@@ -85,12 +93,24 @@ const CLOSED_POOLS = [
 
 const MOBILITY_MODALITIES = new Set(['mobility-static', 'mobility-dynamic']);
 
+// Which venues a prep or cool-down variant is actually used at. The gym
+// variants serve gym and outdoor days alike, so they default to both.
+// `running` serves the running day types only: measuring a build-up run at
+// `gym` would report it missing from a squat session that never asks for it.
+// Task 7 gives DAY_TYPES a `prep` key, at which point this can be derived
+// rather than declared -- and plyometric's `venue: 'either'` revisited here.
+const BLOCK_VENUES = { running: ['outdoor'] };
+
 function poolKey(slot) {
   return [
     slot.tier.join('+'),
     (slot.patterns || []).join('/') || '(any)',
-    slot.modality || '(any)'
-  ].join(' :: ');
+    slot.modality || '(any)',
+    // Without these, a submaximal-strides slot and a maximal-sprint slot
+    // share one key and the coverage numbers describe neither.
+    slot.effortClass || null,
+    slot.joints ? slot.joints.join('/') : null
+  ].filter(Boolean).join(' :: ');
 }
 
 function poolSize(slot, venue, soreness = {}) {
@@ -109,9 +129,9 @@ function buildPools() {
     }
   }
   for (const block of [PREP_BLOCK, COOLDOWN_BLOCK]) {
-    for (const groups of Object.values(block)) {
+    for (const [variant, groups] of Object.entries(block)) {
       for (const g of groups) {
-        for (const venue of ['gym', 'outdoor']) {
+        for (const venue of BLOCK_VENUES[variant] || ['gym', 'outdoor']) {
           rows.push({ slot: g, venue, drawMin: g.count[0], drawMax: g.count[1],
                       fromTemplate: false });
         }
@@ -185,7 +205,7 @@ test('every pool the generator can ask for was found and measured', () => {
   }
 });
 
-test('the four floor-exempt pools really are the ones that reach zero', () => {
+test('the seven floor-exempt pools really are the ones that reach zero', () => {
   const measured = POOLS.filter(p => p.survival === 0).map(p => p.key).sort();
   assert.deepEqual(measured, [...FLOOR_EXEMPT].sort(),
     'a pool started or stopped collapsing to zero -- design §5 needs revisiting');

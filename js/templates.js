@@ -228,6 +228,66 @@ export const PREP_BLOCK = Object.freeze({
       reps: MOBILITY_DOSE.DYNAMIC_REPS,
       effort: 'controlled, full range -- not a stretch', optional: false
     })
+  ]),
+  // Raise -> mobilise -> integrate -> potentiate. Every running session runs
+  // all four; only stage 4's endpoint differs. design-running-programming.md
+  // §5. Stage order is preserved by orderSession's stable sort, which breaks
+  // SESSION_ORDER ties by emission index -- so these must stay in order.
+  //
+  // One block serves all four running day types, so each count is the range
+  // spanning that stage's per-day-type values in design §5.1, and the
+  // generator jitters within it -- the same mechanism MOBILITY_DOSE already
+  // uses. Writing four near-identical blocks would give the day types no
+  // more resolution than this and four places to drift.
+  running: Object.freeze([
+    Object.freeze({
+      slot: 'P1', role: 'prep', tier: ['accessory'], patterns: ['run'],
+      modality: 'aerobic-steady', zone: null, mode: 'time',
+      count: Object.freeze([1, 1]), durationMin: Object.freeze([3, 5]),
+      effort: 'easy -- finish warm, never tired', optional: false
+    }),
+    Object.freeze({
+      slot: 'P2', role: 'prep', tier: ['mobility'], patterns: ['mobility'],
+      modality: 'mobility-dynamic', zone: null, mode: 'drill',
+      // The running warm-up prepares the hips, knees and ankles. Pattern
+      // alone cannot express that -- every drill is pattern 'mobility'.
+      joints: Object.freeze(['hip', 'knee', 'ankle']),
+      count: MOBILITY_DOSE.DYNAMIC_DRILLS, reps: MOBILITY_DOSE.DYNAMIC_REPS,
+      effort: 'controlled, full range -- not a stretch', optional: false
+    }),
+    Object.freeze({
+      slot: 'P3', role: 'prep', tier: ['accessory'],
+      patterns: ['sprint-drill', 'agility'],
+      modality: null, zone: null, mode: 'contacts',
+      // PREP_INTEGRATE_COUNT: 2 on easy-run and interval days, 3 on sprint
+      // and plyometric. [unverified] -- no literature pins a stage-3 count;
+      // it scales with session CNS demand by the same judgement as the
+      // core-count line at js/rules.js:267. design §5.1, §10.
+      count: Object.freeze([2, 3]),
+      sets: Object.freeze([1, 1]), reps: Object.freeze([1, 1]),
+      restSec: Object.freeze([30, 45]),
+      effort: 'rhythm before speed -- these rehearse the mechanics', optional: false
+    }),
+    Object.freeze({
+      slot: 'P4', role: 'prep', tier: ['secondary'], patterns: ['sprint'],
+      // The one field standing between a warm-up and a maximal effort.
+      effortClass: 'submaximal',
+      modality: 'sprint', zone: null, mode: 'contacts',
+      // PREP_POTENTIATE_COUNT: 2 on interval days, 3-4 on sprint, 2-3 on
+      // plyometric, none on the easy run -- build-ups before a
+      // conversational-pace run make it something other than an easy run,
+      // which `optional` expresses. [unverified], design §5.1, §10.
+      count: Object.freeze([2, 4]),
+      sets: Object.freeze([1, 1]), reps: Object.freeze([1, 1]),
+      restSec: Object.freeze([60, 90]),
+      // BUILDUP_PCT_INTERVAL ~80% and BUILDUP_PCT_SPRINT ~95% bracket the
+      // day types this shared stage serves, so the prescription names the
+      // span rather than either endpoint. Printing "~95%" on an interval day
+      // would be the same class of mis-prescription this block exists to
+      // stop. Both are [unverified] project choices; design §10.
+      effort: 'build up to ~80-95% -- fast and smooth, never a maximal effort',
+      optional: true
+    })
   ])
 });
 

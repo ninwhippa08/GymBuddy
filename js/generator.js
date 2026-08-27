@@ -247,6 +247,11 @@ export function eligibleFor(slot, library, ctx) {
     if (slot.joints && !(e.joints || []).some(j => slot.joints.includes(j))) {
       return false;
     }
+    // The one field standing between a warm-up build-up and a maximal sprint.
+    // Tier and pattern cannot separate them: resisted-sprint and
+    // three-point-start are secondary-tier sprints too.
+    // design-running-programming.md §5, §6.1.
+    if (slot.effortClass && e.effortClass !== slot.effortClass) return false;
     if (venue && e.venue !== 'either' && e.venue !== venue) return false;
     if (e.requiresMeasuredGround) return false; // opt-in only, spec 9.1
     if ((e.joints || []).some(j => soreness[j] === 'hurt')) return false;
