@@ -214,6 +214,45 @@ export const CNS_DECAY = Object.freeze([
 // allowing a hard day 48 h after a moderate one.
 export const CNS_VETO_THRESHOLD = 8;
 
+// The acute account above is a 72 h horizon and cannot see a month. This is
+// the chronic one: as lifting accumulates, the low- and moderate-CNS running
+// days get more attractive. A BOOST, never a veto -- if he is fresh and has
+// not lifted in a week, lifting still wins on neglect.
+// design-running-programming.md §7.
+export const CHRONIC = Object.freeze({
+  // [corroborated] -- the acute:chronic workload literature (Gabbett 2016,
+  // Hulin et al. 2016) standardises on a rolling 7-day acute / 28-day chronic
+  // pairing. Borrowed as a WINDOW LENGTH only: this term is a boost on
+  // session selection, not an injury-risk ratio, so none of ACWR's risk
+  // thresholds come with it.
+  WINDOW_DAYS: 28,
+  // [unverified] -- no source sets a gym-share fraction for anything like
+  // this; a modality split of workload does not appear in the ACWR
+  // literature, which totals load regardless of source. Chosen high so one
+  // heavy week does not fire it and only a sustained lifting block does,
+  // which suits attendance that swings 1-3x/week on its own.
+  GYM_SHARE_TRIGGER: 0.70,
+  // [unverified] -- borrowed by analogy from deloading practice (PMC9811819,
+  // PMC10948666 report every 4-6 weeks and 5.6 +/- 2.3 weeks; same research
+  // group, so not independent corroboration). That literature governs when a
+  // LIFTER should deload, not when running should be boosted. 4 sits at the
+  // low end, chosen conservatively for a returning athlete, and is fixed
+  // independently by design §7.4's own worked scenario.
+  WEEKS_TRIGGER: 4,
+  // [unverified] -- no source for a boost magnitude exists; the term is this
+  // app's own invention (design §7.2). Capped modestly so the boost-never-veto
+  // rule holds: even at the cap, min(daysSince, 21) from raw neglect can still
+  // dominate the score for a badly neglected day type.
+  BOOST_MAX: 1.5,
+  // Below this there is not enough of a month to draw a conclusion from. An
+  // empty or sparse history must boost nothing at all -- §7.3 property 3.
+  MIN_LOAD: 20
+});
+
+// Day types the chronic term may boost. Deliberately excludes sprint and
+// plyometric: they are HIGH_CNS_DAY_TYPES and cannot serve as recovery.
+export const CHRONIC_BOOSTABLE = Object.freeze(['aerobic-steady', 'interval']);
+
 // Day types that draw on the CNS account. §7.
 export const HIGH_CNS_DAY_TYPES = Object.freeze([
   'max-strength', 'power', 'plyometric', 'sprint'

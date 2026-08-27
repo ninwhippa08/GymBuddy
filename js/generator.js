@@ -20,7 +20,8 @@
 import {
   ZONES, PCT_JITTER, VOLUME, RAMP, CNS_DECAY, CNS_VETO_THRESHOLD,
   HIGH_CNS_DAY_TYPES, PLYO_CONTACTS_PER_SESSION, PLYO_TRANSITION_WEEKLY_CAP,
-  PLYO_TRANSITION_LAST_WEEK, PLYO_RECOVERY_HOURS, SPRINT, SESSION_ORDER, TIME
+  PLYO_TRANSITION_LAST_WEEK, PLYO_RECOVERY_HOURS, SPRINT, SESSION_ORDER, TIME,
+  CHRONIC, CHRONIC_BOOSTABLE
 } from './rules.js';
 
 import {
@@ -110,12 +111,21 @@ export function buildState(profile, history, now = Date.now()) {
     weekMeters += s.sprintMeters || 0;
   }
 
+  // NOT `recent`: that is already truncated to VOLUME.HISTORY_DAYS (14), so
+  // a 28-day window built from it would silently be a 14-day one and
+  // CHRONIC.WINDOW_DAYS would be a lie. The chronic term is the one thing
+  // here that needs to see further back than the rest of the pipeline.
+  const chronic = chronicFrom(history || [], now);
+
   return {
     now,
     recent,
     patternSets,
     hoursSince,
     cnsAccount: Math.round(cnsAccount * 100) / 100,
+    chronicLoad: chronic.chronicLoad,
+    gymShare: chronic.gymShare,
+    weeksSinceEasyWeek: chronic.weeksSinceEasyWeek,
     weekContacts,
     weekMeters,
     rampWeek: rampWeekFor(profile, now),
@@ -136,6 +146,78 @@ export function rampRow(rampWeek) {
   return RAMP[clamp(rampWeek, 1, RAMP.length) - 1];
 }
 
+// The chronic window, from history the app already records: every session
+// carries `dayType` and `cnsLoad`, so nothing needs migrating. Takes the full
+// history rather than the 14-day `recent` slice -- see the call site.
+// design-running-programming.md §7.2.
+function chronicFrom(history, now) {
+  const window = history.filter(
+    s => now - Date.parse(s.date) <= CHRONIC.WINDOW_DAYS * MS_PER_DAY
+  );
+
+  let chronicLoad = 0, gymLoad = 0;
+  for (const s of window) {
+    const load = s.cnsLoad || 0;
+    chronicLoad += load;
+    if (DAY_TYPES[s.dayType] && DAY_TYPES[s.dayType].venue === 'gym') {
+      gymLoad += load;
+    }
+  }
+
+  // Week 0 is the seven days ending now, week 1 the seven before that. A week
+  // is "easy" if it carried less than half the window's average week -- an
+  // absolute floor would misread the ramp, where every early week is light.
+  const weeks = Math.floor(CHRONIC.WINDOW_DAYS / 7);
+  const perWeek = new Array(weeks).fill(0);
+  for (const s of window) {
+    const w = Math.floor((now - Date.parse(s.date)) / (7 * MS_PER_DAY));
+    if (w >= 0 && w < weeks) perWeek[w] += s.cnsLoad || 0;
+  }
+  const easyBelow = (chronicLoad / weeks) / 2;
+  let weeksSinceEasyWeek = 0;
+  for (const load of perWeek) {
+    if (load <= easyBelow) break;
+    weeksSinceEasyWeek++;
+  }
+
+  return {
+    chronicLoad: Math.round(chronicLoad * 100) / 100,
+    gymShare: chronicLoad > 0 ? gymLoad / chronicLoad : 0,
+    weeksSinceEasyWeek
+  };
+}
+
+// How much more attractive accumulated lifting makes a running day. Returns 1
+// -- no effect -- for everything it does not boost, so the caller multiplies
+// unconditionally. A boost and never a veto: §7.3 property 1.
+export function chronicBoost(dayType, state) {
+  if (!CHRONIC_BOOSTABLE.includes(dayType)) return 1;
+  if (!state) return 1;
+  // Too little of a month to conclude anything from. A gap in attendance
+  // lowers chronic load, which correctly makes lifting the more attractive
+  // proposal rather than the less. §7.3 property 3.
+  if ((state.chronicLoad || 0) < CHRONIC.MIN_LOAD) return 1;
+
+  let boost = 1;
+
+  // Share climbs from the trigger to 1.0; at an all-lifting month this
+  // contributes the whole headroom to the cap.
+  const share = state.gymShare || 0;
+  if (share > CHRONIC.GYM_SHARE_TRIGGER) {
+    const span = 1 - CHRONIC.GYM_SHARE_TRIGGER;
+    boost += (CHRONIC.BOOST_MAX - 1) * ((share - CHRONIC.GYM_SHARE_TRIGGER) / span);
+  }
+
+  // Weeks without a lighter one add on top, so four hard weeks boost harder
+  // than gym share alone. §7.4 scenario 2.
+  const weeks = state.weeksSinceEasyWeek || 0;
+  if (weeks >= CHRONIC.WEEKS_TRIGGER) {
+    boost += (CHRONIC.BOOST_MAX - 1) * (weeks / CHRONIC.WEEKS_TRIGGER);
+  }
+
+  return Math.min(boost, CHRONIC.BOOST_MAX);
+}
+
 // --------------------------------------------------------------------------
 // 3  PROPOSE
 // --------------------------------------------------------------------------
@@ -147,7 +229,7 @@ export function proposeDayType(state, { soreness = {}, rng, dayTypes = PHASE_1_D
   const candidates = dayTypes.map(dt => {
     const hours = state.hoursSince[dt];
     const days = hours === Infinity ? 99 : hours / 24;
-    let score = Math.min(days, 21);
+    let score = Math.min(days, 21) * chronicBoost(dt, state);
     const vetoes = [];
 
     if (HIGH_CNS_DAY_TYPES.includes(dt) && state.cnsAccount > CNS_VETO_THRESHOLD) {
@@ -188,7 +270,9 @@ function allHurt(soreness) {
 function reasonFor(best, state, ramp, forced) {
   const label = {
     'max-strength': 'heavy lifting', power: 'anything explosive',
-    hypertrophy: 'volume work', 'aerobic-steady': 'easy running'
+    hypertrophy: 'volume work', 'aerobic-steady': 'easy running',
+    interval: 'interval running', sprint: 'sprinting',
+    plyometric: 'jumping'
   }[best.dayType] || best.dayType;
 
   const parts = [];
