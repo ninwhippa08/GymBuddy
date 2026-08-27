@@ -179,14 +179,14 @@ const AEROBIC_STEADY = Object.freeze([
     // Primary tier alone leaves only two candidates, so every easy day would
     // be the same run. Secondary and accessory locomotion -- fartlek, stair
     // runs, an incline walk -- are legitimate steady-state work.
-    tier: ['primary', 'secondary', 'accessory'], patterns: ['locomotion'],
+    tier: ['primary', 'secondary', 'accessory'], patterns: ['run', 'erg'],
     modality: 'aerobic-steady', zone: null, mode: 'time',
     durationMin: [20, 45], effort: 'easy -- able to hold a conversation',
     sets: [1, 1], reps: [1, 1], restSec: [0, 0], optional: false
   }),
   Object.freeze({
     slot: 'B', role: 'strides',
-    tier: ['secondary', 'accessory'], patterns: ['sprint'],
+    tier: ['secondary', 'accessory'], patterns: ['sprint'], effortClass: 'submaximal',
     modality: 'sprint', zone: null, mode: 'contacts',
     sets: [4, 6], reps: [1, 1], restSec: [60, 90],
     effort: 'build to about 90%, never a maximal effort', optional: true

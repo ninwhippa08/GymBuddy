@@ -594,7 +594,11 @@ function orderClass(block, slotZone) {
   if (block.pattern === 'core' || block.pattern === 'rotate') return 'mobility';
   if (block.pattern === 'sprint') return 'sprint';
   if (block.pattern === 'jump' || block.pattern === 'throw') return 'plyometric';
-  if (block.pattern === 'locomotion') return 'conditioning';
+  // run, erg and march are all conditioning: they close the main work.
+  // sprint-drill and agility never reach here -- the role === 'prep' branch
+  // above catches them. design-running-programming.md §6.5.
+  if (block.pattern === 'run' || block.pattern === 'erg' ||
+      block.pattern === 'march') return 'conditioning';
   if (slotZone === 'powerSingle' || slotZone === 'powerMultiple' || slotZone === 'dynamicEffort') return 'power';
   if (slotZone === 'maxStrength') return 'max-strength';
   if (slotZone === 'muscularEndurance') return 'isolation';

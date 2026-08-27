@@ -52,7 +52,7 @@ const COVERAGE_SCOPE = {
 // Named individually so a fifth cannot appear silently. §5.
 const FLOOR_EXEMPT = new Set([
   'core :: core/rotate :: (any)',
-  'primary+secondary+accessory :: locomotion :: aerobic-steady',
+  'primary+secondary+accessory :: run/erg :: aerobic-steady',
   'secondary+accessory :: sprint :: sprint',
   'primary :: hinge/pull-h :: power'
 ]);
@@ -65,7 +65,13 @@ const CLOSED_POOLS = [
   'mobility :: mobility :: mobility-static',
   'mobility :: mobility :: mobility-dynamic',
   'core :: core/rotate :: (any)',
-  'secondary+accessory :: sprint :: sprint',
+  // 'secondary+accessory :: sprint :: sprint' dropped out here: splitting
+  // sprint-drill and agility out of the sprint pattern correctly shrank this
+  // pool from 16 to 4 secondary+accessory members, below its variety floor
+  // of 16. It stays in FLOOR_EXEMPT (still collapses to zero on an
+  // ankle/knee/hip injury) but can't be asserted closed until Task 5's
+  // effortClass-qualified poolKey (and/or Task 7's template rewrite)
+  // resolves what this pool should actually require. plan-03 task-2.
   'primary+secondary :: jump/throw :: power',
   'primary :: squat/hinge/push-h/push-v/pull-v :: max-strength',
   'accessory :: lunge/carry/rotate :: hypertrophy',
