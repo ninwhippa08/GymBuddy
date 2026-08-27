@@ -53,3 +53,43 @@ test('the dynamic drill dose is unchanged from the sourced value', () => {
   // available time. [corroborated]
   assert.deepEqual(PREP_BLOCK.running[1].count, [3, 4]);
 });
+
+test('all four running day types exist', () => {
+  for (const dt of ['aerobic-steady', 'interval', 'sprint', 'plyometric']) {
+    assert.ok(TEMPLATES[dt], `${dt} has no template`);
+  }
+});
+
+test('an easy run cannot come back as a fartlek or a backward walk', () => {
+  const ids = pool(TEMPLATES['aerobic-steady'][0]);
+  for (const bad of ['fartlek', 'tempo-run', 'stair-run',
+                     'backward-walk', 'ruck-march', 'sled-drag']) {
+    assert.ok(!ids.includes(bad), `${bad} is not an easy run`);
+  }
+  assert.ok(ids.includes('easy-run') && ids.includes('trail-run'));
+});
+
+test('easy-day strides are submaximal only', () => {
+  const strides = TEMPLATES['aerobic-steady'][1];
+  assert.equal(strides.effortClass, 'submaximal');
+  assert.deepEqual(pool(strides), ['build-up-run']);
+});
+
+test('the sprint day draws maximal efforts only', () => {
+  const ids = pool(TEMPLATES.sprint[0]);
+  assert.ok(ids.includes('acceleration-sprint'));
+  assert.ok(!ids.includes('build-up-run'), 'a build-up is not the hard work');
+  assert.ok(!ids.includes('flying-run'),
+    'flying runs need measured ground and stay opt-in');
+});
+
+test('the interval day never draws a maximal sprint', () => {
+  const ids = pool(TEMPLATES.interval[0]);
+  assert.ok(ids.includes('run-interval'));
+  assert.ok(!ids.includes('acceleration-sprint'));
+});
+
+test('the plyometric day draws jumps', () => {
+  const ids = pool(TEMPLATES.plyometric[0]);
+  assert.ok(ids.length >= 5, `only ${ids.length} jumps available`);
+});

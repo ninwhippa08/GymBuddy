@@ -60,10 +60,22 @@ test('every static stretch and core block sorts after the main work', () => {
 // on aerobic-steady's own main slot A (the steady run, legitimately dosed by
 // duration -- spec 9.1, unrelated to the prep/cool-down split). Scoped to the
 // two roles the split actually governs, matching the test's own name.
+//
+// Prep is no longer all drills: the running warm-up raises with a timed jog
+// and integrates and potentiates with contact work
+// (design-running-programming.md §5). The claim the name makes still holds and
+// is what is checked -- a drill is dosed in reps, a stretch in seconds.
 test('no drill is ever dosed in minutes and no stretch in reps', () => {
   for (const s of sessions) {
     for (const b of s.blocks) {
-      if (b.role === 'prep') assert.equal(b.mode, 'drill');
+      if (b.role === 'prep') {
+        assert.ok(['drill', 'time', 'contacts'].includes(b.mode),
+          `${s.dayType}: prep block ${b.slot} is mode ${b.mode}`);
+        if (b.mode === 'drill') {
+          assert.ok(b.reps > 0, 'a drill is dosed in reps');
+          assert.equal(b.durationMin, undefined, 'a drill is not dosed in minutes');
+        }
+      }
       if (b.role === 'mobility') assert.equal(b.mode, 'hold');
     }
   }

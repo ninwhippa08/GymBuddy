@@ -49,20 +49,31 @@ const COVERAGE_SCOPE = {
 // Pools that lose EVERY entry to one hurt joint, because the joint is
 // intrinsic to the movement class. An empty sprint pool on a hurt hip is the
 // correct answer; proposing the day was the mistake. Handed to Project B.
-// Named individually so an eighth cannot appear silently. §5.
+// Named individually so a fourteenth cannot appear silently. §5.
 //
-// The three running-prep stages joined this list when the four-stage block
-// landed: a warm-up jog, a sprint drill and a build-up run all die on a hurt
-// ankle, and a running warm-up that cannot run is the correct empty answer.
-// plan-03 task-5.
+// The four running day types put ten more pools here, and they are all the
+// same fact restated: you cannot run, sprint or jump on a hurt ankle, knee or
+// hip, and every entry in those pools loads at least one of the three. The
+// list is long because the running work is honest about which joints it
+// needs, not because the exemption got looser. plan-03 tasks 5 and 7.
 const FLOOR_EXEMPT = new Set([
   'core :: core/rotate :: (any)',
+  'primary :: hinge/pull-h :: power',
+  // Running prep -- the four stages of the warm-up.
   'accessory :: run :: aerobic-steady',
   'accessory :: sprint-drill/agility :: (any)',
   'secondary :: sprint :: sprint :: submaximal',
+  'secondary+accessory :: jump :: (any)',
+  // Easy run and intervals.
   'primary+secondary+accessory :: run/erg :: aerobic-steady',
+  'primary+secondary+accessory :: run/erg :: interval',
   'secondary+accessory :: sprint :: sprint :: submaximal',
-  'primary :: hinge/pull-h :: power'
+  // Sprint day.
+  'primary :: sprint :: sprint :: maximal',
+  'secondary :: sprint :: sprint :: maximal',
+  // Plyometric day.
+  'primary :: jump :: (any)',
+  'primary+secondary :: jump :: (any)'
 ]);
 
 // Pools whose targets are met and must stay met. Adding a line here is how an
@@ -205,7 +216,7 @@ test('every pool the generator can ask for was found and measured', () => {
   }
 });
 
-test('the seven floor-exempt pools really are the ones that reach zero', () => {
+test('the thirteen floor-exempt pools really are the ones that reach zero', () => {
   const measured = POOLS.filter(p => p.survival === 0).map(p => p.key).sort();
   assert.deepEqual(measured, [...FLOOR_EXEMPT].sort(),
     'a pool started or stopped collapsing to zero -- design §5 needs revisiting');

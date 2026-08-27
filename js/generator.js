@@ -252,6 +252,12 @@ export function eligibleFor(slot, library, ctx) {
     // three-point-start are secondary-tier sprints too.
     // design-running-programming.md §5, §6.1.
     if (slot.effortClass && e.effortClass !== slot.effortClass) return false;
+    // Plyometric intensity bands. A slot names the bands it accepts, because
+    // both ends matter: a warm-up must stay low, and the day's main jump must
+    // not BE the warm-up. design-running-programming.md §5, §6.4.
+    if (slot.plyoIntensity && !slot.plyoIntensity.includes(e.plyoIntensity)) {
+      return false;
+    }
     if (venue && e.venue !== 'either' && e.venue !== venue) return false;
     if (e.requiresMeasuredGround) return false; // opt-in only, spec 9.1
     if ((e.joints || []).some(j => soreness[j] === 'hurt')) return false;
@@ -403,6 +409,14 @@ export function estimateMinutes(blocks) {
   let sec = 0;
   for (const b of blocks) {
     if (b.mode === 'time') { sec += (b.durationMin || 0) * 60; continue; }
+    // An interval's work is its work seconds, not reps x SECONDS_PER_REP.
+    // Falling through to the generic branch below priced eight 90 s efforts
+    // at 24 seconds, so packToBudget never saw a session it should trim.
+    if (b.mode === 'interval') {
+      sec += b.sets * (b.workSec + (b.restSec || 0));
+      sec += transitionSec(b);
+      continue;
+    }
 
     const sides = b.perSide ? 2 : 1;
 
@@ -433,7 +447,13 @@ export function estimateMinutes(blocks) {
 const VOLUME_MODES = new Set(['load', 'contacts', 'reps']);
 export function countsTowardVolume(block) {
   if (!VOLUME_MODES.has(block.mode)) return false;
-  return block.role !== 'core';
+  // Prep joined core here when the running warm-up gained contact stages.
+  // Mobility drills were already excluded by mode, so `prep` used to be
+  // unreachable; sprint drills and build-ups are mode 'contacts' and would
+  // otherwise be counted as training volume against the pattern-neglect
+  // score. They still count toward the foot-contact and metreage budgets,
+  // which finalise() sums separately and unconditionally.
+  return block.role !== 'core' && block.role !== 'prep';
 }
 
 // Trim to the main-work budget: drop optional blocks last-first, then shave
@@ -468,17 +488,27 @@ export function packToBudget(blocks, budgetMin = TIME.MAIN_WORK_MAX_MIN) {
 // drills prepare the work and run before it; static stretching impairs
 // explosive output and runs after. design 4.2, discrepancy 6.
 
-export function buildPrep(dayType, library, ctx, rng) {
-  return buildBlockGroups(groupsFor(PREP_BLOCK, dayType), library, ctx, rng);
+// `env` defaults to a neutral envelope so the block builders stay callable
+// with four arguments. Only the running prep's timed and contact stages read
+// it, and only for the ramp's volume multiplier.
+const NEUTRAL_ENV = Object.freeze({ volumeMultiplier: 1 });
+
+export function buildPrep(dayType, library, ctx, rng, env = NEUTRAL_ENV) {
+  return buildBlockGroups(groupsFor(PREP_BLOCK, dayType, 'prep'), library, ctx, rng, env);
 }
 
-export function buildCooldown(dayType, library, ctx, rng) {
-  return buildBlockGroups(groupsFor(COOLDOWN_BLOCK, dayType), library, ctx, rng);
+export function buildCooldown(dayType, library, ctx, rng, env = NEUTRAL_ENV) {
+  return buildBlockGroups(groupsFor(COOLDOWN_BLOCK, dayType), library, ctx, rng, env);
 }
 
-function groupsFor(block, dayType) {
-  const kind = DAY_TYPES[dayType] ? DAY_TYPES[dayType].mobilityCore : 'full';
-  return block[kind] || block.full;
+// `variantKey` lets prep and cool-down diverge. They used to share
+// `mobilityCore`, which was fine while every prep was one mobility group; a
+// running day now wants the four-stage prep AND the short cool-down, and one
+// key cannot say both. design-running-programming.md §5.3.
+function groupsFor(block, dayType, variantKey = 'mobilityCore') {
+  const dt = DAY_TYPES[dayType];
+  if (!dt) return block.full;
+  return block[dt[variantKey]] || block[dt.mobilityCore] || block.full;
 }
 
 // How many static stretches this day type's cool-down actually asks for at
@@ -493,7 +523,7 @@ function staticFloorFor(dayType) {
 
 // Mutates ctx.excludeIds on purpose: prep, main work and cool-down draw from
 // one library, and a movement should appear once in a session.
-function buildBlockGroups(groups, library, ctx, rng) {
+function buildBlockGroups(groups, library, ctx, rng, env = NEUTRAL_ENV) {
   const out = [];
   for (const group of groups) {
     const n = intBetween(rng, group.count);
@@ -501,11 +531,21 @@ function buildBlockGroups(groups, library, ctx, rng) {
       const e = fillSlot(group, library, ctx, rng);
       if (!e) break;                       // pool exhausted -- short block
       ctx.excludeIds.add(e.id);
-      out.push(prescribeMobility(group, e, rng));
+      // The running prep raises with a jog and potentiates with sprints or
+      // jumps, so a block group is no longer always a mobility drill. The
+      // timed and contact stages go through prescribe() rather than a second
+      // copy of it -- foot contacts and sprint metreage are budgeted in
+      // finalise() across every block, prep included, so a duplicate that
+      // forgot to set them would silently under-count both.
+      out.push(MOBILITY_BLOCK_MODES.has(group.mode)
+        ? prescribeMobility(group, e, rng)
+        : prescribe(group, e, env, rng, ctx.state));
     }
   }
   return out;
 }
+
+const MOBILITY_BLOCK_MODES = new Set(['drill', 'hold', 'core']);
 
 const roundTo5 = v => Math.round(v / 5) * 5;
 
@@ -688,9 +728,9 @@ export function generate({
   }
 
   const packed = packToBudget(blocks);                                   // 8
-  const prep = buildPrep(chosen, library, ctx, rng);                     // 9a
+  const prep = buildPrep(chosen, library, ctx, rng, env);               // 9a
   const cooled = packCooldown(
-    buildCooldown(chosen, library, ctx, rng)                             // 9b
+    buildCooldown(chosen, library, ctx, rng, env)                        // 9b
   );
   const ordered = orderSession(
     prep.concat(packed.blocks, cooled.blocks), zoneBySlot                // 10
