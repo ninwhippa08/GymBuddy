@@ -7,7 +7,7 @@ running the suite.
 - `SESSIONS_BEFORE_REPEAT` = 16 (athlete's preference)
 - `OPTIONS_PER_JOINT` = 3 ([unverified] design floor)
 - library holds 236 entries
-- closed pools: mobility :: mobility :: mobility-static, mobility :: mobility :: mobility-dynamic, core :: core/rotate :: (any), primary+secondary :: jump/throw :: power, primary :: squat/hinge/push-h/push-v/pull-v :: max-strength, accessory :: lunge/carry/rotate :: hypertrophy, primary+secondary :: squat/push-h/push-v :: power, primary :: squat/hinge/push-h/push-v/pull-v :: hypertrophy
+- closed pools: mobility :: mobility :: mobility-static, mobility :: mobility :: mobility-dynamic, core :: core/rotate :: (any), primary+secondary :: jump/throw :: power, primary :: squat/hinge/push-h/push-v/pull-v :: max-strength, accessory :: lunge/carry/rotate :: hypertrophy, primary+secondary :: squat/push-h/push-v :: power, primary :: squat/hinge/push-h/push-v/pull-v :: hypertrophy, mobility :: mobility :: mobility-dynamic :: hip/knee/ankle, accessory :: run :: aerobic-steady, accessory :: sprint-drill/agility :: (any), secondary :: sprint :: sprint :: submaximal, primary+secondary+accessory :: run/erg :: aerobic-steady
 
 | pool | draw | have | survival | floor | variety | need | short |
 |---|---|---|---|---|---|---|---|

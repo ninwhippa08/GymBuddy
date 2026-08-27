@@ -95,7 +95,15 @@ const CLOSED_POOLS = [
   'primary :: squat/hinge/push-h/push-v/pull-v :: max-strength',
   'accessory :: lunge/carry/rotate :: hypertrophy',
   'primary+secondary :: squat/push-h/push-v :: power',
-  'primary :: squat/hinge/push-h/push-v/pull-v :: hypertrophy'
+  'primary :: squat/hinge/push-h/push-v/pull-v :: hypertrophy',
+  // The running prep, locked once its stages measured green. The tight one is
+  // the hip/knee/ankle dynamic pool: floor 14, have exactly 14, so removing a
+  // single drill starves stage 2 on a hurt hip. plan-03 task-9.
+  'mobility :: mobility :: mobility-dynamic :: hip/knee/ankle',
+  'accessory :: run :: aerobic-steady',
+  'accessory :: sprint-drill/agility :: (any)',
+  'secondary :: sprint :: sprint :: submaximal',
+  'primary+secondary+accessory :: run/erg :: aerobic-steady'
 ];
 
 // ---------------------------------------------------------------------------

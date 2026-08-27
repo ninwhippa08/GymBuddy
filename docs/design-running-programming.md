@@ -339,6 +339,48 @@ sourcing; only the counts and percentages above did.
 
 ## 11. Known limitations
 
+### 11.0 The running main-work pools do not meet VARIETY — open decision
+
+Measured after task 9 (`docs/coverage-matrix.md`). No pool fails its FLOOR;
+every running pool is FLOOR_EXEMPT and correctly so. What they miss is
+VARIETY, which asks for `SESSIONS_BEFORE_REPEAT` (16) × the slot's draw:
+
+| Pool | have | need | short |
+|---|---|---|---|
+| `secondary+accessory :: sprint :: sprint :: submaximal` | 1 | 16 | 15 |
+| `secondary :: sprint :: sprint :: maximal` | 2 | 16 | 14 |
+| `primary :: sprint :: sprint :: maximal` | 3 | 16 | 13 |
+| `secondary+accessory :: jump :: (any)` | 3 | 16 | 13 |
+| `primary+secondary+accessory :: run/erg :: interval` | 5 | 16 | 11 |
+| `primary :: jump :: (any)` | 6 | 16 | 10 |
+| `primary+secondary :: jump :: (any)` | 8 | 16 | 8 |
+
+Raw shortfall across all pools rose from 18 to 87 on this account alone.
+
+Two ways out, and they are not equivalent:
+
+1. **Author the entries.** Roughly 60 new sprint, jump and interval variants.
+   The library has 8 sprint entries and 17 jumps *because those are the
+   movements*, so most of the 60 would be padding — a "sprint variant" invented
+   to satisfy a counter is worse than a repeat.
+2. **Exempt them from VARIETY**, on the same grounds §3.2 of
+   `design-library-expansion.md` already exempts `aerobic-steady`: the rule's
+   *premise* fails rather than its conclusion being unwanted. Variety on a
+   sprint day comes from distance, rest and effort, not from finding a
+   sixteenth way to sprint. Repeating the acceleration sprint every third
+   sprint session is what sprint training is.
+
+Option 2 is the recommendation, and it matches the precedent already in the
+codebase. It is recorded rather than taken because it widens a rule that
+governs every pool in the app, not only these seven, and because
+`VARIETY_EXEMPT_MODALITIES` is keyed on `slot.modality` — the jump pools carry
+`modality: null`, so the exemption mechanism needs a small redesign before it
+can express them. Neither belongs inside the running-programming change.
+
+Until it is settled, the seven pools stay out of `CLOSED_POOLS`: they are
+measured and visible in the matrix, and nothing asserts them green.
+
+
 1. **Chronic load counts proposals, not performance.** This inherits spec §6
    limitation 1: history records what was generated, not what was completed, so
    a skipped-heavy month under-proposes running. The eventual fix is the
