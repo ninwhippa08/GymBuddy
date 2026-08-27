@@ -1068,6 +1068,13 @@
       "cues": ["Conversational: you should be able to talk in full sentences throughout.","If you cannot, you are running a tempo run by accident.","Land under your hips with a quiet, quick turnover."],
       "modalities": ["aerobic-steady"] },
 
+    { "id": "warmup-jog", "name": "Warm-Up Jog", "pattern": "run", "tier": "accessory",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["ankle","knee","hip"], "equipment": ["open-space"], "venue": "either",
+      "cnsCost": 1, "technical": 1, "unilateral": false, "durationMin": [3, 5],
+      "cues": ["Slow enough to hold a conversation the whole way -- this is not the session.","Let the arms hang loose and shake the shoulders out as you go.","Finish warm and slightly out of breath, never tired."],
+      "modalities": ["aerobic-steady"] },
+
     { "id": "tempo-run", "name": "Tempo Run", "pattern": "run", "tier": "primary",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["ankle","knee","hip"], "equipment": ["open-space"], "venue": "outdoor",

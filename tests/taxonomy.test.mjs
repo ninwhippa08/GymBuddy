@@ -35,7 +35,7 @@ test('multidirectional prep is its own family', () => {
 test('the run bucket holds only unloaded running on feet', () => {
   assert.deepEqual(idsWithPattern('run'), [
     'easy-run', 'fartlek', 'run-interval', 'shuttle-run', 'stair-run',
-    'tempo-run', 'trail-run'
+    'tempo-run', 'trail-run', 'warmup-jog'
   ]);
 });
 
@@ -74,4 +74,12 @@ test('interval work no longer claims to be steady-state', () => {
 test('no exercise is left in a retired bucket', () => {
   const retired = LIB.filter(e => e.pattern === 'locomotion');
   assert.deepEqual(retired, [], 'locomotion was split and must be empty');
+});
+
+test('the warm-up jog exists and is cued like everything else', () => {
+  const e = byId['warmup-jog'];
+  assert.ok(e, 'warmup-jog is missing');
+  assert.equal(e.pattern, 'run');
+  assert.equal(e.tier, 'accessory');
+  assert.ok(e.cues.length >= 3, 'needs at least three cues like the other 235');
 });
