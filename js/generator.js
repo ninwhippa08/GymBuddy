@@ -241,6 +241,12 @@ export function eligibleFor(slot, library, ctx) {
     if (!slot.tier.includes(e.tier)) return false;
     if (slot.patterns && !slot.patterns.includes(e.pattern)) return false;
     if (slot.modality && !e.modalities.includes(slot.modality)) return false;
+    // A prep slot names the joints it prepares. Every dynamic drill shares
+    // pattern 'mobility', so pattern alone cannot keep a shoulder dislocate
+    // out of a running warm-up. design-running-programming.md §5.3.
+    if (slot.joints && !(e.joints || []).some(j => slot.joints.includes(j))) {
+      return false;
+    }
     if (venue && e.venue !== 'either' && e.venue !== venue) return false;
     if (e.requiresMeasuredGround) return false; // opt-in only, spec 9.1
     if ((e.joints || []).some(j => soreness[j] === 'hurt')) return false;

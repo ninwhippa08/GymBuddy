@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { MODALITIES, MOBILITY_DOSE, SESSION_ORDER, TIME } from '../js/rules.js';
+import { eligibleFor } from '../js/generator.js';
 
 test('the modality vocabulary is split and complete', () => {
   assert.ok(MODALITIES.includes('mobility-dynamic'));
@@ -40,4 +41,30 @@ test('every dose is an inclusive [lo, hi] pair inside its sourced range', () => 
   // design 2.1: dynamic volume does not scale with available time.
   assert.deepEqual([...MOBILITY_DOSE.DYNAMIC_REPS], [10, 12]);
   assert.deepEqual([...MOBILITY_DOSE.DYNAMIC_DRILLS], [3, 4]);
+});
+
+test('a slot can require the joints it means to prepare', () => {
+  const lib = [
+    { id: 'hip-drill', tier: 'mobility', pattern: 'mobility',
+      joints: ['hip'], modalities: ['mobility-dynamic'], venue: 'either' },
+    { id: 'shoulder-drill', tier: 'mobility', pattern: 'mobility',
+      joints: ['shoulder'], modalities: ['mobility-dynamic'], venue: 'either' }
+  ];
+  const slot = {
+    tier: ['mobility'], patterns: ['mobility'], modality: 'mobility-dynamic',
+    joints: ['hip', 'knee', 'ankle']
+  };
+  const got = eligibleFor(slot, lib, {}).map(e => e.id);
+  assert.deepEqual(got, ['hip-drill']);
+});
+
+test('a slot with no joints filter still sees everything', () => {
+  const lib = [
+    { id: 'shoulder-drill', tier: 'mobility', pattern: 'mobility',
+      joints: ['shoulder'], modalities: ['mobility-dynamic'], venue: 'either' }
+  ];
+  const slot = {
+    tier: ['mobility'], patterns: ['mobility'], modality: 'mobility-dynamic'
+  };
+  assert.equal(eligibleFor(slot, lib, {}).length, 1);
 });
