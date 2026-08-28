@@ -21,7 +21,8 @@ import {
   ZONES, PCT_JITTER, VOLUME, RAMP, CNS_DECAY, CNS_VETO_THRESHOLD,
   HIGH_CNS_DAY_TYPES, PLYO_CONTACTS_PER_SESSION, PLYO_TRANSITION_WEEKLY_CAP,
   PLYO_TRANSITION_LAST_WEEK, PLYO_RECOVERY_HOURS, SPRINT, SESSION_ORDER, TIME,
-  CHRONIC, CHRONIC_BOOSTABLE
+  CHRONIC, CHRONIC_BOOSTABLE,
+  ALL_TIERS
 } from './rules.js';
 
 import {
@@ -821,14 +822,29 @@ export function generate({
   const zoneBySlot = {};
   const unfilled = [];
   for (const slot of template) {                                         // 6-7
-    const exercise = fillSlot(slot, library, ctx, rng);
+    let exercise = fillSlot(slot, library, ctx, rng);
+
+    // A REQUIRED slot that comes back empty is retried across every tier
+    // before the day type is abandoned. Only `tier` widens: patterns,
+    // modality and zone are what the slot is FOR. Optional slots are left to
+    // be skipped as they always were. design-equipment-and-swap.md §4.2.
+    let tierRelaxed = false;
+    if (!exercise && !slot.optional) {
+      exercise = fillSlot({ ...slot, tier: ALL_TIERS }, library, ctx, rng);
+      tierRelaxed = Boolean(exercise);
+    }
+
     if (!exercise) {
       unfilled.push({ slot: slot.slot, optional: !!slot.optional });
       continue;
     }
     ctx.excludeIds.add(exercise.id);
     zoneBySlot[slot.slot] = slot.zone;
-    blocks.push(prescribe(slot, exercise, env, rng, state));
+    const block = prescribe(slot, exercise, env, rng, state);
+    // Flagged, never silent: the athlete's standing rule is that the app says
+    // when it changed something. design §1.2.
+    if (tierRelaxed) block.tierRelaxed = true;
+    blocks.push(block);
   }
 
   const packed = packToBudget(blocks);                                   // 8

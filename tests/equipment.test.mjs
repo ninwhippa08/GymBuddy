@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { eligibleFor, generate, requiredUnfilled } from '../js/generator.js';
 import { TEMPLATES } from '../js/templates.js';
-import { NON_NEGOTIABLE_EQUIPMENT } from '../js/rules.js';
+import { NON_NEGOTIABLE_EQUIPMENT, ALL_TIERS } from '../js/rules.js';
 
 const LIB = JSON.parse(
   readFileSync(new URL('../data/exercises.json', import.meta.url), 'utf8')
@@ -75,4 +75,49 @@ test('unfilled records optionality, not just the letter', () => {
     assert.equal(typeof u.slot, 'string');
     assert.equal(typeof u.optional, 'boolean');
   }
+});
+
+// --------------------------------------------------------------------------
+// Tier relaxation. design §4.2 -- the athlete rejected the premise of open
+// question 4: "there should also be power moves without barbells."
+// --------------------------------------------------------------------------
+
+test('the three main-work tiers are named once, in rules', () => {
+  assert.deepEqual([...ALL_TIERS], ['primary', 'secondary', 'accessory']);
+});
+
+test('a barbell-free power day finds the movements tier was hiding', () => {
+  // Bar, rack AND plates: the strict primary pool for this slot is EMPTY, so
+  // this can only pass through relaxation. Excluding the barbell alone leaves
+  // trap-bar-deadlift and would pass without any implementation at all.
+  const olympic = gen(['barbell', 'rack', 'plates'], 'power', 7).blocks
+    .find(b => b.role === 'Olympic derivative');
+  assert.ok(olympic, 'the Olympic derivative slot was dropped, not relaxed');
+  assert.ok(
+    ['kettlebell-swing', 'dumbbell-snatch', 'kettlebell-clean']
+      .includes(olympic.exerciseId),
+    `unexpected fill: ${olympic.exerciseId}`);
+  assert.ok(olympic.tierRelaxed, 'filled by relaxation but not flagged');
+});
+
+test('relaxation widens tier and nothing else', () => {
+  // A relaxed max-strength slot must not start returning mobility drills.
+  // Only `tier` widens; patterns, modality and zone are what a slot is FOR.
+  const byId = new Map(LIB.map(e => [e.id, e]));
+  for (const b of gen(['barbell', 'rack', 'plates'], 'max-strength', 3).blocks
+                    .filter(x => x.tierRelaxed)) {
+    const mods = byId.get(b.exerciseId).modalities || [];
+    assert.ok(mods.includes('max-strength') || mods.includes('hypertrophy'),
+      `${b.exerciseId} is not strength work`);
+  }
+});
+
+test('a relaxed block is flagged, so the card can say so', () => {
+  assert.ok(gen(['barbell', 'rack', 'plates'], 'max-strength', 3)
+    .blocks.some(b => b.tierRelaxed),
+    'nothing was flagged, so the substitution would be silent');
+});
+
+test('an unconstrained session relaxes nothing', () => {
+  assert.ok(!gen([]).blocks.some(b => b.tierRelaxed));
 });

@@ -44,6 +44,13 @@ export const NON_NEGOTIABLE_EQUIPMENT = Object.freeze([
   'bodyweight', 'open-space', 'wall'
 ]);
 
+// The three main-work tiers. Used only to widen a slot that came back EMPTY
+// under an equipment constraint -- never to widen one that filled. `tier`
+// ranks how central a movement is; it is not a safety rule, which is why
+// widening it is an acceptable answer to "there is no barbell here".
+// design-equipment-and-swap.md §4.2.
+export const ALL_TIERS = Object.freeze(['primary', 'secondary', 'accessory']);
+
 // --------------------------------------------------------------------------
 // §1  Load prescription
 // --------------------------------------------------------------------------
