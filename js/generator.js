@@ -549,6 +549,30 @@ export function requiredUnfilled(session) {
 // asks for, never a catalogue of all 29 values in the library. Derived from
 // the session in front of the athlete, so it cannot list something
 // irrelevant. design-equipment-and-swap.md §3.2.
+// The athlete asked for THIS day type under THIS constraint. Give it to him if
+// it can be built; otherwise say so and offer the next one that can.
+//
+// Buildability is read off a real generation rather than predicted by a
+// separate check, because a predicate walking the slots in isolation cannot
+// see `excludeIds` accumulating and would eventually disagree with the fill it
+// is meant to describe. One discarded generation costs microseconds and no
+// I/O. design-equipment-and-swap.md §4.1, §4.3.
+export function resolveSession(opts) {
+  const wanted = generate(opts);
+  if (requiredUnfilled(wanted).length === 0) return { session: wanted, offer: null };
+
+  // proposeDayType's candidates arrive scored and veto-flagged, so the
+  // fallback inherits the neglect model instead of inventing an order.
+  for (const c of wanted.candidates || []) {
+    if (c.vetoed || c.dayType === opts.dayType) continue;
+    const alt = generate({ ...opts, dayType: c.dayType });
+    if (requiredUnfilled(alt).length === 0) {
+      return { session: alt, offer: { blocked: opts.dayType } };
+    }
+  }
+  return { session: null, offer: null };   // §6.1 -- nothing can be built
+}
+
 export function offerableEquipment(blocks, library) {
   const byId = new Map(library.map(e => [e.id, e]));
   const seen = new Set();
@@ -813,8 +837,14 @@ export function generate({
   const rng = makeRng(seed);
 
   const state = buildState(profile, history, now);                       // 1-2
+  // A directly-chosen day type still carries the full candidate standings.
+  // It used to carry none, which made resolveSession's fallback loop inert:
+  // it always passes a dayType, so it always got an empty list to walk.
+  // proposeDayType accepts `rng` but never draws from it, so scoring the
+  // candidates here costs no randomness and a seeded session is unchanged.
   const proposal = dayType
-    ? { dayType, reason: 'chosen directly', candidates: [] }
+    ? { ...proposeDayType(state, { soreness, rng }), dayType,
+        reason: 'chosen directly' }
     : proposeDayType(state, { soreness, rng });                          // 3
   const chosen = proposal.dayType;
 

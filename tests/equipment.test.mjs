@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  eligibleFor, generate, requiredUnfilled, offerableEquipment
+  eligibleFor, generate, requiredUnfilled, offerableEquipment, resolveSession
 } from '../js/generator.js';
 import { TEMPLATES } from '../js/templates.js';
 import { NON_NEGOTIABLE_EQUIPMENT, ALL_TIERS } from '../js/rules.js';
@@ -148,4 +148,62 @@ test('the control stays short enough to read on a phone', () => {
       assert.ok(n >= 1 && n <= 10, `${dt}/${seed} offered ${n} items`);
     }
   }
+});
+
+const resolve = (excludeEquipment, dayType = 'max-strength', seed = 11) =>
+  resolveSession({ library: LIB, dayType, seed, excludeEquipment,
+                   profile: { venue: 'gym' } });
+
+// Every equipment value in the library bar the three that cannot be absent.
+// Removing the session's own equipment is NOT enough to block a day type --
+// tier relaxation finds a bodyweight fill -- so a test that wants the fallback
+// path has to take the whole gym away.
+const EVERYTHING = [...new Set(LIB.flatMap(e => e.equipment || []))]
+  .filter(q => !NON_NEGOTIABLE_EQUIPMENT.includes(q));
+
+test('a buildable day type comes back unchanged and unannounced', () => {
+  const { session, offer } = resolve(['barbell']);
+  assert.equal(offer, null);
+  assert.equal(session.dayType, 'max-strength');
+});
+
+test('losing the equipment a session uses is absorbed, not escalated', () => {
+  // The plan expected this to block the day type. It does not: tier relaxation
+  // fills the slots another way, and the athlete keeps the day he asked for.
+  const { session, offer } = resolve(offerableEquipment(gen([]).blocks, LIB));
+  assert.equal(session.dayType, 'max-strength');
+  assert.equal(offer, null);
+});
+
+test('an unbuildable day type is never silently substituted', () => {
+  const { session, offer } = resolve(EVERYTHING);
+  if (session) {
+    assert.ok(offer, 'the day type changed with no offer -- a silent substitution');
+    assert.equal(offer.blocked, 'max-strength');
+    assert.notEqual(session.dayType, 'max-strength');
+    assert.deepEqual(requiredUnfilled(session), []);
+  } else {
+    assert.equal(offer, null, 'no session and no offer is the §6.1 case');
+  }
+});
+
+test('the fallback never offers a vetoed day type', () => {
+  const { session } = resolve(EVERYTHING);
+  if (!session) return;
+  const vetoed = (session.candidates || []).filter(c => c.vetoed).map(c => c.dayType);
+  assert.ok(!vetoed.includes(session.dayType),
+    `${session.dayType} was vetoed and offered anyway`);
+});
+
+// The test above is satisfied by a resolveSession that gives up immediately:
+// it passes vacuously when `session` is null. This one does not. A directly
+// chosen day type used to come back with an empty candidate list, which left
+// the fallback loop with nothing to walk -- the feature was inert and the
+// suite was still green.
+test('a day type that cannot be built falls back to one that can', () => {
+  const { session, offer } = resolve(EVERYTHING);
+  assert.ok(session, 'bodyweight day types exist, so something was buildable');
+  assert.equal(offer.blocked, 'max-strength');
+  assert.notEqual(session.dayType, 'max-strength');
+  assert.deepEqual(requiredUnfilled(session), []);
 });
