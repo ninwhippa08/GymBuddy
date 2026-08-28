@@ -402,17 +402,27 @@ Measured after task 9 (`docs/coverage-matrix.md`). No pool fails its FLOOR;
 every running pool is FLOOR_EXEMPT and correctly so. What they miss is
 VARIETY, which asks for `SESSIONS_BEFORE_REPEAT` (16) × the slot's draw:
 
+Restated 2026-08-27 after the `interval`/`tempo` split (§4.5), which turned
+one short pool into two and made it **eight**, not seven:
+
 | Pool | have | need | short |
 |---|---|---|---|
 | `secondary+accessory :: sprint :: sprint :: submaximal` | 1 | 16 | 15 |
+| `primary+secondary+accessory :: run/erg :: interval` | 2 | 16 | 14 |
 | `secondary :: sprint :: sprint :: maximal` | 2 | 16 | 14 |
+| `primary+secondary+accessory :: run/erg :: tempo` | 3 | 16 | 13 |
 | `primary :: sprint :: sprint :: maximal` | 3 | 16 | 13 |
 | `secondary+accessory :: jump :: (any)` | 3 | 16 | 13 |
-| `primary+secondary+accessory :: run/erg :: interval` | 5 | 16 | 11 |
 | `primary :: jump :: (any)` | 6 | 16 | 10 |
 | `primary+secondary :: jump :: (any)` | 8 | 16 | 8 |
 
-Raw shortfall across all pools rose from 18 to 87 on this account alone.
+Raw shortfall across all pools rose from 18 to 87 when the running templates
+landed, and to 100 with the split. `primary :: hinge/pull-h :: power` sits
+just outside this list at 13/16 — short 3, and the one genuinely closeable by
+authoring rather than by exemption.
+
+The split did not make the app worse. It moved a defect out of the
+prescriptions and into the counter, where it is visible.
 
 Two ways out, and they are not equivalent:
 
