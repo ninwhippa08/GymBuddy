@@ -223,6 +223,22 @@ export function chronicBoost(dayType, state) {
 // 3  PROPOSE
 // --------------------------------------------------------------------------
 
+// The athlete (or a constrained regeneration) named the day type. Score the
+// field anyway: the candidates drive resolveSession's fallback, and the chosen
+// day still owes an explanation in the same words a proposal would use.
+function directChoice(dayType, state, { soreness, rng }) {
+  const proposal = proposeDayType(state, { soreness, rng });
+  const chosen = proposal.candidates.find(c => c.dayType === dayType);
+  return {
+    ...proposal,
+    dayType,
+    reason: chosen
+      ? reasonFor(chosen, state, rampRow(state.rampWeek), false)
+      : 'chosen directly'   // outside the phase-1 field; nothing to say about it
+  };
+}
+
+
 // Neglect scoring with vetoes. Returns the proposal plus every candidate's
 // standing, so the UI can offer a reroll without regenerating state.
 export function proposeDayType(state, { soreness = {}, rng, dayTypes = PHASE_1_DAY_TYPES } = {}) {
@@ -567,15 +583,25 @@ export function resolveSession(opts) {
     if (c.vetoed || c.dayType === opts.dayType) continue;
     const alt = generate({ ...opts, dayType: c.dayType });
     if (requiredUnfilled(alt).length === 0) {
-      return { session: alt, offer: { blocked: opts.dayType } };
+      // `wanted.dayType`, not `opts.dayType`: on a first build the caller
+      // passes null and lets generate propose, so the blocked day type is the
+      // one that came back. Reporting opts.dayType there names nothing.
+      return { session: alt, offer: { blocked: wanted.dayType } };
     }
   }
   return { session: null, offer: null };   // §6.1 -- nothing can be built
 }
 
-export function offerableEquipment(blocks, library) {
+export function offerableEquipment(blocks, library, selected = []) {
   const byId = new Map(library.map(e => [e.id, e]));
+  // `selected` is folded in because unticking an item regenerates the session
+  // WITHOUT it -- so the item leaves the session's equipment, and a list built
+  // from the session alone would drop the checkbox the athlete just used and
+  // strand the constraint with no way to undo it.
   const seen = new Set();
+  for (const q of selected) {
+    if (!NON_NEGOTIABLE_EQUIPMENT.includes(q)) seen.add(q);
+  }
   for (const b of blocks) {
     for (const q of (byId.get(b.exerciseId)?.equipment || [])) {
       if (!NON_NEGOTIABLE_EQUIPMENT.includes(q)) seen.add(q);
@@ -842,9 +868,13 @@ export function generate({
   // it always passes a dayType, so it always got an empty list to walk.
   // proposeDayType accepts `rng` but never draws from it, so scoring the
   // candidates here costs no randomness and a seeded session is unchanged.
+  //
+  // It also explains itself. renderSession prints `reason` under the day
+  // title, and every equipment-constrained regeneration chooses its day type
+  // directly -- so the old placeholder 'chosen directly' would have become the
+  // line the athlete actually reads.
   const proposal = dayType
-    ? { ...proposeDayType(state, { soreness, rng }), dayType,
-        reason: 'chosen directly' }
+    ? directChoice(dayType, state, { soreness, rng })
     : proposeDayType(state, { soreness, rng });                          // 3
   const chosen = proposal.dayType;
 

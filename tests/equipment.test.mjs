@@ -207,3 +207,41 @@ test('a day type that cannot be built falls back to one that can', () => {
   assert.notEqual(session.dayType, 'max-strength');
   assert.deepEqual(requiredUnfilled(session), []);
 });
+
+// showSession passes dayType: null on a first build, so the day type that got
+// blocked is the one generate PROPOSED. Reporting opts.dayType there names
+// nothing, and the offer line renders as "A null day needs equipment...".
+test('a blocked day type is named even when it was proposed, not chosen', () => {
+  const { session, offer } = resolveSession({
+    library: LIB, dayType: null, seed: 11, excludeEquipment: EVERYTHING,
+    profile: { venue: 'gym' }
+  });
+  assert.ok(session, 'expected a fallback session for this fixture');
+  assert.ok(offer, 'expected the fallback to be announced');
+  assert.equal(offer.blocked, 'max-strength');
+});
+
+// renderSession prints session.reason under the day title. Every constrained
+// regeneration passes an explicit dayType, so 'chosen directly' would be the
+// line the athlete reads on screen.
+test('an explicitly chosen day type still explains itself', () => {
+  const s = gen([]);
+  assert.notEqual(s.reason, 'chosen directly');
+  assert.ok(s.reason.length > 0, 'no reason at all');
+});
+
+// Unticking an item regenerates the session without it -- so the item drops
+// out of the next session's equipment, the checkbox disappears, and there is
+// no way back. The control has to keep offering what is already excluded.
+test('an unticked item stays on the list so it can be ticked again', () => {
+  assert.ok(offerableEquipment(gen([]).blocks, LIB).includes('barbell'));
+  const { session } = resolve(['barbell']);
+  assert.ok(offerableEquipment(session.blocks, LIB, ['barbell']).includes('barbell'),
+    'barbell vanished from the control -- it can never be ticked again');
+});
+
+test('the constraint never smuggles a non-negotiable onto the list', () => {
+  const items = offerableEquipment(gen([]).blocks, LIB, ['wall', 'barbell']);
+  assert.ok(!items.includes('wall'));
+  assert.ok(items.includes('barbell'));
+});

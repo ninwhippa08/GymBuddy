@@ -4,11 +4,13 @@
 // The app has one screen in Phase 1; the body map and swap controls that
 // sit either side of it arrive in Phase 2. spec §8.
 
-import { generate } from './generator.js';
+import { resolveSession, offerableEquipment } from './generator.js';
 import {
   loadProfile, saveProfile, loadHistory, commitSession, sessionFor
 } from './storage.js';
-import { renderSession, renderSetup, renderError, mount } from './ui.js';
+import {
+  renderSession, renderSetup, renderError, renderNothingBuildable, mount
+} from './ui.js';
 
 const root = document.getElementById('app');
 
@@ -35,21 +37,34 @@ function showSetup() {
 // Generating a session marks it done, so a session already committed for today
 // is shown as-is rather than regenerated. Without this, every app launch would
 // silently replace the workout the user is halfway through. spec §1.
-function showSession({ reroll = false } = {}) {
+function showSession({ reroll = false, excludeEquipment = null } = {}) {
   const profile = loadProfile();
   if (!profile || !profile.returnDate) return showSetup();
 
-  let session = reroll ? null : sessionFor(today());
+  const saved = reroll ? null : sessionFor(today());
+  // The constraint lives on the record, so it survives a reroll and is gone
+  // tomorrow -- which is what "this session only" means. design §3.3.
+  const constraint = excludeEquipment ?? (saved && saved.excludeEquipment) ?? [];
 
-  if (!session) {
+  let session = saved;
+  let offer = null;
+
+  // A changed constraint rebuilds even when today's session is on the record:
+  // that is the whole point of the control. Reroll clears `saved` already.
+  if (!session || excludeEquipment) {
     try {
-      session = generate({
+      const result = resolveSession({
         library,
         profile,
         history: loadHistory(),
         soreness: {},          // Phase 2 -- body map. spec §4.1
+        dayType: session ? session.dayType : null,
+        excludeEquipment: constraint,
         seed: Date.now()
       });
+      if (!result.session) return mount(root, renderNothingBuildable());
+      session = result.session;
+      offer = result.offer;
     } catch (err) {
       return mount(root, renderError(err.message));
     }
@@ -64,8 +79,18 @@ function showSession({ reroll = false } = {}) {
   };
 
   mount(root, renderSession(session, {
-    onReroll: () => showSession({ reroll: true }),
-    cuesFor
+    onReroll: () => showSession({ reroll: true, excludeEquipment: constraint }),
+    cuesFor,
+    offer,
+    equipment: {
+      items: offerableEquipment(session.blocks, library, constraint),
+      selected: constraint,
+      onToggle: item => showSession({
+        excludeEquipment: constraint.includes(item)
+          ? constraint.filter(q => q !== item)
+          : [...constraint, item]
+      })
+    }
   }));
 }
 

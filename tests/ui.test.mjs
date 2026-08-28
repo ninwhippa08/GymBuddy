@@ -5,7 +5,12 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadLine, volumeLine } from '../js/ui.js';
+import { installDom } from './dom-shim.mjs';
+
+installDom();
+const {
+  loadLine, volumeLine, equipmentControl, renderNothingBuildable
+} = await import('../js/ui.js');
 
 test('a drill prints reps, never minutes', () => {
   assert.equal(loadLine({ mode: 'drill', reps: 12, sets: 1 }), '12 reps');
@@ -57,4 +62,41 @@ test('an interval block never reaches the multiplier fallthrough', () => {
   assert.doesNotThrow(() => loadLine({
     name: 'Fartlek', mode: 'interval', workSec: 60, restSec: 120, sets: 6
   }));
+});
+
+// --------------------------------------------------------------------------
+// The "what's missing today?" control. design-equipment-and-swap.md §7.
+// --------------------------------------------------------------------------
+
+test('the control renders one checkbox per offerable item, all ticked', () => {
+  const boxes = equipmentControl(['barbell', 'bench', 'rack'], [], () => {})
+    .querySelectorAll('input');
+  assert.equal(boxes.length, 3);
+  assert.ok(boxes.every(b => b.checked));
+});
+
+test('an item already excluded comes back unticked', () => {
+  const boxes = equipmentControl(['barbell', 'bench'], ['barbell'], () => {})
+    .querySelectorAll('input');
+  assert.equal(boxes[0].checked, false);
+  assert.equal(boxes[1].checked, true);
+});
+
+test('toggling an item names it to the caller', () => {
+  let seen = null;
+  const node = equipmentControl(['barbell', 'bench'], [], q => { seen = q; });
+  node.querySelectorAll('input')[1].dispatch('change');
+  assert.equal(seen, 'bench');
+});
+
+test('the control names every item beside its box', () => {
+  const node = equipmentControl(['barbell', 'bench'], [], () => {});
+  const labels = node.querySelectorAll('span').map(n => n.textContent);
+  assert.deepEqual(labels, ['barbell', 'bench']);
+});
+
+test('nothing buildable is a calm screen, not an error', () => {
+  const node = renderNothingBuildable();
+  assert.equal(node.className, 'empty');
+  assert.ok(node.querySelector('h2').textContent.length > 0);
 });

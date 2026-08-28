@@ -336,3 +336,60 @@ body {
   .block-inner { transition: none; }
   .block-flip { transition: none; }
 }
+
+/* -------------------------------------------------------------------------
+   Equipment constraint -- the offer, the control, the empty screen.
+   design-equipment-and-swap.md §7.
+   ------------------------------------------------------------------------- */
+
+/* Same weight as .warnings: the app changed something and is saying so. */
+.offer {
+  margin: 0 0 var(--gap);
+  padding: 12px 14px;
+  color: var(--text);
+  background: rgba(255, 176, 32, 0.10);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.equip {
+  margin: 0 0 24px;
+  padding: 12px 14px;
+  border: 1px solid var(--surface-edge);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.equip legend {
+  padding: 0 6px;
+  color: var(--text-dim);
+  font-size: 0.88rem;
+}
+
+/* Wraps to as many rows as it needs; each item is its own tap target. */
+.equip-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 10px 4px 0;
+  /* Comfortably past the 44px minimum once the box and label are stacked. */
+  min-height: 32px;
+  font-size: 0.95rem;
+}
+
+.equip-item input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+}
+
+.empty {
+  padding: 32px 18px;
+  text-align: center;
+  color: var(--text-dim);
+}
+
+.empty h2 {
+  margin: 0 0 10px;
+  color: var(--text);
+}

@@ -15,6 +15,10 @@
 export function el(tag, attrs = {}, children = []) {
   const node = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
+    // Before the falsy skip below: `checked: false` is meaningful and has to
+    // reach the node as a property. setAttribute would not set it either --
+    // an unticked box would come back with `checked` undefined.
+    if (k === 'checked') { node.checked = Boolean(v); continue; }
     if (v == null || v === false) continue;
     if (k === 'class') node.className = v;
     else if (k === 'text') node.textContent = v;
@@ -264,7 +268,34 @@ function blockGroup(title, blocks, cuesFor) {
 // Session screen
 // --------------------------------------------------------------------------
 
-export function renderSession(session, { onReroll, cuesFor } = {}) {
+// "What's missing today?" -- the equipment THIS session asks for, every item
+// ticked because the default is that he has everything. Unticking regenerates.
+// The caller supplies the items; this function never reads the library.
+// design-equipment-and-swap.md §7.
+export function equipmentControl(items, selected = [], onChange = () => {}) {
+  return el('fieldset', { class: 'equip' }, [
+    el('legend', { text: "What's missing today?" }),
+    ...items.map(item => el('label', { class: 'equip-item' }, [
+      el('input', {
+        type: 'checkbox',
+        checked: !selected.includes(item),
+        onchange: () => onChange(item)
+      }),
+      el('span', { text: item })
+    ]))
+  ]);
+}
+
+// design §6.1. Deliberately NOT renderError: that screen is for a broken app,
+// and this is the app working correctly on a hard input.
+export function renderNothingBuildable() {
+  return el('section', { class: 'empty' }, [
+    el('h2', { text: 'Nothing to build' }),
+    el('p', { text: "With what you've got there's no session here worth calling a session. Untick less, or take a rest day." })
+  ]);
+}
+
+export function renderSession(session, { onReroll, cuesFor, offer, equipment } = {}) {
   // Three groups, not two. Prep and cool-down do different jobs at opposite
   // ends of the session, and one "Mobility & core" heading hid that.
   // design 4.2, discrepancy 6.
@@ -291,6 +322,19 @@ export function renderSession(session, { onReroll, cuesFor } = {}) {
     session.warnings.length
       ? el('ul', { class: 'warnings' },
           session.warnings.map(w => el('li', { text: w })))
+      : null,
+
+    // Never a silent substitution: when the day type he would have got cannot
+    // be built from what he has, the app says which one it was and why this
+    // one is here instead. design-equipment-and-swap.md §4.1.
+    // The plan paired this with session.reason, but the header three lines up
+    // already prints it -- the athlete would read the same sentence twice.
+    offer
+      ? el('p', { class: 'offer' },
+          `A ${titleCase(offer.blocked)} day needs equipment you said isn't here.`)
+      : null,
+    equipment
+      ? equipmentControl(equipment.items, equipment.selected, equipment.onToggle)
       : null,
 
     blockGroup('Prep', prep, cuesFor),
