@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { eligibleFor, generate } from '../js/generator.js';
+import { eligibleFor, generate, requiredUnfilled } from '../js/generator.js';
 import { TEMPLATES } from '../js/templates.js';
 import { NON_NEGOTIABLE_EQUIPMENT } from '../js/rules.js';
 
@@ -64,4 +64,15 @@ test('a constrained session contains none of the excluded equipment', () => {
 test('the session records the constraint it was built under', () => {
   assert.deepEqual(gen(['barbell', 'rack']).excludeEquipment, ['barbell', 'rack']);
   assert.deepEqual(gen([]).excludeEquipment, []);
+});
+
+test('a buildable day reports no required slot unfilled', () => {
+  assert.deepEqual(requiredUnfilled(gen(['barbell'])), []);
+});
+
+test('unfilled records optionality, not just the letter', () => {
+  for (const u of gen(['barbell', 'rack', 'plates']).unfilled) {
+    assert.equal(typeof u.slot, 'string');
+    assert.equal(typeof u.optional, 'boolean');
+  }
 });

@@ -536,6 +536,14 @@ export function estimateMinutes(blocks) {
 // rolling pattern counts read these numbers, and design 4.4 is about to make
 // the exercise count read them as well.
 const VOLUME_MODES = new Set(['load', 'contacts', 'reps']);
+// Which slots the session NEEDED and could not fill. An optional slot coming
+// back empty is routine -- the easy-day strides slot is empty on every gym
+// day. A required one means this day type cannot be built as asked, which is
+// what the fallback reads. design-equipment-and-swap.md §4.1.
+export function requiredUnfilled(session) {
+  return (session.unfilled || []).filter(u => !u.optional);
+}
+
 export function countsTowardVolume(block) {
   if (!VOLUME_MODES.has(block.mode)) return false;
   // Prep joined core here when the running warm-up gained contact stages.
@@ -814,7 +822,10 @@ export function generate({
   const unfilled = [];
   for (const slot of template) {                                         // 6-7
     const exercise = fillSlot(slot, library, ctx, rng);
-    if (!exercise) { unfilled.push(slot.slot); continue; }
+    if (!exercise) {
+      unfilled.push({ slot: slot.slot, optional: !!slot.optional });
+      continue;
+    }
     ctx.excludeIds.add(exercise.id);
     zoneBySlot[slot.slot] = slot.zone;
     blocks.push(prescribe(slot, exercise, env, rng, state));
@@ -852,7 +863,9 @@ function finalise({ chosen, env, architecture, proposal, ordered, packed, cooled
   const warnings = [];
   if (packed.overBudget) warnings.push('over the 45 min main-work budget after trimming');
   if (cooled.overBudget) warnings.push('cool-down over its 12 min budget');
-  if (unfilled.length) warnings.push(`no eligible exercise for slot ${unfilled.join(', ')}`);
+  if (unfilled.length) {
+    warnings.push(`no eligible exercise for slot ${unfilled.map(u => u.slot).join(', ')}`);
+  }
   // Deviation 4: the static pool is thin, and a sore joint thins it further.
   // A short cool-down is acceptable; a silent one is not.
   const statics = ordered.filter(b => b.role === 'mobility').length;
@@ -902,6 +915,7 @@ function finalise({ chosen, env, architecture, proposal, ordered, packed, cooled
     durationMin: estimateMinutes(ordered),
     trimmedSlots: packed.trimmedSlots,
     warnings,
+    unfilled,
     seed
   };
 }
