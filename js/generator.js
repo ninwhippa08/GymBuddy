@@ -561,6 +561,49 @@ export function requiredUnfilled(session) {
   return (session.unfilled || []).filter(u => !u.optional);
 }
 
+// Replace ONE block and leave the rest of the session alone. The equipment
+// constraint is a fact about the room and refills everything; this is a fact
+// about one exercise -- a broken machine, an occupied rack.
+//
+// Narrowed to the PATTERN of the block being replaced, not merely to its slot.
+// Six slots carry `patterns: null` and span ten patterns, so slot alone would
+// answer "this machine is broken" with a farmers carry. The athlete's words:
+// "another move like one with dumbbell that hits the same area."
+// design-equipment-and-swap.md §5.1.
+export function swapBlock(session, slotId, library, ctx, rng) {
+  const template = TEMPLATES[session.dayType];
+  const slot = template && template.find(s => s.slot === slotId);
+  const current = session.blocks.find(b => b.slot === slotId);
+  if (!slot || !current) return { block: null, reason: 'no such slot in this session' };
+
+  const entry = library.find(e => e.id === current.exerciseId);
+  if (!entry) return { block: null, reason: 'this movement is no longer in the library' };
+
+  // The envelope comes off the SESSION being edited, not from a rebuilt state.
+  // A swap joins a card whose other blocks were all priced under one ramp
+  // ceiling; recomputing lets it disagree with them, and when the caller omits
+  // profile/history it prices with no ceiling at all -- a heavier load than
+  // the ramp allows, on a card that never says it was capped. The ramp is not
+  // skippable and a swap is not an exit from it. basis §3.
+  const env = envelopeFor(session.dayType, { rampWeek: session.rampWeek });
+
+  // State is only the recency and pattern-neglect weighting fillSlot applies,
+  // so an absent profile flattens the choice rather than mispricing it. Built
+  // before the pick because fillSlot reads it.
+  const state = buildState(ctx.profile || {}, ctx.history || [], Date.now());
+
+  // Everything already in the session, so a swap cannot hand back a movement
+  // he is doing three cards further down.
+  const excludeIds = new Set(session.blocks.map(b => b.exerciseId));
+  const narrowed = { ...slot, patterns: [entry.pattern] };
+  const exercise = fillSlot(narrowed, library, { ...ctx, state, excludeIds }, rng);
+  if (!exercise) {
+    return { block: null, reason: `no other ${entry.pattern} movement is available` };
+  }
+
+  return { block: prescribe(slot, exercise, env, rng, state), reason: null };
+}
+
 // What the "what's missing today?" control offers: the equipment THIS session
 // asks for, never a catalogue of all 29 values in the library. Derived from
 // the session in front of the athlete, so it cannot list something
