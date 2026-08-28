@@ -63,6 +63,8 @@ is why the feature is not merely "one more line in `eligibleFor`".
 | A required slot empties — then what? | **Say so and offer the next day type.** Never silently substitute. |
 | How is the constraint expressed? | **Only the equipment this session actually asks for**, never a list of 29. |
 | Is the per-block swap in scope? | **Yes**, built second, on the same machinery. |
+| What does a swap return? | **Something hitting the same area** — the same pattern, not merely the same slot (§5.1). |
+| A slot's pool is thin because of `tier`? | **Widen the search before giving up on the day** (§4.2). |
 
 ---
 
@@ -108,7 +110,7 @@ bug was produced by exactly that kind of split — a rule enforced somewhere oth
 than where the other rules live. And a pre-filtered library destroys the
 *reason* a pool emptied: the generator could no longer tell "nothing eligible
 because a knee hurts" from "because there is no rack", which is precisely the
-sentence §4.2 has to write.
+sentence §4.3 has to write.
 
 ### 3.2 Non-negotiable equipment
 
@@ -120,9 +122,9 @@ Three values are never offered as missing:
 | `open-space` | 33 | If there is no space there is no session |
 | `wall` | 12 | Mobility work only; a room has walls |
 
-`wall` is the arguable one and is called out rather than assumed (open question
-1). It appears only on cool-down stretches, so excluding it from the control
-costs a hurt athlete nothing and keeps four checkboxes from becoming five.
+`wall` was the arguable one. **Settled by the athlete 2026-08-27: non-negotiable.**
+It appears only on cool-down stretches, so excluding it from the control costs
+nothing and keeps four checkboxes from becoming five.
 
 Everything else is offerable. With those three removed, a real session asks for
 **4 to 8** distinct items — measured across nine generated sessions. A typical
@@ -162,12 +164,15 @@ already warns `no eligible exercise for slot A`. The fallback reads that:
 ```
 1. generate under the constraint, day type pinned
 2. if no REQUIRED slot is unfilled  -> done, this is the session
-3. otherwise                        -> discard it, walk proposeDayType's
+3. a required slot IS unfilled      -> retry that slot with tiers relaxed and
+                                       the block flagged (§4.2)
+4. still unfilled                   -> discard it, walk proposeDayType's
                                        candidates (already score-sorted,
                                        already veto-flagged) and generate the
                                        first non-vetoed day type that comes
                                        back with every required slot filled
-4. if none can be built             -> §6.1
+                                       (§4.3)
+5. if none can be built             -> §6.1
 ```
 
 Cost is one discarded generation, which is microseconds and no I/O. The benefit
@@ -179,7 +184,54 @@ letters only (`['A']`), losing whether the slot was required. It becomes
 `[{ slot: 'A', optional: false }]`. The array is consumed in one place, so the
 change is contained.
 
-### 4.2 The offer
+### 4.2 Relax the tier before abandoning the day type
+
+Added 2026-08-27 after the athlete rejected the premise of open question 4:
+*"there should also be power moves without barbells. that does not make sense
+to me. maybe a search would be better."* He was right, and the cause is the
+slot rather than the library.
+
+`power` slot B is `tier: ['primary']`. Of the 18 power-modality `hinge`/`pull-h`
+entries, the only non-barbell **primary** one is `trap-bar-deadlift` — hence the
+lone entry in §1.1. One tier down the library already holds exactly the
+movements he expected: `kettlebell-swing`, `dumbbell-snatch`, `kettlebell-clean`.
+They were never missing; `tier` hid them.
+
+So a required slot that comes back empty is retried with **all three tiers**
+before the day type is abandoned. Measured:
+
+| Slot | Constraint | `tier` as written | all tiers |
+|---|---|---|---|
+| `power` B · Olympic derivative | no barbell | 1 | 4 |
+| `max-strength` A · main lift | no bar/rack/plates | 0 | 3 |
+| `power` B · Olympic derivative | no bar/rack/plates | 0 | 3 |
+| `hypertrophy` A · primary compound | no bar/rack/plates | 1 | 30 |
+
+This nearly empties §6.1: with tier relaxation, no strength day type reached
+zero under either constraint tested.
+
+**It is not free, and it is not silent.** `tier` carries meaning: `primary` on
+a max-strength main lift means a movement worth loading for 2-5 heavy reps.
+Relaxed, that slot can return a chin-up — bodyweight, so `prescribe` drops to
+`mode: 'reps'` and the load line becomes an effort cue rather than a `× PR`.
+That is a materially different session, and the athlete's standing rule is that
+the app never substitutes silently (§1.2).
+
+The relaxed block therefore carries a flag and says so on the card, reusing the
+`rampLimited` precedent already in `blockCard` (`js/ui.js`), which prints
+*"held down by the return ramp"* under the load line:
+
+```js
+block.tierRelaxed
+  ? el('p', { class: 'block-note', text: 'no barbell here -- this is the closest movement available' })
+  : null
+```
+
+Relaxation applies to `tier` only. `patterns`, `modality` and `zone` are never
+widened: a max-strength slot must not return a mobility drill, and the whole
+point of the slot is the pattern it trains.
+
+### 4.3 The offer
 
 Never a silent substitution. The athlete sees what happened and chooses:
 
@@ -209,6 +261,41 @@ Locates the slot definition from `TEMPLATES[session.dayType]`, adds the
 rejected exercise **and every other exercise already in the session** to
 `excludeIds`, then calls `fillSlot` + `prescribe` — the same pair generation
 uses. The block is replaced in place; nothing else in the session moves.
+
+**The swap holds the pattern, not merely the slot.** Corrected 2026-08-27: the
+athlete's expectation is *"it states machine moves, I ask for a new move
+because I do not have a machine move so I expect another move like one with
+dumbbell that hits the same area."* Same slot does not deliver that. Six slots
+carry `patterns: null` — `max-strength` B and C, `power` D, `hypertrophy` B, C
+and E — and on those the slot spans **68 entries across 10 patterns**, so a
+swap on a machine chest press could legitimately return a farmer's carry.
+
+So `swapBlock` narrows the slot to the pattern of the block being replaced:
+
+```js
+const narrowed = { ...slot, patterns: [current.pattern] };
+```
+
+Alternatives available per pattern in the widest such slot (tier
+secondary+accessory, modality hypertrophy):
+
+| pattern | n | pattern | n |
+|---|---|---|---|
+| lunge | 10 | push-v | 7 |
+| push-h | 10 | carry | 7 |
+| pull-h | 9 | pull-v | 5 |
+| hinge | 8 | rotate | 4 |
+| squat | 7 | march | 1 |
+
+Enough everywhere except `march`, which holds only `sled-drag` and is therefore
+unswappable — reported per §5.3 rather than left as a dead control.
+
+`pattern` is a proxy for "the same area", not a synonym. `push-h` covering both
+a bench press and a push-up is exactly right; `hinge` covering both a deadlift
+and a nordic curl is looser than the athlete's sentence implies. It is the best
+grouping the library has and the one the whole app is built on, so it is what
+the swap uses — recorded here so the looseness is a known choice rather than a
+surprise.
 
 `prescribe` needs `env` and `state`, which the session record does not carry.
 Both are cheap to rebuild at swap time: `buildState(profile, loadHistory())`
@@ -252,15 +339,17 @@ seconds. Recorded so that a future swap across slot types knows it must re-pack.
 | Situation | Behaviour |
 |---|---|
 | Optional slot empties | Skipped, as today — `unfilled` records it, nothing is said |
-| Required slot empties | §4.2 — the offer |
+| Required slot empties | §4.2 relaxation first, then §4.3 — the offer |
 | No day type is buildable | §6.1 |
 | Swap has no alternative | §5.3 — block unchanged, control reports it |
 | Every offerable item unticked | Falls out of §6.1; not special-cased |
 
 ### 6.1 Nothing can be built
 
-Possible: untick enough and the strength days die on empty required slots while
-the running days die on `venue`. The app says so plainly and offers nothing:
+**Rare, after §4.2.** Tier relaxation left no strength day type at zero under
+either constraint measured in §1.1, so this path is now the tail rather than the
+common case. Still reachable: untick enough and the strength days die on empty
+required slots while the running days die on `venue`. The app says so plainly and offers nothing:
 
 ```
 With what you've got there's no session here worth calling a session.
@@ -297,6 +386,12 @@ library, no hand-written pool numbers.
 
 | Test | Asserts |
 |---|---|
+| A relaxed slot draws the movements tier hid | `power` B under "no barbell", all tiers, contains `kettlebell-swing`, `dumbbell-snatch`, `kettlebell-clean` |
+| Relaxation widens `tier` and nothing else | A relaxed `max-strength` slot never returns a mobility or isolation entry |
+| A relaxed block is flagged and says so | `tierRelaxed` set, and `blockCard` renders the note |
+| Relaxation is tried before the day type changes | A bar/rack/plate-free max-strength day still returns max-strength |
+| A swap holds the pattern | N swaps on a `patterns: null` slot all share the replaced block's pattern |
+| A swap on `march` reports rather than fails | `sled-drag` is the only entry; the block is unchanged |
 | `eligibleFor` honours `excludeEquipment` | A back squat is gone when `barbell` is excluded, and when `rack` is, and when `plates` is |
 | The conjunction holds | Excluding only `plates` still removes the back squat |
 | Non-negotiables are never offerable | The control's item list never contains `bodyweight`, `open-space`, `wall` |
@@ -319,10 +414,10 @@ library, no hand-written pool numbers.
 |---|---|
 | `data/exercises.json` | none — `equipment` already on all 236 entries |
 | `js/rules.js` | `NON_NEGOTIABLE_EQUIPMENT` constant |
-| `js/generator.js` | one filter line; `unfilled` gains optionality; `swapBlock`; fallback loop |
+| `js/generator.js` | one filter line; `unfilled` gains optionality; tier-relaxation retry; `swapBlock` with pattern narrowing; fallback loop |
 | `js/storage.js` | `excludeEquipment` on the session record |
 | `js/app.js` | constraint plumbed through `showSession`; swap handler |
-| `js/ui.js` | equipment control; swap control; the offer screen |
+| `js/ui.js` | equipment control; swap control; the offer screen; the `tierRelaxed` note (mirrors `rampLimited`) |
 | `docs/spec.md` | §3.3 unchanged (profile untouched); §8 swap no longer deferred |
 | `docs/design-running-programming.md` | §9 no longer deferred |
 
@@ -332,21 +427,52 @@ unconstrained library.
 
 ---
 
-## 10  Open questions
+## 10  Open questions — answered 2026-08-27
 
-1. **Is `wall` non-negotiable?** §3.2. Recommended yes; it costs an outdoor
-   athlete one cool-down stretch and saves a checkbox. The athlete's call.
-2. **Should an unbuildable day type be remembered?** If he unticks the barbell
-   at 06:00 and the app falls back to plyometrics, then rerolls, should
-   max-strength be re-offered and re-rejected? Recommended: no memory — the
-   constraint is on the record and the fallback recomputes, which costs one
-   discarded generation and keeps zero extra state.
-3. **Should a swap be able to cross slots?** "Give me anything but a squat
-   pattern today." Out of scope here; it would break §5.4's duration assumption
-   and needs its own thinking.
-4. **Does the thin-pool problem get worse under constraint?** `power` slot B
-   holds one entry with no barbell (§1.1), so a barbell-free power day is the
-   same session every time. This is §11.0 of the running design in a new place:
-   VARIETY measured against the *unconstrained* library flatters pools that
-   collapse under a real constraint. Not solved here; recorded because the
-   matrix will not show it.
+All four were put to the athlete and all four are settled. Kept with their
+answers rather than deleted, because two of them changed the design.
+
+1. **Is `wall` non-negotiable?** — **Yes.** Folded into §3.2.
+
+2. **Should an unbuildable day type be remembered?** — **Deferred, at his
+   direction:** *"maybe we can take care of this when we do that. whichever one
+   makes sense."* Taking the doc's original recommendation meanwhile: **no
+   memory.** The constraint lives on the record and the fallback recomputes,
+   which costs one discarded generation and keeps zero extra state.
+
+   One correction to the premise: he believed the app does not yet read history
+   to recommend a day type. It has since Phase 1 — `proposeDayType` scores every
+   day type by how long since it was last done, applies the CNS and soreness
+   vetoes, and returns the reason string he reads each morning ("nothing like
+   heavy lifting in 9 days"). §4.3's offer is that same machinery, so this
+   question needs no new subsystem before it can be revisited.
+
+3. **Should a swap cross slots?** — **No.** His expectation is a replacement
+   that "hits the same area", which is *tighter* than the slot, not looser.
+   Answered in §5.1: the swap narrows to the pattern of the block it replaces.
+   Investigating this found a real defect in the first draft — six slots carry
+   `patterns: null`, so slot-only swapping would have crossed body areas
+   routinely.
+
+4. **Do thin pools get worse under constraint?** — **The premise was wrong, and
+   he called it:** *"there should also be power moves without barbells. that
+   does not make sense to me."* The moves exist; `tier: ['primary']` hid them.
+   Answered by §4.2's tier relaxation.
+
+   What survives of the original concern: VARIETY is still measured against the
+   **unconstrained** library, so `docs/coverage-matrix.md` cannot show that
+   `power` slot B falls to one strict-tier entry without a barbell. The matrix
+   is not wrong, it is answering a different question. Whether it should grow a
+   constrained view belongs with the still-open §11.0 of the running design, not
+   here.
+
+---
+
+## 11  Still open
+
+Nothing in this design. The two items below are its neighbours, both older:
+
+- **`docs/design-running-programming.md` §11.0** — eight pools miss VARIETY;
+  exemption recommended, his call, untouched by this work.
+- **`tests/coef-provenance.mjs`** — 23 of 31 `prCoef` values `[unverified]`.
+  §5.2 notes the swap makes them easier to reach without making them worse.
