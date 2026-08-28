@@ -22,7 +22,7 @@ import {
   HIGH_CNS_DAY_TYPES, PLYO_CONTACTS_PER_SESSION, PLYO_TRANSITION_WEEKLY_CAP,
   PLYO_TRANSITION_LAST_WEEK, PLYO_RECOVERY_HOURS, SPRINT, SESSION_ORDER, TIME,
   CHRONIC, CHRONIC_BOOSTABLE,
-  ALL_TIERS
+  ALL_TIERS, NON_NEGOTIABLE_EQUIPMENT
 } from './rules.js';
 
 import {
@@ -543,6 +543,21 @@ const VOLUME_MODES = new Set(['load', 'contacts', 'reps']);
 // what the fallback reads. design-equipment-and-swap.md §4.1.
 export function requiredUnfilled(session) {
   return (session.unfilled || []).filter(u => !u.optional);
+}
+
+// What the "what's missing today?" control offers: the equipment THIS session
+// asks for, never a catalogue of all 29 values in the library. Derived from
+// the session in front of the athlete, so it cannot list something
+// irrelevant. design-equipment-and-swap.md §3.2.
+export function offerableEquipment(blocks, library) {
+  const byId = new Map(library.map(e => [e.id, e]));
+  const seen = new Set();
+  for (const b of blocks) {
+    for (const q of (byId.get(b.exerciseId)?.equipment || [])) {
+      if (!NON_NEGOTIABLE_EQUIPMENT.includes(q)) seen.add(q);
+    }
+  }
+  return [...seen].sort();
 }
 
 export function countsTowardVolume(block) {

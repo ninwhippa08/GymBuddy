@@ -2,7 +2,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { eligibleFor, generate, requiredUnfilled } from '../js/generator.js';
+import {
+  eligibleFor, generate, requiredUnfilled, offerableEquipment
+} from '../js/generator.js';
 import { TEMPLATES } from '../js/templates.js';
 import { NON_NEGOTIABLE_EQUIPMENT, ALL_TIERS } from '../js/rules.js';
 
@@ -120,4 +122,30 @@ test('a relaxed block is flagged, so the card can say so', () => {
 
 test('an unconstrained session relaxes nothing', () => {
   assert.ok(!gen([]).blocks.some(b => b.tierRelaxed));
+});
+
+test('the control lists only what this session asks for', () => {
+  const byId = new Map(LIB.map(e => [e.id, e]));
+  const s = gen([]);
+  const used = new Set(s.blocks.flatMap(b => byId.get(b.exerciseId).equipment || []));
+  for (const q of offerableEquipment(s.blocks, LIB)) {
+    assert.ok(used.has(q), `${q} is not in this session`);
+  }
+});
+
+test('the control never offers the non-negotiables', () => {
+  const offered = offerableEquipment(gen([]).blocks, LIB);
+  for (const q of NON_NEGOTIABLE_EQUIPMENT) {
+    assert.ok(!offered.includes(q), `${q} must never be offerable`);
+  }
+});
+
+test('the control stays short enough to read on a phone', () => {
+  // Measured across nine sessions while designing: 4 to 8. design §3.2.
+  for (const dt of ['max-strength', 'power', 'hypertrophy']) {
+    for (let seed = 1; seed <= 5; seed++) {
+      const n = offerableEquipment(gen([], dt, seed * 1009).blocks, LIB).length;
+      assert.ok(n >= 1 && n <= 10, `${dt}/${seed} offered ${n} items`);
+    }
+  }
 });
