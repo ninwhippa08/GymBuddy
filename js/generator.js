@@ -318,10 +318,17 @@ export function chooseArchitecture(dayType, rng, { phase1 = true } = {}) {
 // 'hurt' excludes without exception; 'sore' downweights but can still be
 // selected if nothing else fits. spec §4.1.
 export function eligibleFor(slot, library, ctx) {
-  const { soreness = {}, banned = [], venue, excludeIds = new Set() } = ctx;
+  const { soreness = {}, banned = [], venue, excludeIds = new Set(),
+          excludeEquipment = [] } = ctx;
   return library.filter(e => {
     if (excludeIds.has(e.id)) return false;
     if (banned.includes(e.id)) return false;
+    // An entry's `equipment` array is a conjunction: a back squat lists
+    // barbell AND rack because it needs both, so losing either one rules it
+    // out. Hence `.some`, not `.every`.
+    // design-equipment-and-swap.md §3.1.
+    if (excludeEquipment.length &&
+        (e.equipment || []).some(q => excludeEquipment.includes(q))) return false;
     if (!slot.tier.includes(e.tier)) return false;
     if (slot.patterns && !slot.patterns.includes(e.pattern)) return false;
     if (slot.modality && !e.modalities.includes(slot.modality)) return false;

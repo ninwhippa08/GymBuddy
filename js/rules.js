@@ -35,6 +35,15 @@ export const MODALITIES = Object.freeze([
   'mobility-dynamic', 'mobility-static'
 ]);
 
+// Equipment you cannot turn up without. Offering these in the "what's missing
+// today" control would be offering a way to have no session at all. `wall` is
+// here by the athlete's decision, 2026-08-27: it appears only on cool-down
+// stretches, so excluding it costs nothing and saves a checkbox.
+// design-equipment-and-swap.md §3.2.
+export const NON_NEGOTIABLE_EQUIPMENT = Object.freeze([
+  'bodyweight', 'open-space', 'wall'
+]);
+
 // --------------------------------------------------------------------------
 // §1  Load prescription
 // --------------------------------------------------------------------------

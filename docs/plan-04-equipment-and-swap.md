@@ -80,9 +80,11 @@ test('excluding the barbell removes the back squat', () => {
 });
 
 test('equipment is a conjunction -- losing any one item rules an entry out', () => {
-  // back-squat lists ["barbell","rack","plates"]. It needs all three, so
-  // excluding only the plates must still remove it.
-  for (const gear of ['barbell', 'rack', 'plates']) {
+  // Derive the list from the entry -- do not write it down. back-squat needs
+  // barbell AND rack; it does not list plates.
+  const squat = LIB.find(e => e.id === 'back-squat');
+  assert.ok(squat.equipment.length > 1, 'this test needs a multi-item entry');
+  for (const gear of squat.equipment) {
     assert.ok(!ids(MAIN_LIFT, [gear]).includes('back-squat'),
       `excluding ${gear} left the back squat in`);
   }
@@ -131,8 +133,8 @@ and add this immediately after the `banned.includes` line, before the tier check
 
 ```js
     // An entry's `equipment` array is a conjunction: a back squat lists
-    // barbell AND rack AND plates because it needs all three, so losing any
-    // one of them rules it out. Hence `.some`, not `.every`.
+    // barbell AND rack because it needs both, so losing either one rules it
+    // out. Hence `.some`, not `.every`.
     // design-equipment-and-swap.md §3.1.
     if (excludeEquipment.length &&
         (e.equipment || []).some(q => excludeEquipment.includes(q))) return false;

@@ -100,8 +100,10 @@ if (excludeEquipment.length &&
 ```
 
 `.some`, not `.every`: an entry's `equipment` array is a **conjunction**. A
-back squat lists `["barbell","rack","plates"]` because it needs all three, so
-losing any one of them rules it out.
+back squat lists `["barbell","rack"]` because it needs both, so losing either
+one rules it out. (A deadlift lists `["barbell","plates"]` — no rack. The
+arrays are per-entry and are not a fixed set; a test asserting otherwise fails
+on a claim about the library rather than about the filter.)
 
 The line goes in `eligibleFor` rather than in a pre-filtered library handed to
 `generate()`, though the latter would be a smaller diff. Two reasons. Every
