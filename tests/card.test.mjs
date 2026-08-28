@@ -163,3 +163,34 @@ test('an interval card says what to do during the recovery', () => {
   assert.ok(!meta.includes('rest 2:55'),
     'the recovery is already in the hero line -- printing it twice is noise');
 });
+
+const RELAXED_BLOCK = {
+  slot: 'A', role: 'main lift', exerciseId: 'chin-up', name: 'Chin-Up',
+  mode: 'reps', sets: 4, reps: 5, restSec: 180, tierRelaxed: true,
+  effort: 'leave 2-3 reps in reserve'
+};
+
+test('a substituted movement says so on the front of the card', () => {
+  const notes = blockCard(RELAXED_BLOCK, () => null)
+    .querySelectorAll('.block-note').map(n => n.textContent);
+  assert.ok(notes.some(t => t.includes('closest movement available')),
+    `no substitution note, got ${JSON.stringify(notes)}`);
+});
+
+test('an ordinary block carries no substitution note', () => {
+  const notes = blockCard(BLOCK, () => null)
+    .querySelectorAll('.block-note').map(n => n.textContent);
+  assert.ok(!notes.some(t => t.includes('closest movement available')));
+});
+
+// tierRelaxed fires for whatever equipment is absent -- a machine, a
+// kettlebell, a rack. The note must not name a specific item it cannot know
+// was the one missing.
+test('the substitution note does not name equipment it cannot know about', () => {
+  const notes = blockCard(RELAXED_BLOCK, () => null)
+    .querySelectorAll('.block-note').map(n => n.textContent);
+  const note = notes.find(t => t.includes('closest movement available'));
+  assert.ok(note, 'no note to check');
+  assert.ok(!/barbell|kettlebell|dumbbell|machine|rack/i.test(note),
+    `the note claims a specific item was missing: ${JSON.stringify(note)}`);
+});

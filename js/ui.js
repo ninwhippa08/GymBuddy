@@ -165,6 +165,22 @@ export function blockCard(block, cuesFor) {
     block.rampLimited
       ? el('p', { class: 'block-note', text: 'held down by the return ramp' })
       : null,
+    // Same shape and same reason as the ramp note above: the athlete is owed
+    // the fact that the app changed something. This fires when a required
+    // slot could only be filled by widening tier under an equipment
+    // constraint. design-equipment-and-swap.md §4.2.
+    //
+    // The wording names no specific item. `tierRelaxed` is a bare flag -- the
+    // block does not record WHICH absent item forced the substitution, and
+    // with equipment as a conjunction there is often no single one. The plan
+    // proposed "no barbell here", which would be a false statement on the card
+    // whenever the missing item was anything else.
+    block.tierRelaxed
+      ? el('p', {
+          class: 'block-note',
+          text: 'needs equipment you do not have -- this is the closest movement available'
+        })
+      : null,
     meta.filter(Boolean).length
       ? el('p', { class: 'block-meta', text: meta.filter(Boolean).join(' · ') })
       : null
