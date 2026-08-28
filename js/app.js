@@ -4,7 +4,9 @@
 // The app has one screen in Phase 1; the body map and swap controls that
 // sit either side of it arrive in Phase 2. spec §8.
 
-import { resolveSession, offerableEquipment } from './generator.js';
+import {
+  resolveSession, offerableEquipment, swapBlock, makeRng
+} from './generator.js';
 import {
   loadProfile, saveProfile, loadHistory, commitSession, sessionFor
 } from './storage.js';
@@ -78,7 +80,8 @@ function showSession({ reroll = false, excludeEquipment = null } = {}) {
     return e && e.cues && e.cues.length ? e.cues : null;
   };
 
-  mount(root, renderSession(session, {
+  // Built once so the swap can re-render the same screen with a note added.
+  const opts = {
     onReroll: () => showSession({ reroll: true, excludeEquipment: constraint }),
     cuesFor,
     offer,
@@ -90,8 +93,27 @@ function showSession({ reroll = false, excludeEquipment = null } = {}) {
           ? constraint.filter(q => q !== item)
           : [...constraint, item]
       })
+    },
+    onSwap: slotId => {
+      const { block, reason } = swapBlock(session, slotId, library, {
+        venue: session.venue,
+        soreness: {},
+        banned: profile.banned || [],
+        excludeEquipment: constraint,
+        profile,
+        history: loadHistory()
+      }, makeRng(Date.now()));
+      // A dead control that silently does nothing is the failure mode this
+      // design exists to avoid. design §5.3.
+      if (!block) return mount(root, renderSession(session, { ...opts, swapNote: reason }));
+      const i = session.blocks.findIndex(b => b.slot === slotId);
+      session.blocks[i] = block;
+      commitSession(session);
+      showSession();
     }
-  }));
+  };
+
+  mount(root, renderSession(session, opts));
 }
 
 // --------------------------------------------------------------------------

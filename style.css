@@ -393,3 +393,25 @@ body {
   margin: 0 0 10px;
   color: var(--text);
 }
+
+/* The per-block swap. A sibling of .block-flip, never a child of it: a button
+   inside a button is invalid and the parser would close the outer one. */
+.block-swap {
+  margin: 8px 0 0;
+  padding: 8px 14px;
+  /* 44px tall with the padding, so it is a real tap target on a phone. */
+  min-height: 44px;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid var(--surface-edge);
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.block-swap:hover,
+.block-swap:focus-visible {
+  color: var(--text);
+  border-color: var(--accent);
+}

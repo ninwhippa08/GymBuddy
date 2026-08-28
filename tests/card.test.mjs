@@ -194,3 +194,42 @@ test('the substitution note does not name equipment it cannot know about', () =>
   assert.ok(!/barbell|kettlebell|dumbbell|machine|rack/i.test(note),
     `the note claims a specific item was missing: ${JSON.stringify(note)}`);
 });
+
+// --------------------------------------------------------------------------
+// The per-block swap control. design-equipment-and-swap.md §5, §7.
+// --------------------------------------------------------------------------
+
+test('a swap control appears only when a handler is supplied', () => {
+  assert.equal(blockCard(BLOCK, () => CUES).querySelector('.block-swap'), null);
+  assert.ok(blockCard(BLOCK, () => CUES, () => {}).querySelector('.block-swap'));
+});
+
+test('the swap names its slot to the caller', () => {
+  let seen = null;
+  blockCard(BLOCK, () => CUES, slot => { seen = slot; })
+    .querySelector('.block-swap').dispatch('click');
+  assert.equal(seen, BLOCK.slot);
+});
+
+// The plan put this button on the front face -- which lives INSIDE
+// button.block-flip. A button inside a button is not valid HTML: the parser
+// closes the outer one, and the card comes apart in a real browser. The shim
+// builds nodes rather than parsing markup, so nothing else here would catch it.
+test('the swap control is not nested inside the flip button', () => {
+  const flip = blockCard(BLOCK, () => CUES, () => {}).querySelector('button.block-flip');
+  assert.ok(flip, 'fixture should have cues and therefore a flip button');
+  assert.equal(flip.querySelector('.block-swap'), null,
+    'a button inside a button -- the parser closes the outer one');
+});
+
+test('tapping swap does not flip the card', () => {
+  const li = blockCard(BLOCK, () => CUES, () => {});
+  li.querySelector('.block-swap').dispatch('click');
+  assert.ok(!li.querySelector('button.block-flip').classList.contains('is-flipped'));
+});
+
+test('a card with no cues still offers the swap', () => {
+  const li = blockCard(BLOCK, () => null, () => {});
+  assert.equal(li.querySelector('button.block-flip'), null);
+  assert.ok(li.querySelector('.block-swap'), 'no swap on a card that cannot flip');
+});

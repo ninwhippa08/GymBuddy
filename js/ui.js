@@ -139,7 +139,7 @@ export function volumeLine(block) {
 // Blocks
 // --------------------------------------------------------------------------
 
-export function blockCard(block, cuesFor) {
+export function blockCard(block, cuesFor, onSwap) {
   const volume = volumeLine(block);
 
   // The effort cue is already the headline for contact-less explosive work;
@@ -190,11 +190,25 @@ export function blockCard(block, cuesFor) {
       : null
   ]);
 
+  // A real button, and deliberately NOT a child of the front face. The front
+  // face lives inside button.block-flip, and a button inside a button is not
+  // valid HTML -- the parser closes the outer one and the card comes apart.
+  // As a sibling it also cannot steal the flip gesture, so it needs no
+  // stopPropagation. design-equipment-and-swap.md §7.
+  const swap = typeof onSwap === 'function'
+    ? el('button', {
+        class: 'block-swap',
+        type: 'button',
+        'aria-label': `Swap ${block.name} for another movement`,
+        onclick: () => onSwap(block.slot)
+      }, 'swap')
+    : null;
+
   const cues = typeof cuesFor === 'function' ? cuesFor(block.exerciseId) : null;
 
   // No cues yet means no flip and no affordance, rather than a card that turns
   // over to an empty back. design-card-flip.md §7.
-  if (!cues || !cues.length) return el('li', { class: 'block' }, front);
+  if (!cues || !cues.length) return el('li', { class: 'block' }, [front, swap]);
 
   const back = el('div', { class: 'block-face is-back', 'aria-hidden': 'true' }, [
     el('h3', { class: 'block-name', text: block.name }),
@@ -251,16 +265,17 @@ export function blockCard(block, cuesFor) {
     ro.observe(back);
   }
 
-  return el('li', { class: 'block has-cues' }, btn);
+  return el('li', { class: 'block has-cues' }, [btn, swap]);
 }
 
-function blockGroup(title, blocks, cuesFor) {
+function blockGroup(title, blocks, cuesFor, onSwap) {
   if (!blocks.length) return null;
   return el('section', { class: 'group' }, [
     el('h2', { class: 'group-title', text: title }),
     // NOT blocks.map(blockCard) -- map passes the index as the second argument,
     // which would arrive where cuesFor belongs.
-    el('ul', { class: 'block-list' }, blocks.map(b => blockCard(b, cuesFor)))
+    el('ul', { class: 'block-list' },
+      blocks.map(b => blockCard(b, cuesFor, onSwap)))
   ]);
 }
 
@@ -295,7 +310,9 @@ export function renderNothingBuildable() {
   ]);
 }
 
-export function renderSession(session, { onReroll, cuesFor, offer, equipment } = {}) {
+export function renderSession(
+  session, { onReroll, cuesFor, offer, equipment, onSwap, swapNote } = {}
+) {
   // Three groups, not two. Prep and cool-down do different jobs at opposite
   // ends of the session, and one "Mobility & core" heading hid that.
   // design 4.2, discrepancy 6.
@@ -333,12 +350,17 @@ export function renderSession(session, { onReroll, cuesFor, offer, equipment } =
       ? el('p', { class: 'offer' },
           `A ${titleCase(offer.blocked)} day needs equipment you said isn't here.`)
       : null,
+    // A dead control that silently does nothing is the failure mode this
+    // design exists to avoid. design §5.3.
+    swapNote ? el('p', { class: 'offer', text: swapNote }) : null,
     equipment
       ? equipmentControl(equipment.items, equipment.selected, equipment.onToggle)
       : null,
 
+    // Prep and cool-down are fixed blocks with no template slot, so only the
+    // main work is swappable.
     blockGroup('Prep', prep, cuesFor),
-    blockGroup('Main work', main, cuesFor),
+    blockGroup('Main work', main, cuesFor, onSwap),
     blockGroup('Cool-down', cooldown, cuesFor),
 
     el('div', { class: 'actions' }, [
