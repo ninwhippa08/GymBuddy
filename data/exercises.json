@@ -1080,7 +1080,7 @@
       "joints": ["ankle","knee","hip"], "equipment": ["open-space"], "venue": "outdoor",
       "cnsCost": 2, "technical": 1, "unilateral": false,
       "cues": ["Comfortably hard -- sustainable, but talking is down to short phrases.","Hold one steady effort instead of starting fast and fading.","Ease into the first minute; do not sprint the opening."],
-      "modalities": ["interval"] },
+      "modalities": ["tempo"] },
 
     { "id": "run-interval", "name": "Running Intervals", "pattern": "run", "tier": "primary",
       "loadable": false, "prRef": null, "prCoef": null,
@@ -1094,7 +1094,7 @@
       "joints": ["ankle","knee","hip"], "equipment": ["open-space"], "venue": "outdoor",
       "cnsCost": 2, "technical": 1, "unilateral": false,
       "cues": ["Run easy, then pick a landmark ahead and push to it, then ease off.","The hard pieces go by feel, not by a watch -- twenty seconds to two minutes.","Recover at a jog rather than a walk before the next push.","Finish feeling like you had one more push in you. If not, they were too long."],
-      "modalities": ["interval"] },
+      "modalities": ["tempo"] },
 
     { "id": "shuttle-run", "name": "Shuttle Run", "pattern": "run", "tier": "secondary",
       "loadable": false, "prRef": null, "prCoef": null,
@@ -1108,7 +1108,7 @@
       "joints": ["ankle","knee","hip"], "equipment": ["stairs"], "venue": "outdoor",
       "cnsCost": 2, "technical": 1, "unilateral": false,
       "cues": ["Run up on the balls of the feet with short, quick steps.","Drive the knees and use the arms; stay tall instead of folding forward.","Walk back down every single time. Running down is where stairs hurt people.","One step at a time to start. Two at a time is a different exercise."],
-      "modalities": ["interval"] },
+      "modalities": ["tempo"] },
 
     { "id": "incline-walk", "name": "Incline Walk", "pattern": "march", "tier": "accessory",
       "loadable": false, "prRef": null, "prCoef": null,
@@ -1122,14 +1122,14 @@
       "joints": ["knee","hip","shoulder"], "equipment": ["machine"], "venue": "gym",
       "cnsCost": 2, "technical": 1, "unilateral": false,
       "cues": ["Set the seat so the knee stays slightly bent at the bottom of the stroke.","Push and pull with the arms as well as the legs from the first second.","The resistance is made by your own effort, so the pace is entirely yours.","It is harder than it looks. Go slower than you think on the first interval."],
-      "modalities": ["interval","aerobic-steady"] },
+      "modalities": ["interval","tempo","aerobic-steady"] },
 
     { "id": "rower", "name": "Rowing Erg", "pattern": "erg", "tier": "secondary",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["knee","hip","lumbar","shoulder"], "equipment": ["machine"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": false,
       "cues": ["Feet strapped, shins upright at the catch, arms long and shoulders loose.","Legs first, then the back opens, then the arms -- in that order.","Come back arms, then back, then knees. Never pull with a rounded back.","Watch the pace, not the stroke rate. Long strong strokes beat fast ones."],
-      "modalities": ["interval","aerobic-steady"] },
+      "modalities": ["interval","tempo","aerobic-steady"] },
 
     { "id": "jump-rope", "name": "Jump Rope", "pattern": "jump", "tier": "accessory",
       "loadable": false, "prRef": null, "prCoef": null,

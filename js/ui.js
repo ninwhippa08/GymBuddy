@@ -49,6 +49,16 @@ export function formatRest(sec) {
   return rem ? `rest ${min}:${String(rem).padStart(2, '0')}` : `rest ${min} min`;
 }
 
+// A stretch of time inside a prescription: "1:30", "45 s". Distinct from
+// formatRest, which prefixes the word "rest" and is a whole meta-line on its
+// own. Seconds stay seconds under a minute -- "0:45" reads like a stopwatch
+// bug rather than a recovery.
+export function spanText(sec) {
+  if (sec < 60) return `${sec} s`;
+  const min = Math.floor(sec / 60);
+  return `${min}:${String(sec % 60).padStart(2, '0')}`;
+}
+
 // The one line the user reads mid-set. Never an absolute weight -- always a
 // multiplier against a PR he already knows. spec §2, §10.
 //
@@ -86,11 +96,16 @@ export function loadLine(block) {
     // instruction, not a vague one. The effort cue is the prescription.
     return block.effort || 'leave 2-3 reps in reserve';
   }
-  // Work and rest in seconds. There is no load reference for an interval, so
-  // the fallthrough below would read displayMultiplier off an object that has
-  // none. design-running-programming.md §8.
+  // The whole prescription in one sentence. There is no load reference for an
+  // interval, so the fallthrough below would read displayMultiplier off an
+  // object that has none. design-running-programming.md §8.
+  //
+  // "8 × 90 s" was true and still unusable: it never said how long a round
+  // was, how long the recovery ran, or what the recovery was for. Reported
+  // from the phone, 2026-08-27.
   if (block.mode === 'interval') {
-    return `${block.sets} × ${block.workSec} s`;
+    return `${block.sets} rounds of ${block.workSec} s hard, ` +
+           `${spanText(block.restSec)} easy between`;
   }
   return `${block.displayMultiplier.toFixed(2)} × ${titleCase(block.prRef)} PR`;
 }
@@ -104,8 +119,15 @@ export function volumeLine(block) {
   // For a hold the hero line already carries the seconds, so the chip carries
   // how many of them.
   if (block.mode === 'hold') return `× ${block.sets}`;
-  // The hero line carries the work; the chip carries the rest.
-  if (block.mode === 'interval') return `${block.restSec} s rest`;
+  // The hero line carries work AND recovery, so the chip carries the one
+  // thing left to ask: when am I finished. Work plus the recoveries BETWEEN
+  // the rounds -- there is no recovery after the last one, which is why this
+  // is not estimateMinutes' figure. That one keeps the extra rest on purpose,
+  // as slack in the time budget it packs against.
+  if (block.mode === 'interval') {
+    const sec = block.sets * block.workSec + (block.sets - 1) * block.restSec;
+    return `~${Math.round(sec / 60)} min`;
+  }
   return `${block.sets} × ${block.reps}`;
 }
 
@@ -120,7 +142,12 @@ export function blockCard(block, cuesFor) {
   // don't print it twice.
   const heroIsEffort =
     block.mode === 'reps' || (block.mode === 'contacts' && !block.footContacts);
-  const meta = [formatRest(block.restSec)];
+  // An interval's recovery is already in the hero line, and what matters
+  // about it is not its length but that it is not a rest: standing still
+  // between hard efforts is how the next one goes badly.
+  const meta = [block.mode === 'interval'
+    ? 'walk or jog the recovery -- never stand still'
+    : formatRest(block.restSec)];
   if (block.effort && !heroIsEffort) meta.push(block.effort);
   if (block.optional) meta.push('optional');
 

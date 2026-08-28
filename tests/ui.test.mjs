@@ -29,13 +29,25 @@ test('the volume chip suits the dose', () => {
   assert.equal(volumeLine({ mode: 'reps', sets: 3, reps: 12 }), '3 × 12');
 });
 
-test('an interval prints work and rest, never a multiplier', () => {
+test('an interval prints the whole prescription, never a multiplier', () => {
+  // "8 x 90 s" left three questions unanswered on the phone: how long is one
+  // round, how long do I jog, and how do I know when I am done. The card now
+  // answers all three without being flipped over. design §8.
   const block = {
     name: 'Running Intervals', mode: 'interval',
     workSec: 90, restSec: 90, sets: 8
   };
-  assert.equal(loadLine(block), '8 × 90 s');
-  assert.equal(volumeLine(block), '90 s rest');
+  assert.equal(loadLine(block), '8 rounds of 90 s hard, 1:30 easy between');
+  // Work plus the seven recoveries BETWEEN the rounds -- you do not rest
+  // after the last one. 8x90 + 7x90 = 1350 s.
+  assert.equal(volumeLine(block), '~23 min');
+});
+
+test('a recovery under a minute prints as seconds, not as 0:45', () => {
+  assert.equal(
+    loadLine({ mode: 'interval', sets: 6, workSec: 60, restSec: 45 }),
+    '6 rounds of 60 s hard, 45 s easy between'
+  );
 });
 
 test('an interval block never reaches the multiplier fallthrough', () => {

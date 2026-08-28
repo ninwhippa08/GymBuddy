@@ -93,3 +93,30 @@ test('the plyometric day draws jumps', () => {
   const ids = pool(TEMPLATES.plyometric[0]);
   assert.ok(ids.length >= 5, `only ${ids.length} jumps available`);
 });
+
+// The third instance of the bucket-conflation bug: an exercise landing in a
+// slot whose SHAPE it does not fit. The first two were a prescribed easy run
+// coming back as a fartlek (design §3). This one put "Running Intervals" in
+// the continuous tempo slot and prescribed a stair run as 7 x 60 s.
+// design-running-programming.md §6.2.
+test('the interval slot draws only efforts that hold a prescribed 60-90 s', () => {
+  const ids = pool(TEMPLATES.interval[0]);
+  assert.ok(ids.includes('run-interval'));
+  assert.ok(ids.includes('shuttle-run'));
+  for (const bad of ['stair-run', 'fartlek', 'tempo-run']) {
+    assert.ok(!ids.includes(bad),
+      `${bad} cannot be held hard for a prescribed 60-90 s`);
+  }
+});
+
+test('the tempo finisher draws only one continuous effort', () => {
+  const ids = pool(TEMPLATES.interval[1]);
+  assert.ok(ids.includes('tempo-run'));
+  assert.ok(ids.includes('fartlek'));
+  assert.ok(ids.includes('stair-run'),
+    'stairs are prescribable in minutes without knowing the staircase');
+  for (const bad of ['run-interval', 'shuttle-run']) {
+    assert.ok(!ids.includes(bad),
+      `${bad} is interval work, not one continuous effort`);
+  }
+});

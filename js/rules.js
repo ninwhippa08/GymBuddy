@@ -23,9 +23,15 @@
 //
 // `mobility` split into two on 2026-08-23: dosing follows from the modality,
 // so one value could not carry two dosing units. design 4.1, discrepancy 4.
+//
+// `interval` split off `tempo` on 2026-08-27 for the same reason one step
+// further out: dosing follows from the modality, and interval work is dosed
+// in rounds of seconds while tempo work is dosed in continuous minutes. One
+// value carrying both let the tempo slot prescribe "Running Intervals, 8 min"
+// and the interval slot prescribe a stair run as 7 x 60 s. design §6.2.
 export const MODALITIES = Object.freeze([
   'max-strength', 'power', 'hypertrophy', 'isolation',
-  'plyometric', 'sprint', 'interval', 'aerobic-steady',
+  'plyometric', 'sprint', 'interval', 'tempo', 'aerobic-steady',
   'mobility-dynamic', 'mobility-static'
 ]);
 

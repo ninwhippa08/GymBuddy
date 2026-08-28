@@ -237,8 +237,12 @@ const INTERVAL = Object.freeze([
   }),
   Object.freeze({
     slot: 'B', role: 'tempo finisher',
+    // Modality `tempo`, not `interval`. This slot is one continuous effort,
+    // so it must not reach an exercise that is intermittent by definition --
+    // a fartlek, a shuttle run, or the entry literally named Running
+    // Intervals, which is what it used to draw. design §6.2.
     tier: ['primary', 'secondary', 'accessory'], patterns: ['run', 'erg'],
-    modality: 'interval', zone: null, mode: 'time',
+    modality: 'tempo', zone: null, mode: 'time',
     durationMin: [8, 12], effort: 'comfortably hard, one steady effort',
     sets: [1, 1], reps: [1, 1], restSec: [0, 0], optional: true
   })

@@ -34,6 +34,14 @@ A second instance of the same class: `tempo-run`, `fartlek` and `stair-run`
 carry `aerobic-steady` in their modalities, so a prescribed easy run can come
 back as a fartlek.
 
+A third instance, found on the phone on 2026-08-27 and fixed in §4.5: the
+interval day's two slots share `modality: interval` and differ only in `mode`,
+so the continuous tempo slot drew the entry named `run-interval` and printed
+*"Running Intervals — 8 min"*, while the seconds-based work slot drew
+`stair-run` and prescribed *"7 × 60 s"* — a staircase nobody owns. A slot
+filtering on modality alone cannot tell an exercise's ENERGY SYSTEM from its
+SHAPE, and these two slots differ only in shape.
+
 ## 2. Scope
 
 **In scope.** Four running day types with correct pools; a four-stage running
@@ -106,6 +114,31 @@ one layer down. One field closes the category permanently.
 
 `tempo-run`, `fartlek` and `stair-run` lose `aerobic-steady` from their
 `modalities`. They are interval work.
+
+**Revised 2026-08-27.** "Interval work" was one bucket doing two jobs, and
+`modality` is the field dosing follows from — the same reason `mobility` split
+into `mobility-dynamic` and `mobility-static` (design 4.1). Interval work is
+dosed in rounds of seconds; tempo work is dosed in continuous minutes. So
+`interval` splits:
+
+| Modality | Members | Dosed as |
+|---|---|---|
+| `interval` | run-interval, shuttle-run, rower, assault-bike | N rounds × 60-90 s, recovery from the work:rest ratio |
+| `tempo` | tempo-run, fartlek, stair-run, rower, assault-bike | one continuous 8-12 min effort |
+
+The split is by shape, not by hardness. `fartlek` is self-organising — its
+hard pieces are chosen off landmarks, so prescribing it as `8 × 75 s` states
+a structure the exercise already has and contradicts. `stair-run` is bound to
+a staircase whose length is unknown, which is the same reason spec 9.1 keeps
+every run in seconds rather than metres; as minutes ("run up, walk down,
+repeat, for 10 min") it needs no knowledge of the terrain and stays in the
+library. The ergs sit in both buckets because an erg genuinely is both.
+
+**Cost, accepted.** The `interval` pool falls to two outdoor entries and
+`tempo` to three, both far short of the VARIETY target of 16 (see
+`docs/coverage-matrix.md`). Both are already floor-exempt and both are part of
+the open §11.0 question. Leaving them conflated would have kept the pool
+counts up by keeping the prescriptions wrong.
 
 ---
 
@@ -185,10 +218,13 @@ selection.
 | Slot | Pool | Prescription |
 |---|---|---|
 | A | `run`, modality `interval` | 6-10 × 60-90 s hard, work:rest 1:1 to 1:2 |
-| B (optional) | `run` or `erg` | tempo finisher, 8-12 min |
+| B (optional) | `run`/`erg`, modality `tempo` | tempo finisher, 8-12 min |
 
-Pool: run-interval, shuttle-run, stair-run, tempo-run, fartlek, plus ergs.
-Threshold work lives here as a longer work interval at lower effort.
+Slot A pool: run-interval, shuttle-run, plus ergs.
+Slot B pool: tempo-run, fartlek, stair-run, plus ergs.
+The two slots differ in modality and not only in mode, so neither can draw an
+exercise of the other's shape (§4.5). Threshold work lives in slot B, as the
+continuous effort it is.
 
 ### 6.3 `sprint` — high CNS
 
@@ -292,6 +328,27 @@ to `block.displayMultiplier.toFixed(2)`. An `interval`-mode block has no
 `displayMultiplier` and would throw a `TypeError`, killing the render.
 `mode: 'interval'` therefore needs explicit branches in **both** `loadLine` and
 `volumeLine` — e.g. `6 × 90 s` on the hero line, rest on the meta line.
+
+**Revised 2026-08-27.** `6 × 90 s` shipped and was read on the phone as three
+unanswered questions: how long is one round, how long do I jog, and how do I
+know when I am done. It was true and unusable — a card the athlete has to
+reason about mid-session is a card that failed. The interval card now states
+the whole prescription on the front, without a flip:
+
+| Line | Content | Example |
+|---|---|---|
+| hero (`loadLine`) | rounds, work, recovery | `6 rounds of 90 s hard, 2:55 easy between` |
+| chip (`volumeLine`) | when it ends | `~24 min` |
+| meta | what the recovery is for | `walk or jog the recovery -- never stand still` |
+
+The chip is work plus the recoveries *between* rounds — there is no recovery
+after the last one. `estimateMinutes` deliberately keeps that extra rest: it
+packs against a time budget and the slack is the point, so the two numbers
+differ by one recovery and neither is wrong.
+
+Recovery is formatted by `spanText`, which is not `formatRest`: the meta line
+prefixes the word "rest", and a recovery is not a rest. Under a minute it
+stays in seconds, because `0:45` reads as a stopwatch fault.
 
 ---
 

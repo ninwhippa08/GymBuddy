@@ -49,7 +49,7 @@ const COVERAGE_SCOPE = {
 // Pools that lose EVERY entry to one hurt joint, because the joint is
 // intrinsic to the movement class. An empty sprint pool on a hurt hip is the
 // correct answer; proposing the day was the mistake. Handed to Project B.
-// Named individually so a fourteenth cannot appear silently. §5.
+// Named individually so a fifteenth cannot appear silently. §5.
 //
 // The four running day types put ten more pools here, and they are all the
 // same fact restated: you cannot run, sprint or jump on a hurt ankle, knee or
@@ -67,6 +67,9 @@ const FLOOR_EXEMPT = new Set([
   // Easy run and intervals.
   'primary+secondary+accessory :: run/erg :: aerobic-steady',
   'primary+secondary+accessory :: run/erg :: interval',
+  // The tempo finisher, split out of the interval pool on 2026-08-27. Same
+  // fact as its sibling above: every entry loads ankle, knee or hip.
+  'primary+secondary+accessory :: run/erg :: tempo',
   'secondary+accessory :: sprint :: sprint :: submaximal',
   // Sprint day.
   'primary :: sprint :: sprint :: maximal',
@@ -224,7 +227,7 @@ test('every pool the generator can ask for was found and measured', () => {
   }
 });
 
-test('the thirteen floor-exempt pools really are the ones that reach zero', () => {
+test('the fourteen floor-exempt pools really are the ones that reach zero', () => {
   const measured = POOLS.filter(p => p.survival === 0).map(p => p.key).sort();
   assert.deepEqual(measured, [...FLOOR_EXEMPT].sort(),
     'a pool started or stopped collapsing to zero -- design §5 needs revisiting');

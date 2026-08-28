@@ -147,3 +147,19 @@ test('a card renders where ResizeObserver does not exist', () => {
   assert.equal(typeof globalThis.ResizeObserver, 'undefined');
   assert.ok(blockCard(BLOCK, () => CUES).querySelector('button.block-flip'));
 });
+
+const INTERVAL_BLOCK = {
+  slot: 'A', role: 'intervals', exerciseId: 'run-interval',
+  name: 'Running Intervals', mode: 'interval',
+  sets: 6, reps: 1, workSec: 90, restSec: 175,
+  effort: 'hard -- talking is down to a word or two'
+};
+
+test('an interval card says what to do during the recovery', () => {
+  const meta = blockCard(INTERVAL_BLOCK, () => null)
+    .querySelector('.block-meta').textContent;
+  assert.ok(meta.includes('walk or jog the recovery'),
+    `recovery instruction missing from "${meta}"`);
+  assert.ok(!meta.includes('rest 2:55'),
+    'the recovery is already in the hero line -- printing it twice is noise');
+});

@@ -12,10 +12,11 @@ running the suite.
 | pool | draw | have | survival | floor | variety | need | short |
 |---|---|---|---|---|---|---|---|
 | `secondary+accessory :: sprint :: sprint :: submaximal` | 1 | 1 | 0% (hip) | exempt | 16 | 16 | 15 |
+| `primary+secondary+accessory :: run/erg :: interval` | 1 | 2 | 0% (hip) | exempt | 16 | 16 | 14 |
 | `secondary :: sprint :: sprint :: maximal` | 1 | 2 | 0% (hip) | exempt | 16 | 16 | 14 |
+| `primary+secondary+accessory :: run/erg :: tempo` | 1 | 3 | 0% (hip) | exempt | 16 | 16 | 13 |
 | `primary :: sprint :: sprint :: maximal` | 1 | 3 | 0% (hip) | exempt | 16 | 16 | 13 |
 | `secondary+accessory :: jump :: (any)` | 1 | 3 | 0% (ankle) | exempt | 16 | 16 | 13 |
-| `primary+secondary+accessory :: run/erg :: interval` | 1 | 5 | 0% (hip) | exempt | 16 | 16 | 11 |
 | `primary :: jump :: (any)` | 1 | 6 | 0% (hip) | exempt | 16 | 16 | 10 |
 | `primary+secondary :: jump :: (any)` | 1 | 8 | 0% (hip) | exempt | 16 | 16 | 8 |
 | `primary :: hinge/pull-h :: power` | 1 | 13 | 0% (hip) | exempt | 16 | 16 | 3 |
@@ -48,6 +49,6 @@ running the suite.
 
 `**n**` is below target. `n·` is outside that pool's scope.
 
-Raw shortfall across all pools: **87** (pools overlap, so an
+Raw shortfall across all pools: **103** (pools overlap, so an
 entry can close more than one).
 
