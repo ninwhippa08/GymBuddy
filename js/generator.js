@@ -779,6 +779,7 @@ export function generate({
   history = [],
   soreness = {},
   dayType = null,
+  excludeEquipment = [],
   seed = Date.now(),
   now = Date.now()
 } = {}) {
@@ -804,7 +805,8 @@ export function generate({
     banned: profile.banned || [],
     venue: env.venue,
     state,
-    excludeIds: new Set()
+    excludeIds: new Set(),
+    excludeEquipment
   };
 
   const blocks = [];
@@ -829,13 +831,13 @@ export function generate({
 
   return finalise({
     chosen, env, architecture, proposal, ordered, packed, cooled,
-    unfilled, state, seed, now
+    unfilled, state, seed, now, excludeEquipment
   });
 }
 
 // Denormalise the counters at write time so the next generation never has to
 // recompute them while reading history. spec §3.2.
-function finalise({ chosen, env, architecture, proposal, ordered, packed, cooled, unfilled, state, seed, now }) {
+function finalise({ chosen, env, architecture, proposal, ordered, packed, cooled, unfilled, state, seed, now, excludeEquipment }) {
   const patternSets = {};
   let footContacts = 0, sprintMeters = 0, cnsLoad = 0;
   for (const b of ordered) {
@@ -889,6 +891,9 @@ function finalise({ chosen, env, architecture, proposal, ordered, packed, cooled
     reason: proposal.reason,
     candidates: proposal.candidates,
     soreness: [],
+    // The constraint rides on the record, so a reroll inherits it and tomorrow
+    // does not. design-equipment-and-swap.md §3.3.
+    excludeEquipment,
     blocks: ordered,
     patternSets,
     footContacts,

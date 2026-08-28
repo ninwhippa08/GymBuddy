@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { eligibleFor } from '../js/generator.js';
+import { eligibleFor, generate } from '../js/generator.js';
 import { TEMPLATES } from '../js/templates.js';
 import { NON_NEGOTIABLE_EQUIPMENT } from '../js/rules.js';
 
@@ -42,4 +42,26 @@ test('excluding one item does not remove entries that never needed it', () => {
 test('the non-negotiables are the three that cannot be absent', () => {
   assert.deepEqual([...NON_NEGOTIABLE_EQUIPMENT].sort(),
     ['bodyweight', 'open-space', 'wall']);
+});
+
+// --------------------------------------------------------------------------
+// The constraint through generate(). design §3.3.
+// --------------------------------------------------------------------------
+
+const gen = (excludeEquipment, dayType = 'max-strength', seed = 42) =>
+  generate({ library: LIB, dayType, seed, excludeEquipment,
+             profile: { venue: 'gym' } });
+
+test('a constrained session contains none of the excluded equipment', () => {
+  const byId = new Map(LIB.map(e => [e.id, e]));
+  for (const b of gen(['barbell']).blocks) {
+    const gear = byId.get(b.exerciseId).equipment || [];
+    assert.ok(!gear.includes('barbell'),
+      `${b.exerciseId} needs a barbell and should not be here`);
+  }
+});
+
+test('the session records the constraint it was built under', () => {
+  assert.deepEqual(gen(['barbell', 'rack']).excludeEquipment, ['barbell', 'rack']);
+  assert.deepEqual(gen([]).excludeEquipment, []);
 });
