@@ -1,9 +1,21 @@
 # Design — equipment constraints and the per-block swap
 
-Status: drafted 2026-08-27, not built.
-Answers: `design-running-programming.md` §9 (equipment filtering, deferred) and
-spec §8 / `js/app.js:4` ("the swap controls that sit either side of it arrive
-in Phase 2").
+Status: drafted 2026-08-27, **built and deployed 2026-08-30** as `sw.js` v9.
+Built by `plan-04-equipment-and-swap.md`, tasks 1-11.
+
+**As built, three things this document did not say.** (1) A swap takes its
+load envelope off `session.rampWeek`, not off a rebuilt profile -- rebuilding
+gave ramp week 0 and no ceiling, pricing a swapped block ~24% heavy on a card
+whose every other block was capped, and saying nothing. The ramp is not
+skippable and a swap is not an exit from it. (2) The swap control is a sibling
+of the card's front face, not a child of it: the front face is itself a
+`button`, and a button inside a button is not parsed, it is unwrapped.
+(3) A day type is only genuinely blocked when the whole gym is excluded --
+removing just the equipment one session happens to use is absorbed by tier
+relaxation (§4.2) long before the fallback in §4.3 is reached.
+Answers, and as of v9 closes: `design-running-programming.md` §9 (equipment
+filtering, was deferred) and spec §8 / `js/app.js:4` ("the swap controls that
+sit either side of it arrive in Phase 2").
 Sits after: the running programming work, `main` at `21c4566`.
 
 Origin: the athlete generated a session, read the cards, and said — *"I see

@@ -52,7 +52,7 @@ coupling lifting fatigue to running selection.
 coefficients, the return-to-training ramp, or any existing cue. All 235 library
 cues survive untouched.
 
-**Deferred to a later phase.** Equipment-aware filtering — see §9.
+**Was deferred, now built.** Equipment-aware filtering — see §9.
 
 ## 3. Decisions taken
 
@@ -60,7 +60,7 @@ cues survive untouched.
 |---|---|
 | How many running session types | **Four**: easy run, intervals, sprint, plyometric |
 | Tempo/threshold work | Folded into the interval day as an intensity variant, not its own day type |
-| Equipment/terrain access | Assume full access; user reports gaps and the swap path handles them. Filtering deferred (§9) |
+| Equipment/terrain access | Was: assume full access, swap path handles gaps. **Superseded 2026-08-30** — the athlete names what is missing today and the session is rebuilt around it (§9) |
 | How running days are selected | Programmed by the system from accumulated lifting load — never a mode the user requests |
 | Integration approach | Extend the existing CNS account with a chronic horizon (approach A), rather than a weekly-shape planner or a modality-balance ledger |
 | `jump-rope` | Moves to `pattern: jump` |
@@ -352,16 +352,30 @@ stays in seconds, because `0:45` reads as a stopwatch fault.
 
 ---
 
-## 9. Deferred: equipment-aware filtering
+## 9. Equipment-aware filtering — built 2026-08-30
 
-`eligibleFor` filters venue, soreness, bans and measured ground, but **never
-equipment**. The profile (spec §3.3) has no equipment field. A sled push or a
-stair run can therefore be proposed regardless of access.
+**Was deferred; built in `sw.js` v9.** See
+`design-equipment-and-swap.md` for the design and `plan-04-equipment-and-swap.md`
+for the build.
 
-The user's decision: assume full access, and report gaps as they arise — the
-swap path covers a missing hill or sled. Recorded here as an explicit later
-phase, not an oversight. Implementation would add an `equipment` array to the
-profile and one filter line in `eligibleFor`.
+The problem as stated here: `eligibleFor` filtered venue, soreness, bans and
+measured ground, but **never equipment**, so a sled push or a stair run could be
+proposed regardless of access.
+
+**One prediction in this section was wrong, and it is the interesting part.**
+It says implementation "would add an `equipment` array to the profile". It does
+not. Equipment is not a standing property of the athlete — it is a property of
+the room he is standing in this morning, and the sled that was free last Tuesday
+is occupied today. So the constraint is per-session and lives on the session
+record as `excludeEquipment`, the control is derived from the session in hand
+rather than from a catalogue, and the profile is untouched. This also keeps
+spec §8's "venue is an output — generate first, swap second" intact: the athlete
+is asked what is missing only *after* he has a session to look at.
+
+The filter line in `eligibleFor` was as small as predicted. What it cost was
+everything downstream of an empty slot: tier relaxation (§4.2 of the equipment
+design), the day-type fallback (§4.3), and a card that says when a movement was
+substituted.
 
 ## 10. Sourcing status
 

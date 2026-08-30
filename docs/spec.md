@@ -173,9 +173,23 @@ a de facto chronic-injury profile without asking the user to maintain one.
 
 ### 4.2 Swap
 
+**Built 2026-08-30, `sw.js` v9.** `swapBlock` in `js/generator.js`.
+
 Each exercise carries a swap control. It picks a replacement with the same
-`pattern` and `tier`, re-runs the prescription, and records the rejection so the
-same exercise is not offered again in that session.
+`pattern`, keeping the slot's own `tier`, `modality` and `zone`, and re-runs the
+prescription. Everything already in the session is excluded, so a swap cannot
+hand back a movement that appears three cards further down.
+
+The load envelope comes off `session.rampWeek` — the session being edited — not
+from a rebuilt profile. A swap joins a card whose other blocks were all priced
+under one ramp ceiling, and recomputing lets it disagree with them. The ramp is
+not skippable and a swap is not an exit from it.
+
+**Not built: the rejection memory.** This section used to promise that a
+rejected exercise "is not offered again in that session". Nothing records
+rejections. Exclusion is computed from the session's *current* contents, so
+swapping A→B and then swapping again can return A, because A is no longer in
+the session by then. Small, real, and the honest place to note it is here.
 
 ### 4.3 The variety engine
 
@@ -532,8 +546,10 @@ Still queued, unchanged by the above:
   start distorting session *shape*, not just scoring.
 - **Soreness body map** — engine already done; `app.js` passes `soreness: {}`
   hardcoded. A UI job, not a generator job.
-- **Ban list, then swap** — `eligibleFor` already filters `profile.banned`.
-  Swap needs a small generator function to re-fill one slot (§4.2).
+- **Ban list.** `eligibleFor` already filters `profile.banned`; what is missing
+  is the UI to put something on that list. **The swap half of this item is
+  done** — `swapBlock` re-fills one slot and the per-block control is wired
+  (§4.2), shipped with the equipment constraint in v9.
 - **Architecture variation last.** `prescribe()` only knows straight sets, so
   EMOM, cluster, complex, circuit and ladder each need a prescription shape.
   Deepest change in the project. Note `setPlan` (design §4.3) is deliberately

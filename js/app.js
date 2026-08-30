@@ -1,8 +1,9 @@
 // app.js -- entry point and screen routing. spec §7
 //
-// Three states, no router: setup (no profile), session (normal), error.
-// The app has one screen in Phase 1; the body map and swap controls that
-// sit either side of it arrive in Phase 2. spec §8.
+// Three states, no router: setup (no profile), session (normal), error, plus
+// the nothing-buildable screen. The swap control landed in v9 alongside the
+// equipment constraint; the soreness body map is still the outstanding one --
+// `soreness: {}` below is hardcoded. spec §8.
 
 import {
   resolveSession, offerableEquipment, swapBlock, makeRng
