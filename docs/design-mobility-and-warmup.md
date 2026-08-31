@@ -233,7 +233,7 @@ Movements already carrying `unilateral: true` in the library (`couch-stretch`,
 Both blocks keep `optional: false`. The block is never randomised out — that
 decision from spec §9 stands, and the prep block is now the more important half.
 
-### 4.3 Warm-up ramps on loaded compounds
+### 4.3 Warm-up ramps on loaded compounds — BUILT 2026-08-31, `sw.js` v15
 
 `prescribe()` stops returning scalar `sets`/`reps`/`pct` and returns a per-set
 array:
@@ -269,11 +269,19 @@ with no jump larger than `MAX_JUMP` (0.15). The count is
 
 | Working load | Warm-up steps | Ramp |
 |---|---|---|
-| 0.90 | 5 | 0.30, 0.42, 0.54, 0.66, 0.78 |
+| 0.90 | 4 | 0.30, 0.45, 0.60, 0.75 |
 | 0.80 | 4 | 0.30, 0.43, 0.55, 0.68 |
 | 0.65 | 3 | 0.30, 0.42, 0.53 |
 | 0.55 | 2 | 0.30, 0.43 |
 | below `RAMP_FLOOR` (0.50) | 0 | none |
+
+This table's own `0.90` row originally read `5 | 0.30, 0.42, 0.54, 0.66, 0.78`,
+which disagrees with the formula this same section states —
+`ceil((workingPct - START) / MAX_JUMP)` — and gives 4, not 5, at 0.90. The
+formula won; the row above is corrected. (The naive JS subtraction
+`0.90 - 0.30` is `0.6000000000000001`, which would round the count up to 5 by
+float slop alone if the implementation didn't guard for it — see the "as
+built" note below.)
 
 This reproduces the worked example in §2.3 (bar → 30 → 50 → 65 → 75 for an 80%
 set) without encoding it, and it satisfies the scaling principle directly:
@@ -328,6 +336,54 @@ load, and both clamps described in spec §10 item 4 stay exactly as they are.
 Warm-ups are computed as a fraction of the already-clamped working load, so they
 are bounded automatically and cannot exceed the ceiling. No new clamp is needed
 and none should be added.
+
+**Deviations from this section, found during the build (plan-05's "Four
+decisions").**
+
+1. **`block.sets`/`reps` keep meaning the WORKING sets.** This section said
+   `prescribe()` stops returning scalar `sets`/`reps`/`pct`; taken literally
+   that breaks `finalise`, `packToBudget`, `estimateMinutes`, `volumeLine` and
+   four test files, and would start counting warm-ups as training volume,
+   which this section itself forbids two paragraphs above. `setPlan` is
+   additive instead.
+2. **Warm-up `displayMultiplier` is scaled in DISPLAY space**, as
+   `workingDisplay × (stepPct / workingPct)` — not recomputed as
+   `stepPct × prCoef`. This section's "no clamp is needed" holds only at
+   `prCoef` 1.00. `prescribe` clamps twice, and a recomputed warm-up can print
+   heavier than a clamped working set (snatch pull, `prCoef` 1.15, ramp week
+   1).
+3. **This section's own 0.90 table row contradicted this section's own
+   formula; the formula won.** See the correction above.
+4. **`TIME.WARMUP_REST_SEC = 60` is `[unverified]`.** This section specifies
+   the ladder but no rest for it, and no source was found. It is deliberately
+   shorter than `DEFAULT_REST_SEC` (120) because a warm-up set is not taken
+   near failure.
+
+**As built, four things this section did not say.** (1) **The ramp did NOT
+lengthen sessions, and this contradicts this section's premise.** This section
+and the plan both assumed warm-ups would push sessions longer and that the
+session ceiling would have to rise. Measured over 21,000 generated sessions
+before and after (7 day types × 3,000 seeds, `s.durationMin`): average session
+length moved only 51.78 → 52.37 min and the observed maximum stayed at 65
+either way, but **total working sets fell from 213,998 to 194,042 — a 9.3%
+drop**. `packToBudget` pays for the warm-up minutes by shaving working sets,
+so the ramp displaces training volume rather than extending the session. No
+test caught this because the 65-minute ceiling holds in both cases. **Making
+the ramp additive instead would mean raising `MAIN_WORK_MAX_MIN` or exempting
+warm-up time from the trim budget; neither was in plan-05's scope and the
+trade-off is the athlete's to make.** This is recorded as an open question,
+not a settled decision — see §8. (2) **The constant block is `WARMUP`, not
+`RAMP`.** `js/rules.js` already exported `RAMP` — the return-to-training week
+table — so this section's chosen name would have been a duplicate export and a
+`SyntaxError`. (3) **The step count needs a float-slop guard.**
+`ceil((0.90 - 0.30) / 0.15)` evaluates to 5, not 4, because `0.90 - 0.30` is
+`0.6000000000000001` in IEEE-754 — which would have silently reproduced the
+very table row corrected above. The code uses
+`Math.ceil(gap / WARMUP.MAX_JUMP - 1e-9)`. (4) **`packToBudget` had to learn
+about `setPlan` one task earlier than planned.** It shaves `block.sets` after
+`prescribe` has already built the plan; without a matching splice the plan
+overstated the working sets. Warm-up rungs are never shaved — only `'work'`
+entries — because the ramp is the safety feature.
 
 ### 4.4 The exercise count becomes a residual
 
@@ -574,3 +630,12 @@ clean while two real bugs sat in the code. Both layers are required.
    it needs sourced stretches, not invented ones. Deviation 4; measured at
    task 9, 2026-08-24. Note that ruling C1's six recovered warm-up drills are
    all *dynamic* and widen the prep pool instead — they do not help here.
+9. **The ramp displaces working volume instead of extending the session, and
+   this was never decided on purpose.** §4.3 and this plan both assumed the
+   ramp would push sessions longer. Measured, it did not: `packToBudget` pays
+   for the warm-up minutes by trimming working sets, so total training volume
+   fell 9.3% (213,998 → 194,042 sets over a 21,000-session sweep) while
+   session length moved less than a minute on average. Fixing this — raising
+   `MAIN_WORK_MAX_MIN` or exempting warm-up time from the trim budget — is an
+   open question for the athlete, not a bug in what was built. See §4.3's "as
+   built" note.

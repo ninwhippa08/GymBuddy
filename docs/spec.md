@@ -155,10 +155,37 @@ only thing standing between a college PR and a hurt back.
                  weighted random pick
 7. PRESCRIBE   assign sets/reps/% from the zone, jittered
                plyo → foot contacts; sprint → metres
+               loaded compound → per-set warm-up ramp (§4.1a)
 8. PACK        estimate duration; trim to 45 min main work
 9. APPEND      mobility + core block, always (§9)
 10. ORDER      enforce fixed sequence (§8)
 ```
+
+### 4.1a Warm-up ramps on loaded compounds
+
+**Built 2026-08-31, `sw.js` v15.** `js/rules.js` `WARMUP`, `js/generator.js`
+`buildRamp()`, wired into `prescribe()`. Design
+`design-mobility-and-warmup.md` §4.3.
+
+A loaded compound no longer prescribes one working number for every set. When
+its clamped working load clears `WARMUP.FLOOR` (0.50 of the movement's own
+max), `prescribe()` attaches `block.setPlan` — an array of per-set steps
+climbing from `WARMUP.START` (0.30) to the working load in jumps no larger
+than `WARMUP.MAX_JUMP` (0.15), followed by the working sets themselves. Each
+step carries its own `reps`, `pct` and `displayMultiplier`; `block.sets`,
+`block.reps` and `block.pct` keep meaning the working sets only, unchanged
+from before this work, so nothing downstream of `prescribe()` needed to learn
+a new meaning for them.
+
+**Warm-ups are excluded from volume accounting.** `patternSets`, `cnsLoad` and
+`footContacts` are computed from the scalar `sets`/`reps` fields, which never
+counted the ramp, so warm-up sets contribute nothing to the neglect model or
+the CNS account.
+
+**Warm-up rest is `TIME.WARMUP_REST_SEC` (60 s) and it is `[unverified]`** —
+no source names a rest interval for a warm-up set specifically. It is
+deliberately shorter than `TIME.DEFAULT_REST_SEC` (120 s) because a warm-up
+set is never taken near failure.
 
 ### 4.1 Soreness
 
@@ -570,11 +597,11 @@ identity — never a real address, since the repo is public.
 
 **Phase 1 has been used in a gym. The feedback is in, and it invalidated three
 things.** See `docs/design-mobility-and-warmup.md` — approved in shape,
-revision 2. **Step 1 of its build order shipped 2026-08-24; steps 2–4 have not
-been started.**
+revision 2. **Steps 1 and 2 of its build order are shipped (2026-08-24 and
+2026-08-31); steps 3–4 have not been started.**
 
-**The immediate next step is step 2 — warm-up ramps on loaded compounds,
-design §4.3.**
+**The immediate next step is step 3 — the exercise count becomes a residual,
+design §4.4 — and it is blocked; see finding B below.**
 
 What the gym session found, in the order it was found:
 
@@ -589,13 +616,15 @@ What the gym session found, in the order it was found:
    cool-down of static stretching and core that runs last. `SESSION_ORDER` and
    `orderClass` sort on role, with no day-type branching, and the session screen
    renders three groups — Prep, Main work, Cool-down. Basis §8, discrepancy 6.
-3. **Loaded lifts had no warm-up ramp at all.** Note the inconsistency this
-   exposed: §5.2 already prescribes a progressive ramp for sprints. The
-   principle was accepted and simply never applied to the barbell. Design §4.3.
-   **This is the resume point.**
+3. ~~**Loaded lifts had no warm-up ramp at all.**~~ — **done 2026-08-31,
+   `sw.js` v15.** Note the inconsistency this exposed: §5.2 already prescribes
+   a progressive ramp for sprints. The principle was accepted and simply never
+   applied to the barbell. `prescribe()` now attaches `block.setPlan` — see
+   §4.1a above. Design §4.3.
 4. **The exercise count was unsourced.** Four slots on max-strength and power,
    five on hypertrophy, invented and then cited to §4.3 of this file — this
    document citing itself. Design §4.4. **Still blocked** — see finding B below.
+   **This is now the resume point.**
 
 Two constants in the *first* draft of that design were also invented and were
 caught in review: a fixed warm-up ladder, and a purely time-driven exercise
@@ -621,8 +650,12 @@ Also carried out of step 1: the session total is **63 min measured, not the 60
 the design arithmetic claimed** — see basis §9, discrepancy 7. The 60 is a
 target; 63 is what the floors actually cost in the worst case.
 
-Build order is design §4.6. Step 1 is done and it freed the ~13 min the ramps
-are about to spend.
+Build order is design §4.6. Step 1 is done and it freed the ~13 min step 2's
+ramps now spend — measured, they did not lengthen sessions (average
+51.78 → 52.37 min over a 21,000-session sweep); `packToBudget` paid for the
+ramp minutes by shaving working sets instead (213,998 → 194,042, a 9.3% drop).
+See `design-mobility-and-warmup.md` §4.3's "as built" note and §8 open
+questions.
 
 Still queued, unchanged by the above:
 
