@@ -274,10 +274,19 @@ are kept because 20–40 m is pace-able by eye on any surface.
 
 Recorded deliberately, each traceable to a decision the user made:
 
-1. **History is proposals, not performance.** No confirmation step, so a skipped
-   or shortened session still counts as done. Every neglect-based nudge inherits
-   this error. Mitigation available later: a one-tap "did you finish this?" on
-   next launch.
+1. **History is proposals, not performance — MITIGATED 2026-08-30, `sw.js` v12.**
+   There is still no confirmation *during* a session, so a shortened one counts
+   as done. But the phantom entries are gone: on launch the app asks
+   **"Did you finish this?"** once per unanswered past day, most recent first,
+   and keeps asking until none are left. *I did it* marks the record
+   `confirmed`; *I didn't* **removes it from history entirely** — not a flag,
+   because a session he did not do must not reach the CNS account or the
+   neglect score, and absence is the cheapest guarantee of that. Today is never
+   asked about: it is still in progress, and its turn comes tomorrow.
+   `storage.pendingConfirmations` / `confirmSession` / `discardSession`.
+   **"No logging, no confirmation prompt" (§8) survives intact** — it was always
+   a rule about not interrupting the workout, and this asks about a day that is
+   already over.
 2. **No load progression.** The app never learns that the squat got stronger.
    Percentages track the user's PRs, which he updates in his own head. Correct
    given the design, but it means the app cannot drive progressive overload — it
@@ -454,8 +463,8 @@ identity — never a real address, since the repo is public.
    One thing to watch: because generating marks a session done (§1), merely
    opening the app on a rest day writes a completed session. That is §6
    limitation 1 playing out, and the mitigation named there — a one-tap "did
-   you finish this?" on next launch — is worth doing before the history gets
-   long enough to matter.
+   you finish this?" on next launch — **was built on 2026-08-30**, before the
+   history got long enough to matter.
 
 6. ~~`manifest.json` + `sw.js`~~ — **done.** Installable and offline.
    Every path is relative; Pages serves from `/GymBuddy/`, so a leading slash
@@ -552,12 +561,9 @@ are about to spend.
 
 Still queued, unchanged by the above:
 
-- **"Did you finish this?" on next launch** — §6 limitation 1. Opening the app
-  on a rest day writes a completed session, and those phantom entries feed the
-  rolling pattern counts, the CNS account and the neglect scoring. Cheapest to
-  fix while the history is short. **Now more urgent:** design §4.4 makes the
-  exercise count read those same `patternSets` counts, so phantom entries will
-  start distorting session *shape*, not just scoring.
+- ~~**"Did you finish this?" on next launch**~~ — **done 2026-08-30**, see §6
+  limitation 1. It was fixed while the history was still short, which was the
+  whole argument for doing it early.
 - **Soreness body map** — engine already done; `app.js` passes `soreness: {}`
   hardcoded. A UI job, not a generator job.
 - **Ban list.** `eligibleFor` already filters `profile.banned`; what is missing

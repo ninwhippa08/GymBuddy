@@ -394,6 +394,15 @@ body {
   color: var(--text);
 }
 
+/* The confirmation reuses .empty's calm centring; only the day being asked
+   about needs to stand out, because it is the thing he has to recognise. */
+.confirm-what {
+  color: var(--text);
+  font-weight: 600;
+  font-size: 1.05rem;
+  margin: 0 0 10px;
+}
+
 /* The per-block swap. A sibling of .block-flip, never a child of it: a button
    inside a button is invalid and the parser would close the outer one. */
 .block-swap {

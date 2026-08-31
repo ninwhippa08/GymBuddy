@@ -9,7 +9,8 @@ import { installDom } from './dom-shim.mjs';
 
 installDom();
 const {
-  loadLine, volumeLine, equipmentControl, renderNothingBuildable
+  loadLine, volumeLine, equipmentControl, renderNothingBuildable,
+  renderConfirmPrevious
 } = await import('../js/ui.js');
 
 test('a drill prints reps, never minutes', () => {
@@ -99,4 +100,38 @@ test('nothing buildable is a calm screen, not an error', () => {
   const node = renderNothingBuildable();
   assert.equal(node.className, 'empty');
   assert.ok(node.querySelector('h2').textContent.length > 0);
+});
+
+// --------------------------------------------------------------------------
+// "Did you finish this?" -- spec §6 limitation 1. One question, two taps.
+// --------------------------------------------------------------------------
+
+const PAST = { date: '2026-08-29', dayType: 'max-strength' };
+
+test('the question names the day it is asking about', () => {
+  const node = renderConfirmPrevious(PAST, { onYes(){}, onNo(){} });
+  const text = node.textContent;
+  assert.match(text, /Max Strength/, 'the day type is not named');
+  assert.match(text, /2026-08-29|Aug|29/, 'the date is not named');
+});
+
+test('yes and no each reach their own handler', () => {
+  let said = null;
+  const node = renderConfirmPrevious(PAST, {
+    onYes: () => { said = 'yes'; }, onNo: () => { said = 'no'; }
+  });
+  const buttons = node.querySelectorAll('button');
+  assert.equal(buttons.length, 2, 'expected exactly two answers');
+
+  buttons[0].dispatch('click');
+  assert.equal(said, 'yes');
+  buttons[1].dispatch('click');
+  assert.equal(said, 'no');
+});
+
+test('it is a question, not an error screen', () => {
+  // renderError is for a broken app. This is the app working correctly and
+  // asking something only he can answer. design §6.1 precedent.
+  const node = renderConfirmPrevious(PAST, { onYes(){}, onNo(){} });
+  assert.ok(!/error|wrong|failed/i.test(node.textContent));
 });

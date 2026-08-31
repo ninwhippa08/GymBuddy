@@ -9,10 +9,12 @@ import {
   resolveSession, offerableEquipment, swapBlock, makeRng
 } from './generator.js';
 import {
-  loadProfile, saveProfile, loadHistory, commitSession, sessionFor
+  loadProfile, saveProfile, loadHistory, commitSession, sessionFor,
+  pendingConfirmations, confirmSession, discardSession
 } from './storage.js';
 import {
-  renderSession, renderSetup, renderError, renderNothingBuildable, mount
+  renderSession, renderSetup, renderError, renderNothingBuildable,
+  renderConfirmPrevious, mount
 } from './ui.js';
 
 const root = document.getElementById('app');
@@ -123,6 +125,24 @@ function showSession({ reroll = false, excludeEquipment = null } = {}) {
   mount(root, renderSession(session, opts));
 }
 
+// Asked at LAUNCH only, never after a swap or a reroll -- those call
+// showSession directly. One question per unanswered day, most recent first,
+// and it keeps asking until none are left rather than clearing one per launch.
+// spec §6 limitation 1.
+function showPendingOrSession() {
+  const profile = loadProfile();
+  if (!profile || !profile.returnDate) return showSetup();
+
+  const pending = pendingConfirmations(loadHistory(), today());
+  if (!pending.length) return showSession();
+
+  const asking = pending[0];
+  mount(root, renderConfirmPrevious(asking, {
+    onYes: () => { confirmSession(asking.date); showPendingOrSession(); },
+    onNo: () => { discardSession(asking.date); showPendingOrSession(); }
+  }));
+}
+
 // --------------------------------------------------------------------------
 // Boot
 // --------------------------------------------------------------------------
@@ -141,7 +161,7 @@ async function boot() {
       'GymBuddy has to be served over http, not opened as a file.'
     ));
   }
-  showSession();
+  showPendingOrSession();
 }
 
 // --------------------------------------------------------------------------

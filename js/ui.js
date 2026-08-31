@@ -301,6 +301,27 @@ export function equipmentControl(items, selected = [], onChange = () => {}) {
   ]);
 }
 
+// spec §6 limitation 1. Also NOT renderError -- nothing is broken. Generating a
+// session marks it done, so opening the app on a rest day writes a workout he
+// never did; this is the app asking the one question only he can answer, once,
+// about a day that is already over. Never mid-session: he is not interrupted
+// between sets.
+export function renderConfirmPrevious(session, { onYes, onNo } = {}) {
+  return el('section', { class: 'empty confirm' }, [
+    el('h2', { text: 'Did you finish this?' }),
+    el('p', { class: 'confirm-what', text: `${titleCase(session.dayType)} — ${session.date}` }),
+    el('p', {
+      text: 'Opening the app writes the session down. If you did not train that day, say so and it will not count toward your load or your neglect scores.'
+    }),
+    el('div', { class: 'actions' }, [
+      el('button', { class: 'btn', type: 'button', text: 'I did it',
+                     onclick: () => onYes && onYes() }),
+      el('button', { class: 'btn btn-secondary', type: 'button', text: "I didn't",
+                     onclick: () => onNo && onNo() })
+    ])
+  ]);
+}
+
 // design §6.1. Deliberately NOT renderError: that screen is for a broken app,
 // and this is the app working correctly on a hard input.
 export function renderNothingBuildable() {

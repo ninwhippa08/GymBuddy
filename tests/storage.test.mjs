@@ -130,3 +130,81 @@ test('a corrupt blob reads EMPTY instead of throwing', () => {
   installStorage({ 'gymbuddy.v1': '{not json' });
   assert.deepEqual(storage.readAll().history, []);
 });
+
+// --------------------------------------------------------------------------
+// "Did you finish this?" -- spec §6 limitation 1, queued since Phase 1.
+//
+// Generating a session marks it done, so merely OPENING the app on a rest day
+// writes a completed session. Those phantom entries feed the rolling pattern
+// counts, the CNS account and the neglect scoring -- and since design §4.4 the
+// exercise count reads the same counts, so they distort session SHAPE too.
+//
+// The mitigation the spec names is a one-tap confirmation on next launch, not
+// a logging flow during the session: "no logging, no confirmation prompt"
+// stays true of the workout itself. Today's session is never asked about --
+// it is still in progress. It gets asked about tomorrow.
+// --------------------------------------------------------------------------
+
+test('a past session that was never confirmed is pending', () => {
+  const history = [
+    { date: '2026-08-30', dayType: 'max-strength' },
+    { date: '2026-08-29', dayType: 'hypertrophy' }
+  ];
+  const pending = storage.pendingConfirmations(history, '2026-08-30');
+  assert.deepEqual(pending.map(s => s.date), ['2026-08-29']);
+});
+
+test("today's session is never asked about -- it is still in progress", () => {
+  const history = [{ date: '2026-08-30', dayType: 'max-strength' }];
+  assert.deepEqual(storage.pendingConfirmations(history, '2026-08-30'), []);
+});
+
+test('a session already answered is not asked again', () => {
+  const history = [
+    { date: '2026-08-29', dayType: 'hypertrophy', confirmed: true },
+    { date: '2026-08-28', dayType: 'power' }
+  ];
+  const pending = storage.pendingConfirmations(history, '2026-08-30');
+  assert.deepEqual(pending.map(s => s.date), ['2026-08-28']);
+});
+
+test('several skipped days are all pending, newest first', () => {
+  const history = [
+    { date: '2026-08-29', dayType: 'a' },
+    { date: '2026-08-27', dayType: 'b' },
+    { date: '2026-08-25', dayType: 'c' }
+  ];
+  assert.deepEqual(
+    storage.pendingConfirmations(history, '2026-08-30').map(s => s.date),
+    ['2026-08-29', '2026-08-27', '2026-08-25']
+  );
+});
+
+test('answering yes keeps the session and stops the asking', () => {
+  installStorage();
+  storage.commitSession(sessionWith([], '2026-08-29'));
+  storage.confirmSession('2026-08-29');
+
+  assert.equal(storage.sessionFor('2026-08-29').confirmed, true);
+  assert.deepEqual(storage.pendingConfirmations(storage.loadHistory(), '2026-08-30'), []);
+});
+
+test('answering no removes the session from history entirely', () => {
+  // Not a flag -- gone. A session he did not do must not reach the CNS
+  // account or the neglect score, and the cheapest way to guarantee that is
+  // for it not to be there.
+  installStorage();
+  storage.commitSession(sessionWith([], '2026-08-29'));
+  storage.commitSession(sessionWith([], '2026-08-28'));
+  storage.discardSession('2026-08-29');
+
+  assert.equal(storage.sessionFor('2026-08-29'), null);
+  assert.deepEqual(storage.loadHistory().map(s => s.date), ['2026-08-28']);
+});
+
+test('discarding a date that is not there changes nothing', () => {
+  installStorage();
+  storage.commitSession(sessionWith([], '2026-08-28'));
+  storage.discardSession('2026-07-01');
+  assert.deepEqual(storage.loadHistory().map(s => s.date), ['2026-08-28']);
+});

@@ -90,6 +90,48 @@ export function sessionFor(date) {
   return readAll().history.find(s => s.date === date) || null;
 }
 
+// --------------------------------------------------------------------------
+// "Did you finish this?"  spec §6 limitation 1
+// --------------------------------------------------------------------------
+
+// Generating a session marks it done (spec §1), so merely OPENING the app on a
+// rest day writes a completed workout. Those phantom entries feed the rolling
+// pattern counts, the CNS account and the neglect score, and since design §4.4
+// the exercise count reads the same counts -- so they distort session SHAPE,
+// not just scoring.
+//
+// The answer the spec names is a one-tap confirmation on NEXT LAUNCH. That
+// keeps "no logging, no confirmation prompt" true of the workout itself: he is
+// never interrupted between sets, only asked once about a day that is already
+// over. Today is never pending -- it is still in progress, and it gets asked
+// about tomorrow.
+export function pendingConfirmations(history, today) {
+  return history
+    .filter(s => s.date < today && s.confirmed !== true)
+    .sort((a, b) => (a.date < b.date ? 1 : -1)); // newest first
+}
+
+export function confirmSession(date) {
+  const state = readAll();
+  const session = state.history.find(s => s.date === date);
+  if (!session) return false;
+  session.confirmed = true;
+  writeAll(state);
+  return true;
+}
+
+// Removed, not flagged. A session he did not do must not reach the CNS account
+// or the neglect score, and the cheapest way to guarantee that is for it not to
+// be in the history at all.
+export function discardSession(date) {
+  const state = readAll();
+  const before = state.history.length;
+  state.history = state.history.filter(s => s.date !== date);
+  if (state.history.length === before) return false;
+  writeAll(state);
+  return true;
+}
+
 export function clearAll() {
   try { localStorage.removeItem(KEY); } catch { /* nothing to do */ }
 }

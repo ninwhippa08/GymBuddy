@@ -15,7 +15,7 @@
 // differ. Forgetting this is the one way to ship an invisible update.
 // ------------------------------------------------------------------------
 
-const VERSION = 'v11';
+const VERSION = 'v12';
 const CACHE = `gymbuddy-${VERSION}`;
 
 // Relative, every one of them. GitHub Pages serves this from /GymBuddy/, not
