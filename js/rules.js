@@ -429,6 +429,11 @@ export const TIME = Object.freeze({
   // Used by the PACK step to estimate duration before trimming.
   SECONDS_PER_REP: 3,
   DEFAULT_REST_SEC: 120,
+  // Rest between warm-up sets. Deliberately shorter than DEFAULT_REST_SEC: a
+  // warm-up set is not taken near failure and does not need a working rest.
+  // [unverified] -- design §4.3 specifies the ladder but no rest for it, and
+  // no source was found. plan-05 decision 4. Tell the athlete it is a guess.
+  WARMUP_REST_SEC: 60,
   TRANSITION_SEC_PER_EXERCISE: 90,
   // Mobility work has no plates to change. Using the 90 s barbell figure put
   // the 3 min prep block at 8 min. [unverified] as an exact value.

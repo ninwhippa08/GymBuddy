@@ -243,3 +243,35 @@ test('a ramp does not inflate patternSets', () => {
       `seed ${seed}: patternSets ${counted} does not match working sets ${fromBlocks}`);
   }
 });
+
+import { estimateMinutes, packToBudget } from '../js/generator.js';
+
+test('a ramped lift is priced above the same lift without one', () => {
+  const squat = LIB.find(e => e.id === 'back-squat');
+  const withRamp = prescribe(SLOT, squat, ENV, rng, {});
+  assert.ok(withRamp.setPlan, 'this test needs a ramped block');
+  const without = { ...withRamp };
+  delete without.setPlan;
+  assert.ok(estimateMinutes([withRamp]) > estimateMinutes([without]),
+    'the warm-up sets cost nothing in the time estimate');
+});
+
+test('shaving a set shaves the plan with it', () => {
+  // packToBudget drops sets to fit the budget. A setPlan left at its old
+  // length would print more working sets than the block claims to have.
+  const squat = LIB.find(e => e.id === 'back-squat');
+  const block = prescribe(SLOT, squat, ENV, rng, {});
+  const { blocks } = packToBudget([block], 1);   // an impossible budget forces shaving
+  const out = blocks[0];
+  assert.equal(out.setPlan.filter(s => s.kind === 'work').length, out.sets);
+});
+
+test('trimming never removes a warm-up', () => {
+  // The ramp is the safety feature. Cutting IT to save a minute is the wrong
+  // end of the session to cut. basis §3.
+  const squat = LIB.find(e => e.id === 'back-squat');
+  const block = prescribe(SLOT, squat, ENV, rng, {});
+  const before = block.setPlan.filter(s => s.kind === 'warmup').length;
+  const { blocks } = packToBudget([block], 1);
+  assert.equal(blocks[0].setPlan.filter(s => s.kind === 'warmup').length, before);
+});

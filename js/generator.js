@@ -624,6 +624,14 @@ export function estimateMinutes(blocks) {
 
     sec += b.sets * b.reps * TIME.SECONDS_PER_REP * sides;
     sec += b.sets * (b.restSec || TIME.DEFAULT_REST_SEC);
+    // The ramp is real time on the clock. Its sets are short and its rests
+    // shorter, but four warm-up sets before a heavy squat is minutes, and the
+    // budget has to see them or packToBudget trims the wrong thing.
+    for (const s of (b.setPlan || [])) {
+      if (s.kind !== 'warmup') continue;
+      sec += s.reps * TIME.SECONDS_PER_REP * sides;
+      sec += TIME.WARMUP_REST_SEC;
+    }
     sec += transitionSec(b);
   }
   return Math.round(sec / 60);
