@@ -204,3 +204,73 @@ test('every joint the caller can pass has somewhere to sit on the figure', () =>
     .filter(v => /left:\d+%;top:\d+%/.test(v));
   assert.equal(placed.length, SORENESS_JOINTS.length);
 });
+
+// --------------------------------------------------------------------------
+// Both controls collapse. Measured 2026-08-30: expanded, the body map is 460px
+// and the equipment list 125px, which put the first exercise card at 884px --
+// below the fold on an 844px phone. The app's whole promise is that you open it
+// at the gym door and see the session, so the session comes first and the
+// controls fold away with their state still readable on the closed line.
+//
+// <details>/<summary> rather than a class and a click handler: it is native,
+// keyboard-operable and screen-reader-labelled for free, and it keeps working
+// if the script ever fails to run.
+// --------------------------------------------------------------------------
+
+test('the body map is collapsed until asked for', () => {
+  const node = sorenessMap(SORENESS_JOINTS, {}, () => {});
+  assert.equal(node.tagName, 'DETAILS');
+  assert.equal(node.getAttribute('open'), null, 'it must not start open');
+});
+
+test('the equipment control is collapsed until asked for', () => {
+  const node = equipmentControl(['barbell', 'bench'], [], () => {});
+  assert.equal(node.tagName, 'DETAILS');
+  assert.equal(node.getAttribute('open'), null);
+});
+
+test('what is marked is readable without opening the map', () => {
+  // The point of collapsing is lost if you have to open it to find out whether
+  // anything is set.
+  const node = sorenessMap(SORENESS_JOINTS, { knee: 'hurt', hip: 'sore' }, () => {});
+  const line = node.querySelector('summary').textContent;
+  assert.match(line, /knee hurt/);
+  assert.match(line, /hip sore/);
+});
+
+test('an unmarked map says so rather than showing a bare title', () => {
+  const node = sorenessMap(SORENESS_JOINTS, {}, () => {});
+  assert.match(node.querySelector('summary').textContent, /nothing/i);
+});
+
+test('what is excluded is readable without opening the equipment list', () => {
+  const node = equipmentControl(['barbell', 'bench'], ['barbell'], () => {});
+  assert.match(node.querySelector('summary').textContent, /barbell/);
+});
+
+test('collapsing does not cost the controls their behaviour', () => {
+  let seen = null;
+  const map = sorenessMap(SORENESS_JOINTS, {}, (j, l) => { seen = [j, l]; });
+  map.querySelectorAll('button')[0].dispatch('click');
+  assert.deepEqual(seen, [SORENESS_JOINTS[0], 'sore']);
+
+  let item = null;
+  const eq = equipmentControl(['barbell', 'bench'], [], q => { item = q; });
+  eq.querySelectorAll('input')[1].dispatch('change');
+  assert.equal(item, 'bench');
+});
+
+// Re-rendering must not close the panel under his finger. Every tap rebuilds
+// the whole screen (app.js mounts a fresh tree), so a <details> that defaults
+// to closed reopens closed after each joint -- marking a knee, a hip and a
+// shoulder would mean opening the map three times. The caller therefore owns
+// the open state and hands it back on the next render.
+test('a control can be rendered already open', () => {
+  assert.equal(sorenessMap(SORENESS_JOINTS, {}, () => {}, true).getAttribute('open'), '');
+  assert.equal(equipmentControl(['barbell'], [], () => {}, true).getAttribute('open'), '');
+});
+
+test('closed is still the default', () => {
+  assert.equal(sorenessMap(SORENESS_JOINTS, {}, () => {}).getAttribute('open'), null);
+  assert.equal(equipmentControl(['barbell'], [], () => {}).getAttribute('open'), null);
+});

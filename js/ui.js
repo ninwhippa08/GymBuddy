@@ -287,9 +287,15 @@ function blockGroup(title, blocks, cuesFor, onSwap) {
 // ticked because the default is that he has everything. Unticking regenerates.
 // The caller supplies the items; this function never reads the library.
 // design-equipment-and-swap.md §7.
-export function equipmentControl(items, selected = [], onChange = () => {}) {
-  return el('fieldset', { class: 'equip' }, [
-    el('legend', { text: "What's missing today?" }),
+export function equipmentControl(items, selected = [], onChange = () => {}, open = false) {
+  // Collapsed by default, with the state on the closed line -- see the note on
+  // sorenessMap below for why both controls fold away.
+  return el('details', { class: 'equip', open }, [
+    el('summary', {
+      text: selected.length
+        ? `What's missing today? — no ${selected.join(', ')}`
+        : "What's missing today? — you have everything"
+    }),
     ...items.map(item => el('label', { class: 'equip-item' }, [
       el('input', {
         type: 'checkbox',
@@ -335,11 +341,24 @@ function nextLevel(current) {
 // which would put a second element-building path into a file that has exactly
 // one. Divs with border-radius cost nothing and keep el() the only way nodes
 // are made here.
-export function sorenessMap(joints = [], soreness = {}, onCycle = () => {}) {
+export function sorenessMap(joints = [], soreness = {}, onCycle = () => {}, open = false) {
   const marked = joints.filter(j => soreness[j]).map(j => `${j} ${soreness[j]}`);
 
-  return el('fieldset', { class: 'soreness' }, [
-    el('legend', { text: "What's sore today?" }),
+  // Collapsed by default. Measured 2026-08-30: expanded, this control is 460px
+  // and the equipment list 125px, which put the first exercise card at 884px --
+  // past the fold on an 844px phone. The app's promise is that you open it at
+  // the gym door and see the session, so the session leads and the controls
+  // fold, with everything that is set still readable on the closed line.
+  //
+  // <details> rather than a class and a click handler: native, keyboard
+  // operable, announced by a screen reader as expandable, and it still works if
+  // the script never runs.
+  return el('details', { class: 'soreness', open }, [
+    el('summary', {
+      text: marked.length
+        ? `What's sore today? — ${marked.join(' · ')}`
+        : "What's sore today? — nothing marked"
+    }),
     el('div', { class: 'body' }, [
       // Decorative only. The buttons carry every name a screen reader needs,
       // so announcing the drawing as well would be noise.
@@ -365,13 +384,7 @@ export function sorenessMap(joints = [], soreness = {}, onCycle = () => {}) {
           onclick: () => onCycle(joint, nextLevel(level))
         });
       })
-    ]),
-    // Position is unambiguous to whoever drew it. A plain reading of what is
-    // actually set is the line he can check at a glance.
-    el('p', {
-      class: 'soreness-summary',
-      text: marked.length ? marked.join(' · ') : 'nothing marked — tap where it hurts'
-    })
+    ])
   ]);
 }
 
@@ -450,11 +463,14 @@ export function renderSession(
     swapNote ? el('p', { class: 'offer', text: swapNote }) : null,
     // Soreness sits above equipment: what hurts decides what the session may
     // contain at all, while missing equipment only decides how it is loaded.
+    // `open` is threaded from app.js: every tap rebuilds this whole tree, so a
+    // panel that defaulted to closed would shut under his finger between joints.
     soreness
-      ? sorenessMap(soreness.joints, soreness.current, soreness.onCycle)
+      ? sorenessMap(soreness.joints, soreness.current, soreness.onCycle, soreness.open)
       : null,
     equipment
-      ? equipmentControl(equipment.items, equipment.selected, equipment.onToggle)
+      ? equipmentControl(equipment.items, equipment.selected, equipment.onToggle,
+                         equipment.open)
       : null,
 
     // Prep and cool-down are fixed blocks with no template slot, so only the

@@ -353,17 +353,52 @@ body {
 }
 
 .equip {
-  margin: 0 0 24px;
+  margin: 0 0 20px;
   padding: 12px 14px;
   border: 1px solid var(--surface-edge);
   border-radius: var(--radius);
   background: var(--surface);
 }
 
-.equip legend {
-  padding: 0 6px;
+.equip summary,
+.soreness summary {
+  /* The closed line is the control most days, so it is a real tap target and
+     carries the state -- "no barbell", "knee hurt" -- not just a title. */
+  display: flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--text-dim);
   font-size: 0.88rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+/* The default triangle sits at a different place and size in every engine;
+   one drawn here stays put. */
+.equip summary::-webkit-details-marker,
+.soreness summary::-webkit-details-marker { display: none; }
+
+.equip summary::before,
+.soreness summary::before {
+  content: '';
+  flex: none;
+  width: 0;
+  height: 0;
+  margin-right: 10px;
+  border-left: 6px solid var(--text-dim);
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  transition: transform 0.15s;
+}
+
+.equip[open] summary::before,
+.soreness[open] summary::before { transform: rotate(90deg); }
+
+.equip summary:focus-visible,
+.soreness summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
 }
 
 /* Wraps to as many rows as it needs; each item is its own tap target. */
@@ -430,17 +465,11 @@ body {
    ------------------------------------------------------------------------- */
 
 .soreness {
-  margin: 0 0 16px;
+  margin: 0 0 12px;
   padding: 12px 14px;
   border: 1px solid var(--surface-edge);
   border-radius: var(--radius);
   background: var(--surface);
-}
-
-.soreness legend {
-  padding: 0 6px;
-  color: var(--text-dim);
-  font-size: 0.88rem;
 }
 
 /* The positioning context every dot is placed against. Fixed aspect so the
@@ -520,11 +549,6 @@ body {
   border-radius: 50%;
 }
 
-/* Colour says which; this line says what, and is the part that survives being
-   read aloud or seen by someone who cannot separate amber from red. */
-.soreness-summary {
-  margin: 8px 0 0;
-  text-align: center;
-  color: var(--text-dim);
-  font-size: 0.88rem;
-}
+/* Colour says which joint; the closed <summary> line says what, in words, and
+   is the part that survives being read aloud or seen by someone who cannot
+   separate amber from red. */

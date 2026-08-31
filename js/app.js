@@ -44,7 +44,9 @@ function showSetup() {
 // Generating a session marks it done, so a session already committed for today
 // is shown as-is rather than regenerated. Without this, every app launch would
 // silently replace the workout the user is halfway through. spec §1.
-function showSession({ reroll = false, excludeEquipment = null, soreChanged = false } = {}) {
+function showSession({
+  reroll = false, excludeEquipment = null, soreChanged = false, openPanel = null
+} = {}) {
   const profile = loadProfile();
   if (!profile || !profile.returnDate) return showSetup();
 
@@ -97,6 +99,7 @@ function showSession({ reroll = false, excludeEquipment = null, soreChanged = fa
     soreness: {
       joints: SORENESS_JOINTS,
       current: soreness,
+      open: openPanel === 'soreness',
       // Saved to the PROFILE before the rebuild, so the flag outlives today's
       // session -- that persistence is the whole point (spec §4.1). A `null`
       // level clears the joint rather than storing a falsy value that nothing
@@ -105,13 +108,16 @@ function showSession({ reroll = false, excludeEquipment = null, soreChanged = fa
         const next = { ...soreness };
         if (level) next[joint] = level; else delete next[joint];
         saveProfile({ ...profile, soreness: next });
-        showSession({ soreChanged: true, excludeEquipment: constraint });
+        showSession({ soreChanged: true, excludeEquipment: constraint,
+                      openPanel: 'soreness' });
       }
     },
     equipment: {
       items: offerableEquipment(session.blocks, library, constraint),
       selected: constraint,
+      open: openPanel === 'equipment',
       onToggle: item => showSession({
+        openPanel: 'equipment',
         excludeEquipment: constraint.includes(item)
           ? constraint.filter(q => q !== item)
           : [...constraint, item]

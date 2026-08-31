@@ -162,6 +162,9 @@ only thing standing between a college PR and a hurt back.
 
 ### 4.1 Soreness
 
+**Built 2026-08-30, `sw.js` v13.** `ui.sorenessMap`, wired in `app.js`, with the
+joint vocabulary in `rules.SORENESS_JOINTS`.
+
 Two severities, one tap each:
 
 - **Sore** — soft. Downweights exercises loading that joint; will still select
@@ -169,7 +172,30 @@ Two severities, one tap each:
 - **Hurt** — hard. Excludes every exercise loading that joint, no exception.
 
 Flags persist to the next session pre-checked, clearable with one tap. This gives
-a de facto chronic-injury profile without asking the user to maintain one.
+a de facto chronic-injury profile without asking the user to maintain one. They
+live on the **profile**, not the session, which is what makes them persist; the
+session records the soreness it was built from, the way it records
+`excludeEquipment`.
+
+**The map is a schematic figure with one dot per joint**, cycling
+clear → sore → hurt → clear, and it sits on the session screen beside the
+equipment control rather than gating it — the athlete's call, 2026-08-30,
+consistent with §8's "generate first, adjust second".
+
+**Both controls collapse, and this is not cosmetic.** Expanded, the map is 460px
+and the equipment list 125px, which put the first exercise card at 884px — past
+the fold on an 844px phone. The app's promise is that you open it at the gym
+door and see the session, so the session leads and the controls fold to a line
+that still carries their state ("What's sore today? — knee hurt"). Measured
+before and after: 884px → 362px. `<details>`/`<summary>`, so it is native,
+keyboard-operable and works with no script at all; `app.js` owns the open flag
+because every tap rebuilds the tree and the panel would otherwise shut between
+joints.
+
+**Known, and correct rather than surprising:** the four-hurt veto in
+`proposeDayType` only applies when the app *proposes* a day type. Changing
+soreness on a day already generated keeps that day type and drops the movements
+instead, because the athlete chose it directly.
 
 ### 4.2 Swap
 
@@ -564,8 +590,8 @@ Still queued, unchanged by the above:
 - ~~**"Did you finish this?" on next launch**~~ — **done 2026-08-30**, see §6
   limitation 1. It was fixed while the history was still short, which was the
   whole argument for doing it early.
-- **Soreness body map** — engine already done; `app.js` passes `soreness: {}`
-  hardcoded. A UI job, not a generator job.
+- ~~**Soreness body map**~~ — **done 2026-08-30**, see §4.1. The engine had been
+  finished since Phase 1; `app.js` passing a hardcoded `{}` was the whole gap.
 - **Ban list.** `eligibleFor` already filters `profile.banned`; what is missing
   is the UI to put something on that list. **The swap half of this item is
   done** — `swapBlock` re-fills one slot and the per-block control is wired
