@@ -275,3 +275,47 @@ test('a short cool-down that got what it asked for is not warned about', () => {
       `${s.dayType}/${s.seed}: warned about 2 stretches when the block asked for 2`);
   }
 });
+
+// --------------------------------------------------------------------------
+// The session records the soreness it was built from. spec §4.1.
+//
+// `excludeEquipment` already rides on the record so a reroll inherits it and a
+// reader can see what shaped the session. Soreness was hardcoded to `[]` --
+// an empty ARRAY, where the engine reads a map -- so the record silently
+// claimed nothing had been sore no matter what was passed in.
+// --------------------------------------------------------------------------
+
+test('a session records the soreness it was built from', () => {
+  const soreness = { knee: 'sore', shoulder: 'hurt' };
+  const s = generate({
+    library: LIB, profile: { returnDate: '2026-06-01', banned: [], plyoLevel: 'beginner' },
+    history: [], soreness, dayType: 'hypertrophy', seed: 11
+  });
+  assert.deepEqual(s.soreness, soreness);
+});
+
+test('no soreness records an empty map, not an empty array', () => {
+  const s = generate({
+    library: LIB, profile: { returnDate: '2026-06-01', banned: [], plyoLevel: 'beginner' },
+    history: [], soreness: {}, dayType: 'hypertrophy', seed: 11
+  });
+  assert.deepEqual(s.soreness, {});
+  assert.ok(!Array.isArray(s.soreness), 'the record shape must match what the engine reads');
+});
+
+test('a hurt joint really is absent from the session it produced', () => {
+  // The end of the chain, not just the flag: eligibleFor excludes on `hurt`,
+  // so nothing loading that joint may appear on the card.
+  const byId = new Map(LIB.map(e => [e.id, e]));
+  for (let seed = 1; seed <= 40; seed++) {
+    const s = generate({
+      library: LIB, profile: { returnDate: '2026-06-01', banned: [], plyoLevel: 'beginner' },
+      history: [], soreness: { knee: 'hurt' }, dayType: 'hypertrophy', seed
+    });
+    for (const b of s.blocks) {
+      const joints = (byId.get(b.exerciseId) || {}).joints || [];
+      assert.ok(!joints.includes('knee'),
+        `seed ${seed}: ${b.exerciseId} loads the knee under a hurt knee`);
+    }
+  }
+});

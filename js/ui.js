@@ -301,6 +301,80 @@ export function equipmentControl(items, selected = [], onChange = () => {}) {
   ]);
 }
 
+// The soreness body map. spec §4.1.
+//
+// Where each joint sits on the figure, as percentages of the box. These are
+// layout, not training rules, so they live here rather than in rules.js. The
+// vocabulary and its order arrive from the caller -- ui.js imports nothing and
+// reads no library, exactly like equipmentControl above -- and this map only
+// says where to draw each name it is given.
+const JOINT_AT = {
+  neck:     [50, 7],
+  shoulder: [31, 17],
+  scapula:  [69, 17],
+  thoracic: [50, 25],
+  elbow:    [24, 34],
+  lumbar:   [50, 38],
+  wrist:    [20, 47],
+  hip:      [50, 50],
+  knee:     [43, 69],
+  ankle:    [43, 88]
+};
+
+// Clear -> sore -> hurt -> clear. The cycle lives here and nowhere else: three
+// states in a fixed order is exactly the rule that drifts when the control and
+// its caller both know it. The caller is handed the level it should store.
+function nextLevel(current) {
+  if (current === 'sore') return 'hurt';
+  if (current === 'hurt') return null;
+  return 'sore';
+}
+
+// The figure is drawn in CSS, not SVG. `document.createElement('svg')` builds
+// an HTMLUnknownElement that never renders -- real SVG needs createElementNS,
+// which would put a second element-building path into a file that has exactly
+// one. Divs with border-radius cost nothing and keep el() the only way nodes
+// are made here.
+export function sorenessMap(joints = [], soreness = {}, onCycle = () => {}) {
+  const marked = joints.filter(j => soreness[j]).map(j => `${j} ${soreness[j]}`);
+
+  return el('fieldset', { class: 'soreness' }, [
+    el('legend', { text: "What's sore today?" }),
+    el('div', { class: 'body' }, [
+      // Decorative only. The buttons carry every name a screen reader needs,
+      // so announcing the drawing as well would be noise.
+      el('div', { class: 'figure', 'aria-hidden': 'true' }, [
+        el('span', { class: 'fig fig-head' }),
+        el('span', { class: 'fig fig-torso' }),
+        el('span', { class: 'fig fig-arm fig-arm-l' }),
+        el('span', { class: 'fig fig-arm fig-arm-r' }),
+        el('span', { class: 'fig fig-leg fig-leg-l' }),
+        el('span', { class: 'fig fig-leg fig-leg-r' })
+      ]),
+      ...joints.map(joint => {
+        const level = soreness[joint] || null;
+        const [x, y] = JOINT_AT[joint] || [50, 50];
+        return el('button', {
+          type: 'button',
+          class: `joint${level ? ` is-${level}` : ''}`,
+          style: `left:${x}%;top:${y}%`,
+          // The state is in the label, not only in the colour: red is not an
+          // accessible way to say a joint is excluded from every movement.
+          'aria-label': `${joint} — ${level || 'fine'}`,
+          title: `${joint} — ${level || 'fine'}`,
+          onclick: () => onCycle(joint, nextLevel(level))
+        });
+      })
+    ]),
+    // Position is unambiguous to whoever drew it. A plain reading of what is
+    // actually set is the line he can check at a glance.
+    el('p', {
+      class: 'soreness-summary',
+      text: marked.length ? marked.join(' · ') : 'nothing marked — tap where it hurts'
+    })
+  ]);
+}
+
 // spec §6 limitation 1. Also NOT renderError -- nothing is broken. Generating a
 // session marks it done, so opening the app on a rest day writes a workout he
 // never did; this is the app asking the one question only he can answer, once,
@@ -332,7 +406,7 @@ export function renderNothingBuildable() {
 }
 
 export function renderSession(
-  session, { onReroll, cuesFor, offer, equipment, onSwap, swapNote } = {}
+  session, { onReroll, cuesFor, offer, equipment, soreness, onSwap, swapNote } = {}
 ) {
   // Three groups, not two. Prep and cool-down do different jobs at opposite
   // ends of the session, and one "Mobility & core" heading hid that.
@@ -374,6 +448,11 @@ export function renderSession(
     // A dead control that silently does nothing is the failure mode this
     // design exists to avoid. design §5.3.
     swapNote ? el('p', { class: 'offer', text: swapNote }) : null,
+    // Soreness sits above equipment: what hurts decides what the session may
+    // contain at all, while missing equipment only decides how it is loaded.
+    soreness
+      ? sorenessMap(soreness.joints, soreness.current, soreness.onCycle)
+      : null,
     equipment
       ? equipmentControl(equipment.items, equipment.selected, equipment.onToggle)
       : null,

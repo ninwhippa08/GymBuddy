@@ -59,6 +59,26 @@ export const NON_NEGOTIABLE_EQUIPMENT = Object.freeze([
 // A gym can own a barbell and no trap bar; the reverse is not a room worth
 // modelling, and collapsing the directions would delete the main lift.
 // design-equipment-and-swap.md §3.1.
+// The soreness body map. spec §4.1.
+//
+// Head to toe, because the constant drives a figure that is read as a body --
+// alphabetical order would scatter the shoulder and the scapula to opposite
+// ends of a drawing where they sit a centimetre apart.
+//
+// This list must stay equal to the joint vocabulary the library actually
+// loads, and a test asserts exactly that. A movement added later carrying an
+// eleventh joint would otherwise be unreachable from the map: for a HURT joint
+// that is not a cosmetic gap but a safety claim the app quietly stops keeping.
+export const SORENESS_JOINTS = Object.freeze([
+  'neck', 'shoulder', 'scapula', 'thoracic', 'elbow',
+  'wrist', 'lumbar', 'hip', 'knee', 'ankle'
+]);
+
+// The only two the engine understands: `hurt` excludes every exercise loading
+// the joint (`eligibleFor`), `sore` multiplies its weight by 0.2. A third value
+// would be silently ignored by both, so the map offers no third value.
+export const SORENESS_LEVELS = Object.freeze(['sore', 'hurt']);
+
 export const EQUIPMENT_IMPLIES = Object.freeze({
   'trap-bar': Object.freeze(['barbell']),
   'safety-bar': Object.freeze(['barbell']),

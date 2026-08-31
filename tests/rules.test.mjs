@@ -1,6 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { MODALITIES, MOBILITY_DOSE, SESSION_ORDER, TIME } from '../js/rules.js';
+import {
+  MODALITIES, MOBILITY_DOSE, SESSION_ORDER, TIME, SORENESS_JOINTS, SORENESS_LEVELS
+} from '../js/rules.js';
+import { readFileSync } from 'node:fs';
 import { eligibleFor } from '../js/generator.js';
 
 test('the modality vocabulary is split and complete', () => {
@@ -67,4 +70,33 @@ test('a slot with no joints filter still sees everything', () => {
     tier: ['mobility'], patterns: ['mobility'], modality: 'mobility-dynamic'
   };
   assert.equal(eligibleFor(slot, lib, {}).length, 1);
+});
+
+// --------------------------------------------------------------------------
+// The soreness body map. spec §4.1.
+// --------------------------------------------------------------------------
+
+const SORE_LIB = JSON.parse(
+  readFileSync(new URL('../data/exercises.json', import.meta.url), 'utf8')
+).exercises;
+
+test('every joint the library loads has a place on the map', () => {
+  // The drift guard. A movement added later with an eleventh joint would
+  // otherwise be unreachable by the map -- silently un-excludable, which for a
+  // HURT joint is a safety claim the app would be failing to honour.
+  const inLibrary = new Set();
+  for (const e of SORE_LIB) for (const j of (e.joints || [])) inLibrary.add(j);
+  assert.deepEqual([...inLibrary].sort(), [...SORENESS_JOINTS].sort());
+});
+
+test('the map offers exactly the two severities the engine understands', () => {
+  // `hurt` excludes in eligibleFor, `sore` downweights. A third value would be
+  // silently ignored by both.
+  assert.deepEqual([...SORENESS_LEVELS], ['sore', 'hurt']);
+});
+
+test('the joints are ordered head to toe, not alphabetically', () => {
+  // The figure is read as a body, so the constant carries the body's order.
+  assert.equal(SORENESS_JOINTS[0], 'neck');
+  assert.equal(SORENESS_JOINTS[SORENESS_JOINTS.length - 1], 'ankle');
 });

@@ -1012,13 +1012,13 @@ export function generate({
 
   return finalise({
     chosen, env, architecture, proposal, ordered, packed, cooled,
-    unfilled, state, seed, now, excludeEquipment
+    unfilled, state, seed, now, excludeEquipment, soreness
   });
 }
 
 // Denormalise the counters at write time so the next generation never has to
 // recompute them while reading history. spec §3.2.
-function finalise({ chosen, env, architecture, proposal, ordered, packed, cooled, unfilled, state, seed, now, excludeEquipment }) {
+function finalise({ chosen, env, architecture, proposal, ordered, packed, cooled, unfilled, state, seed, now, excludeEquipment, soreness }) {
   const patternSets = {};
   let footContacts = 0, sprintMeters = 0, cnsLoad = 0;
   for (const b of ordered) {
@@ -1073,7 +1073,13 @@ function finalise({ chosen, env, architecture, proposal, ordered, packed, cooled
     pctCeiling: env.pctCeiling,
     reason: proposal.reason,
     candidates: proposal.candidates,
-    soreness: [],
+    // What the session was actually built from, not a placeholder. This was
+    // hardcoded to `[]` -- an empty ARRAY, where every reader of soreness
+    // treats it as a MAP of joint -> level -- so the record claimed nothing had
+    // been sore however the session was generated. Rides on the record for the
+    // same reason excludeEquipment does: a reroll inherits it, and a reader can
+    // see what shaped the day. spec §4.1.
+    soreness,
     // The constraint rides on the record, so a reroll inherits it and tomorrow
     // does not. design-equipment-and-swap.md §3.3.
     excludeEquipment,

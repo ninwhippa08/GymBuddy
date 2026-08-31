@@ -10,8 +10,9 @@ import { installDom } from './dom-shim.mjs';
 installDom();
 const {
   loadLine, volumeLine, equipmentControl, renderNothingBuildable,
-  renderConfirmPrevious
+  renderConfirmPrevious, sorenessMap
 } = await import('../js/ui.js');
+const { SORENESS_JOINTS } = await import('../js/rules.js');
 
 test('a drill prints reps, never minutes', () => {
   assert.equal(loadLine({ mode: 'drill', reps: 12, sets: 1 }), '12 reps');
@@ -134,4 +135,72 @@ test('it is a question, not an error screen', () => {
   // asking something only he can answer. design §6.1 precedent.
   const node = renderConfirmPrevious(PAST, { onYes(){}, onNo(){} });
   assert.ok(!/error|wrong|failed/i.test(node.textContent));
+});
+
+// --------------------------------------------------------------------------
+// The soreness body map. spec §4.1.
+//
+// The cycle lives in the control, not in the caller: three states in a fixed
+// order is exactly the kind of rule that drifts when two places both know it.
+// The caller is told the joint and the level it should now store.
+// --------------------------------------------------------------------------
+
+test('the map offers every joint the engine can act on', () => {
+  const node = sorenessMap(SORENESS_JOINTS, {}, () => {});
+  const buttons = node.querySelectorAll('button');
+  assert.equal(buttons.length, SORENESS_JOINTS.length);
+});
+
+test('a clear joint cycles to sore', () => {
+  let seen = null;
+  const node = sorenessMap(SORENESS_JOINTS, {}, (joint, level) => { seen = [joint, level]; });
+  node.querySelectorAll('button')[0].dispatch('click');
+  assert.deepEqual(seen, [SORENESS_JOINTS[0], 'sore']);
+});
+
+test('a sore joint cycles to hurt', () => {
+  let seen = null;
+  const node = sorenessMap(SORENESS_JOINTS, { knee: 'sore' }, (joint, level) => { seen = [joint, level]; });
+  const knee = node.querySelectorAll('button').find(b => /knee/.test(b.getAttribute('aria-label')));
+  knee.dispatch('click');
+  assert.deepEqual(seen, ['knee', 'hurt']);
+});
+
+test('a hurt joint cycles back to clear, reported as null', () => {
+  // null, not the string 'clear' or a missing argument: the caller stores it
+  // straight onto the soreness map and `undefined` there would read as "no
+  // opinion" in some places and "not sore" in others.
+  let seen = 'untouched';
+  const node = sorenessMap(SORENESS_JOINTS, { knee: 'hurt' }, (joint, level) => { seen = [joint, level]; });
+  const knee = node.querySelectorAll('button').find(b => /knee/.test(b.getAttribute('aria-label')));
+  knee.dispatch('click');
+  assert.deepEqual(seen, ['knee', null]);
+});
+
+test('a saved flag shows up pre-filled, not blank', () => {
+  // spec §4.1: flags persist to the next session pre-checked.
+  const node = sorenessMap(SORENESS_JOINTS, { knee: 'hurt', hip: 'sore' }, () => {});
+  const byJoint = j => node.querySelectorAll('button')
+    .find(b => new RegExp(`^${j}`).test(b.getAttribute('aria-label')));
+  assert.match(byJoint('knee').className, /is-hurt/);
+  assert.match(byJoint('hip').className, /is-sore/);
+  assert.ok(!/is-sore|is-hurt/.test(byJoint('ankle').className));
+});
+
+test('the state is in the label, not only in the colour', () => {
+  // Colour alone is not an accessible way to say "this one is excluded".
+  const node = sorenessMap(SORENESS_JOINTS, { knee: 'hurt' }, () => {});
+  const knee = node.querySelectorAll('button').find(b => /knee/.test(b.getAttribute('aria-label')));
+  assert.match(knee.getAttribute('aria-label'), /hurt/);
+});
+
+test('every joint the caller can pass has somewhere to sit on the figure', () => {
+  // ui.js owns the coordinates, rules.js owns the vocabulary, and nothing else
+  // would notice if the two drifted apart -- a joint with no position would
+  // render stacked in the corner rather than throw.
+  const node = sorenessMap(SORENESS_JOINTS, {}, () => {});
+  const placed = node.querySelectorAll('button')
+    .map(b => b.getAttribute('style'))
+    .filter(v => /left:\d+%;top:\d+%/.test(v));
+  assert.equal(placed.length, SORENESS_JOINTS.length);
 });

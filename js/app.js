@@ -1,13 +1,15 @@
 // app.js -- entry point and screen routing. spec §7
 //
 // Three states, no router: setup (no profile), session (normal), error, plus
-// the nothing-buildable screen. The swap control landed in v9 alongside the
-// equipment constraint; the soreness body map is still the outstanding one --
-// `soreness: {}` below is hardcoded. spec §8.
+// the nothing-buildable screen and the "did you finish this?" question.
+// The swap control landed in v9 with the equipment constraint; the soreness
+// body map landed in v13 and reads its flags off the profile, so they persist
+// between sessions. spec §4.1, §8.
 
 import {
   resolveSession, offerableEquipment, swapBlock, makeRng
 } from './generator.js';
+import { SORENESS_JOINTS } from './rules.js';
 import {
   loadProfile, saveProfile, loadHistory, commitSession, sessionFor,
   pendingConfirmations, confirmSession, discardSession
@@ -42,7 +44,7 @@ function showSetup() {
 // Generating a session marks it done, so a session already committed for today
 // is shown as-is rather than regenerated. Without this, every app launch would
 // silently replace the workout the user is halfway through. spec §1.
-function showSession({ reroll = false, excludeEquipment = null } = {}) {
+function showSession({ reroll = false, excludeEquipment = null, soreChanged = false } = {}) {
   const profile = loadProfile();
   if (!profile || !profile.returnDate) return showSetup();
 
@@ -50,19 +52,23 @@ function showSession({ reroll = false, excludeEquipment = null } = {}) {
   // The constraint lives on the record, so it survives a reroll and is gone
   // tomorrow -- which is what "this session only" means. design §3.3.
   const constraint = excludeEquipment ?? (saved && saved.excludeEquipment) ?? [];
+  // Soreness lives on the PROFILE, not the session: spec §4.1 makes the flags
+  // persist to the next session pre-checked, which is what turns them into a
+  // de facto chronic-injury profile without asking him to maintain one.
+  const soreness = profile.soreness || {};
 
   let session = saved;
   let offer = null;
 
   // A changed constraint rebuilds even when today's session is on the record:
   // that is the whole point of the control. Reroll clears `saved` already.
-  if (!session || excludeEquipment) {
+  if (!session || excludeEquipment || soreChanged) {
     try {
       const result = resolveSession({
         library,
         profile,
         history: loadHistory(),
-        soreness: {},          // Phase 2 -- body map. spec §4.1
+        soreness,
         dayType: session ? session.dayType : null,
         excludeEquipment: constraint,
         seed: Date.now()
@@ -88,6 +94,20 @@ function showSession({ reroll = false, excludeEquipment = null } = {}) {
     onReroll: () => showSession({ reroll: true, excludeEquipment: constraint }),
     cuesFor,
     offer,
+    soreness: {
+      joints: SORENESS_JOINTS,
+      current: soreness,
+      // Saved to the PROFILE before the rebuild, so the flag outlives today's
+      // session -- that persistence is the whole point (spec §4.1). A `null`
+      // level clears the joint rather than storing a falsy value that nothing
+      // downstream would recognise as "fine".
+      onCycle: (joint, level) => {
+        const next = { ...soreness };
+        if (level) next[joint] = level; else delete next[joint];
+        saveProfile({ ...profile, soreness: next });
+        showSession({ soreChanged: true, excludeEquipment: constraint });
+      }
+    },
     equipment: {
       items: offerableEquipment(session.blocks, library, constraint),
       selected: constraint,
@@ -100,7 +120,7 @@ function showSession({ reroll = false, excludeEquipment = null } = {}) {
     onSwap: slotId => {
       const { block, reason } = swapBlock(session, slotId, library, {
         venue: session.venue,
-        soreness: {},
+        soreness,
         banned: profile.banned || [],
         excludeEquipment: constraint,
         profile,
