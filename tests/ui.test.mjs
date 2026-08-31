@@ -10,7 +10,7 @@ import { installDom } from './dom-shim.mjs';
 installDom();
 const {
   loadLine, volumeLine, equipmentControl, renderNothingBuildable,
-  renderConfirmPrevious, sorenessMap
+  renderConfirmPrevious, sorenessMap, addMoveControl
 } = await import('../js/ui.js');
 const { SORENESS_JOINTS } = await import('../js/rules.js');
 
@@ -273,4 +273,77 @@ test('a control can be rendered already open', () => {
 test('closed is still the default', () => {
   assert.equal(sorenessMap(SORENESS_JOINTS, {}, () => {}).getAttribute('open'), null);
   assert.equal(equipmentControl(['barbell'], [], () => {}).getAttribute('open'), null);
+});
+
+// --------------------------------------------------------------------------
+// Capture a movement at the rack, send it to GitHub as an issue later.
+//
+// The link is a plain <a href> to GitHub's pre-filled new-issue form, so the
+// app never holds a token: he is already signed in on his phone and submits it
+// himself. Nothing here writes to the repo.
+// --------------------------------------------------------------------------
+
+const ISSUE_BASE = 'https://github.com/ninwhippa08/GymBuddy/issues/new';
+const paramsOf = href => new URL(href).searchParams;
+
+test('the add-move control is collapsed like the others', () => {
+  const node = addMoveControl([], ISSUE_BASE, {});
+  assert.equal(node.tagName, 'DETAILS');
+  assert.equal(node.getAttribute('open'), null);
+});
+
+test('the closed line says how many drafts are waiting', () => {
+  assert.match(addMoveControl([], ISSUE_BASE, {}).querySelector('summary').textContent, /add a move/i);
+  const two = addMoveControl(
+    [{ id: 'a', name: 'One', note: '' }, { id: 'b', name: 'Two', note: '' }],
+    ISSUE_BASE, {});
+  assert.match(two.querySelector('summary').textContent, /2/);
+});
+
+test('saving reports the name and the note', () => {
+  let seen = null;
+  const node = addMoveControl([], ISSUE_BASE, { onSave: (n, note) => { seen = [n, note]; } });
+  node.querySelector('input').value = 'Dumbbell Clean';
+  node.querySelector('textarea').value = 'like a power clean but with two dumbbells';
+  node.querySelectorAll('button').find(b => /save/i.test(b.textContent)).dispatch('click');
+  assert.deepEqual(seen, ['Dumbbell Clean', 'like a power clean but with two dumbbells']);
+});
+
+test('a nameless draft is not saved', () => {
+  // A row with no name is unremovable-looking clutter and tells me nothing.
+  let called = false;
+  const node = addMoveControl([], ISSUE_BASE, { onSave: () => { called = true; } });
+  node.querySelector('input').value = '   ';
+  node.querySelectorAll('button').find(b => /save/i.test(b.textContent)).dispatch('click');
+  assert.equal(called, false);
+});
+
+test('each draft carries a link that pre-fills the issue', () => {
+  const node = addMoveControl(
+    [{ id: 'a', name: 'Dumbbell Clean', note: 'two dumbbells' }], ISSUE_BASE, {});
+  const href = node.querySelector('a').getAttribute('href');
+  assert.ok(href.startsWith(ISSUE_BASE));
+  const p = paramsOf(href);
+  assert.match(p.get('title'), /Dumbbell Clean/);
+  assert.match(p.get('body'), /two dumbbells/);
+});
+
+test('a note full of URL punctuation arrives intact', () => {
+  // The one thing here that corrupts silently. `&` ends a query parameter and
+  // `#` ends the URL, so an unencoded note loses everything after the first one.
+  const note = 'clean & press #2 -- 50% of a "power clean"\nsecond line';
+  const node = addMoveControl([{ id: 'a', name: 'Odd & Name #1', note }], ISSUE_BASE, {});
+  const p = paramsOf(node.querySelector('a').getAttribute('href'));
+  assert.equal(p.get('body'), note, 'the note did not survive the round trip');
+  assert.match(p.get('title'), /Odd & Name #1/);
+});
+
+test('a draft can be thrown away by id', () => {
+  let removed = null;
+  const node = addMoveControl(
+    [{ id: 'abc', name: 'Bin Me', note: '' }], ISSUE_BASE,
+    { onRemove: id => { removed = id; } });
+  node.querySelectorAll('button').find(b => /remove|delete|✕|x/i.test(b.textContent))
+      .dispatch('click');
+  assert.equal(removed, 'abc');
 });

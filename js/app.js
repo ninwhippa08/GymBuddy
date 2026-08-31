@@ -12,7 +12,8 @@ import {
 import { SORENESS_JOINTS } from './rules.js';
 import {
   loadProfile, saveProfile, loadHistory, commitSession, sessionFor,
-  pendingConfirmations, confirmSession, discardSession
+  pendingConfirmations, confirmSession, discardSession,
+  addDraft, loadDrafts, removeDraft
 } from './storage.js';
 import {
   renderSession, renderSetup, renderError, renderNothingBuildable,
@@ -20,6 +21,11 @@ import {
 } from './ui.js';
 
 const root = document.getElementById('app');
+
+// GitHub's pre-filled new-issue form. A draft is sent by OPENING this link --
+// the app holds no token and writes nothing to the repo; he is already signed
+// in and submits it himself. design: capture here, author in a session.
+const ISSUE_BASE = 'https://github.com/ninwhippa08/GymBuddy/issues/new';
 
 let library = null;
 
@@ -110,6 +116,22 @@ function showSession({
         saveProfile({ ...profile, soreness: next });
         showSession({ soreChanged: true, excludeEquipment: constraint,
                       openPanel: 'soreness' });
+      }
+    },
+    // Neither of these regenerates: writing a note down must not reshuffle the
+    // workout he is halfway through. showSession is called with no
+    // excludeEquipment and no soreChanged, so it re-renders the saved session.
+    addMove: {
+      drafts: loadDrafts(),
+      issueBase: ISSUE_BASE,
+      open: openPanel === 'addmove',
+      onSave: (name, text) => {
+        addDraft(name, text);
+        showSession({ openPanel: 'addmove' });
+      },
+      onRemove: id => {
+        removeDraft(id);
+        showSession({ openPanel: 'addmove' });
       }
     },
     equipment: {

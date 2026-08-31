@@ -253,6 +253,45 @@ sets on a conditioning day.
 
 ---
 
+### 4.4 Adding a movement — capture here, author elsewhere
+
+**Built 2026-08-30, `sw.js` v14.** `ui.addMoveControl`, `storage.addDraft` /
+`loadDrafts` / `removeDraft`.
+
+The athlete's request: *"I will have a place where I can add a move to our move
+library … I will write the name and a brief definition."*
+
+**A draft is not a library entry, and the gap is the whole design.** An entry
+carries `pattern`, `tier` and `modalities`, which decide whether it can ever be
+selected and into which slot; `joints`, which is what a HURT joint excludes on
+(§4.1); `equipment`, which the missing-kit filter reads; and a `prCoef`, which
+is a load multiplier and by §8's standing rule arrives sourced or not at all.
+None of that can be guessed from a sentence typed between sets, and a movement
+admitted with guessed fields would start prescribing weight before anyone
+checked it. So a draft is a **name and a note**, stored where the generator
+cannot see it.
+
+**Sending is a link, not a write.** Each draft carries an `<a href>` to GitHub's
+pre-filled new-issue form, opened with his own signed-in session; he submits it
+himself. **The app holds no credential and writes nothing.** The alternative he
+first suggested — the app appending to a file in the repo — needs a token with
+write access, and this repo is public and the app ships its own source, so that
+token could never be stored safely on a phone. One tap on GitHub's own Submit
+button is cheaper than that trade.
+
+Both halves of the note are `encodeURIComponent`-ed. `&` ends a query parameter
+and `#` ends a URL, so an unencoded note silently loses everything after the
+first one it contains; there is a test for exactly that string.
+
+Drafts are never auto-cleared when Send is tapped — the app cannot know whether
+the issue was actually submitted, and a draft that vanished on an abandoned tap
+would be the one thing this feature must not do. He deletes them himself.
+
+**The loop:** capture at the rack, offline → tap Send when back on signal → say
+"there are new entries" in a session → the issues are read with the public API,
+the fields are written and the `prCoef` sourced, the entry is committed to
+`exercises.json`, and the issue is closed.
+
 ## 5. Day types
 
 | Day type | Venue | Volume unit | Intensity (§1) | CNS |

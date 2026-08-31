@@ -11,7 +11,8 @@ const KEY = 'gymbuddy.v1';
 const EMPTY = Object.freeze({
   schemaVersion: 1,
   profile: null,
-  history: []
+  history: [],
+  drafts: []
 });
 
 // --------------------------------------------------------------------------
@@ -25,18 +26,21 @@ export function readAll() {
   try {
     raw = localStorage.getItem(KEY);
   } catch {
-    return { ...EMPTY, history: [] }; // private mode, storage disabled
+    return { ...EMPTY, history: [], drafts: [] }; // private mode, storage disabled
   }
-  if (!raw) return { ...EMPTY, history: [] };
+  if (!raw) return { ...EMPTY, history: [], drafts: [] };
   try {
     const parsed = JSON.parse(raw);
     return {
       schemaVersion: parsed.schemaVersion || 1,
       profile: parsed.profile || null,
-      history: Array.isArray(parsed.history) ? parsed.history : []
+      history: Array.isArray(parsed.history) ? parsed.history : [],
+      // Absent in every store written before drafts existed, so it is defaulted
+      // here rather than at each call site.
+      drafts: Array.isArray(parsed.drafts) ? parsed.drafts : []
     };
   } catch {
-    return { ...EMPTY, history: [] };
+    return { ...EMPTY, history: [], drafts: [] };
   }
 }
 
@@ -134,4 +138,44 @@ export function discardSession(date) {
 
 export function clearAll() {
   try { localStorage.removeItem(KEY); } catch { /* nothing to do */ }
+}
+
+// --------------------------------------------------------------------------
+// Movement drafts
+// --------------------------------------------------------------------------
+
+// A draft is a NAME AND A NOTE, and deliberately nothing else. A library entry
+// carries pattern, tier, modalities, joints, equipment and a sourced prCoef --
+// which decide whether it can be selected at all, what a hurt joint excludes,
+// and how much weight goes on the bar. None of that can be guessed from a
+// sentence typed at a rack, so a draft is kept where the generator cannot see
+// it and is turned into an entry by hand, sourced, later.
+let draftSeq = 0;
+
+export function addDraft(name, note = '') {
+  const state = readAll();
+  const draft = {
+    // Date.now() alone collides when two are saved in the same millisecond, and
+    // removal is by id -- a collision would delete the wrong row.
+    id: `d${Date.now()}-${draftSeq++}`,
+    name: String(name).trim(),
+    note: String(note).trim(),
+    created: new Date().toISOString()
+  };
+  state.drafts.unshift(draft);          // newest first, the order they are read in
+  writeAll(state);
+  return draft;
+}
+
+export function loadDrafts() {
+  return readAll().drafts;
+}
+
+export function removeDraft(id) {
+  const state = readAll();
+  const before = state.drafts.length;
+  state.drafts = state.drafts.filter(d => d.id !== id);
+  if (state.drafts.length === before) return false;
+  writeAll(state);
+  return true;
 }

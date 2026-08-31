@@ -388,6 +388,69 @@ export function sorenessMap(joints = [], soreness = {}, onCycle = () => {}, open
   ]);
 }
 
+// Capture a movement at the rack; send it to GitHub as an issue later.
+//
+// The Send control is a plain link to GitHub's pre-filled new-issue form. The
+// app holds NO credential and writes nothing: he is already signed in on his
+// phone, and he submits the issue himself. Writing to a file in the repo would
+// have needed a token with write access living in a public app on a phone,
+// which is not a trade worth making to save one tap.
+//
+// A draft is a name and a note, and stays out of the library: pattern, tier,
+// modalities, joints and a sourced prCoef decide what a movement is allowed to
+// do to him, and none of those can be guessed from a sentence typed between
+// sets.
+export function addMoveControl(drafts = [], issueBase = '', handlers = {}, open = false) {
+  const { onSave = () => {}, onRemove = () => {} } = handlers;
+  const name = el('input', { type: 'text', class: 'draft-name',
+                             placeholder: 'Dumbbell Clean' });
+  const note = el('textarea', { class: 'draft-note', rows: '2',
+                                placeholder: 'what it is, in a sentence' });
+
+  const save = () => {
+    // Read off the node, not off a keystroke handler: one source of truth for
+    // what is in the box, and nothing to keep in sync while he types.
+    const n = String(name.value || '').trim();
+    if (!n) return;                       // a nameless row tells me nothing
+    onSave(n, String(note.value || '').trim());
+    name.value = '';
+    note.value = '';
+  };
+
+  return el('details', { class: 'addmove', open }, [
+    el('summary', {
+      text: drafts.length
+        ? `Add a move — ${drafts.length} waiting to send`
+        : 'Add a move'
+    }),
+    el('div', { class: 'draft-form' }, [
+      name,
+      note,
+      el('button', { type: 'button', class: 'btn btn-secondary', text: 'Save',
+                     onclick: save })
+    ]),
+    el('ul', { class: 'draft-list' }, drafts.map(d => el('li', { class: 'draft' }, [
+      el('span', { class: 'draft-title', text: d.name }),
+      // encodeURIComponent on both halves: `&` ends a query parameter and `#`
+      // ends the URL, so an unencoded note silently loses everything after the
+      // first one it contains.
+      el('a', {
+        class: 'draft-send',
+        href: `${issueBase}?title=${encodeURIComponent(`New movement: ${d.name}`)}`
+            + `&body=${encodeURIComponent(d.note || '')}`,
+        target: '_blank',
+        rel: 'noopener',
+        text: 'send'
+      }),
+      el('button', {
+        type: 'button', class: 'draft-remove', text: 'remove',
+        'aria-label': `remove ${d.name}`,
+        onclick: () => onRemove(d.id)
+      })
+    ])))
+  ]);
+}
+
 // spec §6 limitation 1. Also NOT renderError -- nothing is broken. Generating a
 // session marks it done, so opening the app on a rest day writes a workout he
 // never did; this is the app asking the one question only he can answer, once,
@@ -419,7 +482,8 @@ export function renderNothingBuildable() {
 }
 
 export function renderSession(
-  session, { onReroll, cuesFor, offer, equipment, soreness, onSwap, swapNote } = {}
+  session,
+  { onReroll, cuesFor, offer, equipment, soreness, addMove, onSwap, swapNote } = {}
 ) {
   // Three groups, not two. Prep and cool-down do different jobs at opposite
   // ends of the session, and one "Mobility & core" heading hid that.
@@ -471,6 +535,13 @@ export function renderSession(
     equipment
       ? equipmentControl(equipment.items, equipment.selected, equipment.onToggle,
                          equipment.open)
+      : null,
+    // Last of the three: it changes nothing about today's session, it only
+    // writes something down for later.
+    addMove
+      ? addMoveControl(addMove.drafts, addMove.issueBase,
+                       { onSave: addMove.onSave, onRemove: addMove.onRemove },
+                       addMove.open)
       : null,
 
     // Prep and cool-down are fixed blocks with no template slot, so only the

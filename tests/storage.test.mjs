@@ -122,7 +122,8 @@ test('a disabled store reads EMPTY instead of throwing', () => {
     setItem() { throw new Error('private mode'); },
     removeItem() { throw new Error('private mode'); }
   };
-  assert.deepEqual(storage.readAll(), { schemaVersion: 1, profile: null, history: [] });
+  assert.deepEqual(storage.readAll(),
+    { schemaVersion: 1, profile: null, history: [], drafts: [] });
   assert.equal(storage.writeAll({ history: [] }), false);
 });
 
@@ -207,4 +208,63 @@ test('discarding a date that is not there changes nothing', () => {
   storage.commitSession(sessionWith([], '2026-08-28'));
   storage.discardSession('2026-07-01');
   assert.deepEqual(storage.loadHistory().map(s => s.date), ['2026-08-28']);
+});
+
+// --------------------------------------------------------------------------
+// Movement drafts. Captured at the rack, sent to GitHub as an issue later.
+//
+// A draft is NOT a library entry and must never be mistaken for one: a real
+// entry carries pattern, tier, modalities, joints, equipment and a sourced
+// prCoef, and those decide whether it can be selected, what a hurt joint
+// excludes, and how much weight goes on the bar. A draft is a name and a note
+// -- the raw material for that work, kept where the generator cannot see it.
+// --------------------------------------------------------------------------
+
+test('a draft comes back with what was written on it', () => {
+  installStorage();
+  const saved = storage.addDraft('Dumbbell Clean', 'like a power clean but with two dumbbells');
+  assert.equal(saved.name, 'Dumbbell Clean');
+  assert.equal(saved.note, 'like a power clean but with two dumbbells');
+  assert.ok(saved.id, 'a draft needs an id to be removable');
+});
+
+test('drafts come back newest first', () => {
+  installStorage();
+  storage.addDraft('First', 'a');
+  storage.addDraft('Second', 'b');
+  assert.deepEqual(storage.loadDrafts().map(d => d.name), ['Second', 'First']);
+});
+
+test('removing one draft leaves the others', () => {
+  installStorage();
+  const a = storage.addDraft('Keep Me', 'x');
+  const b = storage.addDraft('Bin Me', 'y');
+  storage.removeDraft(b.id);
+  assert.deepEqual(storage.loadDrafts().map(d => d.name), ['Keep Me']);
+  assert.equal(storage.loadDrafts()[0].id, a.id);
+});
+
+test('two drafts written in the same millisecond get different ids', () => {
+  // Removal is by id. Ids that collide would delete the wrong row, and a
+  // timestamp alone collides exactly when someone taps twice quickly.
+  installStorage();
+  const a = storage.addDraft('One', '');
+  const b = storage.addDraft('Two', '');
+  assert.notEqual(a.id, b.id);
+});
+
+test('drafts live beside the profile and history, not instead of them', () => {
+  installStorage();
+  storage.saveProfile({ returnDate: '2026-06-01', banned: [] });
+  storage.commitSession(sessionWith([], '2026-08-30'));
+  storage.addDraft('Dumbbell Clean', 'note');
+
+  assert.equal(storage.loadProfile().returnDate, '2026-06-01');
+  assert.equal(storage.loadHistory().length, 1);
+  assert.equal(storage.loadDrafts().length, 1);
+});
+
+test('a store that has never held a draft reads as none, not as a crash', () => {
+  installStorage({ 'gymbuddy.v1': JSON.stringify({ schemaVersion: 1, profile: null, history: [] }) });
+  assert.deepEqual(storage.loadDrafts(), []);
 });
