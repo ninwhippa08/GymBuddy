@@ -245,3 +245,61 @@ test('the constraint never smuggles a non-negotiable onto the list', () => {
   assert.ok(!items.includes('wall'));
   assert.ok(items.includes('barbell'));
 });
+
+// --------------------------------------------------------------------------
+// Specialty bars ARE barbells. Found in the gym 2026-08-30.
+//
+// The athlete unticked the barbell on a hypertrophy day and said "nothing
+// happened": the squat slot came back Safety-Bar Squat, and swap offered a
+// Trap-Bar Deadlift. Both are barbells. So is a landmine -- it is a barbell
+// with one end in a floor sleeve.
+//
+// The equipment model treated `safety-bar`, `trap-bar` and `landmine` as items
+// independent of `barbell`, so excluding the barbell left all five entries
+// standing. The conjunction filter was working exactly as written; what was
+// wrong is that the data says these movements do not need a bar.
+// --------------------------------------------------------------------------
+
+// The four ways a bar reaches the gym floor. Named here rather than imported
+// so the test states the physical claim and production has to honour it.
+const BARS = ['barbell', 'trap-bar', 'safety-bar', 'landmine'];
+const usesABar = id => {
+  const e = LIB.find(x => x.id === id);
+  return (e.equipment || []).some(q => BARS.includes(q));
+};
+
+test('excluding the barbell excludes the specialty bars too', () => {
+  // The five entries that need a bar without being tagged `barbell`.
+  for (const id of ['safety-bar-squat', 'trap-bar-deadlift', 'trap-bar-carry',
+                    'landmine-push-press', 'landmine-rainbow']) {
+    const entry = LIB.find(e => e.id === id);
+    const slot = { tier: entry.tier, patterns: [entry.pattern], modality: entry.modality };
+    const survivors = eligibleFor(slot, LIB, { venue: 'gym', excludeEquipment: ['barbell'] })
+      .map(e => e.id);
+    assert.ok(!survivors.includes(id),
+      `excluding the barbell left ${id} eligible -- it needs a bar`);
+  }
+});
+
+test('no session built without a barbell contains a bar movement', () => {
+  for (const dayType of ['max-strength', 'hypertrophy', 'power']) {
+    for (let seed = 1; seed <= 120; seed++) {
+      const s = generate({
+        library: LIB, profile: { returnDate: '2026-08-01', banned: [], plyoLevel: 'beginner' },
+        history: [], soreness: {}, dayType, excludeEquipment: ['barbell'], seed
+      });
+      for (const b of s.blocks) {
+        assert.ok(!usesABar(b.exerciseId),
+          `${dayType} seed ${seed}: ${b.exerciseId} needs a bar under a no-barbell constraint`);
+      }
+    }
+  }
+});
+
+test('the implication runs one way -- no trap bar still leaves the straight bar', () => {
+  // A gym can own a barbell and no trap bar. The reverse -- a trap bar and no
+  // barbell at all -- is not a room this app has to model, and collapsing the
+  // two directions would silently delete the main lift.
+  assert.ok(ids(MAIN_LIFT, ['trap-bar']).includes('back-squat'));
+  assert.ok(ids(MAIN_LIFT, ['landmine']).includes('back-squat'));
+});

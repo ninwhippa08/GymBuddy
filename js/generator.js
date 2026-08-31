@@ -22,7 +22,7 @@ import {
   HIGH_CNS_DAY_TYPES, PLYO_CONTACTS_PER_SESSION, PLYO_TRANSITION_WEEKLY_CAP,
   PLYO_TRANSITION_LAST_WEEK, PLYO_RECOVERY_HOURS, SPRINT, SESSION_ORDER, TIME,
   CHRONIC, CHRONIC_BOOSTABLE,
-  ALL_TIERS, NON_NEGOTIABLE_EQUIPMENT
+  ALL_TIERS, NON_NEGOTIABLE_EQUIPMENT, EQUIPMENT_IMPLIES
 } from './rules.js';
 
 import {
@@ -332,6 +332,19 @@ export function chooseArchitecture(dayType, rng, { phase1 = true } = {}) {
 // 6  FILL
 // --------------------------------------------------------------------------
 
+// Everything an entry actually needs, not just what it lists. A trap-bar
+// deadlift declares `trap-bar`; it also needs a bar, because a trap bar is one.
+// EQUIPMENT_IMPLIES carries that, so "no barbell" reaches the movements whose
+// handle happens to have its own name. rules.js EQUIPMENT_IMPLIES.
+export function equipmentNeededBy(entry) {
+  const declared = entry.equipment || [];
+  const out = new Set(declared);
+  for (const q of declared) {
+    for (const implied of EQUIPMENT_IMPLIES[q] || []) out.add(implied);
+  }
+  return [...out];
+}
+
 // 'hurt' excludes without exception; 'sore' downweights but can still be
 // selected if nothing else fits. spec §4.1.
 export function eligibleFor(slot, library, ctx) {
@@ -345,7 +358,7 @@ export function eligibleFor(slot, library, ctx) {
     // out. Hence `.some`, not `.every`.
     // design-equipment-and-swap.md §3.1.
     if (excludeEquipment.length &&
-        (e.equipment || []).some(q => excludeEquipment.includes(q))) return false;
+        equipmentNeededBy(e).some(q => excludeEquipment.includes(q))) return false;
     if (!slot.tier.includes(e.tier)) return false;
     if (slot.patterns && !slot.patterns.includes(e.pattern)) return false;
     if (slot.modality && !e.modalities.includes(slot.modality)) return false;

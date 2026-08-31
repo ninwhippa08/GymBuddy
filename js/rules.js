@@ -44,6 +44,27 @@ export const NON_NEGOTIABLE_EQUIPMENT = Object.freeze([
   'bodyweight', 'open-space', 'wall'
 ]);
 
+// A specialty bar IS a barbell. A trap bar and a safety squat bar are barbells
+// with different handles; a landmine is a barbell with one end in a floor
+// sleeve. The library tags them by their handle, which is the right name for
+// the movement and the wrong answer to "there is no barbell here".
+//
+// Found in the gym 2026-08-30: the athlete unticked the barbell on a
+// hypertrophy day, got a Safety-Bar Squat back, and swap offered him a Trap-Bar
+// Deadlift. Nothing was wrong with the filter -- the data said these movements
+// do not need a bar.
+//
+// Read as "having X requires having Y", and used ONE WAY: excluding `barbell`
+// excludes all three, while excluding `trap-bar` leaves the straight bar alone.
+// A gym can own a barbell and no trap bar; the reverse is not a room worth
+// modelling, and collapsing the directions would delete the main lift.
+// design-equipment-and-swap.md §3.1.
+export const EQUIPMENT_IMPLIES = Object.freeze({
+  'trap-bar': Object.freeze(['barbell']),
+  'safety-bar': Object.freeze(['barbell']),
+  'landmine': Object.freeze(['barbell'])
+});
+
 // The three main-work tiers. Used only to widen a slot that came back EMPTY
 // under an equipment constraint -- never to widen one that filled. `tier`
 // ranks how central a movement is; it is not a safety rule, which is why

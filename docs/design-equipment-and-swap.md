@@ -126,6 +126,32 @@ than where the other rules live. And a pre-filtered library destroys the
 because a knee hurts" from "because there is no rack", which is precisely the
 sentence §4.3 has to write.
 
+**A specialty bar IS a barbell — added 2026-08-30, after the gym found it.**
+The athlete unticked the barbell on a hypertrophy day and said nothing
+happened. He was right. The squat slot came back **Safety-Bar Squat**, and the
+swap control offered a **Trap-Bar Deadlift**. Five entries need a bar without
+being tagged `barbell`: `safety-bar-squat`, `trap-bar-deadlift`,
+`trap-bar-carry`, `landmine-push-press`, `landmine-rainbow`.
+
+Nothing was wrong with the conjunction. The data was wrong: a trap bar and a
+safety squat bar are barbells with different handles, and a landmine is a
+barbell with one end in a floor sleeve. The library names them by their handle,
+which is the right name for the movement and the wrong answer to "there is no
+barbell here".
+
+`rules.js EQUIPMENT_IMPLIES` carries the missing fact, read as *having X
+requires having Y*, and `equipmentNeededBy` expands an entry before the filter
+sees it. It is used **one way**: excluding `barbell` excludes all three
+specialty bars, while excluding `trap-bar` leaves the straight bar alone. A gym
+can own a barbell and no trap bar; the reverse is not a room worth modelling,
+and collapsing the directions would delete the main lift. The one-way property
+has its own test, so a later edit cannot quietly make it symmetric.
+
+**The lesson is the same one §3.1 already half-states:** the filter can only be
+as true as the equipment arrays. This was not a code defect and no amount of
+reading `eligibleFor` would have found it — it took the athlete standing in a
+gym looking at a bar the app had told him he did not need.
+
 ### 3.2 Non-negotiable equipment
 
 Three values are never offered as missing:

@@ -100,3 +100,35 @@ test('a swap during the ramp is capped and says so', () => {
   const { block } = swapBlock(rampSession, rampTarget.slot, LIB, ctx, makeRng(3));
   assert.ok(block.rampLimited, 'a week-1 swap came back uncapped');
 });
+
+// --------------------------------------------------------------------------
+// A swap must honour the equipment constraint. Found in the gym 2026-08-30:
+// the athlete unticked the barbell, hit swap, and was handed another bar
+// movement. The filter was right; the data called a trap bar something other
+// than a barbell. rules.js EQUIPMENT_IMPLIES.
+// --------------------------------------------------------------------------
+
+test('a swap under a no-barbell constraint never returns a bar movement', () => {
+  const BARS = ['barbell', 'trap-bar', 'safety-bar', 'landmine'];
+  const profile = { returnDate: '2026-06-01', banned: [], plyoLevel: 'beginner' };
+  let swaps = 0;
+
+  for (const dayType of ['max-strength', 'hypertrophy', 'power']) {
+    for (let seed = 1; seed <= 30; seed++) {
+      const s = generate({ library: LIB, profile, history: [], soreness: {},
+                           dayType, excludeEquipment: ['barbell'], seed });
+      for (const b of s.blocks) {
+        const { block } = swapBlock(s, b.slot, LIB,
+          { venue: s.venue, soreness: {}, banned: [], excludeEquipment: ['barbell'],
+            profile, history: [] },
+          makeRng(seed * 31));
+        if (!block) continue;
+        swaps++;
+        const eq = (byId.get(block.exerciseId) || {}).equipment || [];
+        assert.ok(!eq.some(q => BARS.includes(q)),
+          `${dayType} seed ${seed} ${b.slot}: swap returned ${block.exerciseId} ${JSON.stringify(eq)}`);
+      }
+    }
+  }
+  assert.ok(swaps > 100, `only ${swaps} swaps exercised -- the sweep proved little`);
+});
