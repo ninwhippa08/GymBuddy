@@ -606,15 +606,38 @@ export function swapBlock(session, slotId, library, ctx, rng) {
   const state = buildState(ctx.profile || {}, ctx.history || [], Date.now());
 
   // Everything already in the session, so a swap cannot hand back a movement
-  // he is doing three cards further down.
-  const excludeIds = new Set(session.blocks.map(b => b.exerciseId));
+  // he is doing three cards further down -- plus everything this slot has
+  // already offered and had rejected. Without that memory a repeat tap
+  // reshuffles the same handful instead of moving through them: measured on a
+  // power day, fifteen swaps of one clean returned only seven distinct lifts,
+  // trap-bar-deadlift twice and squat-clean three times. spec §4.2.
+  const rejected = (session.rejected && session.rejected[slotId]) || [];
+  const excludeIds = new Set([...session.blocks.map(b => b.exerciseId), ...rejected]);
   const narrowed = { ...slot, patterns: [entry.pattern] };
-  const exercise = fillSlot(narrowed, library, { ...ctx, state, excludeIds }, rng);
+  let exercise = fillSlot(narrowed, library, { ...ctx, state, excludeIds }, rng);
+
+  // Only once the slot's own tier is spent. Every primary hinge in the library
+  // is a barbell movement, so a clean's seven alternatives are seven bars and
+  // the dumbbell and kettlebell answers sit a tier below, unreachable. Widening
+  // after exhaustion is the same rule generate() applies to an empty required
+  // slot, and it keeps the ranking honest: the central movements are offered
+  // first and the tier only opens when there are no central answers left.
+  // design-equipment-and-swap.md §4.2, §5.
+  let tierRelaxed = false;
+  if (!exercise) {
+    exercise = fillSlot({ ...narrowed, tier: ALL_TIERS }, library,
+                        { ...ctx, state, excludeIds }, rng);
+    tierRelaxed = Boolean(exercise);
+  }
+
   if (!exercise) {
     return { block: null, reason: `no other ${entry.pattern} movement is available` };
   }
 
-  return { block: prescribe(slot, exercise, env, rng, state), reason: null };
+  const block = prescribe(slot, exercise, env, rng, state);
+  // Flagged, never silent -- the card already knows how to say this. design §1.2.
+  if (tierRelaxed) block.tierRelaxed = true;
+  return { block, reason: null };
 }
 
 // What the "what's missing today?" control offers: the equipment THIS session

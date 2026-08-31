@@ -185,11 +185,25 @@ from a rebuilt profile. A swap joins a card whose other blocks were all priced
 under one ramp ceiling, and recomputing lets it disagree with them. The ramp is
 not skippable and a swap is not an exit from it.
 
-**Not built: the rejection memory.** This section used to promise that a
-rejected exercise "is not offered again in that session". Nothing records
-rejections. Exclusion is computed from the session's *current* contents, so
-swapping A→B and then swapping again can return A, because A is no longer in
-the session by then. Small, real, and the honest place to note it is here.
+**The rejection memory is built — 2026-08-30, later the same day.** It had been
+promised by this section and missing since Phase 1. `session.rejected[slotId]`
+records what left the card, rides on the session record, and is therefore
+scoped to today exactly like the equipment constraint. Measured before it
+existed: fifteen taps on one clean returned seven distinct lifts, trap-bar
+deadlift twice and squat clean three times.
+
+**And the tier widens once the slot's own tier is spent.** Every primary hinge
+in the library is a barbell movement, so a clean's alternatives were fourteen
+bars and the dumbbell and kettlebell answers sat one tier below, unreachable by
+any number of taps. Widening after exhaustion is the rule `generate()` already
+applies to an empty required slot; the central movements are still offered
+first, and a widened block carries `tierRelaxed` so the card says so.
+
+**The two gestures compose, and that is the point.** Tapping swap with no
+constraint walks all fourteen bars before reaching a kettlebell — correct, and
+useless at the rack. Unticking the barbell first empties the tier immediately,
+so the very first tap returns Kettlebell Swing, then Dumbbell Snatch, then
+Kettlebell Clean. The checklist is what tells the swap *why*.
 
 ### 4.3 The variety engine
 

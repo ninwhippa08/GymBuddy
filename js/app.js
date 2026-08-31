@@ -108,6 +108,12 @@ function showSession({ reroll = false, excludeEquipment = null } = {}) {
       // design exists to avoid. design §5.3.
       if (!block) return mount(root, renderSession(session, { ...opts, swapNote: reason }));
       const i = session.blocks.findIndex(b => b.slot === slotId);
+      // Remember what he turned down, so tapping swap again moves on instead
+      // of reshuffling the same few. It rides on the session record, so it is
+      // scoped to today exactly like the equipment constraint. spec §4.2.
+      session.rejected = session.rejected || {};
+      session.rejected[slotId] =
+        [...(session.rejected[slotId] || []), session.blocks[i].exerciseId];
       session.blocks[i] = block;
       commitSession(session);
       showSession();

@@ -132,3 +132,94 @@ test('a swap under a no-barbell constraint never returns a bar movement', () => 
   }
   assert.ok(swaps > 100, `only ${swaps} swaps exercised -- the sweep proved little`);
 });
+
+// --------------------------------------------------------------------------
+// Swapping your way out of the barbell. His workflow, 2026-08-30:
+//
+//   "in the first move of the day I see a hang clean. I would edit the move
+//    and swap it for an alternative such as dumbell clean."
+//
+// It could not work. `swapBlock` held the slot's tier, and EVERY primary hinge
+// in the library is a barbell movement -- measured: seven alternatives to a
+// clean, all seven needing a bar. Tapping swap could never reach a dumbbell.
+//
+// Two pieces, and neither works without the other. Rejection memory means a
+// repeat tap makes progress instead of reshuffling the same seven (spec §4.2
+// promised this and it was never built). Exhausting the tier is then what
+// widens it, using the same rule generate() already applies to an empty
+// required slot -- so the pool opens up only once the honest answers are gone.
+// --------------------------------------------------------------------------
+
+// What app.js does after a successful swap: the movement leaving the card is
+// remembered so the slot does not offer it again this session.
+function recordRejection(session, slotId, exerciseId) {
+  session.rejected = session.rejected || {};
+  session.rejected[slotId] = [...(session.rejected[slotId] || []), exerciseId];
+}
+
+const powerDay = generate({ library: LIB, dayType: 'power', seed: 1,
+  profile: { returnDate: '2026-06-01', banned: [], plyoLevel: 'beginner' },
+  history: [], soreness: {}, excludeEquipment: [] });
+const barSlot = powerDay.blocks.find(b => {
+  const e = byId.get(b.exerciseId);
+  return e && (e.equipment || []).includes('barbell') && b.mode === 'load';
+});
+
+test('repeated swaps on one slot never offer the same movement twice', () => {
+  const s = JSON.parse(JSON.stringify(powerDay));
+  const seen = [];
+  for (let i = 0; i < 10; i++) {
+    const { block } = swapBlock(s, barSlot.slot, LIB,
+      { venue: s.venue, soreness: {}, banned: [], excludeEquipment: [] }, makeRng(i * 61 + 7));
+    if (!block) break;
+    assert.ok(!seen.includes(block.exerciseId),
+      `swap offered ${block.exerciseId} twice -- seen ${JSON.stringify(seen)}`);
+    seen.push(block.exerciseId);
+    const idx = s.blocks.findIndex(b => b.slot === barSlot.slot);
+    recordRejection(s, barSlot.slot, s.blocks[idx].exerciseId);
+    s.blocks[idx] = block;
+  }
+  assert.ok(seen.length >= 5, `only ${seen.length} distinct movements offered`);
+});
+
+test('swapping a barbell lift repeatedly reaches a movement needing no bar', () => {
+  const BARS = ['barbell', 'trap-bar', 'safety-bar', 'landmine'];
+  const s = JSON.parse(JSON.stringify(powerDay));
+  const offered = [];
+  let escaped = false;
+
+  for (let i = 0; i < 15 && !escaped; i++) {
+    const { block } = swapBlock(s, barSlot.slot, LIB,
+      { venue: s.venue, soreness: {}, banned: [], excludeEquipment: [] }, makeRng(i * 61 + 7));
+    if (!block) break;
+    const eq = (byId.get(block.exerciseId) || {}).equipment || [];
+    offered.push(block.exerciseId);
+    if (!eq.some(q => BARS.includes(q))) escaped = true;
+    const idx = s.blocks.findIndex(b => b.slot === barSlot.slot);
+    recordRejection(s, barSlot.slot, s.blocks[idx].exerciseId);
+    s.blocks[idx] = block;
+  }
+  assert.ok(escaped,
+    `never escaped the barbell in 15 swaps: ${JSON.stringify(offered)}`);
+});
+
+test('a swap that had to widen tier says so on the block', () => {
+  const s = JSON.parse(JSON.stringify(powerDay));
+  let relaxedSeen = false;
+  for (let i = 0; i < 15; i++) {
+    const { block } = swapBlock(s, barSlot.slot, LIB,
+      { venue: s.venue, soreness: {}, banned: [], excludeEquipment: [] }, makeRng(i * 61 + 7));
+    if (!block) break;
+    const e = byId.get(block.exerciseId);
+    if (e.tier !== 'primary') {
+      assert.ok(block.tierRelaxed,
+        `${block.exerciseId} is ${e.tier}, not the slot's tier, but the block does not say so`);
+      relaxedSeen = true;
+      break;
+    }
+    const idx = s.blocks.findIndex(b => b.slot === barSlot.slot);
+    recordRejection(s, barSlot.slot, s.blocks[idx].exerciseId);
+    s.blocks[idx] = block;
+  }
+  assert.ok(relaxedSeen, 'the tier never widened, so the flag was never tested');
+});
