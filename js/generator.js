@@ -18,7 +18,7 @@
 //  10  ORDER      enforce the fixed sequence -- prep first, cool-down last
 
 import {
-  ZONES, PCT_JITTER, VOLUME, RAMP, CNS_DECAY, CNS_VETO_THRESHOLD,
+  ZONES, PCT_JITTER, VOLUME, RAMP, WARMUP, CNS_DECAY, CNS_VETO_THRESHOLD,
   HIGH_CNS_DAY_TYPES, PLYO_CONTACTS_PER_SESSION, PLYO_TRANSITION_WEEKLY_CAP,
   PLYO_TRANSITION_LAST_WEEK, PLYO_RECOVERY_HOURS, SPRINT, SESSION_ORDER, TIME,
   CHRONIC, CHRONIC_BOOSTABLE,
@@ -409,6 +409,50 @@ export function fillSlot(slot, library, ctx, rng) {
 // --------------------------------------------------------------------------
 // 7  PRESCRIBE
 // --------------------------------------------------------------------------
+
+// Reps for one warm-up step, from that step's own load. design §4.3.
+function repsForStep(pct) {
+  for (const [floor, reps] of WARMUP.REPS_BY_PCT) if (pct >= floor) return reps;
+  return WARMUP.REPS_BY_PCT[WARMUP.REPS_BY_PCT.length - 1][1];
+}
+
+// The ladder into a working set. Steps only -- no displayMultiplier, because
+// only prescribe() knows what the working set actually prints, and every step
+// is scaled against that. plan-05 decision 2.
+//
+// `workingPct` is a fraction of THIS movement's own max, already clamped by
+// env.pctCeiling, so the ladder inherits the return ramp for free.
+export function buildRamp(workingPct, exercise = {}) {
+  if (workingPct < WARMUP.FLOOR) return [];
+  const gap = workingPct - WARMUP.START;
+  if (gap <= 0) return [];
+
+  // The 1e-9 guard absorbs float slop from the `workingPct - START`
+  // subtraction (e.g. 0.90 - 0.30 = 0.6000000000000001 in IEEE-754), which
+  // would otherwise push an exact-multiple gap one rung past its true count.
+  const count = Math.ceil(gap / WARMUP.MAX_JUMP - 1e-9);
+  const spacing = gap / count;
+  const technical = exercise.technical || 1;
+  const cap = technical === 3 ? WARMUP.TECHNICAL_REP_CAP : Infinity;
+
+  const steps = [];
+  for (let i = 0; i < count; i++) {
+    const pct = WARMUP.START + spacing * i;
+    steps.push({ kind: 'warmup', reps: Math.min(repsForStep(pct), cap), pct });
+  }
+
+  // An extra set AT the start, not an extra rung -- adding to `count` would
+  // respace the whole ladder. Technical work wants more repetition at light
+  // load, not a different shape. design §4.3.
+  if (technical === 3) {
+    steps.unshift({
+      kind: 'warmup',
+      reps: Math.min(repsForStep(WARMUP.START), cap),
+      pct: WARMUP.START
+    });
+  }
+  return steps;
+}
 
 export function prescribe(slot, exercise, env, rng, state) {
   const block = {

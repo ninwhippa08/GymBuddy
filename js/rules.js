@@ -152,6 +152,36 @@ export const ZONES = Object.freeze({
 // chart is a starting point, not a law. §1.
 export const PCT_JITTER = 0.025;
 
+// The warm-up ramp. design-mobility-and-warmup.md §4.3.
+//
+// A ladder is COMPUTED from these, never tabulated: the step count is
+// ceil((workingPct - START) / MAX_JUMP), so a heavier working set gets more
+// steps because the gap to bridge is longer, and nothing special-cases it.
+export const WARMUP = Object.freeze({
+  // Where every ladder starts, as a fraction of the movement's own max -- the
+  // empty bar, for most lifters. [corroborated] design §2.3.
+  START: 0.30,
+  // No step, and no jump into the working set, may exceed this.
+  // [corroborated] from the worked ladders in design §2.3.
+  MAX_JUMP: 0.15,
+  // Below this working load there is no ramp at all -- there is nothing to
+  // bridge. [corroborated] design §2.3: "the lighter the weight, the less
+  // warming up you'll need".
+  FLOOR: 0.50,
+  // Reps for a step, by that step's own load. Descending; first match wins.
+  // [corroborated] from the 75% and 90% thresholds in design §2.3.
+  REPS_BY_PCT: Object.freeze([
+    Object.freeze([0.90, 1]),
+    Object.freeze([0.75, 2]),
+    Object.freeze([0.60, 3]),
+    Object.freeze([0.45, 5]),
+    Object.freeze([0.00, 8])
+  ]),
+  // An Olympic derivative warms up with light repetition, not with eights.
+  // [corroborated] design §2.3.
+  TECHNICAL_REP_CAP: 3
+});
+
 // --------------------------------------------------------------------------
 // §2  Frequency and volume
 // --------------------------------------------------------------------------
