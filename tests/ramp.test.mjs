@@ -77,3 +77,134 @@ test('a missing technical rating is treated as the plain progression', () => {
 test('every step is marked as a warm-up', () => {
   for (const s of buildRamp(0.85, plain)) assert.equal(s.kind, 'warmup');
 });
+
+import { readFileSync } from 'node:fs';
+import { prescribe, generate } from '../js/generator.js';
+import { ZONES } from '../js/rules.js';
+
+const LIB = JSON.parse(
+  readFileSync(new URL('../data/exercises.json', import.meta.url), 'utf8')
+).exercises;
+const LOADABLE = LIB.filter(e => e.loadable);
+const SLOT = { slot: 'A', role: 'main', mode: 'load', zone: 'maxStrength',
+               sets: [3, 3], reps: [5, 5], restSec: [180, 180] };
+const ENV = { pctCeiling: 1, volumeMultiplier: 1 };
+const rng = () => 0.5;
+
+test('a heavy loaded lift arrives with a plan, not one number', () => {
+  const squat = LIB.find(e => e.id === 'back-squat');
+  const block = prescribe(SLOT, squat, ENV, rng, {});
+  assert.ok(Array.isArray(block.setPlan), 'no setPlan on a heavy squat');
+  assert.ok(block.setPlan.some(s => s.kind === 'warmup'));
+  assert.equal(block.setPlan.filter(s => s.kind === 'work').length, block.sets);
+});
+
+test('the work entries restate the working set exactly', () => {
+  const squat = LIB.find(e => e.id === 'back-squat');
+  const block = prescribe(SLOT, squat, ENV, rng, {});
+  for (const s of block.setPlan.filter(s => s.kind === 'work')) {
+    assert.equal(s.reps, block.reps);
+    assert.equal(s.displayMultiplier, block.displayMultiplier);
+  }
+});
+
+test('a movement with no reference max gets no plan', () => {
+  // mode drops to 'reps' -- there is no percentage to ramp toward.
+  const bodyweight = LIB.find(e => !e.loadable);
+  const block = prescribe(SLOT, bodyweight, ENV, rng, {});
+  assert.equal(block.mode, 'reps');
+  assert.equal(block.setPlan, undefined);
+});
+
+test('a light working load gets no plan', () => {
+  const squat = LIB.find(e => e.id === 'back-squat');
+  const block = prescribe(SLOT, squat, { pctCeiling: 0.45, volumeMultiplier: 1 }, rng, {});
+  assert.equal(block.setPlan, undefined,
+    'a working load under the floor has nothing to ramp into');
+});
+
+test('NO WARM-UP EVER PRINTS ABOVE ITS WORKING SET', () => {
+  // plan-05 decision 2, and the worst failure this feature could have. prCoef
+  // above 1.00 plus the ramp ceiling is where a naive pct * prCoef breaks: the
+  // working display is clamped and an unclamped warm-up sails straight over it.
+  for (const ex of LOADABLE) {
+    for (const zone of Object.keys(ZONES)) {
+      for (const ceiling of [0.65, 0.75, 0.85, 1]) {
+        const block = prescribe({ ...SLOT, zone }, ex,
+          { pctCeiling: ceiling, volumeMultiplier: 1 }, rng, {});
+        if (!block.setPlan) continue;
+        for (const s of block.setPlan) {
+          assert.ok(s.displayMultiplier <= block.displayMultiplier + 1e-9,
+            `${ex.id} ${zone} ceiling ${ceiling}: warm-up ${s.displayMultiplier} > work ${block.displayMultiplier}`);
+          assert.ok(s.displayMultiplier <= ceiling + 1e-9,
+            `${ex.id} ${zone} ceiling ${ceiling}: warm-up ${s.displayMultiplier} over the ceiling`);
+        }
+      }
+    }
+  }
+});
+
+test('the ladder climbs -- every step is heavier than the one before', () => {
+  for (const ex of LOADABLE) {
+    const block = prescribe(SLOT, ex, ENV, rng, {});
+    if (!block.setPlan) continue;
+    const d = block.setPlan.map(s => s.displayMultiplier);
+    for (let i = 1; i < d.length; i++) {
+      assert.ok(d[i] >= d[i - 1] - 1e-9, `${ex.id}: ${JSON.stringify(d)} dips`);
+    }
+  }
+});
+
+test('tier is not consulted -- the load decides, not how central the lift is', () => {
+  // §4.3: "an accessory prescribed heavy gets a ramp, and a primary lift
+  // prescribed light does not."
+  // Ruling 2 (plan-05 task-2 brief correction): the library has no loadable
+  // 'accessory' tier -- only 'primary' and 'secondary'. A heavy secondary
+  // against a light primary preserves the same claim: tier never decides.
+  const heavySecondary = LOADABLE.find(e => e.tier === 'secondary');
+  const lightPrimary = LOADABLE.find(e => e.tier === 'primary');
+  assert.ok(heavySecondary && lightPrimary, 'this test needs one of each tier');
+
+  const heavy = prescribe({ ...SLOT, zone: 'maxStrength' }, heavySecondary, ENV, rng, {});
+  assert.ok(heavy.setPlan, 'a heavy secondary was denied a ramp on tier alone');
+
+  const light = prescribe(SLOT, lightPrimary,
+    { pctCeiling: 0.45, volumeMultiplier: 1 }, rng, {});
+  assert.equal(light.setPlan, undefined, 'a light primary was given a ramp on tier alone');
+});
+
+test('only loaded work gets a ramp -- never a drill, hold, interval or contact', () => {
+  // §4.3: "mode: 'reps', 'contacts' and 'time' never receive one."
+  const modes = [
+    { mode: 'time', durationMin: [10, 20] },
+    { mode: 'drill', sets: [1, 1], reps: [10, 10] },
+    { mode: 'contacts', sets: [3, 3], reps: [5, 5], restSec: [90, 90] },
+    { mode: 'interval', sets: [6, 6], workSec: [60, 60], restRatio: [1, 1] }
+  ];
+  const anyEx = LOADABLE[0];
+  for (const m of modes) {
+    const block = prescribe({ ...SLOT, ...m }, anyEx, ENV, rng, {});
+    assert.equal(block.setPlan, undefined, `${m.mode} was given a set plan`);
+  }
+});
+
+test('the return ramp shortens the ladder on its own', () => {
+  // §4.3's emergent property: during the return ramp env.pctCeiling is 0.65,
+  // so no working load can exceed it and no ladder can be long. Nothing
+  // special-cases the ramp weeks -- if this ever needs a special case, the
+  // clamp has stopped doing its job.
+  for (const ex of LOADABLE) {
+    for (const zone of Object.keys(ZONES)) {
+      const block = prescribe({ ...SLOT, zone }, ex,
+        { pctCeiling: 0.65, volumeMultiplier: 1 }, rng, {});
+      if (!block.setPlan) continue;
+      const warmups = block.setPlan.filter(s => s.kind === 'warmup').length;
+      // ceil((0.65 - 0.30) / 0.15) = 3 rungs, PLUS the extra technique set an
+      // Olympic derivative gets. §4.3 says "no ramp exceeds three steps" and
+      // overlooked its own technical rule; four is correct for those lifts.
+      const cap = ex.technical === 3 ? 4 : 3;
+      assert.ok(warmups <= cap,
+        `${ex.id} (technical ${ex.technical}) ${zone}: ${warmups} warm-up sets under a 0.65 ceiling`);
+    }
+  }
+});

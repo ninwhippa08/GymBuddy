@@ -555,6 +555,31 @@ export function prescribe(slot, exercise, env, rng, state) {
   // What the user actually reads: one multiplication against a PR he knows.
   // Folding prCoef in here is the whole point -- he should never do two.
   block.displayMultiplier = Math.round(display * 100) / 100;
+
+  // The ladder into the work. Steps are scaled in DISPLAY space rather than
+  // recomputed as stepPct * prCoef: the working display has already been
+  // clamped twice, and a warm-up recomputed from its own pct can sail straight
+  // over a clamped working set. For prCoef 1.15 in ramp week 1 that is not
+  // hypothetical -- it prints a warm-up heavier than the work. plan-05
+  // decision 2; design §4.3 assumed prCoef 1.00 and says no clamp is needed.
+  const ramp = buildRamp(pct, exercise);
+  if (slot.mode === 'load' && ramp.length) {
+    block.setPlan = [
+      ...ramp.map(s => ({
+        kind: s.kind,
+        reps: s.reps,
+        pct: Math.round(s.pct * 100) / 100,
+        displayMultiplier:
+          Math.round(block.displayMultiplier * (s.pct / pct) * 100) / 100
+      })),
+      ...Array.from({ length: sets }, () => ({
+        kind: 'work',
+        reps,
+        pct: block.pct,
+        displayMultiplier: block.displayMultiplier
+      }))
+    ];
+  }
   return block;
 }
 
