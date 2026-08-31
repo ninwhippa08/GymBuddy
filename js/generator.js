@@ -788,6 +788,15 @@ export function packToBudget(blocks, budgetMin = TIME.MAIN_WORK_MAX_MIN) {
       .sort((a, b) => b.sets * b.reps - a.sets * a.reps)[0];
     if (!target) break;
     target.sets -= 1;
+    // The ramp was already built against the pre-trim set count. A shaved
+    // working set has to come out of setPlan too, or the plan overstates
+    // block.sets -- the exact drift 'the work entries and block.sets never
+    // disagree' (tests/ramp.test.mjs) exists to catch. Drop one WORK entry,
+    // never a warm-up rung: the ramp still has to reach the same working load.
+    if (target.setPlan) {
+      const idx = target.setPlan.map(s => s.kind).lastIndexOf('work');
+      if (idx !== -1) target.setPlan.splice(idx, 1);
+    }
   }
 
   return { blocks: out, trimmedSlots: trimmed, overBudget: estimateMinutes(out) > budgetMin };

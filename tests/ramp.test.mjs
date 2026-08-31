@@ -208,3 +208,38 @@ test('the return ramp shortens the ladder on its own', () => {
     }
   }
 });
+
+test('the work entries and block.sets never disagree', () => {
+  // §4.3: "Warm-up sets are not training volume. They must be excluded from
+  // patternSets, cnsLoad and footContacts." Keeping block.sets as the WORKING
+  // count is what buys that for free (plan-05 decision 1); this test is what
+  // stops a later edit from summing setPlan into the volume instead.
+  const profile = { returnDate: '2026-06-01', banned: [], plyoLevel: 'beginner' };
+  for (const dayType of ['max-strength', 'power', 'hypertrophy']) {
+    for (let seed = 1; seed <= 60; seed++) {
+      const s = generate({ library: LIB, profile, history: [], soreness: {}, dayType, seed });
+      for (const b of s.blocks) {
+        if (!b.setPlan) continue;
+        assert.equal(b.setPlan.filter(x => x.kind === 'work').length, b.sets,
+          `${dayType} seed ${seed} ${b.exerciseId}: work sets and b.sets disagree`);
+      }
+    }
+  }
+});
+
+test('a ramp does not inflate patternSets', () => {
+  // The same session, generated twice, differing only in whether the ramp is
+  // attached. The pattern counts must be identical.
+  const profile = { returnDate: '2026-06-01', banned: [], plyoLevel: 'beginner' };
+  for (let seed = 1; seed <= 40; seed++) {
+    const s = generate({ library: LIB, profile, history: [], soreness: {},
+                         dayType: 'max-strength', seed });
+    const fromBlocks = s.blocks
+      .filter(b => b.mode === 'load' || b.mode === 'reps' || b.mode === 'contacts')
+      .filter(b => b.role !== 'core' && b.role !== 'prep')
+      .reduce((n, b) => n + b.sets, 0);
+    const counted = Object.values(s.patternSets).reduce((a, b) => a + b, 0);
+    assert.equal(counted, fromBlocks,
+      `seed ${seed}: patternSets ${counted} does not match working sets ${fromBlocks}`);
+  }
+});
