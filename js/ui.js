@@ -114,6 +114,16 @@ export function loadLine(block) {
   return `${block.displayMultiplier.toFixed(2)} × ${titleCase(block.prRef)} PR`;
 }
 
+// The ladder, under the hero line. The hero keeps the WORKING load -- that is
+// the number read mid-set and it must not move -- so this line carries only
+// the steps up to it. design-mobility-and-warmup.md §4.3.
+export function warmupLine(block) {
+  const steps = (block.setPlan || []).filter(s => s.kind === 'warmup');
+  if (!steps.length) return '';
+  return 'warm-up  ' +
+    steps.map(s => `${s.reps} × ${s.displayMultiplier.toFixed(2)}`).join('  ·  ');
+}
+
 // The top-right of the card. Timed work has no set count, and its effort cue
 // is a sentence -- too long for a header slot, so it drops to the meta line.
 export function volumeLine(block) {
@@ -184,6 +194,9 @@ export function blockCard(block, cuesFor, onSwap) {
           class: 'block-note',
           text: 'needs equipment you do not have -- this is the closest movement available'
         })
+      : null,
+    warmupLine(block)
+      ? el('p', { class: 'block-meta block-warmup', text: warmupLine(block) })
       : null,
     meta.filter(Boolean).length
       ? el('p', { class: 'block-meta', text: meta.filter(Boolean).join(' · ') })

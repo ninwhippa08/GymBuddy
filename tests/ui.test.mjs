@@ -10,7 +10,7 @@ import { installDom } from './dom-shim.mjs';
 installDom();
 const {
   loadLine, volumeLine, equipmentControl, renderNothingBuildable,
-  renderConfirmPrevious, sorenessMap, addMoveControl
+  renderConfirmPrevious, sorenessMap, addMoveControl, warmupLine
 } = await import('../js/ui.js');
 const { SORENESS_JOINTS } = await import('../js/rules.js');
 
@@ -346,4 +346,45 @@ test('a draft can be thrown away by id', () => {
   node.querySelectorAll('button').find(b => /remove|delete|✕|x/i.test(b.textContent))
       .dispatch('click');
   assert.equal(removed, 'abc');
+});
+
+// --------------------------------------------------------------------------
+// The ladder, under the hero line. Task 2's setPlan drives it.
+// --------------------------------------------------------------------------
+
+const RAMPED = {
+  mode: 'load', sets: 3, reps: 5, displayMultiplier: 0.8, prRef: 'back-squat',
+  setPlan: [
+    { kind: 'warmup', reps: 8, pct: 0.3,  displayMultiplier: 0.3 },
+    { kind: 'warmup', reps: 5, pct: 0.55, displayMultiplier: 0.55 },
+    { kind: 'work',   reps: 5, pct: 0.8,  displayMultiplier: 0.8 },
+    { kind: 'work',   reps: 5, pct: 0.8,  displayMultiplier: 0.8 },
+    { kind: 'work',   reps: 5, pct: 0.8,  displayMultiplier: 0.8 }
+  ]
+};
+
+test('the warm-up line lists every step as reps by multiplier', () => {
+  const line = warmupLine(RAMPED);
+  assert.match(line, /8 × 0\.30/);
+  assert.match(line, /5 × 0\.55/);
+});
+
+test('the warm-up line names itself, so its numbers are not read as work', () => {
+  assert.match(warmupLine(RAMPED), /warm-up/i);
+});
+
+test('the warm-up line never lists a working set', () => {
+  // The hero line already carries the working load. Repeating it here would
+  // read as a fourth warm-up.
+  assert.equal((warmupLine(RAMPED).match(/0\.80/g) || []).length, 0);
+});
+
+test('a block with no plan has no warm-up line', () => {
+  assert.equal(warmupLine({ mode: 'load', displayMultiplier: 0.4 }), '');
+  assert.equal(warmupLine({ mode: 'reps' }), '');
+});
+
+test('the hero line still prints the WORKING load, unchanged', () => {
+  // Regression: the number read mid-set must not become the first warm-up.
+  assert.equal(loadLine(RAMPED), '0.80 × Back Squat PR');
 });

@@ -159,6 +159,14 @@ body {
 
 .block-note { color: #6fd08c; }
 
+/* The ladder. Dimmer than the working load on purpose -- it is the way in,
+   not the number being read between sets. Tabular figures so the steps line
+   up under each other. */
+.block-warmup {
+  font-variant-numeric: tabular-nums;
+  line-height: 1.5;
+}
+
 /* -------------------------------------------------------------------------
    Actions
    ------------------------------------------------------------------------- */
