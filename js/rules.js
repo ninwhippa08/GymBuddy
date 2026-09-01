@@ -301,11 +301,43 @@ export const CNS_DECAY = Object.freeze([
   Object.freeze({ withinHours: Infinity, retained: 0.00 })
 ]);
 
-// A high-CNS day type is vetoed while the account sits above this. Tuned
-// against cnsCost 1-3 per exercise over a ~6-slot session: a full hard day
-// lands near 12-15, so this vetoes back-to-back maximal days while still
-// allowing a hard day 48 h after a moderate one.
-export const CNS_VETO_THRESHOLD = 8;
+// A high-CNS day type is vetoed while the account sits above this.
+//
+// [measured] 2026-08-31. The old comment ("cnsCost 1-3 over a ~6-slot
+// session, a full hard day near 12-15") described load that no longer
+// exists: generator.js's finalise() was summing `cnsCost` over EVERY block,
+// including prep drills and cool-down stretches, and the 2026-08-24 mobility
+// split turned one timed mobility block into ~9 individual drill/stretch
+// blocks, every one of which carries cnsCost 1 (data audit). That roughly
+// doubled cnsLoad and pinned the account above the old threshold of 8
+// permanently -- from day 3 of daily use onward, every high-CNS day type was
+// vetoed every day, forever (the reported bug: only aerobic-steady and
+// interval were ever offered). cnsLoad now sums only blocks that
+// countsTowardVolume() passes -- the same guard patternSets already used --
+// so mobility drops out by mode and prep/core drop out by role, leaving only
+// actual training work.
+//
+// Re-swept post-fix, 300 seeds/day type, `now: 1e12`: max-strength
+// 5-9 (median 7), power 7-11 (median 8), plyometric 5-7 (median 6), sprint
+// always 9. Range across all four: 5-11.
+//
+// Threshold re-derived from that range against the CNS_DECAY buckets above,
+// to hit the 48-72 h spacing basis §7 requires ("Max strength, power,
+// plyometrics, and sprinting all draw on the same recovery account"):
+//   - MUST still veto through the 24-48 h bucket (retained 0.50) for the
+//     LIGHTEST measured hard day, so no day type ever gets a repeat before
+//     48 h: 5 (min load) x 0.50 = 2.5, so threshold must be < 2.5.
+//   - Automatically clears by the 72 h+ bucket for every load, since
+//     retained hits 0.00 there regardless of threshold -- no upper-bound
+//     arithmetic needed.
+// 2 is the largest integer below 2.5, and sweeping it against the buckets
+// confirms both ends of the range land inside 48-72 h: lightest loads
+// (plyometric, 5-7) clear at the 48 h bucket (7 x 0.25 = 1.75 <= 2); heaviest
+// loads (power's 11, sprint's 9) hold through 48-72 h (11 x 0.25 = 2.75 > 2,
+// 9 x 0.25 = 2.25 > 2) and clear only at 72 h+. Verified against a 21-day
+// daily-open simulation: 0 back-to-back high-CNS days, and every high-CNS
+// day type reappears in the rotation instead of being vetoed forever.
+export const CNS_VETO_THRESHOLD = 2;
 
 // The acute account above is a 72 h horizon and cannot see a month. This is
 // the chronic one: as lifting accumulates, the low- and moderate-CNS running

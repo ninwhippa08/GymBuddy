@@ -1115,10 +1115,20 @@ function finalise({ chosen, env, architecture, proposal, ordered, packed, cooled
   for (const b of ordered) {
     if (countsTowardVolume(b)) {
       patternSets[b.pattern] = (patternSets[b.pattern] || 0) + b.sets;
+      // basis §7: the account tracks draw on shared recovery from actual
+      // training work, not from prep drills or cool-down stretches. Every
+      // mobility-dynamic and mobility-static entry carries cnsCost 1 (data
+      // audit, 2026-08-31), so summing it unconditionally over `ordered`
+      // roughly doubled a session's cnsLoad once the 2026-08-24 mobility
+      // split turned one timed mobility block into ~9 individual drill/
+      // stretch blocks. countsTowardVolume already draws exactly the line
+      // this needs -- VOLUME_MODES excludes drill/hold/time, and role
+      // core/prep are excluded too -- so cnsLoad now rides the same guard as
+      // patternSets rather than summing every block unconditionally.
+      cnsLoad += b.cnsCost || 0;
     }
     footContacts += b.footContacts || 0;
     sprintMeters += b.sprintMeters || 0;
-    cnsLoad += b.cnsCost || 0;
   }
 
   const warnings = [];
