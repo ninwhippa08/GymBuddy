@@ -6,7 +6,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { DAY_TYPES, PHASE_1_DAY_TYPES, TEMPLATES } from '../js/templates.js';
-import { patternDebt, weeklySetTarget, generate } from '../js/generator.js';
+import { patternDebt, weeklySetTarget, generate, packToBudget } from '../js/generator.js';
 
 const LIB = JSON.parse(
   readFileSync(new URL('../data/exercises.json', import.meta.url), 'utf8')
@@ -128,4 +128,39 @@ test('the required core of a day is always delivered', () => {
     'pull-h': 99, 'pull-v': 99, lunge: 99
   });
   assert.ok(covered >= 3, `only ${covered} main blocks -- the required slots must survive`);
+});
+
+test('when something must go, the least overdue work goes first', () => {
+  // §4.4: "drop the slot whose pattern carries the least outstanding debt, so
+  // the work that survives is the work most overdue." It used to drop the
+  // LAST optional slot, which is a statement about template order, not about
+  // what the athlete needs.
+  const blocks = [
+    { slot: 'A', pattern: 'squat',  optional: false, mode: 'load', sets: 3, reps: 5, restSec: 180 },
+    { slot: 'B', pattern: 'hinge',  optional: true,  mode: 'load', sets: 3, reps: 5, restSec: 180 },
+    { slot: 'C', pattern: 'pull-h', optional: true,  mode: 'load', sets: 3, reps: 5, restSec: 180 }
+  ];
+  // hinge is fully covered this week; pull-h has not been touched. Slot B is
+  // earlier, so position-ordered trimming would keep it and drop C.
+  const state = { patternSets: { hinge: 99, 'pull-h': 0 }, recentExerciseIds: new Set() };
+  // 23 min fits A plus exactly ONE optional block (A alone is 11, A+B is 23,
+  // A+B+C is 34), so precisely one has to go and the choice is observable. A
+  // budget that drops BOTH cannot see the ordering at all -- the first draft
+  // of this test used one and passed against the old position-ordered code.
+  const out = packToBudget(blocks, 23, { dayType: 'max-strength', state });
+  const kept = out.blocks.map(b => b.slot);
+
+  assert.ok(kept.includes('A'), 'a required slot must never be dropped');
+  assert.ok(kept.includes('C'),
+    `the most overdue work should survive, but kept ${kept.join(',')}`);
+  assert.ok(!kept.includes('B'), `dropped by position, not debt: kept ${kept.join(',')}`);
+});
+
+test('called without a day type it trims exactly as it always did', () => {
+  const blocks = [
+    { slot: 'A', pattern: 'squat', optional: false, mode: 'load', sets: 3, reps: 5, restSec: 180 },
+    { slot: 'B', pattern: 'hinge', optional: true,  mode: 'load', sets: 3, reps: 5, restSec: 180 }
+  ];
+  const out = packToBudget(blocks, 11);   // fits A alone
+  assert.deepEqual(out.trimmedSlots, ['B']);
 });

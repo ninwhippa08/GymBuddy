@@ -869,12 +869,32 @@ export function countsTowardVolume(block) {
 // sets off the highest-volume block. Never drops a required block -- if the
 // budget still cannot be met, the session is returned over budget and flagged,
 // because silently gutting the main lift would be worse than a long session.
-export function packToBudget(blocks, budgetMin = TIME.MAIN_WORK_MAX_MIN) {
+export function packToBudget(blocks, budgetMin = TIME.MAIN_WORK_MAX_MIN, opts = {}) {
   let out = blocks.slice();
   let trimmed = [];
 
-  for (let i = out.length - 1; i >= 0 && estimateMinutes(out) > budgetMin; i--) {
-    if (out[i].optional) { trimmed.push(out[i].slot); out.splice(i, 1); }
+  // Drop optional work by LEAST outstanding debt, so what survives a trim is
+  // what is most overdue -- design §4.4. Position order, the old rule, is a
+  // statement about the template rather than about what the athlete needs this
+  // week: it kept an already-covered pattern and dropped an untouched one
+  // purely because the covered slot came first.
+  //
+  // Without a dayType there is no debt to read and the old last-first order
+  // stands, which is what every other caller and test relies on.
+  const { dayType, state } = opts;
+  while (estimateMinutes(out) > budgetMin) {
+    const optional = out
+      .map((b, i) => ({ b, i }))
+      .filter(({ b }) => b.optional);
+    if (optional.length === 0) break;
+
+    const victim = dayType && state
+      ? optional.reduce((a, c) =>
+          patternDebt(c.b.pattern, dayType, state) < patternDebt(a.b.pattern, dayType, state) ? c : a)
+      : optional[optional.length - 1];
+
+    trimmed.push(victim.b.slot);
+    out.splice(victim.i, 1);
   }
 
   let guard = 0;
@@ -1223,7 +1243,8 @@ export function generate({
     blocks.push(block);
   }
 
-  const packed = packToBudget(blocks);                                   // 8
+  const packed = packToBudget(blocks, TIME.MAIN_WORK_MAX_MIN,           // 8
+                              { dayType: chosen, state });
   const prep = buildPrep(chosen, library, ctx, rng, env);               // 9a
   const cooled = packCooldown(
     buildCooldown(chosen, library, ctx, rng, env)                        // 9b
