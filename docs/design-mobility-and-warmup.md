@@ -594,6 +594,57 @@ already understands `optional`. The changes are that filling becomes
 coverage-driven rather than fixed, and trimming becomes debt-ordered rather than
 position-ordered.
 
+**AS BUILT 2026-09-01, `sw.js` v23 (plan-07).** Shipped: `DAY_TYPES` gain a
+declared `targets` array; `patternDebt()` reads the per-goal weekly targets
+sourced the same day; the FILL loop takes an optional slot only while a
+targeted pattern still owes volume; `packToBudget` drops the least overdue
+work instead of the last slot; and `TIME.MAX_MAIN_SLOTS` caps the count at a
+measured 8. Templates grew from 4/4/5 slots to 7/6/8, every addition optional
+and carrying its own template's existing accessory dose.
+
+*Three decisions this section did not make.*
+
+**1. Debt is DIRECT-only.** The sourced convention is fractional — an indirect
+set counts 0.5 (§8 question 6) — but `data/exercises.json` gives every one of
+its 236 entries exactly one `pattern` and records nothing about what a movement
+trains indirectly. Inventing that map would be the same class of unsourced
+number this project keeps removing, so it is §8's new open question instead.
+Debt is therefore slightly overstated for patterns getting indirect work, which
+biases coverage toward proposing more exercises — bounded by the cap.
+
+**2. `targets` are declared, not computed** from the template's slot patterns.
+Computing them would make coverage circular: it could only ever ask for a
+pattern the template already offers, never for a missing one.
+
+**3. `patterns: null` means every target, not none.** Found on contact with the
+real templates — `MAX_STRENGTH` B/C, `POWER` D and `HYPERTROPHY` B/C/E all use
+it to mean "any pattern this tier allows". Reading it as serving no pattern
+would have silently dropped the isolation finisher and both null-pattern
+accessories from every session.
+
+**THE RAMP CAPS COVERAGE, and this was not foreseen.** basis §3 calls the
+return ramp "the governing constraint": it cuts sets per exercise to hold total
+load down. That frees minutes inside the same budget, and coverage spent them
+on more exercises. Measured against the pre-plan-07 code, return week 1 went
+from **4.00 exercises and 8.2 working sets to 5.95 and 11.1 (+35%)** on
+max-strength, and from 9.0 to 13.3 sets (+48%) on hypertrophy, with `cnsLoad`
+reaching **12.2 — above the 5–11 hard-day range `CNS_VETO_THRESHOLD` was
+calibrated against**. Every session still fitted inside 70 minutes, so no test
+saw it. The athlete decided on 2026-09-01 that the ramp wins. Scaling the time
+budget was tried first and overshot, cutting week 1 *below* its old baseline
+(4.00 → 3.02 exercises); capping the COUNT, floored at the slots a template
+carried before coverage existed, restores week 1 exactly. Measured after:
+
+| | before plan-07 | after |
+|---|---|---|
+| wk 1 max-strength | 4.00 ex, 8.2 sets, cns 7.9 | **identical** |
+| wk 1 hypertrophy | 5.00 ex, 9.0 sets, cns 8.5 | **identical** |
+| wk 3 max-strength | 3.99 ex, 9.7 sets, cns 7.9 | 5.36 ex, 11.7 sets, cns 9.7 |
+| full volume | 3.13 / 4.82 ex | 3.14 / 5.20 ex |
+
+The mid-ramp lift is deliberate: the ramp is lifting there too. Peak `cnsLoad`
+is back inside the calibrated range.
+
 ### 4.5 More kinds of session
 
 The user asked for the generator to suggest more types of workout. Four of the
@@ -828,6 +879,15 @@ clean while two real bugs sat in the code. Both layers are required.
    2–5 reps, 2–3×/week, quality over volume, `[corroborated]` from NSCA
    practitioner guidance, bounded at or below strength and never to be
    presented as measured.
+10. **Fractional coverage needs an indirect-pattern map.** The sourced way to
+   count sets is fractional — an indirect set counts 0.5 (question 6, Pelland
+   et al. 2025) — but §4.4's coverage counts direct sets only, because
+   `data/exercises.json` gives every entry exactly one `pattern` and records
+   nothing about what a movement trains indirectly. A squat set and a lunge
+   set both load the quadriceps and the app cannot see it. Adding that map is
+   a data job and must be sourced, not invented. Until then debt is slightly
+   overstated for patterns receiving indirect work, biasing coverage toward
+   more exercises — bounded by `TIME.MAX_MAIN_SLOTS`.
 7. Olympic-derivative warm-up practice (2–3 sets of 3–5 reps at 25–50% 1RM) is
    `[corroborated]` from practitioner sources, not from a trial. It informs the
    `technical: 3` branch in §4.3.

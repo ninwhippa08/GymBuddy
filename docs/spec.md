@@ -664,10 +664,18 @@ What the gym session found, in the order it was found:
    a progressive ramp for sprints. The principle was accepted and simply never
    applied to the barbell. `prescribe()` now attaches `block.setPlan` — see
    §4.1a above. Design §4.3.
-4. **The exercise count was unsourced.** Four slots on max-strength and power,
-   five on hypertrophy, invented and then cited to §4.3 of this file — this
-   document citing itself. Design §4.4. **UNBLOCKED 2026-09-01** — finding B
-   below is resolved. **This is the resume point and it is now buildable.**
+4. ~~**The exercise count was unsourced.**~~ — **done 2026-09-01, `sw.js`
+   v23.** Four slots on max-strength and power, five on hypertrophy, invented
+   and then cited to §4.3 of that file — this document citing itself. The
+   count is now a residual: each lifting day declares the patterns it targets,
+   `patternDebt` measures what the week still owes against the per-goal volume
+   figures sourced the same day, and the FILL loop takes optional slots while
+   debt remains and the clock allows. Trimming drops the LEAST overdue work
+   rather than the last slot. Bounded by a measured `TIME.MAX_MAIN_SLOTS` and,
+   during the return ramp, by the ramp itself — coverage may not spend the
+   minutes the ramp frees by cutting sets, which it did at +35% working volume
+   in week 1 until it was caught by measurement. Design §4.4, plan-06's
+   successor `docs/plan-07-exercise-count.md`.
 
 Two constants in the *first* draft of that design were also invented and were
 caught in review: a fixed warm-up ladder, and a purely time-driven exercise
