@@ -19,6 +19,7 @@
 
 import {
   ZONES, PCT_JITTER, VOLUME, RAMP, WARMUP, CNS_DECAY, CNS_VETO_THRESHOLD,
+  NEGLECT_CAP_DAYS,
   HIGH_CNS_DAY_TYPES, PLYO_CONTACTS_PER_SESSION, PLYO_TRANSITION_WEEKLY_CAP,
   PLYO_TRANSITION_LAST_WEEK, PLYO_RECOVERY_HOURS, SPRINT, SESSION_ORDER, TIME,
   CHRONIC, CHRONIC_BOOSTABLE,
@@ -266,7 +267,7 @@ export function proposeDayType(state, {
   const candidates = dayTypes.map(dt => {
     const hours = state.hoursSince[dt];
     const days = hours === Infinity ? 99 : hours / 24;
-    let score = Math.min(days, 21) * chronicBoost(dt, state);
+    let score = Math.min(days, NEGLECT_CAP_DAYS) * chronicBoost(dt, state);
     const vetoes = [];
 
     if (HIGH_CNS_DAY_TYPES.includes(dt) && state.cnsAccount > CNS_VETO_THRESHOLD) {

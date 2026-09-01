@@ -4,7 +4,8 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildState } from '../js/generator.js';
+import { buildState, proposeDayType } from '../js/generator.js';
+import { NEGLECT_CAP_DAYS } from '../js/rules.js';
 
 const DAY = 86400e3;
 const NOW = Date.parse('2026-09-01T12:00:00Z');
@@ -32,4 +33,35 @@ test('a day type skipped for 40 days is more neglected than one skipped for 20',
 test('a day type never trained still reads as never', () => {
   const state = buildState(PROFILE, [], NOW);
   assert.equal(state.hoursSince.plyometric, Infinity);
+});
+
+// A state built by hand: every day type trained recently EXCEPT the two under
+// test, so the winner is decided purely by which is more neglected.
+function stateWith(daysAgoByType) {
+  const hoursSince = {};
+  for (const dt of ['max-strength', 'power', 'hypertrophy', 'aerobic-steady',
+                    'interval', 'sprint', 'plyometric']) {
+    hoursSince[dt] = 1;                       // trained an hour ago
+  }
+  for (const [dt, days] of Object.entries(daysAgoByType)) hoursSince[dt] = days * 24;
+  return { hoursSince, cnsAccount: 0, rampWeek: 5, chronicLoad: 0, gymShare: 0,
+           weeksSinceEasyWeek: 0, patternSets: {}, recent: [] };
+}
+
+test('the most neglected day type wins, even when both are past three weeks', () => {
+  // 21 was a bare literal and flattened these two to the same score, so the
+  // one earlier in PHASE_1_DAY_TYPES took it every time.
+  const p = proposeDayType(stateWith({ sprint: 25, plyometric: 45 }), { soreness: {} });
+  assert.equal(p.dayType, 'plyometric');
+});
+
+test('the cap stops an abandoned day type outranking everything forever', () => {
+  const beyond = proposeDayType(
+    stateWith({ sprint: NEGLECT_CAP_DAYS + 200, plyometric: NEGLECT_CAP_DAYS + 400 }),
+    { soreness: {} }
+  );
+  const sprintScore = beyond.candidates.find(c => c.dayType === 'sprint').score;
+  const plyoScore = beyond.candidates.find(c => c.dayType === 'plyometric').score;
+  assert.equal(sprintScore, plyoScore, 'both are past the cap and should saturate together');
+  assert.equal(sprintScore, NEGLECT_CAP_DAYS);
 });

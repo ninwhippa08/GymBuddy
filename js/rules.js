@@ -353,6 +353,19 @@ export const CNS_DECAY = Object.freeze([
 // cannot reproduce the original bug's failure mode (a permanently pinned
 // veto came from double-counting a single session's own cnsLoad, not from
 // cross-session accumulation, which was already correct and untouched).
+// Where the neglect score stops growing, in days. `[unverified]` and NOT a
+// physiological claim -- no source sets a saturation point for neglect. This
+// is a product decision: without a cap, a modality abandoned for two years
+// scores 730 and outranks everything for months after it comes back; with the
+// cap too low, distinct gaps flatten into ties that get broken by array order
+// instead of by neglect, which is exactly how plyometric went unproposed for a
+// simulated year (plan-06). Was a bare `21` inline in proposeDayType with no
+// name and no comment. 90 days is longer than any gap the rotation should
+// shrug off and short enough that a season away does not distort the next one.
+// Removing the cap entirely measures identically across 1-3x/week, the
+// athlete's actual range; it is kept for the case a sweep cannot reach.
+export const NEGLECT_CAP_DAYS = 90;
+
 export const CNS_VETO_THRESHOLD = 2;
 
 // The acute account above is a 72 h horizon and cannot see a month. This is
