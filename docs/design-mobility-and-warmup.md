@@ -457,8 +457,10 @@ not raise `MAIN_WORK_MAX_MIN` past 50 without re-clearing it against
 here specifically so nobody re-tries them without knowing they were already
 measured and rejected.
 
-**OPEN QUESTION, not decided here: this constant is shared with day types
-that carry no ramp at all, and the athlete was never asked about that.**
+**CLOSED 2026-09-01, no change: the constant stays shared.** It was recorded
+as open because it is shared with day types that carry no ramp at all. The
+mechanism was real; the dose it produces is below the sourced norm, so there
+is nothing to fix. The trace is kept because it is the evidence.
 `MAIN_WORK_MAX_MIN` has exactly one use site — `packToBudget`'s default
 budget (`js/generator.js:784`), read at `packToBudget`'s only call site
 (`js/generator.js:1095`) for every day type, with no per-day-type override.
@@ -471,11 +473,45 @@ steady-run block is `mode: 'time'` and never reaches `patternSets`, so
 strides is the only place the extra room could land. Measured on the same
 sweep: `aerobic-steady` counted sets rose **10,284 → 13,431 (+30.6%)**. That
 is an easy day picking up more anaerobic strides work, more often — a
-separate programming question from the displacement decision above, and one
-the athlete has not yet been asked. Framed as open, the same way the
-displacement question was framed before he settled it: leave
-`MAIN_WORK_MAX_MIN` shared as is, or split a second budget constant that
-governs only non-ramped day types so this one can move independently of them.
+separate programming question from the displacement decision above.
+
+*How it was closed.* Re-measured 2026-09-01 in two separate node processes
+(one process cannot do it: `generator.js` imports `rules.js` unversioned, so a
+second in-process sweep silently reuses the first cap — the identical totals
+are the tell). Cap 45 → 50, 3,000 seeds, `aerobic-steady`: at full volume
+**10,284 → 13,431** stride sets (+30.6%) and **69.2% → 90.3%** of easy runs
+carrying strides; at ramp week 4 **12,401 → 13,968** (+12.6%) and **89% →
+100%**. Easy-run length was **29.3 min on both sides** — the run itself never
+changed. So the raise moved FREQUENCY, not the session: every easy day now
+carries strides where about one in ten did not.
+
+What settles it is his cadence, not the sweep. Walking the neglect model
+forward 16 weeks and committing each session the way the app does, he gets
+**0.25 stride sessions per week at 1×/week** (1.1 reps) and **0.50 at 2–3×
+per week** (2.2–2.4 reps), because `aerobic-steady` only comes up every few
+weeks at that frequency. The sourced norm is **4–8 strides, 1–3 times per
+week**, 50–150 m per rep at 85–95%, recovery 2–3× the rep — `[corroborated]`
+from practitioner sources (Runners Connect, Coach Saltmarsh, COROS), with the
+polarized-training frame from Seiler (Fast Talk Labs) and Stöggl & Sperlich
+2014. Strides are a neuromuscular stimulus taken at full recovery, not a
+metabolic load, which is why they are standard *on* easy days rather than a
+violation of one.
+
+He is therefore at **0.25–0.50 stride sessions per week against a floor of
+one**: the raise moved him toward the recommended range and nowhere near
+through it. The block's own dose already matches the source — 4–6 reps
+(norm 4–8), 75 s rest (norm 2–3× a ~25–30 s rep), "about 90%, never a maximal
+effort" (norm 85–95%). Splitting a second budget constant for non-ramped day
+types would buy nothing and would need its own calibration. **Reopen only if
+his cadence rises far enough that `aerobic-steady` lands weekly.**
+
+The investigation did find a real defect, fixed the same day: the strides
+block carries `sprintMeters` (6 × 50 m = 300) with `footContacts: 0`, and
+`loadLine`'s contacts branch read only `footContacts` — so it fell through to
+the effort cue and **the card never said how far a stride was**, while the
+number sat on the block unprinted. Since the sourced prescription is a
+distance, the distance is the prescription. The card now reads
+`× 6` / `50 m` / `rest 1:15 · build to about 90%, never a maximal effort`.
 
 §4.4 derives the exercise count as a residual from `patternSets` coverage
 debt; with `patternSets` now at 88% of its pre-ramp figure rather than 75%,
@@ -825,13 +861,14 @@ clean while two real bugs sat in the code. Both layers are required.
    `MAIN_WORK_MAX_MIN` and `FLOOR_OVERRUN_ALLOWANCE_MIN` comments for the
    full option table and the per-day-type worst cases.
 
-   **A new open question this decision surfaced, not settled here:**
-   `MAIN_WORK_MAX_MIN` is shared across every day type, not just the three
-   that carry a ramp, so raising it also recovered working sets on
+   **The open question this decision surfaced is now CLOSED (2026-09-01), no
+   change:** `MAIN_WORK_MAX_MIN` is shared across every day type, not just the
+   three that carry a ramp, so raising it also recovered working sets on
    `aerobic-steady`'s optional strides slot (+30.6%, 10,284 → 13,431) — a day
-   type with no ramp at all. See §4.3's "Decision" block above for the full
-   trace and the open question it raises about splitting a separate budget
-   constant for non-ramped day types.
+   type with no ramp at all. The effect is real but lands **below** the sourced
+   dose: at his cadence it is 0.25–0.50 stride sessions per week against a
+   norm of 1–3. See §4.3's "Decision" block above for the measurements, the
+   sources and the card defect the investigation uncovered.
 
    *Why the deadline is lifted, not the bias.* §4.4 derives the exercise
    count as a residual from `patternSets` coverage debt. This decision does

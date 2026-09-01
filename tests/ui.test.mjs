@@ -11,7 +11,7 @@ installDom();
 const {
   loadLine, volumeLine, equipmentControl, renderNothingBuildable,
   renderConfirmPrevious, sorenessMap, addMoveControl, warmupLine,
-  renderSession
+  renderSession, blockCard
 } = await import('../js/ui.js');
 const { SORENESS_JOINTS } = await import('../js/rules.js');
 
@@ -484,4 +484,56 @@ test('a confirmed session says so and drops the reroll', () => {
     `reroll still offered on a confirmed session: ${JSON.stringify(texts)}`);
   assert.ok(/done|completed/i.test(node.textContent),
     'a confirmed session should say it was done');
+});
+
+// --------------------------------------------------------------------------
+// Strides: contact-less sprint work that still has a distance
+// --------------------------------------------------------------------------
+
+// The strides block carries sprintMeters (6 x 50 m = 300) and footContacts 0 --
+// strides are not counted as plyometric ground contacts. The contacts branch
+// read only footContacts, so the one number he needs was computed, stored and
+// then never shown: the card said "6 x 1" and an effort cue, and nothing about
+// how far a stride is. Sourced prescription is 50-150 m per rep, so the
+// distance IS the prescription.
+const STRIDES = {
+  name: 'Strides', role: 'strides', mode: 'contacts', sets: 6, reps: 1,
+  footContacts: 0, sprintMeters: 300, restSec: 75, optional: true,
+  effort: 'build to about 90%, never a maximal effort'
+};
+
+test('a stride prints the distance of ONE stride, not the session total', () => {
+  assert.equal(loadLine(STRIDES), '50 m');
+});
+
+test('the chip carries how many strides, not sets x reps', () => {
+  // "6 x 1" is noise for the same reason "1 x 12" is noise over a drill.
+  assert.equal(volumeLine(STRIDES), '× 6');
+});
+
+test('contact-less work with no distance still falls back to the effort cue', () => {
+  // Throws and slams have neither contacts nor metres; the cue is all there is.
+  assert.equal(
+    loadLine({ mode: 'contacts', sets: 3, reps: 1, footContacts: 0, effort: 'maximal intent' }),
+    'maximal intent'
+  );
+});
+
+test('real contact work is unchanged', () => {
+  assert.equal(
+    loadLine({ mode: 'contacts', sets: 4, reps: 5, footContacts: 20, sprintMeters: 120 }),
+    '20 contacts · 120 m'
+  );
+  assert.equal(loadLine({ mode: 'contacts', sets: 4, reps: 5, footContacts: 20 }), '20 contacts');
+});
+
+test('the effort cue survives on the stride card once the hero is a distance', () => {
+  const node = blockCard(STRIDES, () => null);
+  assert.match(node.textContent, /50 m/);
+  assert.match(node.textContent, /build to about 90%/);
+});
+
+test('a single set of distance work carries no chip', () => {
+  // Same rule as a drill: "× 1" over one set of A-skips says nothing.
+  assert.equal(volumeLine({ mode: 'contacts', sets: 1, reps: 1, footContacts: 0, sprintMeters: 20 }), '');
 });

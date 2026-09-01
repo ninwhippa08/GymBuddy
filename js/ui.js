@@ -84,9 +84,21 @@ export function loadLine(block) {
       : `${block.holdSec}s hold`;
   }
   if (block.mode === 'contacts') {
+    // Strides have no ground contacts to count -- they are not plyometric work
+    // -- but they DO carry distance: sprintMeters is the session total, so one
+    // stride is that over the set count. It used to fall through to the effort
+    // cue below and the card never said how far a stride was, while the number
+    // sat on the block unprinted. The sourced prescription is 50-150 m per rep,
+    // which makes the distance the prescription. Per rep, not the total: the
+    // hero line is read between efforts, and "300 m" is not what he is about
+    // to run.
+    if (!block.footContacts && block.sprintMeters && block.sets) {
+      return `${Math.round(block.sprintMeters / block.sets)} m`;
+    }
     // Throws and slams have no ground contact to count -- the generator sets
-    // footContacts to 0 on purpose. "0 contacts" as the headline tells the
-    // user nothing, so the effort cue becomes the prescription instead.
+    // footContacts to 0 on purpose -- and no distance either. "0 contacts" as
+    // the headline tells the user nothing, so the effort cue becomes the
+    // prescription instead.
     if (!block.footContacts) return block.effort || 'maximal intent';
     return block.sprintMeters
       ? `${block.footContacts} contacts · ${block.sprintMeters} m`
@@ -165,6 +177,12 @@ export function volumeLine(block) {
     const sec = block.sets * block.workSec + (block.sets - 1) * block.restSec;
     return `~${Math.round(sec / 60)} min`;
   }
+  // A stride is one rep by definition and the hero line now carries its
+  // distance, so the chip carries the count -- the same split as a hold.
+  // "6 × 1" was noise for exactly the reason "1 × 12" is noise over a drill.
+  if (block.mode === 'contacts' && !block.footContacts && block.sprintMeters) {
+    return block.sets > 1 ? `× ${block.sets}` : '';
+  }
   return `${block.sets} × ${block.reps}`;
 }
 
@@ -178,8 +196,12 @@ export function blockCard(block, cuesFor, onSwap) {
 
   // The effort cue is already the headline for contact-less explosive work;
   // don't print it twice.
+  // A stride's hero line is its distance, so its cue has NOT been printed yet
+  // and has to drop to the meta line -- otherwise the one instruction that
+  // keeps a stride submaximal disappears off the card entirely.
   const heroIsEffort =
-    block.mode === 'reps' || (block.mode === 'contacts' && !block.footContacts);
+    block.mode === 'reps' ||
+    (block.mode === 'contacts' && !block.footContacts && !block.sprintMeters);
   // An interval's recovery is already in the hero line, and what matters
   // about it is not its length but that it is not a rest: standing still
   // between hard efforts is how the next one goes badly.

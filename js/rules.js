@@ -493,22 +493,45 @@ export const TIME = Object.freeze({
   // FLOOR_OVERRUN_ALLOWANCE_MIN below, re-derived to match). GYM_SESSION_TOTAL_MIN
   // is unchanged -- only the main-work share of it moved.
   //
-  // OPEN QUESTION, not decided here: this constant is SHARED across every day
-  // type -- packToBudget's only call site (js/generator.js:1095) always uses
-  // this default, with no per-day-type override. Raising it to buy back
-  // ramped working sets also gave packToBudget more room on day types that
-  // never carry a ramp at all. Traced and measured: aerobic-steady's only
+  // CLOSED 2026-09-01, no change: the shared constant STAYS shared. This was
+  // recorded as an open question because raising it to buy back ramped working
+  // sets also gave packToBudget more room on day types that carry no ramp at
+  // all. The mechanism is real and traced: aerobic-steady's only
   // VOLUME_MODES-countable block is slot B, "strides" (js/templates.js:
   // 212-218, mode: 'contacts', sets [4,6], optional: true); its primary
-  // steady-run block is mode: 'time' and never reaches patternSets, so
-  // strides is the only place the extra room could land. Counted sets rose
-  // 10,284 -> 13,431 (+30.6%) on the same 3,000-seed sweep. That is an easy
-  // day picking up more anaerobic strides work, more often -- a separate
-  // programming question the athlete has not been asked, not a consequence
-  // of the displacement decision above. Framed as open, the same way the
-  // displacement question was framed before he settled it: leave the shared
-  // constant as is, or split a second budget constant that only governs
-  // non-ramped day types so this one can move independently of them.
+  // steady-run block is mode: 'time' and never reaches patternSets, so strides
+  // is the only place the extra room could land. Re-measured 2026-09-01 in two
+  // separate node processes -- one process cannot do it, since generator.js
+  // imports rules.js unversioned and the second sweep silently reuses the
+  // first cap:
+  //
+  //   cap 45 -> 50, 3,000 seeds, aerobic-steady
+  //   full volume:  10,284 -> 13,431 stride sets (+30.6%), 69.2% -> 90.3%
+  //                 of easy runs carrying strides
+  //   ramp week 4:  12,401 -> 13,968 (+12.6%),            89% -> 100%
+  //   easy-run length: 29.3 min in both -- the RUN did not change at all
+  //
+  // So the change was to FREQUENCY, not to the run: every easy day now carries
+  // strides where about one in ten did not. What settles it is his cadence.
+  // Walking the neglect model forward 16 weeks, committing each session the way
+  // the app does: at 1x/week he gets 0.25 stride sessions per week (1.1 reps),
+  // at 2-3x/week 0.50 (2.2-2.4 reps) -- because aerobic-steady only comes up
+  // every few weeks at that frequency.
+  //
+  // Sourced norm is 4-8 strides, 1-3 times per week, 50-150 m per rep at 85-95%
+  // with recovery 2-3x the rep [corroborated, practitioner sources: Runners
+  // Connect, Coach Saltmarsh, COROS; the polarized-training frame from Seiler
+  // via Fast Talk Labs and Stoggl & Sperlich 2014]. Strides are a neuromuscular
+  // stimulus with full recovery, not a metabolic load, which is why they are
+  // standard ON easy days rather than a violation of one.
+  //
+  // He therefore sits at 0.25-0.50 stride sessions per week against a floor of
+  // 1: the raise moved him TOWARD the recommended range and nowhere near
+  // through it. The block's own dose already matches the source -- 4-6 reps
+  // (norm 4-8), 75 s rest (norm 2-3x a ~25-30 s rep), "about 90%, never a
+  // maximal effort" (norm 85-95%). A second budget constant for non-ramped day
+  // types would buy nothing and would need its own calibration. Reopen only if
+  // his cadence rises far enough that aerobic-steady lands weekly.
   MAIN_WORK_MAX_MIN: 50,
   // Mandatory, never randomised out. Prep is capped by the drill dose rather
   // than by this figure; it is here so the three budgets can be seen to sum.
