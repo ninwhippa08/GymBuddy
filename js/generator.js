@@ -1216,6 +1216,7 @@ export function generate({
         ? slot.patterns.filter(p => targets.includes(p))
         : targets;
       if (!serves.some(p => patternDebt(p, chosen, state) > 0)) continue;
+      if (blocks.length >= TIME.MAX_MAIN_SLOTS) break;
       if (estimateMinutes(blocks) >= TIME.MAIN_WORK_MAX_MIN) break;
     }
     let exercise = fillSlot(slot, library, ctx, rng);

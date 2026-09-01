@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { DAY_TYPES, PHASE_1_DAY_TYPES, TEMPLATES } from '../js/templates.js';
 import { patternDebt, weeklySetTarget, generate, packToBudget } from '../js/generator.js';
+import { TIME } from '../js/rules.js';
 
 const LIB = JSON.parse(
   readFileSync(new URL('../data/exercises.json', import.meta.url), 'utf8')
@@ -163,4 +164,22 @@ test('called without a day type it trims exactly as it always did', () => {
   ];
   const out = packToBudget(blocks, 11);   // fits A alone
   assert.deepEqual(out.trimmedSlots, ['B']);
+});
+
+test('coverage never proposes more main work than the measured cap', () => {
+  // The floors of a long template are irreducible -- packToBudget cannot shave
+  // a ramped block below two working sets -- so an uncapped coverage count can
+  // push a session past the athlete's stated 70 minutes in a way trimming
+  // cannot rescue. tests/session.test.mjs is the gate; this is the guard rail.
+  for (const dayType of ['max-strength', 'power', 'hypertrophy']) {
+    for (let seed = 1; seed <= 300; seed++) {
+      const s = generate({
+        library: LIB, profile: { banned: [], plyoLevel: 'beginner' },
+        history: [], soreness: {}, dayType, excludeEquipment: [], seed, now: 1e12
+      });
+      const n = mainBlocks(s).length;
+      assert.ok(n <= TIME.MAX_MAIN_SLOTS,
+        `${dayType}/seed ${seed} built ${n} main blocks, over the cap of ${TIME.MAX_MAIN_SLOTS}`);
+    }
+  }
 });

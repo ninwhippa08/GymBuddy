@@ -569,6 +569,23 @@ export const TIME = Object.freeze({
   // maximal effort" (norm 85-95%). A second budget constant for non-ramped day
   // types would buy nothing and would need its own calibration. Reopen only if
   // his cadence rises far enough that aerobic-steady lands weekly.
+  // The most main-work exercises a coverage-driven session may propose.
+  // [measured] -- 4,000 seeds x 3 lifting day types x 3 ramp positions at
+  // MAXIMUM coverage pressure (empty history = every pattern owes its full
+  // target), plan-07 Task 6. Observed distribution of main-block counts:
+  // 3:5965  4:3478  5:6007  6:12619  7:1413  8:6518, so 8 is the ceiling the
+  // templates and the time budget actually produce.
+  //
+  // NOT CURRENTLY BINDING, and that is the point of measuring rather than
+  // guessing: the worst session in that sweep is 70 min (power, seed 2140) and
+  // it has only THREE main blocks -- time saturates long before the count
+  // does. The cap exists because coverage can propose more slots than their
+  // floors will fit and floors are irreducible (packToBudget cannot shave a
+  // ramped block below two working sets), so without it a future change to the
+  // templates or the budget could push a session past the athlete's stated
+  // 70 min (spec.md:36) in a way trimming cannot rescue. If it ever starts
+  // binding, LOWER IT -- never widen the limit.
+  MAX_MAIN_SLOTS: 8,
   MAIN_WORK_MAX_MIN: 50,
   // Mandatory, never randomised out. Prep is capped by the drill dose rather
   // than by this figure; it is here so the three budgets can be seen to sum.
