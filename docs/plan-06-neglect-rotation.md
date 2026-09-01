@@ -1,5 +1,8 @@
 # Day-Type Rotation (the neglect model's blind spot) — Implementation Plan
 
+> **BUILT 2026-09-01.** All five tasks executed on `main`, `sw.js` v20, 298/298.
+> Commits `33ef87e`, `f3b11b0`, `20df2e5`, `97c5b35`, `e83d0b8`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Stop the generator silently withholding whole day types for a year at a time at the athlete's real 1–3×/week cadence.
@@ -90,7 +93,7 @@ That last fact cuts both ways and is the reason Task 4 exists: **290 tests are b
 - Consumes: `buildState(profile, history, now)` and `proposeDayType(state, opts)`, both already exported from `js/generator.js`.
 - Produces: nothing new. `state.hoursSince[dayType]` keeps its shape (hours as a number, `Infinity` for never) and only becomes accurate past 14 days.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/rotation.test.mjs` with exactly this:
 
@@ -132,13 +135,13 @@ test('a day type never trained still reads as never', () => {
 });
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `node --test tests/rotation.test.mjs`
 
 Expected: the first test FAILS on `a session 20 days ago must be visible, not Infinity` (both values are `Infinity`). The second test PASSES already — that is correct and intentional; it pins behaviour the fix must not break.
 
-- [ ] **Step 3: Make it pass**
+- [x] **Step 3: Make it pass**
 
 In `js/generator.js`, in `buildState`, change the `hoursSince` loop to read the full history. Replace:
 
@@ -170,14 +173,14 @@ with:
 
 Leave the loop body unchanged. Leave the `recent`-based loops for `patternSets`, `cnsAccount`, `weekContacts`/`weekMeters` and `recentExerciseIds` exactly as they are — those windows are correct and deliberate.
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `node --test tests/rotation.test.mjs` — expected: both PASS.
 Run: `node --test "tests/*.test.mjs"` — expected: **292 pass, 0 fail** (290 existing + 2 new).
 
 If any pre-existing test fails here, STOP and report it rather than editing that test. The session that wrote this plan verified all 290 pass under this change; a failure means something else moved.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add js/generator.js tests/rotation.test.mjs
@@ -199,7 +202,7 @@ git commit -m "Read hoursSince from full history, not the 14-day volume window"
 
 **The decision this task makes, and why it is not a sourced number.** No training-science source sets a saturation point for "how neglected is too neglected" — the cap exists to stop one abandoned modality growing an unbeatable score forever, which is a product decision about the app's behaviour, not a physiological claim. It is therefore tagged `[unverified]` and its comment says plainly that it is a product decision. Do not invent a citation for it. 90 days is chosen because it is longer than any plausible gap the rotation should shrug off, and short enough that a modality abandoned for a season does not outrank everything for months after it returns. Removing the cap entirely was measured and behaves identically at 1–3×/week (the athlete's range); the cap is kept as a guard for the case the sweep cannot reach — a day type abandoned for years.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `tests/rotation.test.mjs`:
 
@@ -239,13 +242,13 @@ test('the cap stops an abandoned day type outranking everything forever', () => 
 });
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `node --test tests/rotation.test.mjs`
 
 Expected: FAILS at the import — `NEGLECT_CAP_DAYS` does not exist (`SyntaxError: The requested module './rules.js' does not provide an export named 'NEGLECT_CAP_DAYS'`). That is the right first failure. After Step 3 adds the constant but before the score line changes, the first test fails on `expected 'plyometric', got 'sprint'` — confirm you see that too, because it is the real bug being pinned.
 
-- [ ] **Step 3: Add the constant**
+- [x] **Step 3: Add the constant**
 
 In `js/rules.js`, immediately above `export const CNS_VETO_THRESHOLD = 2;` (line 356), add:
 
@@ -264,7 +267,7 @@ In `js/rules.js`, immediately above `export const CNS_VETO_THRESHOLD = 2;` (line
 export const NEGLECT_CAP_DAYS = 90;
 ```
 
-- [ ] **Step 4: Use it**
+- [x] **Step 4: Use it**
 
 In `js/generator.js`, add `NEGLECT_CAP_DAYS` to the existing import block from `./rules.js` (the one starting `ZONES, PCT_JITTER, VOLUME, RAMP, WARMUP, CNS_DECAY, CNS_VETO_THRESHOLD,`), then change the score line:
 
@@ -278,12 +281,12 @@ to:
     let score = Math.min(days, NEGLECT_CAP_DAYS) * chronicBoost(dt, state);
 ```
 
-- [ ] **Step 5: Run the tests**
+- [x] **Step 5: Run the tests**
 
 Run: `node --test tests/rotation.test.mjs` — expected: all 4 PASS.
 Run: `node --test "tests/*.test.mjs"` — expected: **294 pass, 0 fail**.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add js/rules.js js/generator.js tests/rotation.test.mjs
@@ -303,7 +306,7 @@ git commit -m "Name the neglect cap and raise it to 90 days"
 
 Tasks 1 and 2 remove the *cause* of the ties. This task pins the property that matters, so a future change that reintroduces flattening fails loudly instead of silently starving a modality again.
 
-- [ ] **Step 1: Write the test**
+- [x] **Step 1: Write the test**
 
 Append to `tests/rotation.test.mjs`:
 
@@ -326,18 +329,18 @@ test('array order does not decide the proposal when neglect differs', () => {
 });
 ```
 
-- [ ] **Step 2: Run it**
+- [x] **Step 2: Run it**
 
 Run: `node --test tests/rotation.test.mjs` — expected: 5 PASS.
 Run: `node --test "tests/*.test.mjs"` — expected: **295 pass, 0 fail**.
 
 If this test FAILS, the cap in Task 2 is too low for the spread used here — do not widen the test; re-check `NEGLECT_CAP_DAYS`.
 
-- [ ] **Step 3: Verify it can fail**
+- [x] **Step 3: Verify it can fail**
 
 Temporarily change `NEGLECT_CAP_DAYS` back to `21` in `js/rules.js`, run `node --test tests/rotation.test.mjs`, and confirm this test FAILS. Then restore `90` and confirm it passes again. A regression test nobody has watched fail is not a regression test — this is how the `.btn-done` CSS bug reached a commit in the session that wrote this plan.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add tests/rotation.test.mjs
@@ -357,7 +360,7 @@ git commit -m "Pin that neglect, not array order, decides the proposal"
 
 The unit tests above pin the mechanism. This one pins the *outcome the athlete experiences*, which is what actually regressed: it walks a simulated year and asserts no day type is starved. It is the only test in the suite that can see day-type distribution.
 
-- [ ] **Step 1: Write the test**
+- [x] **Step 1: Write the test**
 
 Append to `tests/rotation.test.mjs`:
 
@@ -404,21 +407,21 @@ for (const perWeek of [1, 2, 3]) {
 }
 ```
 
-- [ ] **Step 2: Run it**
+- [x] **Step 2: Run it**
 
 Run: `node --test tests/rotation.test.mjs`
 
 Expected: all PASS. Note the runtime — this walks up to 156 real generations per cadence. If the three cadences together add more than ~5s to the suite, say so in the commit message; the suite is currently ~17s and `session.test.mjs`'s 70,000-session sweep already dominates it.
 
-- [ ] **Step 3: Verify it can fail**
+- [x] **Step 3: Verify it can fail**
 
 Temporarily revert Task 1's change (`for (const s of (history || []))` back to `for (const s of recent)`), run `node --test tests/rotation.test.mjs`, and confirm the 1×/week case FAILS naming `hypertrophy, sprint, plyometric`. Restore the fix and confirm PASS.
 
-- [ ] **Step 4: Run the whole suite**
+- [x] **Step 4: Run the whole suite**
 
 Run: `node --test "tests/*.test.mjs"` — expected: **298 pass, 0 fail**.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tests/rotation.test.mjs
@@ -435,7 +438,7 @@ git commit -m "Assert every day type is reachable within a year at 1-3x/week"
 
 **Interfaces:** none.
 
-- [ ] **Step 1: Write §7.5**
+- [x] **Step 1: Write §7.5**
 
 Add to `docs/design-running-programming.md`, after the existing §7.4, a section titled **§7.5 The rotation defect (found 2026-09-01, fixed in plan-06)** containing, in prose matching that document's voice:
 
@@ -446,15 +449,15 @@ Add to `docs/design-running-programming.md`, after the existing §7.4, a section
 - the explicit note that `NEGLECT_CAP_DAYS` is a product decision, `[unverified]`, and must not be given a fabricated citation;
 - the note that the 70-minute ceiling and the CNS constants were checked and do **not** move, because `session.test.mjs`'s sweep passes `dayType` explicitly and never consults `proposeDayType`.
 
-- [ ] **Step 2: Bump the service worker**
+- [x] **Step 2: Bump the service worker**
 
 In `sw.js`, change `const VERSION = 'v19';` to `const VERSION = 'v20';`. This is the only version bump in this plan.
 
-- [ ] **Step 3: Full verification before any deploy claim**
+- [x] **Step 3: Full verification before any deploy claim**
 
 Run: `node --test "tests/*.test.mjs"` and read the counts. Expected: **298 pass, 0 fail**. Do not proceed on a remembered result from an earlier step.
 
-- [ ] **Step 4: Commit and push**
+- [x] **Step 4: Commit and push**
 
 ```bash
 git add docs/design-running-programming.md sw.js
@@ -462,7 +465,7 @@ git commit -m "Document the rotation defect and ship it as v20"
 git push origin main
 ```
 
-- [ ] **Step 5: Verify the deploy, then tell the athlete**
+- [x] **Step 5: Verify the deploy, then tell the athlete**
 
 GitHub Pages takes a few minutes. Poll until the deployed worker reports v20:
 
