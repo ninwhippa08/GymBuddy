@@ -318,6 +318,81 @@ other day type.
 - *Four weeks of lifting*: `weeksSinceEasyWeek` crosses its threshold, a larger
   boost applies until a lighter week resets it.
 
+### 7.5 The rotation defect — found and fixed 2026-09-01 (plan-06)
+
+§7.1–7.4 describe how lifting load *boosts* a running day. None of them
+describe what the neglect score does when a day type is simply skipped for a
+long time, and that turned out to be where the model failed. **At the
+athlete's real 1–3×/week cadence the generator was withholding whole day types
+for a year at a time.** Simulated against the real generator, committing each
+session the way `app.js` does (replace-by-date), counting what was actually
+proposed:
+
+| cadence | max-str | power | hypertrophy | aerobic | interval | sprint | plyo |
+|---|---|---|---|---|---|---|---|
+| 1×/week (52 sessions) | 25 | 14 | **0** | 12 | 1 | **0** | **0** |
+| 2×/week (104) | 26 | 26 | **1** | 26 | 25 | **0** | **0** |
+| 3×/week (156) | 26 | 26 | 26 | 26 | 26 | 26 | **0** |
+| **after the fix, 1×/week** | 8 | 8 | 8 | 7 | 7 | 7 | 7 |
+
+**The mechanism, in three parts.** `buildState` read `hoursSince` from
+`recent`, which it has already truncated to `VOLUME.HISTORY_DAYS` (14 days),
+so every day type skipped for longer than a fortnight came back `Infinity` and
+`proposeDayType` mapped it to `days = 99` — 15 days and 300 days were the same
+number. `Math.min(days, 21)` then flattened whatever distinct values survived.
+And the winner is chosen with `reduce((a, b) => (b.score > a.score ? b : a))`,
+which keeps the **first** element on a tie — that is `PHASE_1_DAY_TYPES` order,
+in which `plyometric` is last. So `plyometric` lost every tie it was ever in.
+
+Instrumented over a simulated year at 3×/week, `plyometric` was open,
+un-vetoed and **tied for the top score in 78 of 156 sessions**, losing to
+`max-strength` (26), `power` (26) and `sprint` (26) — every one of them
+earlier in the array. It was never vetoed. It simply never won.
+`aerobic-steady` and `interval` escaped only because `chronicBoost` (§7.2)
+lifts them above the cap, scoring 30–31 against everyone else's flat 21 —
+which is why the two day types this section was written about were the two
+that always appeared.
+
+**The two halves mask each other, which is why this survived review.**
+Measured as a 2×2, each variant in its own node process with the patch
+asserted on disk:
+
+| | window fixed | cap raised | 1×/wk | 2×/wk | 3×/wk |
+|---|---|---|---|---|---|
+| as shipped | — | — | hyp 0, spr 0, ply 0 | hyp 1, spr 0, ply 0 | ply 0 |
+| window only | ✓ | — | hyp 12, spr 0, ply **0** | spr 1, ply **0** | ply 19 |
+| cap only | — | ✓ | **byte-identical to shipped** | identical | identical |
+| **both** | ✓ | ✓ | **8/8/8/7/7/7/7** | 14/13/13/19/19/13/13 | 20/20/20/29/29/19/19 |
+
+The cap measured *alone* changes nothing at all, because the broken window
+means no day type ever holds a value between 14 and 21 days for the cap to
+bite on. Anyone measuring one half at a time would correctly conclude that
+half was irrelevant and drop it. **Do not ship one without the other.**
+
+**`NEGLECT_CAP_DAYS = 90` is a product decision, not a physiological one.** No
+source sets a saturation point for neglect; the constant exists so a modality
+abandoned for two years cannot score 730 and outrank everything for months
+after it returns. It is tagged `[unverified]` in `js/rules.js` and must not be
+given a fabricated citation. Removing the cap entirely measures identically
+across 1–3×/week; it is retained only to bound a case no sweep at that cadence
+can reach.
+
+**What this does NOT move, checked rather than assumed.** The 70-minute
+session ceiling is unaffected: `tests/session.test.mjs`'s sweep calls
+`generate({ library, dayType, seed, now: 1e12 })` with the day type passed
+explicitly and no history, so it never consults `proposeDayType` at all —
+session length is a property of a day type's template, not of how often that
+type is proposed. `CNS_VETO_THRESHOLD`, `FLOOR_OVERRUN_ALLOWANCE_MIN` and
+`GYM_SESSION_TOTAL_MIN` likewise hold: all 290 tests predating this change
+pass unchanged under it.
+
+That last fact is the reason `tests/rotation.test.mjs` exists. **290 tests
+were blind to day-type distribution** — nothing in the suite could see which
+day types get proposed, which is exactly why a year-long starvation of three
+of them shipped and sat unnoticed. The new file asserts the distribution
+directly, and its year-long cases have each been watched fail against the
+un-fixed generator.
+
 ---
 
 ## 8. Card rendering
