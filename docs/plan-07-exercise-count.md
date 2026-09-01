@@ -1,5 +1,17 @@
 # The Exercise Count Becomes a Residual (design §4.4) — Implementation Plan
 
+> **BUILT 2026-09-01.** All seven tasks executed on `main`, plus an unplanned
+> **Task 6b** the plan's own before/after measurement forced: coverage was
+> spending the minutes the return ramp frees (+35% working sets in week 1,
+> `cnsLoad` 12.2 against a 5–11 calibration), and the athlete chose to make the
+> ramp win. `sw.js` v23, 328/328. Commits `8fb43b3`, `d7c1001`, `c9e309a`,
+> `9e46a68`, `009919f`, `c35b5ec`, `2323cd8`.
+>
+> **The one plan step NOT done: Task 7 Step 6, the browser check.** The Chrome
+> extension was disconnected at deploy time and the athlete chose to ship with
+> the gap on record. A session may now carry 8 main blocks, more than this app
+> has ever rendered, and the DOM shim renders no CSS. Look at it on a phone.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** The number of exercises in a session stops being a hardcoded 4 or 5 and becomes what coverage debt asks for, bounded by the time budget.
@@ -71,7 +83,7 @@ The volume research closed on 2026-09-01 (`design-mobility-and-warmup.md` §8 qu
 **Interfaces:**
 - Produces: `DAY_TYPES[dayType].targets` — an array of pattern strings, e.g. `['squat', 'hinge', 'push-h', 'push-v', 'pull-h', 'pull-v']`. Every string must be a pattern that exists in `data/exercises.json`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/coverage-count.test.mjs`:
 
@@ -110,12 +122,12 @@ test('a declared target is a pattern the library can actually fill', () => {
 });
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `node --test tests/coverage-count.test.mjs`
 Expected: the first test FAILS with `max-strength declares no targets`. The second passes vacuously (no targets to check) — that is fine, it becomes meaningful in Step 3.
 
-- [ ] **Step 3: Declare the targets**
+- [x] **Step 3: Declare the targets**
 
 In `js/templates.js`, add a `targets` array to each of the three lifting entries in `DAY_TYPES`. Use exactly these, which are the patterns each day's existing slots already reach plus the ones its slots imply:
 
@@ -131,12 +143,12 @@ targets: ['squat', 'hinge', 'push-h', 'push-v', 'pull-h', 'pull-v', 'lunge'], //
 
 Leave the four non-lifting day types (`aerobic-steady`, `interval`, `sprint`, `plyometric`) without a `targets` key. Their volume is dosed in minutes, metres and contacts, not in pattern sets, and giving them pattern coverage would be a claim no source supports.
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `node --test tests/coverage-count.test.mjs` — expected: 2 PASS.
 Run: `node --test "tests/*.test.mjs"` — expected: **314 pass, 0 fail** (312 existing + 2 new).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add js/templates.js tests/coverage-count.test.mjs
@@ -155,7 +167,7 @@ git commit -m "Declare the movement patterns each lifting day targets"
 - Consumes: `weeklySetTarget(dayType)` (already exported), `state.patternSets`.
 - Produces: `patternDebt(pattern, dayType, state)` → a number ≥ 0: how many sets of that pattern are still owed this week. Zero once the target is met.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `tests/coverage-count.test.mjs`:
 
@@ -189,12 +201,12 @@ test('the same history leaves more debt on a hypertrophy day than a strength day
 });
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `node --test tests/coverage-count.test.mjs`
 Expected: FAILS at import — `does not provide an export named 'patternDebt'`.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 In `js/generator.js`, directly below `weeklySetTarget`:
 
@@ -216,12 +228,12 @@ export function patternDebt(pattern, dayType, state) {
 }
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `node --test tests/coverage-count.test.mjs` — expected: 6 PASS.
 Run: `node --test "tests/*.test.mjs"` — expected: **318 pass, 0 fail**.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add js/generator.js tests/coverage-count.test.mjs
@@ -241,7 +253,7 @@ git commit -m "Measure pattern debt against the per-goal weekly target"
 
 **Ordering rule, from §4.4:** NSCA priority — power/explosive first, then other multi-joint core lifts, then assistance. The existing slots keep their positions and their `optional` flags; new slots are appended in priority order.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `tests/coverage-count.test.mjs`:
 
@@ -277,12 +289,12 @@ test('every added slot can be filled from the library', () => {
 });
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `node --test tests/coverage-count.test.mjs`
 Expected: the first test FAILS — `max-strength` is still 4 slots.
 
-- [ ] **Step 3: Append the candidate slots**
+- [x] **Step 3: Append the candidate slots**
 
 In `js/templates.js`, append to each template. Copy the shape of the existing slots in that same template (they carry `tier`, `patterns`, `zone`, `mode`, `sets`, `reps`, `restSec`, `optional`) — do not invent new slot fields. Add:
 
@@ -300,14 +312,14 @@ In `js/templates.js`, append to each template. Copy the shape of the existing sl
 
 Use the same `zone` as the nearest existing slot of comparable priority in that template, and the same `mode`. For sets/reps/rest, copy the corresponding accessory slot already in that template rather than choosing new numbers — a new dose would need its own source.
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `node --test tests/coverage-count.test.mjs` — expected: 9 PASS.
 Run: `node --test "tests/*.test.mjs"` — expected: **321 pass, 0 fail**.
 
 **If `tests/session.test.mjs`'s duration tests fail here, STOP.** They should not: the FILL loop still stops at the same place until Task 4, and `packToBudget` already drops optional slots first. A failure here means the added slots are reaching sessions before coverage is wired, which is a different bug — report it rather than trimming the templates back.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add js/templates.js tests/coverage-count.test.mjs
@@ -328,7 +340,7 @@ git commit -m "Offer more candidate slots than a session will use"
 
 **The rule, from §4.4:** walk the template in order. A **required** slot is always filled. An **optional** slot is filled only if some targeted pattern it could serve still carries debt. Stop early when the projected main-work time would exceed `TIME.MAIN_WORK_MAX_MIN` — coverage proposes, time disposes.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `tests/coverage-count.test.mjs`:
 
@@ -370,12 +382,12 @@ test('the required core of a day is always delivered', () => {
 });
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `node --test tests/coverage-count.test.mjs`
 Expected: the first test FAILS — the counts are equal, because the loop fills every slot regardless of debt.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 In `js/generator.js`, replace the FILL loop's opening with a coverage gate. The loop currently begins:
 
@@ -404,14 +416,14 @@ Change it to:
 
 `DAY_TYPES` is already imported in this file; `TIME` and `estimateMinutes` are already in scope.
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `node --test tests/coverage-count.test.mjs` — expected: 11 PASS.
 Run: `node --test "tests/*.test.mjs"` — expected: **323 pass, 0 fail**.
 
 **The duration tests in `tests/session.test.mjs` are the gate. If they fail here, do NOT edit them** — they encode the athlete's stated 70-minute limit and a decision he has already reversed once to protect. Go to Task 6, which exists to set the cap that keeps them passing.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add js/generator.js tests/coverage-count.test.mjs
@@ -429,7 +441,7 @@ git commit -m "Fill by coverage debt instead of a fixed slot count"
 **Interfaces:**
 - `packToBudget(blocks, budgetMin, opts)` gains an optional third argument `{ dayType, state }`. Called without it, behaviour is exactly as today — that keeps its existing callers and tests valid.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `tests/coverage-count.test.mjs`:
 
@@ -466,12 +478,12 @@ test('called without a day type it trims exactly as it always did', () => {
 });
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `node --test tests/coverage-count.test.mjs`
 Expected: the first test FAILS — `dropped by position, not debt: kept A,B`.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 In `js/generator.js`, change `packToBudget`'s signature and its optional-dropping loop:
 
@@ -511,12 +523,12 @@ Leave the set-shaving `while` loop below it exactly as it is. Then update the ca
   const packed = packToBudget(blocks, TIME.MAIN_WORK_MAX_MIN, { dayType: chosen, state });
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `node --test tests/coverage-count.test.mjs` — expected: 13 PASS.
 Run: `node --test "tests/*.test.mjs"` — expected: **325 pass, 0 fail**.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add js/generator.js tests/coverage-count.test.mjs
@@ -537,7 +549,7 @@ git commit -m "Trim by outstanding debt rather than template position"
 
 **Why this task is not optional.** Before plan-07 the worst session across 4,000 seeds × 3 lifting day types was **exactly 70 minutes** — `docs/spec.md:36`'s stated limit, with zero margin — and main work already saturated `MAIN_WORK_MAX_MIN` on all three. Coverage can now propose more slots than the *floors* of those slots can fit in the budget, and floors are irreducible: `packToBudget` cannot shave a ramped block below two working sets. So a coverage-driven count can push total session time past 70 in a way trimming cannot rescue.
 
-- [ ] **Step 1: Measure before choosing the number**
+- [x] **Step 1: Measure before choosing the number**
 
 Write this throwaway script as `tests/_probe_slots.mjs`, run it, then delete it:
 
@@ -564,7 +576,7 @@ Run: `node tests/_probe_slots.mjs`
 
 Read the output. **If `worst.d` is ≤ 70**, set `MAX_MAIN_SLOTS` to the highest count in the distribution and record in the constant's comment that the cap is not currently binding. **If `worst.d` is > 70**, lower the cap one slot at a time, re-running the probe, until the worst session is ≤ 70. Record the measured worst at the chosen cap. Delete the probe file when done.
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 Append to `tests/coverage-count.test.mjs`:
 
@@ -590,12 +602,12 @@ test('coverage never proposes more main work than the measured cap', () => {
 });
 ```
 
-- [ ] **Step 3: Run it and watch it fail**
+- [x] **Step 3: Run it and watch it fail**
 
 Run: `node --test tests/coverage-count.test.mjs`
 Expected: FAILS at the import or on `TIME.MAX_MAIN_SLOTS` being `undefined` (every comparison against `undefined` is false, so the assertion fires).
 
-- [ ] **Step 4: Add the constant and enforce it**
+- [x] **Step 4: Add the constant and enforce it**
 
 In `js/rules.js`, inside the `TIME` object, add — filling in the two figures from Step 1's measurement:
 
@@ -622,7 +634,7 @@ In `js/generator.js`, extend the FILL loop's optional gate:
     }
 ```
 
-- [ ] **Step 5: Run everything, and read the duration tests specifically**
+- [x] **Step 5: Run everything, and read the duration tests specifically**
 
 Run: `node --test "tests/*.test.mjs"` — expected: **326 pass, 0 fail**.
 
@@ -634,7 +646,7 @@ node --test "tests/*.test.mjs" 2>&1 | grep -E "70-minute|duration sweep"
 
 Expected: both lines start with `✔`. **If either fails, the cap is still too high — return to Step 1 and lower it.** Never widen `GYM_SESSION_TOTAL_MIN`, `FLOOR_OVERRUN_ALLOWANCE_MIN`, or the literal 70 in the test.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add js/rules.js js/generator.js tests/coverage-count.test.mjs
@@ -650,7 +662,7 @@ git commit -m "Cap the coverage-driven count at the measured 70-minute limit"
 - Modify: `docs/spec.md` (§10 item 4 becomes done)
 - Modify: `sw.js` (`VERSION` `'v22'` → `'v23'`)
 
-- [ ] **Step 1: Write the §4.4 "as built" note**
+- [x] **Step 1: Write the §4.4 "as built" note**
 
 Add to `docs/design-mobility-and-warmup.md` §4.4, in that document's voice:
 
@@ -660,25 +672,25 @@ Add to `docs/design-mobility-and-warmup.md` §4.4, in that document's voice:
 - the before/after main-block distribution from Task 6's probe, and the worst observed session in minutes;
 - the note that non-lifting day types deliberately declare no targets, because their volume is dosed in minutes, metres and contacts.
 
-- [ ] **Step 2: Add the new open question to §8**
+- [x] **Step 2: Add the new open question to §8**
 
 Append to `docs/design-mobility-and-warmup.md` §8:
 
 > **Fractional coverage needs an indirect-pattern map.** The sourced convention for counting sets is fractional — an indirect set counts 0.5 (design §8 question 6, Pelland et al. 2025) — but coverage in §4.4 counts direct sets only, because `data/exercises.json` gives every entry exactly one `pattern` and records nothing about what a movement trains indirectly. A squat set and a lunge set both load the quadriceps and the app cannot currently see it. Adding that map is a data job and it must be sourced, not invented. Until then, debt is slightly overstated for patterns receiving indirect work, which biases coverage toward proposing more exercises — bounded by `TIME.MAX_MAIN_SLOTS`.
 
-- [ ] **Step 3: Close spec.md §10 item 4**
+- [x] **Step 3: Close spec.md §10 item 4**
 
 Change item 4 from "**UNBLOCKED 2026-09-01** … **This is the resume point and it is now buildable.**" to a done entry in the style of items 1–3 above it, naming `sw.js` v23, the coverage rule, and the measured cap.
 
-- [ ] **Step 4: Bump the service worker**
+- [x] **Step 4: Bump the service worker**
 
 In `sw.js`, change `const VERSION = 'v22';` to `const VERSION = 'v23';`.
 
-- [ ] **Step 5: Full verification before any deploy claim**
+- [x] **Step 5: Full verification before any deploy claim**
 
 Run: `node --test "tests/*.test.mjs"` and read the counts. Expected: **326 pass, 0 fail**. Do not proceed on a remembered result.
 
-- [ ] **Step 6: Look at it in a browser before shipping**
+- [x] **Step 6: Look at it in a browser before shipping**
 
 The DOM shim renders no CSS and has already let a real layout bug through. A session with seven main blocks is longer than any this app has produced; confirm on a 390px-wide column that the card still reads, and that the count visibly responds — generate with an empty history (high debt) and again with a full week of `patternSets` (low debt) and compare the number of exercise cards.
 
@@ -691,7 +703,7 @@ for (const k of await caches.keys()) await caches.delete(k);
 
 Then reload and confirm the loaded source actually contains the change before drawing any conclusion from behaviour.
 
-- [ ] **Step 7: Commit, push, verify the deploy**
+- [x] **Step 7: Commit, push, verify the deploy**
 
 ```bash
 git add docs/design-mobility-and-warmup.md docs/spec.md sw.js
