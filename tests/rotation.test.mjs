@@ -6,6 +6,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildState, proposeDayType } from '../js/generator.js';
 import { NEGLECT_CAP_DAYS } from '../js/rules.js';
+import { PHASE_1_DAY_TYPES } from '../js/templates.js';
 
 const DAY = 86400e3;
 const NOW = Date.parse('2026-09-01T12:00:00Z');
@@ -64,4 +65,19 @@ test('the cap stops an abandoned day type outranking everything forever', () => 
   const plyoScore = beyond.candidates.find(c => c.dayType === 'plyometric').score;
   assert.equal(sprintScore, plyoScore, 'both are past the cap and should saturate together');
   assert.equal(sprintScore, NEGLECT_CAP_DAYS);
+});
+
+test('array order does not decide the proposal when neglect differs', () => {
+  // plyometric is LAST in PHASE_1_DAY_TYPES, so if order still decides, it
+  // loses. Give it the most neglect and it must win from last position.
+  const daysAgo = {};
+  PHASE_1_DAY_TYPES.forEach((dt, i) => { daysAgo[dt] = 20 + i; });   // plyometric = most
+  const p = proposeDayType(stateWith(daysAgo), { soreness: {} });
+  assert.equal(p.dayType, 'plyometric', 'the most neglected day type must win from last position');
+
+  // And the reverse: the FIRST entry wins when it is the most neglected, so
+  // this is not simply an inverted order.
+  const reversed = {};
+  PHASE_1_DAY_TYPES.forEach((dt, i) => { reversed[dt] = 40 - i; });  // max-strength = most
+  assert.equal(proposeDayType(stateWith(reversed), { soreness: {} }).dayType, 'max-strength');
 });
