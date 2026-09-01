@@ -341,7 +341,8 @@ Implemented as `SESSION_ORDER` in `rules.js`.
 ## 9. Time budget
 
 Re-derived from per-movement doses rather than asserted. `TIME` in `rules.js`
-holds the same figures.
+held the same figures **as of this section's original derivation** — see the
+note below the table for where that stopped being true.
 
 | Item | Old | New | Constant |
 |---|---|---|---|
@@ -349,6 +350,15 @@ holds the same figures.
 | Main work | 45 min | 45 min | `MAIN_WORK_MAX_MIN` |
 | Cool-down (static + core) | 25 min | 12 min | `COOLDOWN_MIN` |
 | **Gym session total** | **70 min** | **60 min** | `GYM_SESSION_TOTAL_MIN` |
+
+**Stale as of 2026-08-31: the Main work row's "New" column, 45 min, is no
+longer what `MAIN_WORK_MAX_MIN` holds.** It was raised to 50 min the same day
+— see discrepancy 7's addendum below and design-mobility-and-warmup.md §4.3/
+§8 item 9 for why. Left as the original historical figure rather than edited
+in place, the same way this file's other re-derivations (discrepancy 7's
+`FLOOR_OVERRUN_ALLOWANCE_MIN` history, immediately below) are recorded as
+dated addenda rather than silently overwritten. Every other row in this table
+still matches `rules.js`.
 
 Running / cardio remains **uncapped** — prescribed by distance, time, or
 interval structure, not by a minute budget.

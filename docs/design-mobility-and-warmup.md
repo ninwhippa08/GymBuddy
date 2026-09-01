@@ -439,6 +439,13 @@ chose the one that never breaches his limit:
 | `MAIN_WORK_MAX_MIN` 52 | 34,458 (93%) | 71 min | 1 in 21,000 |
 | warm-up trim exemption (tried, rejected) | 37,068 (100%) | 81 min | 31% of heavy days |
 
+**Attribution.** The cap 45, cap 50 and exemption rows were measured directly
+against this repository. The cap 52 row is carried from the controller's own
+comparison sweep and was not independently re-run here — flagged because
+this project's rule is that every number carries provenance, and blending a
+first-hand row with a second-hand one under a single unlabelled table
+overstates the second-hand figure.
+
 `MAIN_WORK_MAX_MIN` moved 45 → 50 in `js/rules.js`. `GYM_SESSION_TOTAL_MIN`
 did not move. `TIME.FLOOR_OVERRUN_ALLOWANCE_MIN` was re-derived from 5 to 10
 against the same 70,000-session committed-sweep population, worst case
@@ -449,6 +456,26 @@ not raise `MAIN_WORK_MAX_MIN` past 50 without re-clearing it against
 `spec.md` line 36** — the cap 52 and full-exemption rows above are recorded
 here specifically so nobody re-tries them without knowing they were already
 measured and rejected.
+
+**OPEN QUESTION, not decided here: this constant is shared with day types
+that carry no ramp at all, and the athlete was never asked about that.**
+`MAIN_WORK_MAX_MIN` has exactly one use site — `packToBudget`'s default
+budget (`js/generator.js:784`), read at `packToBudget`'s only call site
+(`js/generator.js:1095`) for every day type, with no per-day-type override.
+Raising it to recover ramped working sets also gave `packToBudget` more room
+before it drops or shaves optional blocks on day types that never attach a
+ramp. Traced against the templates: `aerobic-steady`'s only
+`VOLUME_MODES`-countable block is slot B, "strides" (`js/templates.js:
+212-218`, `mode: 'contacts'`, `sets: [4, 6]`, `optional: true`); its primary
+steady-run block is `mode: 'time'` and never reaches `patternSets`, so
+strides is the only place the extra room could land. Measured on the same
+sweep: `aerobic-steady` counted sets rose **10,284 → 13,431 (+30.6%)**. That
+is an easy day picking up more anaerobic strides work, more often — a
+separate programming question from the displacement decision above, and one
+the athlete has not yet been asked. Framed as open, the same way the
+displacement question was framed before he settled it: leave
+`MAIN_WORK_MAX_MIN` shared as is, or split a second budget constant that
+governs only non-ramped day types so this one can move independently of them.
 
 §4.4 derives the exercise count as a residual from `patternSets` coverage
 debt; with `patternSets` now at 88% of its pre-ramp figure rather than 75%,
@@ -778,6 +805,14 @@ clean while two real bugs sat in the code. Both layers are required.
    10 to match. `GYM_SESSION_TOTAL_MIN` did not move — see `js/rules.js`'s
    `MAIN_WORK_MAX_MIN` and `FLOOR_OVERRUN_ALLOWANCE_MIN` comments for the
    full option table and the per-day-type worst cases.
+
+   **A new open question this decision surfaced, not settled here:**
+   `MAIN_WORK_MAX_MIN` is shared across every day type, not just the three
+   that carry a ramp, so raising it also recovered working sets on
+   `aerobic-steady`'s optional strides slot (+30.6%, 10,284 → 13,431) — a day
+   type with no ramp at all. See §4.3's "Decision" block above for the full
+   trace and the open question it raises about splitting a separate budget
+   constant for non-ramped day types.
 
    *Why the deadline is lifted, not the bias.* §4.4 derives the exercise
    count as a residual from `patternSets` coverage debt. This decision does

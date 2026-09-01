@@ -427,6 +427,12 @@ export const TIME = Object.freeze({
   //   cap 52                   34,458 sets (93%)  max session 71 min  1 in 21,000 over 70
   //   warm-up trim exemption   37,068 (100%)      max session 81 min  31% of heavy days over 70
   //
+  // Attribution: cap 45, cap 50 and the exemption row were measured directly,
+  // by re-running the sweep against this repository. The cap 52 row is
+  // carried from the controller's own comparison sweep and was not
+  // independently re-run -- it is second-hand within this comment, unlike
+  // the other three rows, even though all four sit under one table.
+  //
   // (Cap 50's max session was first estimated at 69 min on the 3,000-seed
   // pricing sweep; the 70 above is the 10,000-seed committed-sweep figure the
   // allowance below is actually derived from, and is the one that governs.)
@@ -438,6 +444,23 @@ export const TIME = Object.freeze({
   // 70 minutes in the 10,000-seed committed sweep (see
   // FLOOR_OVERRUN_ALLOWANCE_MIN below, re-derived to match). GYM_SESSION_TOTAL_MIN
   // is unchanged -- only the main-work share of it moved.
+  //
+  // OPEN QUESTION, not decided here: this constant is SHARED across every day
+  // type -- packToBudget's only call site (js/generator.js:1095) always uses
+  // this default, with no per-day-type override. Raising it to buy back
+  // ramped working sets also gave packToBudget more room on day types that
+  // never carry a ramp at all. Traced and measured: aerobic-steady's only
+  // VOLUME_MODES-countable block is slot B, "strides" (js/templates.js:
+  // 212-218, mode: 'contacts', sets [4,6], optional: true); its primary
+  // steady-run block is mode: 'time' and never reaches patternSets, so
+  // strides is the only place the extra room could land. Counted sets rose
+  // 10,284 -> 13,431 (+30.6%) on the same 3,000-seed sweep. That is an easy
+  // day picking up more anaerobic strides work, more often -- a separate
+  // programming question the athlete has not been asked, not a consequence
+  // of the displacement decision above. Framed as open, the same way the
+  // displacement question was framed before he settled it: leave the shared
+  // constant as is, or split a second budget constant that only governs
+  // non-ramped day types so this one can move independently of them.
   MAIN_WORK_MAX_MIN: 50,
   // Mandatory, never randomised out. Prep is capped by the drill dose rather
   // than by this figure; it is here so the three budgets can be seen to sum.
