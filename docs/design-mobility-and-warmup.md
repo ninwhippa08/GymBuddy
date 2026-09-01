@@ -263,9 +263,9 @@ percentage ladder appears anywhere in the code.
 ```
 
 **Step count falls out of the gap, so it scales with the load automatically.**
-Steps climb from `RAMP_START` (0.30 of the movement's max) to the working load,
-with no jump larger than `MAX_JUMP` (0.15). The count is
-`ceil((workingPct - RAMP_START) / MAX_JUMP)`:
+Steps climb from `WARMUP.START` (0.30 of the movement's max) to the working
+load, with no jump larger than `WARMUP.MAX_JUMP` (0.15). The count is
+`ceil((workingPct - WARMUP.START) / WARMUP.MAX_JUMP)`:
 
 | Working load | Warm-up steps | Ramp |
 |---|---|---|
@@ -273,12 +273,12 @@ with no jump larger than `MAX_JUMP` (0.15). The count is
 | 0.80 | 4 | 0.30, 0.43, 0.55, 0.68 |
 | 0.65 | 3 | 0.30, 0.42, 0.53 |
 | 0.55 | 2 | 0.30, 0.43 |
-| below `RAMP_FLOOR` (0.50) | 0 | none |
+| below `WARMUP.FLOOR` (0.50) | 0 | none |
 
 This table's own `0.90` row originally read `5 | 0.30, 0.42, 0.54, 0.66, 0.78`,
 which disagrees with the formula this same section states —
-`ceil((workingPct - START) / MAX_JUMP)` — and gives 4, not 5, at 0.90. The
-formula won; the row above is corrected. (The naive JS subtraction
+`ceil((workingPct - WARMUP.START) / WARMUP.MAX_JUMP)` — and gives 4, not 5, at
+0.90. The formula won; the row above is corrected. (The naive JS subtraction
 `0.90 - 0.30` is `0.6000000000000001`, which would round the count up to 5 by
 float slop alone if the implementation didn't guard for it — see the "as
 built" note below.)
@@ -303,12 +303,12 @@ thresholds in §2.3:
 **Technical demand adjusts the shape, not just the length.** The library already
 carries `technical: 1 | 2 | 3` on every exercise — no new field is needed.
 Movements at `technical: 3` (Olympic derivatives) gain one extra low-load
-technique set at `RAMP_START` and cap all warm-up reps at 3, following the
+technique set at `WARMUP.START` and cap all warm-up reps at 3, following the
 weightlifting tradition in §2.3: repetition at light load, never eight reps of a
 snatch. Movements at `technical: 1` take the plain progression.
 
 Ramps apply to any `mode: 'load'` exercise whose computed `workingPct` clears
-`RAMP_FLOOR`. **Tier is no longer consulted** — an accessory prescribed heavy
+`WARMUP.FLOOR`. **Tier is no longer consulted** — an accessory prescribed heavy
 gets a ramp, and a primary lift prescribed light does not. `mode: 'reps'`,
 `'contacts'` and `'time'` never receive one.
 
@@ -481,10 +481,11 @@ so mobility goes first — it is what frees the minutes the ramps spend.
    after §4.1 lands. Last because each new day type must declare its targeted
    patterns for step 3's coverage rule, so step 3 must exist first.
 
-**Status, 2026-08-24: step 1 is shipped. Steps 2, 3 and 4 are unstarted.**
-Step 2 (warm-up ramps, §4.3) is the resume point. Step 3 stays blocked on open
-question 6 — the pattern-level weekly volume figure needs sourcing before §4.4
-can ship at all.
+**Status, 2026-08-31: steps 1 and 2 are shipped (2026-08-24, 2026-08-31 /
+`sw.js` v15). Steps 3 and 4 are unstarted.**
+Step 3 (count from coverage and time, §4.4) is the resume point, and it stays
+blocked on open question 6 — the pattern-level weekly volume figure needs
+sourcing before §4.4 can ship at all.
 
 Every step leaves the app shippable. Steps 1 and 2 change what a session
 contains; step 3 changes how many exercises arrive; step 4 changes what kinds of
@@ -529,7 +530,7 @@ available to be shortened. A max-strength session at 60 minutes holds about four
 movements because that is what the physiology costs.
 
 **But the heaviest day is no longer the only day.** Under §4.3 the ramp scales
-with the load and vanishes below `RAMP_FLOOR`, so the ~4 min per-lift ramp cost
+with the load and vanishes below `WARMUP.FLOOR`, so the ~4 min per-lift ramp cost
 in the table above is the worst case, not the standard one:
 
 | Session | Ramp cost | Rests | Exercises at 60 min |
@@ -572,10 +573,10 @@ clean while two real bugs sat in the code. Both layers are required.
 
 **Headless, across day types × ramp weeks × seeds:**
 - no warm-up step exceeds its working load, and steps increase monotonically
-- no jump between consecutive steps exceeds `MAX_JUMP`
+- no jump between consecutive steps exceeds `WARMUP.MAX_JUMP`
 - warm-up step count is non-decreasing in working load — the scaling property
   from §2.3 asserted directly, not spot-checked
-- working loads below `RAMP_FLOOR` produce an empty ramp
+- working loads below `WARMUP.FLOOR` produce an empty ramp
 - `technical: 3` movements never receive a warm-up step above 3 reps
 - no working load exceeds `env.pctCeiling`, before or after `prCoef`
 - warm-ups contribute nothing to `patternSets`, `cnsLoad` or `footContacts`
@@ -608,12 +609,14 @@ clean while two real bugs sat in the code. Both layers are required.
 4. Core dosing at 3 sets × 10–15 reps is `[unverified]` as a specific
    prescription. It is the least-sourced number in this document and the first
    thing to revisit.
-5. `RAMP_START` 0.30, `MAX_JUMP` 0.15 and `RAMP_FLOOR` 0.50 are `[unverified]`
-   as exact values. They are tuned to reproduce the worked example in §2.3 and
-   to satisfy the scaling principle, which is a weaker claim than being read
-   from a source. The *shape* — steps scale with load, reps fall as load rises,
-   light work gets none — is `[corroborated]`. If any number in this document
-   gets challenged next, it should be these three.
+5. `WARMUP.START` 0.30, `WARMUP.MAX_JUMP` 0.15 and `WARMUP.FLOOR` 0.50 (this
+   document originally called the block `RAMP` before the build renamed it to
+   `WARMUP` — see §4.3's "as built" note) are `[unverified]` as exact values.
+   They are tuned to reproduce the worked example in §2.3 and to satisfy the
+   scaling principle, which is a weaker claim than being read from a source.
+   The *shape* — steps scale with load, reps fall as load rises, light work
+   gets none — is `[corroborated]`. If any number in this document gets
+   challenged next, it should be these three.
 6. The weekly per-muscle-group volume figure (~10 sets) is `[verified]` for
    hypertrophy specifically. Its transfer to max-strength and power patterns is
    `[unverified]`, and the coverage rule in §4.4 leans on that transfer. A
