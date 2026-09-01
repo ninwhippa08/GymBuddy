@@ -87,9 +87,19 @@ export function buildState(profile, history, now = Date.now()) {
   }
 
   // Hours since the most recent session of each day type. Infinity means never.
+  //
+  // NOT `recent`: it is truncated to VOLUME.HISTORY_DAYS (14), so every day
+  // type skipped for longer than a fortnight came back Infinity and scored
+  // identically -- 15 days and 300 days were the same number. proposeDayType
+  // breaks ties by PHASE_1_DAY_TYPES order, so the tail of that array
+  // (plyometric last) lost every tie it was ever in and was never proposed at
+  // all: 0 times in a simulated year at 1x, 2x and 3x per week. This is the
+  // same mistake chronicFrom's comment below warns about, in a different
+  // field. The neglect model is the one thing in this file that MUST see
+  // further back than the volume window. plan-06.
   const hoursSince = {};
   for (const dt of Object.keys(DAY_TYPES)) hoursSince[dt] = Infinity;
-  for (const s of recent) {
+  for (const s of (history || [])) {
     const h = (now - Date.parse(s.date)) / MS_PER_HOUR;
     if (s.dayType && h < (hoursSince[s.dayType] ?? Infinity)) hoursSince[s.dayType] = h;
   }
