@@ -7,3 +7,9 @@ Thumbs.db
 skills-lock.json
 .claude/
 .agents/
+
+# Unrelated work that happens to live in this directory. This repo is PUBLIC
+# and published to GitHub Pages, so anything untracked here is one careless
+# `git add .` away from being on the internet.
+.tmp/
+*.pptx
