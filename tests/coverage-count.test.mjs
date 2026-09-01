@@ -183,3 +183,49 @@ test('coverage never proposes more main work than the measured cap', () => {
     }
   }
 });
+
+// --------------------------------------------------------------------------
+// Coverage must not spend what the return ramp saved
+// --------------------------------------------------------------------------
+
+// basis §3 calls the return ramp "the governing constraint": it cuts sets per
+// exercise to hold total load down while he comes back from inactivity. That
+// frees minutes inside the main-work budget -- and coverage, which knows
+// nothing about the ramp, quietly spent them on MORE exercises. Measured
+// against the pre-plan-07 code: a return-week-1 max-strength session went from
+// 4 exercises and 8.2 working sets to 5.95 and 11.1 (+35%), hypertrophy from
+// 9.0 sets to 13.3 (+48%), with cnsLoad reaching 12.2 -- above the 5-11 range
+// CNS_VETO_THRESHOLD was calibrated against. The 70-minute limit still held,
+// so nothing in the suite caught it. Decided by the athlete 2026-09-01: the
+// ramp wins.
+const RAMP_WEEK_1 = { returnDate: '2026-09-01', banned: [], plyoLevel: 'beginner' };
+const NOW_WK1 = Date.parse('2026-09-01T12:00:00Z');
+
+function countsAcross(profile, dayType, now, seeds = 200) {
+  const out = [];
+  for (let seed = 1; seed <= seeds; seed++) {
+    const s = generate({
+      library: LIB, profile, history: [], soreness: {}, dayType,
+      excludeEquipment: [], seed, now
+    });
+    out.push(mainBlocks(s).length);
+  }
+  return out;
+}
+
+test('the ramp caps coverage: week 1 does not buy extra exercises with freed time', () => {
+  const counts = countsAcross(RAMP_WEEK_1, 'max-strength', NOW_WK1);
+  const worst = Math.max(...counts);
+  assert.ok(worst <= 4,
+    `return week 1 built up to ${worst} main blocks -- the ramp's freed minutes ` +
+    `are being spent on exercises it cut sets to avoid`);
+});
+
+test('coverage still works at full volume, where the ramp has nothing to protect', () => {
+  // RAMP week 5 is volume 1.00, so the scaling is a no-op there and the
+  // coverage rule must be untouched -- otherwise this task would have quietly
+  // reverted §4.4 instead of bounding it.
+  const counts = countsAcross({ banned: [], plyoLevel: 'beginner' }, 'hypertrophy', 1e12);
+  assert.ok(Math.max(...counts) > 5,
+    `full volume never exceeded 5 main blocks -- coverage is no longer acting at all`);
+});

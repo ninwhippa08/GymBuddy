@@ -1217,6 +1217,37 @@ export function generate({
         : targets;
       if (!serves.some(p => patternDebt(p, chosen, state) > 0)) continue;
       if (blocks.length >= TIME.MAX_MAIN_SLOTS) break;
+      // Coverage may not spend what the return ramp saved. The ramp cuts sets
+      // per exercise to hold total load down (basis §3, "the governing
+      // constraint"), which frees minutes inside the same budget -- and
+      // coverage, knowing nothing about the ramp, bought MORE exercises with
+      // them: measured at +35% working sets on a return-week-1 max-strength
+      // day and +48% on hypertrophy, with cnsLoad reaching 12.2 against the
+      // 5-11 range CNS_VETO_THRESHOLD was calibrated on. The ramp's own volume
+      // multiplier scales the ceiling coverage may fill to, so the saving
+      // stays saved. At week 5 the multiplier is 1.00 and this is a no-op, so
+      // full-volume behaviour is exactly §4.4 as designed. Decided by the
+      // athlete 2026-09-01; plan-07 Task 6b, not in the written plan -- it
+      // came out of the before/after measurement.
+      // Scaling the TIME budget was the first attempt and it overshot: it cut
+      // work that existed before coverage did, taking return-week-1
+      // max-strength from 4.00 exercises to 3.02 and 8.2 working sets to 6.7.
+      // The ramp is meant to hold load DOWN, not to shrink the session below
+      // what it already was. Capping the COUNT is the honest reading -- how
+      // many movements the day may carry scales with the ramp, while the work
+      // inside each one is already governed by the ramp's own volume
+      // multiplier.
+      // Floored at the slots this template carried BEFORE coverage existed --
+      // the ones whose role is not a `coverage:` role. Without the floor the
+      // cap cut below the old baseline too: return-week-1 hypertrophy went
+      // from 5 exercises to 4 and 9.0 working sets to 7.5. The ramp holds load
+      // down; it must not quietly shrink a day below what it already was.
+      const baseSlots = template.filter(sl => !/^coverage:/.test(sl.role || '')).length;
+      const rampedSlots = Math.max(
+        baseSlots,
+        Math.round(TIME.MAX_MAIN_SLOTS * rampRow(state.rampWeek).volume)
+      );
+      if (blocks.length >= rampedSlots) break;
       if (estimateMinutes(blocks) >= TIME.MAIN_WORK_MAX_MIN) break;
     }
     let exercise = fillSlot(slot, library, ctx, rng);
