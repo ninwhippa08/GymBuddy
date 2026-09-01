@@ -32,14 +32,26 @@ import { ZONES, MODALITIES, MOBILITY_DOSE } from './rules.js';
 // a short one, since a park session still ends with the hips and ankles that
 // just did the work. Never randomised out either way.
 export const DAY_TYPES = Object.freeze({
+  // `targets` is the set of movement patterns a day type is FOR, and it is what
+  // design §4.4's coverage rule counts debt against. DECLARED, not computed
+  // from the template's own slot patterns: computing it would make coverage
+  // circular -- it could only ever ask for a pattern the template already
+  // offers, and never pull in a slot for one that is missing. plan-07.
+  //
+  // The four non-lifting day types deliberately declare none. Their volume is
+  // dosed in minutes, metres and foot contacts, and giving them pattern
+  // coverage would be a claim no source in programming-basis.md supports.
   'max-strength': Object.freeze({
-    venue: 'gym', cnsClass: 'high', volumeUnit: 'sets', mobilityCore: 'full'
+    venue: 'gym', cnsClass: 'high', volumeUnit: 'sets', mobilityCore: 'full',
+    targets: Object.freeze(['squat', 'hinge', 'push-h', 'push-v', 'pull-h', 'pull-v'])
   }),
   power: Object.freeze({
-    venue: 'gym', cnsClass: 'high', volumeUnit: 'sets', mobilityCore: 'full'
+    venue: 'gym', cnsClass: 'high', volumeUnit: 'sets', mobilityCore: 'full',
+    targets: Object.freeze(['jump', 'throw', 'hinge', 'squat', 'push-h', 'pull-h'])
   }),
   hypertrophy: Object.freeze({
-    venue: 'gym', cnsClass: 'moderate', volumeUnit: 'sets', mobilityCore: 'full'
+    venue: 'gym', cnsClass: 'moderate', volumeUnit: 'sets', mobilityCore: 'full',
+    targets: Object.freeze(['squat', 'hinge', 'push-h', 'push-v', 'pull-h', 'pull-v', 'lunge'])
   }),
   // `prep` names the prep variant; `mobilityCore` still names the cool-down.
   // The running days want the four-stage prep AND the short cool-down, which
