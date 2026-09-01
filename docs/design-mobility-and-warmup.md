@@ -612,14 +612,17 @@ so mobility goes first — it is what frees the minutes the ramps spend.
    after §4.1 lands. Last because each new day type must declare its targeted
    patterns for step 3's coverage rule, so step 3 must exist first.
 
-**Status, 2026-08-31: steps 1 and 2 are shipped (2026-08-24, 2026-08-31 /
-`sw.js` v15). Steps 3 and 4 are unstarted.**
-Step 3 (count from coverage and time, §4.4) is the resume point, and it stays
-blocked on **two** open questions. Question 6 — the pattern-level weekly volume
-figure needs sourcing before §4.4 can ship at all. Question 9 — the ramp now
-biases `patternSets` down ~25% on lifting days, which is the exact signal
-§4.4's coverage rule reads, so it must be answered before §4.4 is *built*, not
-merely before it ships.
+**Status, 2026-08-31 (late): steps 1 and 2 are shipped (2026-08-24, 2026-08-31 /
+`sw.js` v16). Steps 3 and 4 are unstarted.**
+Step 3 (count from coverage and time, §4.4) is the resume point, and it is now
+blocked on **one** open question, not two. Question 6 — the pattern-level weekly
+volume figure — still needs sourcing before §4.4 can ship at all.
+Question 9 is **answered**: the athlete raised `MAIN_WORK_MAX_MIN` to 50 on
+2026-08-31, so the ramp's bias on `patternSets` — the exact signal §4.4's
+coverage rule reads — fell from ~25% to ~12% on lifting days (max-strength
+working sets 88% of the pre-ramp figure, up from 75%). §4.4 no longer risks
+reading a badly deflated count as unmet coverage debt, so it is free to be
+*built* once question 6 is sourced.
 
 Every step leaves the app shippable. Steps 1 and 2 change what a session
 contains; step 3 changes how many exercises arrive; step 4 changes what kinds of
@@ -758,15 +761,17 @@ clean while two real bugs sat in the code. Both layers are required.
 7. Olympic-derivative warm-up practice (2–3 sets of 3–5 reps at 25–50% 1RM) is
    `[corroborated]` from practitioner sources, not from a trial. It informs the
    `technical: 3` branch in §4.3.
-8. **The `mobility-static` pool is thin, and this is the next data job.**
-   Seven entries, with `hip` in four of them. A single hurt hip leaves exactly
-   three stretches — the sourced floor, with no margin at all — and two hurt
-   joints (hip+thoracic, hip+ankle, hip+shoulder, hip+scapula) collapse it to
-   one or two. The generator warns rather than shipping a short cool-down
-   silently, so this is a thinness problem and not a correctness bug. Widening
-   it needs sourced stretches, not invented ones. Deviation 4; measured at
-   task 9, 2026-08-24. Note that ruling C1's six recovered warm-up drills are
-   all *dynamic* and widen the prep pool instead — they do not help here.
+8. **CLOSED 2026-08-24. The `mobility-static` pool was thin; it was widened and
+   this is no longer the next data job.**
+   As measured at task 9 on 2026-08-24 it held seven entries with `hip` in four
+   of them, so a single hurt hip left exactly three stretches — the sourced
+   floor, with no margin — and two hurt joints (hip+thoracic, hip+ankle,
+   hip+shoulder, hip+scapula) collapsed it to one or two. The pool now holds
+   **19 entries, 8 of them loading the hip** (counted from `data/exercises.json`,
+   2026-08-31), so a hurt hip leaves 11 and no two-joint pair reaches the floor.
+   The widening used sourced stretches, not invented ones. Deviation 4.
+   Note that ruling C1's six recovered warm-up drills are all *dynamic* and
+   widened the prep pool instead — they never helped here.
 9. **DECIDED 2026-08-31 by the athlete: `MAIN_WORK_MAX_MIN` raised 45 → 50.**
    The ramp originally displaced working volume instead of extending the
    session, and that was never decided on purpose. §4.3 and plan-05 both
