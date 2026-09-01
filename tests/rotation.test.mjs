@@ -7,6 +7,12 @@ import assert from 'node:assert/strict';
 import { buildState, proposeDayType } from '../js/generator.js';
 import { NEGLECT_CAP_DAYS } from '../js/rules.js';
 import { PHASE_1_DAY_TYPES } from '../js/templates.js';
+import { readFileSync } from 'node:fs';
+import { resolveSession } from '../js/generator.js';
+
+const LIB = JSON.parse(
+  readFileSync(new URL('../data/exercises.json', import.meta.url), 'utf8')
+).exercises;
 
 const DAY = 86400e3;
 const NOW = Date.parse('2026-09-01T12:00:00Z');
@@ -81,3 +87,37 @@ test('array order does not decide the proposal when neglect differs', () => {
   PHASE_1_DAY_TYPES.forEach((dt, i) => { reversed[dt] = 40 - i; });  // max-strength = most
   assert.equal(proposeDayType(stateWith(reversed), { soreness: {} }).dayType, 'max-strength');
 });
+
+// Walk a year at a given cadence, committing each session the way app.js does
+// (commitSession REPLACES by date), and count what was actually proposed.
+function yearOfSessions(perWeek) {
+  const start = Date.parse('2026-01-05T12:00:00Z');
+  const profile = { returnDate: iso(start), banned: [], plyoLevel: 'beginner' };
+  let history = [];
+  const counts = {};
+  for (let i = 0; i < 52 * perWeek; i++) {
+    const t = start + Math.round(i * 7 / perWeek) * DAY;
+    const r = resolveSession({
+      library: LIB, profile, history, soreness: {},
+      dayType: null, excludeEquipment: [], seed: t, now: t
+    });
+    if (!r.session) continue;
+    const s = { ...r.session, date: iso(t), confirmed: true };
+    history = [s, ...history.filter(h => h.date !== s.date)];
+    counts[s.dayType] = (counts[s.dayType] || 0) + 1;
+  }
+  return counts;
+}
+
+// He trains 1-3x/week, irregularly. Every one of those cadences must reach
+// every day type. Before plan-06: at 1x/week hypertrophy, sprint and
+// plyometric were each proposed ZERO times in a full year.
+for (const perWeek of [1, 2, 3]) {
+  test(`every day type is proposed at least once a year at ${perWeek}x/week`, () => {
+    const counts = yearOfSessions(perWeek);
+    const missing = PHASE_1_DAY_TYPES.filter(dt => !counts[dt]);
+    assert.deepEqual(missing, [],
+      `never proposed in a year at ${perWeek}x/week: ${missing.join(', ')} ` +
+      `(got ${JSON.stringify(counts)})`);
+  });
+}
