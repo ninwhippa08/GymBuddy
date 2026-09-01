@@ -120,3 +120,29 @@ test('a rebuild of the same day type keeps the rotation memory', () => {
 
   assert.deepEqual(rebuilt.offeredDayTypes, ['interval', 'sprint']);
 });
+
+test('a record written before the rotation existed still rerolls off its day type', () => {
+  // Every session saved before v18 carries no offeredDayTypes -- including the
+  // one sitting on his phone the moment he upgrades. Read as an empty list,
+  // the rotation would exclude nothing, re-pick the arg-max and hand him back
+  // the day type he is already looking at: the reported bug's symptom, on the
+  // first tap after the fix shipped.
+  const history = pastSessions([12, 9, 5, 2]);
+  const legacy = { ...history[0] };
+  const today = resolveSession({
+    library: LIB, profile: PROFILE, history, soreness: {},
+    dayType: null, excludeEquipment: [], seed: NOW, now: NOW
+  }).session;
+  delete today.offeredDayTypes;                    // as an older version wrote it
+  const withLegacy = [today, ...history];
+
+  const next = resolveSession({
+    library: LIB, profile: PROFILE, history: withLegacy, soreness: {},
+    dayType: null, excludeEquipment: [], seed: NOW + 1, now: NOW,
+    offeredDayTypes: []
+  }).session;
+
+  assert.notEqual(next.dayType, today.dayType,
+    `the first tap handed back the same day type: ${today.dayType}`);
+  assert.ok(legacy.date < today.date);              // the fixture is what it claims
+});

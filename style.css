@@ -178,10 +178,6 @@ body {
   margin-top: 28px;
 }
 
-/* Full width on its own row: the label is a sentence, and squeezed beside
-   Reroll it wrapped to three lines on a narrow phone. */
-.btn-done { flex: 1 0 100%; }
-
 /* What the card says once he has confirmed the day. Not a button -- there is
    nothing left to tap, and the record is already written. */
 .done-note {
@@ -216,6 +212,13 @@ body {
   border: 1px solid var(--surface-edge);
   color: var(--text);
 }
+
+/* Full width on its own row, and it MUST come after `.btn`: both selectors are
+   one class, so the later rule wins and `.btn { flex: 1 }` was quietly beating
+   this one into a half-width column. Caught in the browser at 390px, where the
+   two buttons sat side by side. The label is a sentence -- squeezed next to
+   Reroll it is the narrower half of a phone screen. */
+.btn-done { flex: 1 0 100%; }
 
 .btn:active { transform: scale(0.98); }
 

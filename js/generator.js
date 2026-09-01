@@ -1062,6 +1062,17 @@ export function generate({
   const date = new Date(now).toISOString().slice(0, 10);
   const priorHistory = (history || []).filter(s => s.date !== date);
   const state = buildState(profile, priorHistory, now);                  // 1-2
+
+  // The record being replaced counts as already offered even when it does not
+  // say so. Every session written before the rotation existed carries no
+  // offeredDayTypes -- including the one on his phone the moment he upgrades --
+  // and an empty list excludes nothing, so the first tap would re-pick the
+  // arg-max and hand back the day type already on screen. That is the reported
+  // bug's exact symptom, on the first tap after the fix for it shipped.
+  const replacing = (history || []).find(s => s.date === date);
+  const offered = offeredDayTypes.length || !replacing
+    ? offeredDayTypes
+    : [replacing.dayType];
   // A directly-chosen day type still carries the full candidate standings.
   // It used to carry none, which made resolveSession's fallback loop inert:
   // it always passes a dayType, so it always got an empty list to walk.
@@ -1074,7 +1085,7 @@ export function generate({
   // line the athlete actually reads.
   const proposal = dayType
     ? directChoice(dayType, state, { soreness, rng })
-    : proposeDayType(state, { soreness, rng, offeredDayTypes });         // 3
+    : proposeDayType(state, { soreness, rng, offeredDayTypes: offered }); // 3
   const chosen = proposal.dayType;
 
   const env = envelopeFor(chosen, state);                                // 4
@@ -1132,7 +1143,8 @@ export function generate({
 
   return finalise({
     chosen, env, architecture, proposal, ordered, packed, cooled,
-    unfilled, state, seed, now, excludeEquipment, soreness, offeredDayTypes
+    unfilled, state, seed, now, excludeEquipment, soreness,
+    offeredDayTypes: offered
   });
 }
 
