@@ -455,6 +455,22 @@ export function weeklySetTarget(dayType) {
   return table[dayType] ?? table.DEFAULT;
 }
 
+// How many sets of a pattern this week's target still owes. The counts come
+// from the same rolling patternSets the neglect model reads -- one tracker,
+// two purposes, as design §4.4 requires.
+//
+// DIRECT counting only. The sourced convention is fractional -- an indirect
+// set counts 0.5 -- but the library gives every entry exactly one `pattern`
+// (verified across all 236) and no map of what it trains indirectly, and
+// inventing that map would be precisely the unsourced number this project
+// keeps removing. The effect is that debt is slightly OVERSTATED for patterns
+// getting indirect work, so coverage errs toward proposing more work and the
+// time budget bounds it. plan-07 decision 1; design §8's new open question.
+export function patternDebt(pattern, dayType, state) {
+  const done = (state && state.patternSets && state.patternSets[pattern]) || 0;
+  return Math.max(0, weeklySetTarget(dayType) - done);
+}
+
 export function fillSlot(slot, library, ctx, rng) {
   const pool = eligibleFor(slot, library, ctx);
   if (pool.length === 0) return null;

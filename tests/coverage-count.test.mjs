@@ -6,6 +6,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { DAY_TYPES, PHASE_1_DAY_TYPES } from '../js/templates.js';
+import { patternDebt, weeklySetTarget } from '../js/generator.js';
 
 const LIB = JSON.parse(
   readFileSync(new URL('../data/exercises.json', import.meta.url), 'utf8')
@@ -29,4 +30,30 @@ test('a declared target is a pattern the library can actually fill', () => {
         `${dt} targets "${p}", which no exercise in the library has`);
     }
   }
+});
+
+const stateWith = patternSets => ({ patternSets, recentExerciseIds: new Set() });
+
+test('an untrained pattern owes the whole weekly target', () => {
+  assert.equal(patternDebt('squat', 'max-strength', stateWith({})),
+    weeklySetTarget('max-strength'));
+});
+
+test('debt falls by the sets already done', () => {
+  // max-strength targets 4 sets/week (Pelland et al. 2025 -- strength's
+  // efficient band ends at 4, where hypertrophy's runs to 10).
+  assert.equal(patternDebt('squat', 'max-strength', stateWith({ squat: 3 })), 1);
+});
+
+test('debt never goes negative', () => {
+  // Over-trained is not credit toward another pattern.
+  assert.equal(patternDebt('squat', 'max-strength', stateWith({ squat: 99 })), 0);
+});
+
+test('the same history leaves more debt on a hypertrophy day than a strength day', () => {
+  // The whole point of the per-goal split: 4 sets of squatting is a full
+  // max-strength week and not even half a hypertrophy one.
+  const done = stateWith({ squat: 4 });
+  assert.equal(patternDebt('squat', 'max-strength', done), 0);
+  assert.ok(patternDebt('squat', 'hypertrophy', done) > 0);
 });
