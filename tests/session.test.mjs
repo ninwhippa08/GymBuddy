@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { generate, countsTowardVolume } from '../js/generator.js';
+import { generate, countsTowardVolume, estimateMinutes } from '../js/generator.js';
 import { TIME, SESSION_ORDER } from '../js/rules.js';
 import { PHASE_1_DAY_TYPES } from '../js/templates.js';
 
@@ -110,10 +110,14 @@ test('no session exceeds 60 minutes plus the measured floor-overrun allowance', 
 // = 70,000.
 // It costs about 7s of the suite's ~9s; that is the price of the number
 // being measured rather than asserted.
-test('duration sweep (10000 seeds x day type): observed maximum stays within the measured allowance', () => {
-  const ceiling = TIME.GYM_SESSION_TOTAL_MIN + TIME.FLOOR_OVERRUN_ALLOWANCE_MIN;
+//
+// Memoised so the two tests below -- one against the derived allowance, one
+// against the athlete's literal stated requirement -- share a single sweep
+// instead of paying for it twice.
+let _durationSweepWorst = null;
+function durationSweepWorst() {
+  if (_durationSweepWorst) return _durationSweepWorst;
   let worst = { durationMin: -1, dayType: null, seed: null };
-
   for (const dayType of PHASE_1_DAY_TYPES) {
     for (let seed = 1; seed <= 10000; seed++) {
       const s = generate({ library: LIB, dayType, seed, now: 1e12 });
@@ -122,11 +126,59 @@ test('duration sweep (10000 seeds x day type): observed maximum stays within the
       }
     }
   }
+  _durationSweepWorst = worst;
+  return worst;
+}
+
+test('duration sweep (10000 seeds x day type): observed maximum stays within the measured allowance', () => {
+  const ceiling = TIME.GYM_SESSION_TOTAL_MIN + TIME.FLOOR_OVERRUN_ALLOWANCE_MIN;
+  const worst = durationSweepWorst();
 
   assert.ok(worst.durationMin <= ceiling,
     `observed maximum ${worst.durationMin} min on ${worst.dayType}/seed ${worst.seed} ` +
     `exceeds the ${ceiling} min allowance (${TIME.GYM_SESSION_TOTAL_MIN} + ` +
     `${TIME.FLOOR_OVERRUN_ALLOWANCE_MIN} measured)`);
+});
+
+// The athlete's own stated hard requirement, docs/spec.md:36
+// ("| Gym session total | ≤ 70 min | user |"). Asserted directly against 70,
+// not against TIME.GYM_SESSION_TOTAL_MIN + TIME.FLOOR_OVERRUN_ALLOWANCE_MIN --
+// those are this project's internal derived numbers, and a future
+// re-derivation of the allowance (a pool growing, another budget change)
+// could widen the ceiling test above without anyone re-checking it against
+// what the athlete actually agreed to. This test exists so that check cannot
+// be silently skipped. Same sweep as above, memoised.
+test('no generated session exceeds the athlete\'s stated 70-minute session limit (spec.md:36)', () => {
+  const worst = durationSweepWorst();
+  assert.ok(worst.durationMin <= 70,
+    `observed maximum ${worst.durationMin} min on ${worst.dayType}/seed ${worst.seed} ` +
+    `exceeds the athlete's stated <=70 min session limit (docs/spec.md:36)`);
+});
+
+// Guard against the "lying card" failure mode: whatever the trim budget
+// does, session.durationMin must report the real clock time, warm-up ramp
+// included -- an app that prints a shorter number than the session actually
+// takes is a failure mode the athlete has already rejected once. Built by
+// comparing durationMin against the same blocks with setPlan stripped, so
+// this does not depend on estimateMinutes carrying any warm-up option (it
+// doesn't -- there is only one behaviour, and this proves the ramp is inside
+// it).
+test('session.durationMin still counts warm-up time', () => {
+  let checked = 0;
+  for (let seed = 1; seed <= 300; seed++) {
+    const s = generate({ library: LIB, dayType: 'max-strength', seed, now: 1e12 });
+    const ramped = s.blocks.some(b => b.setPlan && b.setPlan.some(x => x.kind === 'warmup'));
+    if (!ramped) continue;
+    checked++;
+    const stripped = s.blocks.map(b => {
+      if (!b.setPlan) return b;
+      const { setPlan, ...rest } = b;
+      return rest;
+    });
+    assert.ok(s.durationMin > estimateMinutes(stripped),
+      `seed ${seed}: durationMin does not actually include warm-up time`);
+  }
+  assert.ok(checked > 0, 'this test needs at least one ramped session in the sample');
 });
 
 test('every session carries a prep block and a cool-down', () => {

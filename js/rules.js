@@ -414,7 +414,31 @@ export const TIME = Object.freeze({
   // 70 -> 60. The whole saving comes from dosing mobility correctly; main work
   // is untouched. design 5.
   GYM_SESSION_TOTAL_MIN: 60,
-  MAIN_WORK_MAX_MIN: 45,
+  // 45 -> 50 [measured], 2026-08-31. The warm-up ramp (design-mobility-and-
+  // warmup.md §4.3) is real time on the clock that packToBudget cannot trim --
+  // warm-ups are the safety feature -- so it was paying for itself by shaving
+  // WORKING sets instead: max-strength fell from 37,068 to 27,934 working sets
+  // (75% of pre-ramp) across a 3,000-seed x 7 PHASE_1_DAY_TYPES sweep,
+  // now: 1e12, no profile. The athlete was offered four measured options on
+  // that same sweep and chose this one:
+  //
+  //   cap 45 (as shipped)      27,934 sets (75%)  max session 65 min  0% over 70
+  //   cap 50 (CHOSEN)          32,600 sets (88%)  max session 70 min  0% over 70
+  //   cap 52                   34,458 sets (93%)  max session 71 min  1 in 21,000 over 70
+  //   warm-up trim exemption   37,068 (100%)      max session 81 min  31% of heavy days over 70
+  //
+  // (Cap 50's max session was first estimated at 69 min on the 3,000-seed
+  // pricing sweep; the 70 above is the 10,000-seed committed-sweep figure the
+  // allowance below is actually derived from, and is the one that governs.)
+  //
+  // Cap 52 and the trim-budget exemption were REJECTED because they breach
+  // his stated <=70 min session requirement, spec.md line 36 -- do not
+  // re-raise this constant past 50 without re-clearing that line with him.
+  // Cap 50 buys back 88% of the pre-ramp working-set count and never exceeds
+  // 70 minutes in the 10,000-seed committed sweep (see
+  // FLOOR_OVERRUN_ALLOWANCE_MIN below, re-derived to match). GYM_SESSION_TOTAL_MIN
+  // is unchanged -- only the main-work share of it moved.
+  MAIN_WORK_MAX_MIN: 50,
   // Mandatory, never randomised out. Prep is capped by the drill dose rather
   // than by this figure; it is here so the three budgets can be seen to sum.
   PREP_MIN: 3,
@@ -485,5 +509,21 @@ export const TIME = Object.freeze({
   // the working sets already inside MAIN_WORK_MAX_MIN, not after the cool-down
   // or prep floors that produced the 65. Held at 5, not lowered -- see
   // plan-05-set-plan/task-6-report.md for the pre-floor tail.
-  FLOOR_OVERRUN_ALLOWANCE_MIN: 5
+  //
+  // RE-DERIVED 2026-08-31, from 5 to 10. MAIN_WORK_MAX_MIN moved 45 -> 50 (see
+  // its own comment above) -- a trim-budget exemption for warm-up time was
+  // tried and rejected because it let some max-strength sessions reach 81 min,
+  // well past the athlete's <=70 min requirement (spec.md line 36); raising
+  // the main-work cap instead buys back most of the working sets while
+  // keeping the ceiling inside a number he actually agreed to. Re-swept the
+  // same 70,000-session population as the committed sweep below
+  // (PHASE_1_DAY_TYPES x 10,000 seeds, no returnDate, now: 1e12): worst case
+  // 70 min, tied across max-strength (seed 3466), power (seed 8820),
+  // hypertrophy (seed 5663) and interval (seed 3580) -- five sessions out of
+  // 70,000 reach it, all at exactly 70. Allowance is exactly
+  // worst - GYM_SESSION_TOTAL_MIN = 70 - 60 = 10, not rounded up. 70 satisfies
+  // his <=70 min requirement exactly, with no margin: this is the tightest
+  // this allowance has ever sat against a stated constraint, and it is why
+  // cap 52 (worst case 71, one session in 21,000) was rejected outright.
+  FLOOR_OVERRUN_ALLOWANCE_MIN: 10
 });

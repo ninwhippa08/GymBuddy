@@ -33,8 +33,8 @@ confirmation prompts; the drift this introduces is accepted and documented in §
 | Constraint | Value | Source |
 |---|---|---|
 | Sessions per week | 1–3, irregular | user |
-| Gym session total | ≤ 70 min | user |
-| Gym main work | ≤ 45 min | user |
+| Gym session total | ≤ 70 min | user — enforced by a test as of 2026-08-31, see `tests/session.test.mjs`'s spec.md:36 sweep |
+| Gym main work | ≤ 45 min, raised to ≤ 50 min 2026-08-31 | user — see `TIME.MAIN_WORK_MAX_MIN` in `js/rules.js` and design §8 open question 9 for why |
 | Mobility + core | every gym session, ~25 min | user |
 | Running/cardio duration | uncapped | user |
 | Load prescription | `× PR` only, never absolute weight | user |
@@ -655,14 +655,25 @@ Source it before building step 3. Design §8 open question 6.
 
 Also carried out of step 1: the session total is **63 min measured, not the 60
 the design arithmetic claimed** — see basis §9, discrepancy 7. The 60 is a
-target; 63 is what the floors actually cost in the worst case.
+target; 63 is what the floors actually cost in the worst case. (That figure
+predates the ramp; the ramp raised the ceiling further — see below.)
 
 Build order is design §4.6. Step 1 is done and it freed the ~13 min step 2's
-ramps now spend — measured, they did not lengthen sessions (average
-51.78 → 52.37 min over a 21,000-session sweep); `packToBudget` paid for the
-ramp minutes by shaving working sets instead (213,998 → 194,042, a 9.3% drop).
-See `design-mobility-and-warmup.md` §4.3's "as built" note and §8 open
-questions.
+ramps now spend. **As first measured, the ramp did not lengthen sessions**
+(average 51.78 → 52.37 min over a 21,000-session sweep); `packToBudget` paid
+for the ramp minutes by shaving working sets instead (213,998 → 194,042, a
+9.3% drop). **DECIDED 2026-08-31: the athlete raised `MAIN_WORK_MAX_MIN` from
+45 to 50** (design §8 open question 9) to buy back most of that volume — a
+full trim-budget exemption was tried first and rejected because it pushed the
+observed maximum to 81 min, 31% of max-strength sessions over his stated
+≤70 min limit (line 36 below). At `MAIN_WORK_MAX_MIN` 50, max-strength working
+sets recover to 88% of their pre-ramp count (27,934 → 32,600, vs. 37,068
+pre-ramp), and the observed maximum over the committed 10,000-seed sweep in
+`tests/session.test.mjs` is exactly 70 min — inside his limit, with no
+margin. `TIME.FLOOR_OVERRUN_ALLOWANCE_MIN` re-derived from 5 to 10 to match;
+`GYM_SESSION_TOTAL_MIN` did not move. See `design-mobility-and-warmup.md`
+§4.3's "as built" note item (1) and §8 open question 9 for the full option
+table and before/after figures.
 
 Still queued, unchanged by the above:
 

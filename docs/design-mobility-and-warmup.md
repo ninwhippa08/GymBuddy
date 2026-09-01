@@ -366,19 +366,25 @@ decisions").**
    shorter than `DEFAULT_REST_SEC` (120) because a warm-up set is not taken
    near failure.
 
-**As built, five things this section did not say.** (1) **The ramp does NOT
-lengthen sessions — it displaces working sets, and only once the return ceiling
-has lifted.** This section and the plan both assumed warm-ups would push
-sessions longer and that the session ceiling would have to rise. Measured, they
-do not: the observed maximum stays at 65 min either way, and `packToBudget`
-pays for the warm-up minutes by shaving working sets instead. No test caught
-this, because the 65-minute ceiling holds in both cases.
+**As built, five things this section did not say.** (1) **The ramp did NOT
+lengthen sessions at first — it displaced working sets instead, and only once
+the return ceiling had lifted. DECIDED 2026-08-31: the athlete raised
+`MAIN_WORK_MAX_MIN` from 45 to 50 to buy most of that volume back, capped at a
+session length he had already agreed to.** This section and the plan both
+assumed warm-ups would push sessions longer and that the session ceiling
+would have to rise. As first measured, they did not: the observed maximum
+stayed at 65 min either way, and `packToBudget` paid for the warm-up minutes
+by shaving working sets instead. No test caught this, because the 65-minute
+ceiling held in both cases. The tables below are the historical record of
+that discovery — read the decision and the re-measured numbers that follow
+them, not these, as the current state of the app.
 
 *Per day type, at full volume.* 3,000 seeds per day type across
 `PHASE_1_DAY_TYPES`, `now: 1e12` and **no profile** — so `rampWeekFor` returns
 the last ramp row and nothing is volume-limited. Total working sets are
 `Σ Object.values(session.patternSets)`; "before" is the pre-ramp tree at
-`a42edae`, "after" is this branch as shipped.
+`a42edae`, "after" is the ramp as it originally shipped (`MAIN_WORK_MAX_MIN`
+still 45).
 
 | day type | working sets before → after | Δ | avg session min |
 |---|---|---|---|
@@ -388,12 +394,12 @@ the last ramp row and nothing is volume-limited. Total working sets are
 | aerobic-steady, interval, sprint, plyometric | unchanged | 0% | unchanged |
 | all seven | 213,998 → 194,075 | −9.3% | 51.8 → 52.4 |
 
-The loss falls **entirely** on the three lifting day types — the four that
-never attach a ramp lose nothing — and on the heaviest of them it is close to a
-quarter of the working sets. The single 9.3% figure this note used to carry is
-that concentrated loss averaged over seven day types, four of which are
+The loss fell **entirely** on the three lifting day types — the four that
+never attach a ramp lost nothing — and on the heaviest of them it was close to
+a quarter of the working sets. The single 9.3% figure this note used to carry
+is that concentrated loss averaged over seven day types, four of which are
 untouched; it understates a max-strength day by a factor of about two and a
-half, and it is not a number to make a decision from.
+half, and was never a number to make a decision from.
 
 *By return-ramp week, lifting days only.* 1,500 seeds per day type on
 max-strength, power and hypertrophy, `now: 1e12`, with a `profile.returnDate`
@@ -406,31 +412,48 @@ placed to land `rampWeekFor` on each week.
 | 3 | 53,556 → 51,093 | −4.6% | 50.5 → 55.9 |
 | 5+ (steady state) | 66,629 → 56,559 | −15.1% | 57.1 → 58.5 |
 
-**In the early return weeks the ramp is essentially free, exactly as this
-section predicted.** `volumeMultiplier` has already cut the sets to 50/70/80%,
-so the session sits well under `MAIN_WORK_MAX_MIN` and there is headroom for
-the warm-up minutes to land in: week 1 adds about six minutes of ramp and
-loses six working sets out of 41,809. The ramp is purely additive there. The
-displacement
-appears only as the return ceiling lifts and sessions fill the budget again —
-4.6% by week 3, 15.1% at steady state. **That is where the athlete is now: in
-the return weeks, paying nothing. The bill arrives at week 5.**
+In the early return weeks the ramp was essentially free, exactly as this
+section originally predicted: `volumeMultiplier` had already cut the sets to
+50/70/80%, so the session sat well under `MAIN_WORK_MAX_MIN` with headroom for
+the warm-up minutes to land in — week 1 added about six minutes of ramp and
+lost six working sets out of 41,809, purely additive. The displacement only
+appeared as the return ceiling lifted and sessions filled the budget again —
+4.6% by week 3, 15.1% at steady state. That was the state the athlete was
+training under when he made the call below.
 
-**This must be answered before §4.4 is BUILT, not merely before it ships.**
-§4.4 derives the exercise count as a residual from `patternSets` coverage debt.
-This branch biases that signal down by about a quarter on lifting days, so
-§4.4 would read the deflated counts as unmet debt and push the exercise count
-UP — spending more of a budget that is already being paid for by shaving sets,
-which shaves more sets, which deepens the apparent debt. That is a feedback
-loop, not a static offset, and it cannot be corrected afterwards by adjusting a
-constant.
+**Decision, 2026-08-31.** Two candidate fixes were tried and rejected before
+this one. A full trim-budget exemption for warm-up time (`packToBudget`
+ignoring warm-up minutes entirely) was built, measured, and discarded: it
+recovered 100% of the pre-ramp working sets but pushed the observed maximum
+session to **81 min** — 31% of max-strength sessions over a 10,000-seed sweep
+exceeded his stated **≤70 min** requirement (`spec.md` line 36). Raising
+`MAIN_WORK_MAX_MIN` to 52 was priced too: 93% of the working sets back, but a
+1-in-21,000 session at 71 min, one minute over his limit. The athlete was
+shown all four measured options on the same 3,000-seed × 7-day-type sweep and
+chose the one that never breaches his limit:
 
-**Not decided here.** Making the ramp additive would mean raising
-`MAIN_WORK_MAX_MIN`, or exempting warm-up time from the trim budget, or
-deciding that the displacement is the right trade — trading the fifth working
-set for a safer entry into the fourth is a defensible answer, not obviously a
-wrong one. None of that was in plan-05's scope and none of it is settled here.
-Open question for the athlete — see §8 item 9. (2) **The constant block is
+| approach | max-strength working sets | max session (10k-seed sweep) | sessions over 70 min |
+|---|---|---|---|
+| `MAIN_WORK_MAX_MIN` 45 (as shipped) | 27,934 (75%) | 65 min | 0 |
+| **`MAIN_WORK_MAX_MIN` 50 (CHOSEN)** | **32,600 (88%)** | **70 min** | **0** |
+| `MAIN_WORK_MAX_MIN` 52 | 34,458 (93%) | 71 min | 1 in 21,000 |
+| warm-up trim exemption (tried, rejected) | 37,068 (100%) | 81 min | 31% of heavy days |
+
+`MAIN_WORK_MAX_MIN` moved 45 → 50 in `js/rules.js`. `GYM_SESSION_TOTAL_MIN`
+did not move. `TIME.FLOOR_OVERRUN_ALLOWANCE_MIN` was re-derived from 5 to 10
+against the same 70,000-session committed-sweep population, worst case
+**exactly 70 min** (max-strength/seed 3466, tied by power, hypertrophy and
+interval) — the tightest this allowance has ever sat against a stated
+constraint, with zero margin: 70 satisfies "≤70" exactly and no more. **Do
+not raise `MAIN_WORK_MAX_MIN` past 50 without re-clearing it against
+`spec.md` line 36** — the cap 52 and full-exemption rows above are recorded
+here specifically so nobody re-tries them without knowing they were already
+measured and rejected.
+
+§4.4 derives the exercise count as a residual from `patternSets` coverage
+debt; with `patternSets` now at 88% of its pre-ramp figure rather than 75%,
+§4.4 has less deflated a signal to read, though the bias is not fully zeroed
+the way the (rejected) exemption would have zeroed it. (2) **The constant block is
 `WARMUP`, not `RAMP`.** `js/rules.js` already exported `RAMP` — the
 return-to-training week table — so this section's chosen name would have been a
 duplicate export and a `SyntaxError`. The builder is `buildWarmup()` and its
@@ -717,41 +740,55 @@ clean while two real bugs sat in the code. Both layers are required.
    it needs sourced stretches, not invented ones. Deviation 4; measured at
    task 9, 2026-08-24. Note that ruling C1's six recovered warm-up drills are
    all *dynamic* and widen the prep pool instead — they do not help here.
-9. **The ramp displaces working volume instead of extending the session, and
-   this was never decided on purpose. ANSWER THIS BEFORE §4.4 IS BUILT.** §4.3
-   and plan-05 both assumed the ramp would push sessions longer. Measured, it
-   does not: `packToBudget` pays for the warm-up minutes by trimming working
-   sets, and average session length moves less than a minute.
+9. **DECIDED 2026-08-31 by the athlete: `MAIN_WORK_MAX_MIN` raised 45 → 50.**
+   The ramp originally displaced working volume instead of extending the
+   session, and that was never decided on purpose. §4.3 and plan-05 both
+   assumed the ramp would push sessions longer; as first measured, it did
+   not — `packToBudget` paid for the warm-up minutes by trimming working
+   sets, and average session length moved less than a minute. The historical
+   record of that measurement:
 
-   *Where the volume goes* (3,000 seeds per day type, `PHASE_1_DAY_TYPES`,
+   *Where the volume went* (3,000 seeds per day type, `PHASE_1_DAY_TYPES`,
    `now: 1e12`, no profile — full volume, the last ramp row; pre-ramp
-   `a42edae` → this branch):
+   `a42edae` → the ramp as first shipped, `MAIN_WORK_MAX_MIN` still 45):
    **max-strength −24.6%** (37,068 → 27,934 working sets), power −11.3%,
    hypertrophy −11.1%, and **0% on aerobic-steady, interval, sprint and
    plyometric**, which never attach a ramp. The 9.3% this entry used to quote
    is those numbers averaged over seven day types, four of them untouched —
-   it hides a quarter of the volume disappearing off the heaviest lifting day.
+   it hid a quarter of the volume disappearing off the heaviest lifting day.
 
-   *When it starts costing anything* (1,500 seeds per day type on the three
+   *When it started costing anything* (1,500 seeds per day type on the three
    lifting day types, `now: 1e12`, `profile.returnDate` set per week):
-   week 1 **−0.01%** (six sets out of 41,809), week 2 −0.9%, week 3 −4.6%,
-   week 5+ −15.1%. In the early return weeks `volumeMultiplier` has already
-   cut the sets, so the session sits under `MAIN_WORK_MAX_MIN` with headroom
-   and the ramp is purely additive — session length rises ~6 min and no
-   working set is lost. The displacement only appears as the return ceiling
-   lifts. **The athlete is in those weeks now; this costs him nothing yet.**
+   week 1 −0.01% (six sets out of 41,809), week 2 −0.9%, week 3 −4.6%,
+   week 5+ −15.1%. In the early return weeks `volumeMultiplier` had already
+   cut the sets, so the session sat under `MAIN_WORK_MAX_MIN` with headroom
+   and the ramp was purely additive there. The displacement appeared only as
+   the return ceiling lifted.
 
-   *Why it has a deadline.* §4.4 derives the exercise count as a residual from
-   `patternSets` coverage debt. This branch biases that signal down ~25% on
-   lifting days, so §4.4 would read the deflated counts as unmet debt and push
-   the exercise count UP — spending more of a budget already being paid for by
-   shaving sets, which shaves more sets, which deepens the apparent debt. A
-   feedback loop, not a static offset, and not correctable later by tuning a
-   constant. It has to be answered before §4.4 is **built**, not merely before
-   it ships.
+   **What was chosen, and what it cost.** Two other fixes were tried first
+   and rejected. A full trim-budget exemption for warm-up time recovered
+   100% of the working sets but pushed the observed maximum session to
+   81 min — 31% of a 10,000-seed max-strength sweep exceeded his stated
+   **≤70 min** requirement (`spec.md` line 36). `MAIN_WORK_MAX_MIN` 52 got
+   93% of the sets back but still broke the limit once in 21,000 sessions
+   (71 min). The athlete chose `MAIN_WORK_MAX_MIN` **50**: 88% of the
+   pre-ramp working sets (27,934 → 32,600), and the 10,000-seed committed
+   sweep's observed maximum lands at **exactly 70 min** — inside his limit
+   with no margin at all. `TIME.FLOOR_OVERRUN_ALLOWANCE_MIN` moved from 5 to
+   10 to match. `GYM_SESSION_TOTAL_MIN` did not move — see `js/rules.js`'s
+   `MAIN_WORK_MAX_MIN` and `FLOOR_OVERRUN_ALLOWANCE_MIN` comments for the
+   full option table and the per-day-type worst cases.
 
-   *The options, none of them chosen here.* Raise `MAIN_WORK_MAX_MIN`; exempt
-   warm-up time from the trim budget; or accept the displacement as the right
-   trade, since a safer entry into the fourth working set may be worth the
-   fifth. This is the athlete's call, not a bug in what was built. See §4.3's
-   "as built" note item (1) for the full tables.
+   *Why the deadline is lifted, not the bias.* §4.4 derives the exercise
+   count as a residual from `patternSets` coverage debt. This decision does
+   not zero that bias the way the rejected exemption would have —
+   `patternSets` is now at 88% of its pre-ramp figure on max-strength, up
+   from 75%, but still not 100%, and the same feedback shape §4.3's "as
+   built" note warned about (deflated debt → §4.4 pushes the count up →
+   `packToBudget` shaves more to fit the larger count into the same budget →
+   debt reads even lower) is mechanically still possible at 88%, just with
+   more headroom to absorb it before it bites. This item no longer blocks
+   *starting* §4.4 — the athlete has made his call and does not need to
+   re-decide it before that work begins — but whoever builds §4.4 should
+   re-check its behavior against the real (88%, not 100%) counts once it
+   exists, rather than assuming this is fully closed.

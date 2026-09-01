@@ -426,6 +426,24 @@ This is the allowance behaving as designed rather than a problem: it is a
 measured consequence of the pool, and it will move again as the remaining pools
 are closed. Re-derive it at each pool boundary; do not pre-emptively pad it.
 
+**Re-derived 2026-08-31: 65 → 70 min, allowance 5 → 10 — a different
+mechanism from every entry above.** Every prior re-derivation here moved the
+allowance because a mobility or prep pool grew. This one moved it because the
+athlete decided design-mobility-and-warmup.md §8 open question 9:
+`TIME.MAIN_WORK_MAX_MIN` was raised from 45 to 50 to buy back most of the
+working-set volume the warm-up ramp was displacing, after a full trim-budget
+exemption was tried and rejected (it reached 81 min, breaching his stated
+≤70 min requirement, spec.md line 36). Re-swept the same committed-sweep
+population (7 `PHASE_1_DAY_TYPES` × 10,000 seeds, `now: 1e12`, no profile):
+worst case exactly 70 min, tied across max-strength (seed 3466), power
+(seed 8820), hypertrophy (seed 5663) and interval (seed 3580). Allowance is
+exactly `70 − 60 = 10`, not rounded up — and it sits with zero margin against
+his stated limit, tighter than any prior derivation in this history. See
+`js/rules.js`'s `MAIN_WORK_MAX_MIN` and `FLOOR_OVERRUN_ALLOWANCE_MIN`
+comments for the full four-option table that was priced before this was
+chosen, and design-mobility-and-warmup.md §4.3/§8 item 9 for the working-set
+and duration tables.
+
 ---
 
 ## Further reading

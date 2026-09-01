@@ -20,13 +20,21 @@ test('prep leads the session order and static mobility still closes it', () => {
     'dynamic prep must precede the work it prepares for -- discrepancy 6');
 });
 
-test('the time budget matches design 5', () => {
+test('the time budget matches design 5, main work raised past it 2026-08-31', () => {
   assert.equal(TIME.GYM_SESSION_TOTAL_MIN, 60);
-  assert.equal(TIME.MAIN_WORK_MAX_MIN, 45);
+  // 45 -> 50, the athlete's call: see MAIN_WORK_MAX_MIN's comment in
+  // js/rules.js for the four measured options he was offered and why he
+  // picked this one. Design 5's "3 + 45 + 12 = 60" arithmetic no longer
+  // balances on purpose -- the three budgets now sum to 65, over the
+  // nominal 60, which is exactly what FLOOR_OVERRUN_ALLOWANCE_MIN exists to
+  // absorb. Asserted as a bound below rather than pretending equality holds.
+  assert.equal(TIME.MAIN_WORK_MAX_MIN, 50);
   assert.equal(TIME.PREP_MIN, 3);
   assert.equal(TIME.COOLDOWN_MIN, 12);
-  assert.equal(TIME.PREP_MIN + TIME.MAIN_WORK_MAX_MIN + TIME.COOLDOWN_MIN,
-    TIME.GYM_SESSION_TOTAL_MIN, 'the three budgets must sum to the total');
+  assert.ok(
+    TIME.PREP_MIN + TIME.MAIN_WORK_MAX_MIN + TIME.COOLDOWN_MIN <=
+      TIME.GYM_SESSION_TOTAL_MIN + TIME.FLOOR_OVERRUN_ALLOWANCE_MIN,
+    'the three budgets, summed, must still fit inside the measured allowance');
   assert.equal(TIME.MOBILITY_CORE_MIN, undefined,
     'the withdrawn 25 min figure must be gone -- discrepancy 5');
 });
