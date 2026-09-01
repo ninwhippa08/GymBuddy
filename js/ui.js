@@ -520,7 +520,8 @@ export function renderNothingBuildable() {
 
 export function renderSession(
   session,
-  { onReroll, cuesFor, offer, equipment, soreness, addMove, onSwap, swapNote } = {}
+  { onReroll, onDone, cuesFor, offer, equipment, soreness, addMove, onSwap,
+    swapNote } = {}
 ) {
   // Three groups, not two. Prep and cool-down do different jobs at opposite
   // ends of the session, and one "Mobility & core" heading hid that.
@@ -587,13 +588,30 @@ export function renderSession(
     blockGroup('Main work', main, cuesFor, onSwap),
     blockGroup('Cool-down', cooldown, cuesFor),
 
-    el('div', { class: 'actions' }, [
-      el('button', {
-        class: 'btn btn-secondary',
-        type: 'button',
-        onclick: onReroll
-      }, 'Reroll')
-    ]),
+    // Confirming is the end of the day's decisions: it says the session on the
+    // record is training he actually did, so there is nothing left to reroll.
+    // Leaving Reroll here would let one tap replace a workout he has just
+    // reported doing -- and the replacement would arrive unconfirmed, losing
+    // the record. spec §6 limitation 1.
+    session.confirmed
+      ? el('p', { class: 'done-note', text: 'Done · logged for today' })
+      : el('div', { class: 'actions' }, [
+          // First and full width: at the foot of the card the session is over,
+          // and this is the tap that day is for. Reroll is a decision from the
+          // START of a session and sits under it. Nothing interrupts the
+          // workout itself -- §8's "no logging, no confirmation prompt" is a
+          // rule about the sets, not about the end of the day.
+          el('button', {
+            class: 'btn btn-done',
+            type: 'button',
+            onclick: onDone
+          }, 'I did this workout'),
+          el('button', {
+            class: 'btn btn-secondary',
+            type: 'button',
+            onclick: onReroll
+          }, 'Reroll')
+        ]),
 
     el('p', { class: 'footnote', text: `${session.date} · seed ${session.seed}` })
   ]);

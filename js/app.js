@@ -57,6 +57,10 @@ function showSession({
   if (!profile || !profile.returnDate) return showSetup();
 
   const saved = reroll ? null : sessionFor(today());
+  // Read whether or not this is a reroll: it carries the rotation's memory of
+  // which day types have already been offered today, and a reroll clears
+  // `saved` before that can be read off it.
+  const onRecord = sessionFor(today());
   // The constraint lives on the record, so it survives a reroll and is gone
   // tomorrow -- which is what "this session only" means. design §3.3.
   const constraint = excludeEquipment ?? (saved && saved.excludeEquipment) ?? [];
@@ -70,7 +74,11 @@ function showSession({
 
   // A changed constraint rebuilds even when today's session is on the record:
   // that is the whole point of the control. Reroll clears `saved` already.
-  if (!session || excludeEquipment || soreChanged) {
+  // A confirmed session is training he has reported doing, so nothing
+  // regenerates it -- not a reroll (the card no longer offers one), and not a
+  // soreness or equipment change, which from here on are about tomorrow.
+  const locked = !!(session && session.confirmed);
+  if (!locked && (!session || excludeEquipment || soreChanged)) {
     try {
       const result = resolveSession({
         library,
@@ -79,7 +87,10 @@ function showSession({
         soreness,
         dayType: session ? session.dayType : null,
         excludeEquipment: constraint,
-        seed: Date.now()
+        seed: Date.now(),
+        // Walks the ranking down instead of swapping between the top two.
+        // generator.js's proposeDayType explains why the list is needed.
+        offeredDayTypes: (onRecord && onRecord.offeredDayTypes) || []
       });
       if (!result.session) return mount(root, renderNothingBuildable());
       session = result.session;
@@ -100,6 +111,10 @@ function showSession({
   // Built once so the swap can re-render the same screen with a note added.
   const opts = {
     onReroll: () => showSession({ reroll: true, excludeEquipment: constraint }),
+    // The record is already on disk -- generating wrote it (spec §1). This
+    // marks it as training he did, which is what keeps it out of tomorrow's
+    // "Did you finish this?" and what stops it being rerolled away.
+    onDone: () => { confirmSession(today()); showSession(); },
     cuesFor,
     offer,
     soreness: {

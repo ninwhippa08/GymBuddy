@@ -173,8 +173,26 @@ body {
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   margin-top: 28px;
+}
+
+/* Full width on its own row: the label is a sentence, and squeezed beside
+   Reroll it wrapped to three lines on a narrow phone. */
+.btn-done { flex: 1 0 100%; }
+
+/* What the card says once he has confirmed the day. Not a button -- there is
+   nothing left to tap, and the record is already written. */
+.done-note {
+  margin: 28px 0 0;
+  padding: 14px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--surface-edge);
+  border-radius: var(--radius);
+  text-align: center;
+  font-weight: 600;
 }
 
 .btn {

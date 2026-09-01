@@ -10,7 +10,8 @@ import { installDom } from './dom-shim.mjs';
 installDom();
 const {
   loadLine, volumeLine, equipmentControl, renderNothingBuildable,
-  renderConfirmPrevious, sorenessMap, addMoveControl, warmupLine
+  renderConfirmPrevious, sorenessMap, addMoveControl, warmupLine,
+  renderSession
 } = await import('../js/ui.js');
 const { SORENESS_JOINTS } = await import('../js/rules.js');
 
@@ -437,4 +438,50 @@ test('same load at different reps stays two rungs', () => {
     ]
   });
   assert.equal(line, 'warm-up  5 × 0.30  ·  3 × 0.30');
+});
+
+
+// --------------------------------------------------------------------------
+// "I did this workout"
+// --------------------------------------------------------------------------
+
+// The session record the card renders. Only the fields renderSession reads.
+function card(extra = {}) {
+  return {
+    date: '2026-09-01', dayType: 'max-strength', venue: 'gym', durationMin: 52,
+    rampWeek: 3, reason: 'nothing like heavy lifting in 6 days', seed: 42,
+    warnings: [], blocks: [
+      { role: 'prep', name: 'Leg swings', mode: 'drill', reps: 10, sets: 1 },
+      { role: 'main', name: 'Back squat', mode: 'load', reps: 5, sets: 3,
+        pct: 0.8, displayMultiplier: 0.8, prRef: 'squat' }
+    ],
+    ...extra
+  };
+}
+
+const buttonText = node => node.querySelectorAll('button').map(b => b.textContent);
+
+test('the session card offers a way to say the workout was done', () => {
+  const node = renderSession(card(), { onReroll() {}, onDone() {} });
+  assert.ok(
+    buttonText(node).some(t => /did this/i.test(t)),
+    `no completion button among ${JSON.stringify(buttonText(node))}`
+  );
+});
+
+test('tapping it reports the session as done', () => {
+  let done = 0;
+  const node = renderSession(card(), { onReroll() {}, onDone: () => { done++; } });
+  const btn = node.querySelectorAll('button').find(b => /did this/i.test(b.textContent));
+  btn.dispatch('click');
+  assert.equal(done, 1);
+});
+
+test('a confirmed session says so and drops the reroll', () => {
+  const node = renderSession(card({ confirmed: true }), { onReroll() {}, onDone() {} });
+  const texts = buttonText(node);
+  assert.ok(!texts.some(t => /reroll/i.test(t)),
+    `reroll still offered on a confirmed session: ${JSON.stringify(texts)}`);
+  assert.ok(/done|completed/i.test(node.textContent),
+    'a confirmed session should say it was done');
 });

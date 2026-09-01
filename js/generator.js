@@ -241,7 +241,17 @@ function directChoice(dayType, state, { soreness, rng }) {
 
 // Neglect scoring with vetoes. Returns the proposal plus every candidate's
 // standing, so the UI can offer a reroll without regenerating state.
-export function proposeDayType(state, { soreness = {}, rng, dayTypes = PHASE_1_DAY_TYPES } = {}) {
+//
+// `offeredDayTypes` is what a reroll has already shown him today. Without it
+// the arg-max below is stable only until the session is committed, and
+// commitSession REPLACES today's record (storage.js) -- which drops the
+// previous pick's neglect score back to full while the new pick's falls to
+// zero. Two rerolls therefore swapped the top two candidates back and forth
+// forever and a third day type was unreachable, however many times he tapped.
+// Excluding what has already been offered walks the ranking down instead.
+export function proposeDayType(state, {
+  soreness = {}, rng, dayTypes = PHASE_1_DAY_TYPES, offeredDayTypes = []
+} = {}) {
   const ramp = rampRow(state.rampWeek);
   const candidates = dayTypes.map(dt => {
     const hours = state.hoursSince[dt];
@@ -269,13 +279,21 @@ export function proposeDayType(state, { soreness = {}, rng, dayTypes = PHASE_1_D
   });
 
   const open = candidates.filter(c => !c.vetoed);
-  const pool = open.length ? open : candidates; // never return nothing
+  const field = open.length ? open : candidates; // never return nothing
+  // Once every day type he can train today has been offered, the rotation has
+  // nothing left to walk to and starts again from the top. `wrapped` says so,
+  // and generate resets the record's list -- otherwise the list would grow past
+  // the field and every later tap would land here.
+  const fresh = field.filter(c => !offeredDayTypes.includes(c.dayType));
+  const wrapped = fresh.length === 0;
+  const pool = wrapped ? field : fresh;
   const best = pool.reduce((a, b) => (b.score > a.score ? b : a));
 
   return {
     dayType: best.dayType,
     reason: reasonFor(best, state, ramp, open.length === 0),
-    candidates: candidates.sort((a, b) => b.score - a.score)
+    candidates: candidates.sort((a, b) => b.score - a.score),
+    wrapped
   };
 }
 
@@ -1025,14 +1043,25 @@ export function generate({
   dayType = null,
   excludeEquipment = [],
   seed = Date.now(),
-  now = Date.now()
+  now = Date.now(),
+  offeredDayTypes = []
 } = {}) {
   if (!Array.isArray(library) || library.length === 0) {
     throw new Error('generate: library is required');
   }
   const rng = makeRng(seed);
 
-  const state = buildState(profile, history, now);                       // 1-2
+  // A session being built for a date must not read that date's own record.
+  // There is only ever one -- commitSession replaces by date -- so the entry
+  // sitting on today is the proposal being replaced, not training he has done.
+  // Counting it let today's proposal score itself: its own cnsLoad pushed the
+  // account over the veto threshold and its own dayType zeroed its neglect
+  // score, so the ranking moved under every reroll and heavy days vetoed
+  // themselves out of the rotation. On a first build of a day there is no such
+  // record and this filter does nothing.
+  const date = new Date(now).toISOString().slice(0, 10);
+  const priorHistory = (history || []).filter(s => s.date !== date);
+  const state = buildState(profile, priorHistory, now);                  // 1-2
   // A directly-chosen day type still carries the full candidate standings.
   // It used to carry none, which made resolveSession's fallback loop inert:
   // it always passes a dayType, so it always got an empty list to walk.
@@ -1045,7 +1074,7 @@ export function generate({
   // line the athlete actually reads.
   const proposal = dayType
     ? directChoice(dayType, state, { soreness, rng })
-    : proposeDayType(state, { soreness, rng });                          // 3
+    : proposeDayType(state, { soreness, rng, offeredDayTypes });         // 3
   const chosen = proposal.dayType;
 
   const env = envelopeFor(chosen, state);                                // 4
@@ -1103,13 +1132,13 @@ export function generate({
 
   return finalise({
     chosen, env, architecture, proposal, ordered, packed, cooled,
-    unfilled, state, seed, now, excludeEquipment, soreness
+    unfilled, state, seed, now, excludeEquipment, soreness, offeredDayTypes
   });
 }
 
 // Denormalise the counters at write time so the next generation never has to
 // recompute them while reading history. spec §3.2.
-function finalise({ chosen, env, architecture, proposal, ordered, packed, cooled, unfilled, state, seed, now, excludeEquipment, soreness }) {
+function finalise({ chosen, env, architecture, proposal, ordered, packed, cooled, unfilled, state, seed, now, excludeEquipment, soreness, offeredDayTypes = [] }) {
   const patternSets = {};
   let footContacts = 0, sprintMeters = 0, cnsLoad = 0;
   for (const b of ordered) {
@@ -1193,6 +1222,18 @@ function finalise({ chosen, env, architecture, proposal, ordered, packed, cooled
     trimmedSlots: packed.trimmedSlots,
     warnings,
     unfilled,
-    seed
+    seed,
+    // The rotation's memory, carried on the record because commitSession
+    // replaces today's entry on every reroll and that record is the only thing
+    // that survives the tap. Cleared when the rotation wraps, so the list can
+    // never outgrow the field it is filtering. A rebuild that keeps the same
+    // day type -- an equipment or soreness change, which passes it back in --
+    // leaves the list alone: it is already on it, and the walk continues from
+    // where it was rather than starting over.
+    offeredDayTypes: proposal.wrapped
+      ? [chosen]
+      : offeredDayTypes.includes(chosen)
+        ? offeredDayTypes
+        : [...offeredDayTypes, chosen]
   };
 }

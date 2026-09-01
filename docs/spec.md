@@ -18,6 +18,7 @@ open app
   → workout appears
   → swap any exercise that isn't possible today
   → go train
+  → tap "I did this workout" at the foot of the card
 ```
 
 The **venue is an output, not an input.** The generated session determines
@@ -373,7 +374,8 @@ are kept because 20–40 m is pace-able by eye on any surface.
 
 Recorded deliberately, each traceable to a decision the user made:
 
-1. **History is proposals, not performance — MITIGATED 2026-08-30, `sw.js` v12.**
+1. **History is proposals, not performance — MITIGATED 2026-08-30 (`sw.js` v12)
+   and 2026-09-01 (v18).**
    There is still no confirmation *during* a session, so a shortened one counts
    as done. But the phantom entries are gone: on launch the app asks
    **"Did you finish this?"** once per unanswered past day, most recent first,
@@ -383,6 +385,11 @@ Recorded deliberately, each traceable to a decision the user made:
    neglect score, and absence is the cheapest guarantee of that. Today is never
    asked about: it is still in progress, and its turn comes tomorrow.
    `storage.pendingConfirmations` / `confirmSession` / `discardSession`.
+   Since v18 the same record can be confirmed at the end of the session
+   instead, by the **"I did this workout"** button at the foot of the card:
+   same `confirmSession`, same field, just answered while he is still standing
+   there. A day confirmed that way is never asked about on the next launch,
+   and the session it confirms is locked against regeneration.
    **"No logging, no confirmation prompt" (§8) survives intact** — it was always
    a rule about not interrupting the workout, and this asks about a day that is
    already over.
@@ -559,11 +566,40 @@ identity — never a real address, since the repo is public.
    entries for one training day would double-count `patternSets` and
    `cnsLoad`, and the neglect model reads both.
 
+   That replacement is also what broke reroll, reported from the phone on
+   2026-09-01 as *"it rerolls between aerobic-steady and interval, 2 types of
+   program, I cannot move on"* and fixed the same day in `sw.js` v18.
+   `proposeDayType` returns the arg-max of the neglect score, so the seed only
+   ever varied the EXERCISES; the day type moved solely because the record
+   moved. Each reroll rewrote today's slot, which zeroed the new pick's
+   neglect score and simultaneously restored the previous pick's to full,
+   because that entry no longer existed. Consecutive taps therefore swapped
+   the top two open candidates forever and could not reach the third — with
+   `max-strength` sitting open and unreachable at a score of 12.8. Two changes
+   fix it, both in `generator.js`:
+
+   - **A session built for a date ignores that date's own record.** There is
+     only ever one, and it is the proposal being replaced, not training he
+     did. Counting it let today's proposal score itself: its `cnsLoad` pushed
+     the account over `CNS_VETO_THRESHOLD` and vetoed the heavy days out of
+     the rotation mid-cycle.
+   - **`offeredDayTypes` walks the ranking down.** The list of day types
+     already offered today rides on the record (the only thing that survives
+     a tap) and is excluded from selection, so repeated taps march down the
+     open field instead of oscillating. When every open type has been
+     offered the rotation wraps and the list resets — otherwise it would
+     outgrow the field and every later tap would land on the wrap.
+
    One thing to watch: because generating marks a session done (§1), merely
    opening the app on a rest day writes a completed session. That is §6
    limitation 1 playing out, and the mitigation named there — a one-tap "did
    you finish this?" on next launch — **was built on 2026-08-30**, before the
-   history got long enough to matter.
+   history got long enough to matter. Since v18 he can also close the loop at
+   the time rather than the next morning: **"I did this workout"** at the foot
+   of the card confirms today's record on the spot. A confirmed session is
+   locked — the card drops Reroll and no soreness or equipment change
+   regenerates it, because one tap must not replace a workout he has just
+   reported doing.
 
 6. ~~`manifest.json` + `sw.js`~~ — **done.** Installable and offline.
    Every path is relative; Pages serves from `/GymBuddy/`, so a leading slash
