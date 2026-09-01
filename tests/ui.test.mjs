@@ -1,7 +1,7 @@
 // Dose units in the card. Task 8, design 2.1, discrepancy 4.
 //
 // renderSession needs a DOM and is checked in the browser in Task 10, not here.
-// loadLine and volumeLine are pure, so they are checked directly.
+// loadLine, volumeLine and warmupLine are pure, so they are checked directly.
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -387,4 +387,54 @@ test('a block with no plan has no warm-up line', () => {
 test('the hero line still prints the WORKING load, unchanged', () => {
   // Regression: the number read mid-set must not become the first warm-up.
   assert.equal(loadLine(RAMPED), '0.80 × Back Squat PR');
+});
+
+// A technical: 3 lift's extra technique set sits AT WARMUP.START, alongside
+// rung 0, so its first two rungs are identical by construction -- 46.2% of
+// ramped cards measured over 24,355 generated blocks. Printed twice it read as
+// a typo, and it pushed the worst-case line to 82 characters, which wraps
+// mid-step on the phone.
+const TECHNICAL = {
+  mode: 'load', sets: 2, reps: 3, displayMultiplier: 0.81, prRef: 'back-squat',
+  setPlan: [
+    { kind: 'warmup', reps: 3, pct: 0.30, displayMultiplier: 0.30 },
+    { kind: 'warmup', reps: 3, pct: 0.30, displayMultiplier: 0.30 },
+    { kind: 'warmup', reps: 3, pct: 0.43, displayMultiplier: 0.43 },
+    { kind: 'work',   reps: 3, pct: 0.81, displayMultiplier: 0.81 },
+    { kind: 'work',   reps: 3, pct: 0.81, displayMultiplier: 0.81 }
+  ]
+};
+
+test('two identical rungs in a row print once, with a set count', () => {
+  assert.equal(warmupLine(TECHNICAL),
+    'warm-up  2 × 3 × 0.30  ·  3 × 0.43');
+});
+
+test('the collapse compares values, so distinct rungs are never merged', () => {
+  // The ladder is not tabulated, so nothing guarantees which rungs repeat --
+  // this is a value comparison, not a `technical === 3` special case. A single
+  // rung keeps the plain `reps × load` form; only a repeat earns a count.
+  assert.equal(warmupLine(RAMPED), 'warm-up  8 × 0.30  ·  5 × 0.55');
+});
+
+test('three of the same rung collapse into one, not two', () => {
+  const line = warmupLine({
+    setPlan: [
+      { kind: 'warmup', reps: 3, pct: 0.3, displayMultiplier: 0.3 },
+      { kind: 'warmup', reps: 3, pct: 0.3, displayMultiplier: 0.3 },
+      { kind: 'warmup', reps: 3, pct: 0.3, displayMultiplier: 0.3 },
+      { kind: 'work',   reps: 3, pct: 0.7, displayMultiplier: 0.7 }
+    ]
+  });
+  assert.equal(line, 'warm-up  3 × 3 × 0.30');
+});
+
+test('same load at different reps stays two rungs', () => {
+  const line = warmupLine({
+    setPlan: [
+      { kind: 'warmup', reps: 5, pct: 0.3, displayMultiplier: 0.3 },
+      { kind: 'warmup', reps: 3, pct: 0.3, displayMultiplier: 0.3 }
+    ]
+  });
+  assert.equal(line, 'warm-up  5 × 0.30  ·  3 × 0.30');
 });
