@@ -192,10 +192,34 @@ export const VOLUME = Object.freeze({
   ROLLING_WINDOW_DAYS: 7,
   // History depth the generator loads. spec §4 step 1.
   HISTORY_DAYS: 14,
-  // 10+ sets per muscle per week produces significantly more growth than fewer
-  // (Schoenfeld dose-response). An aspiration at 1-3 sessions/week, not a
-  // guarantee -- see §2 rule 4 on being honest about the ceiling.
-  SETS_PER_PATTERN_PER_WEEK_TARGET: 10,
+  // Weekly set volume per muscle group, BY GOAL. This was a single 10 for every
+  // day type, which is a hypertrophy figure standing in for training volume
+  // generally -- and the two dose-responses are not the same shape. Pelland et
+  // al. 2025 (67 studies, 2,058 participants) puts strength's minimum effective
+  // dose at 1 weekly set, its efficient band at 1-4, and finds that beyond 5
+  // more sets do not consistently add DETECTABLE strength, while hypertrophy's
+  // efficient band is 5-10 and keeps paying past 20. Median study volume: 6
+  // sets/week for strength against 10.5 for hypertrophy. One shared number
+  // asked a max-strength day for ~2.5x the volume that buys anything.
+  // basis §2 "The dose-response differs by goal" and rule 5.
+  //
+  // hypertrophy 10   [verified]     top of the efficient band, unchanged
+  // max-strength 4   [verified]     where detectable returns stop
+  // power/plyo/sprint 4 [corroborated] NO dose-response literature exists for
+  //                                 power: 3-6 sets of 2-5 reps, 2-3x/week,
+  //                                 quality over volume (NSCA). Bounded at
+  //                                 strength, and NOT to be read as measured.
+  // DEFAULT 10       [verified]     running days barely reach patternSets;
+  //                                 moving them would be a claim no source
+  //                                 makes, so they keep the old behaviour.
+  SETS_PER_PATTERN_PER_WEEK: Object.freeze({
+    DEFAULT: 10,
+    hypertrophy: 10,
+    'max-strength': 4,
+    power: 4,
+    plyometric: 4,
+    sprint: 4
+  }),
   // Compounds first under low frequency; isolation is what a fourth session
   // buys. §2 rule 2. Applied as a scoring penalty, not a ban.
   ISOLATION_PROPOSAL_PENALTY: 0.25

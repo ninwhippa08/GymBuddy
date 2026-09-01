@@ -120,6 +120,61 @@ Training happens 1–3× per week, irregularly, driven by work schedule.
   producing significantly more growth than fewer.
   [Schoenfeld dose-response](https://pubmed.ncbi.nlm.nih.gov/27433992/)
 
+### The dose-response differs by goal — sourced 2026-09-01
+
+The figure above is a **hypertrophy** figure, and this document used to let it
+stand for training volume generally. It does not. A Bayesian multi-level
+meta-regression over 67 studies and 2,058 participants modelled the *shape* of
+the dose-response separately for each outcome, rather than comparing two
+buckets, and the two shapes are not the same.
+[Pelland et al. 2025, *Sports Medicine*](https://pubmed.ncbi.nlm.nih.gov/41343037/)
+`[verified]`
+
+Weekly sets **per muscle group**, from that paper's efficiency tiers (Table 3
+for hypertrophy, SDES 2.05%; Table 4 for strength, SDES 3.96% — a tier is the
+extra volume needed before another *detectable* increment of gain appears):
+
+| tier | hypertrophy | strength |
+|---|---|---|
+| minimum effective dose | 4 | **1** |
+| higher efficiency | 5–10 | **2** |
+| intermediate efficiency | 11–18 | **3–4** |
+| lower efficiency | 19–29 | **5+ — more sets do not consistently add detectable strength** |
+| lowest efficiency | 30–42 | — |
+
+Median volume across the included training groups tells the same story:
+**10.5 sets/week** for hypertrophy effects against **6 sets/week** for strength.
+
+Both slopes are positive with 100% posterior probability — more volume is more
+gain for both — but **strength's diminishing returns are far more pronounced,
+and its best-fit model has a functional plateau where hypertrophy's does not.**
+Practically: past about 4 weekly sets per muscle group, strength work is buying
+very little, while hypertrophy keeps paying to 20+.
+
+**Frequency splits the same way, and it matters at 1–3 sessions/week.** The
+posterior probability that the frequency slope exceeds zero is 100% for
+strength and *less* than 100% for hypertrophy — compatible with no effect. So
+strength benefits from being spread across sessions in a way hypertrophy does
+not. Note this refines, rather than contradicts, Grgic et al. above: that
+meta-analysis equated volume, and this one models frequency as its own term.
+
+**Direct and indirect sets are not the same set.** The paper's central
+methodological finding is that sets must be classified by their specificity to
+the muscle being measured, and the best-supported scheme counts an indirect set
+as **0.5** ("fractional"). This matters here beyond bookkeeping: this app counts
+sets per *movement pattern*, not per muscle group, and the two are not
+interchangeable — a squat set and a lunge set both load the quadriceps. The
+fractional convention is the sourced way to price a set that trains a pattern
+only indirectly.
+
+**Power has no equivalent dose-response literature.** The volume guidance is
+3–6 sets of 2–5 reps at 2–3 sessions per week, framed explicitly as quality
+over volume; more is not better. `[corroborated]` from practitioner sources
+(NSCA), not from a dose-response model. Power is therefore bounded at or below
+the strength figure, and its number must not be presented as though it were
+measured.
+[NSCA plyometric guidance](https://www.nsca.com/education/articles/kinetic-select/plyometric-exercises/)
+
 ### Rules derived
 
 1. **Never count days.** Track a rolling 7-day set count per movement pattern.
@@ -131,6 +186,11 @@ Training happens 1–3× per week, irregularly, driven by work schedule.
 4. **Be honest about the ceiling.** At 1–2 sessions/week most patterns are in
    maintenance, with growth in two or three prioritised ones. The app should say
    so rather than imply otherwise.
+5. **The weekly volume target is per goal, not global.** ~10 sets per week is a
+   hypertrophy number and belongs only to hypertrophy days. Max-strength sits at
+   ~4, where strength's detectable returns stop; power is bounded at or below
+   strength and is `[corroborated]`, not measured. A single shared target
+   prescribed max-strength roughly 2.5× the volume that buys anything.
 
 ---
 

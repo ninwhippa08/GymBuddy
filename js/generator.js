@@ -446,6 +446,15 @@ export function eligibleFor(slot, library, ctx) {
   });
 }
 
+// The weekly set target for a day type. Per goal, because ~10 sets/muscle/week
+// is a hypertrophy number and strength stops paying at about 4 -- see
+// VOLUME.SETS_PER_PATTERN_PER_WEEK. Anything with no resistance-volume
+// literature behind it keeps the default rather than inventing a figure.
+export function weeklySetTarget(dayType) {
+  const table = VOLUME.SETS_PER_PATTERN_PER_WEEK;
+  return table[dayType] ?? table.DEFAULT;
+}
+
 export function fillSlot(slot, library, ctx, rng) {
   const pool = eligibleFor(slot, library, ctx);
   if (pool.length === 0) return null;
@@ -460,7 +469,10 @@ export function fillSlot(slot, library, ctx, rng) {
     // Favour neglected patterns using the rolling 7-day counts.
     if (state) {
       const used = state.patternSets[e.pattern] || 0;
-      w *= 1 / (1 + used / VOLUME.SETS_PER_PATTERN_PER_WEEK_TARGET);
+      // Against the day's OWN target: 8 sets of squatting is most of a
+      // max-strength week (target 4) and only part of a hypertrophy one
+      // (target 10), so it should weigh on the two days differently.
+      w *= 1 / (1 + used / weeklySetTarget(ctx.dayType));
     }
     return w;
   });
@@ -1140,6 +1152,8 @@ export function generate({
     soreness,
     banned: profile.banned || [],
     venue: env.venue,
+    // The fill weighting reads this: the weekly volume target is per goal.
+    dayType: chosen,
     state,
     excludeIds: new Set(),
     excludeEquipment

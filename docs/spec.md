@@ -666,8 +666,8 @@ What the gym session found, in the order it was found:
    §4.1a above. Design §4.3.
 4. **The exercise count was unsourced.** Four slots on max-strength and power,
    five on hypertrophy, invented and then cited to §4.3 of this file — this
-   document citing itself. Design §4.4. **Still blocked** — see finding B below.
-   **This is now the resume point.**
+   document citing itself. Design §4.4. **UNBLOCKED 2026-09-01** — finding B
+   below is resolved. **This is the resume point and it is now buildable.**
 
 Two constants in the *first* draft of that design were also invented and were
 caught in review: a fixed warm-up ladder, and a purely time-driven exercise
@@ -683,11 +683,18 @@ generator warns rather than shipping a short cool-down silently, so this is a
 thinness problem and not a correctness bug, but it is the next data job. It
 needs sourced stretches, not invented ones. Design §8 open question 8.
 
-**B. Design §4.4 cannot ship yet.** It reads a pattern-level weekly volume
-share that is not sourced. The ~10-sets-per-week figure is `[verified]` for
-hypertrophy only; transferring it to max-strength and power patterns is
-`[unverified]`, and §4.4's coverage rule leans entirely on that transfer.
-Source it before building step 3. Design §8 open question 6.
+**B. RESOLVED 2026-09-01. Design §4.4 can ship.** It reads a pattern-level
+weekly volume share that was not sourced: the ~10-sets-per-week figure is
+`[verified]` for hypertrophy only, and §4.4's coverage rule leaned entirely on
+transferring it to max-strength and power. The transfer turned out to be
+**invalid** — Pelland et al. 2025 (67 studies, 2,058 participants) models the
+two dose-responses separately and strength's efficient band ends at ~4 weekly
+sets per muscle group, where hypertrophy's runs 5–10 and keeps paying past 20.
+The shared constant was split the same day into per-goal targets
+(`VOLUME.SETS_PER_PATTERN_PER_WEEK`), so §4.4 now has a sourced number to read.
+Basis §2 "The dose-response differs by goal"; design §8 open question 6 carries
+the evidence, including that power still has no dose-response literature and is
+`[corroborated]` only.
 
 Also carried out of step 1: the session total is **63 min measured, not the 60
 the design arithmetic claimed** — see basis §9, discrepancy 7. The 60 is a

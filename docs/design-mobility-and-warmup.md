@@ -650,9 +650,12 @@ so mobility goes first — it is what frees the minutes the ramps spend.
 
 **Status, 2026-08-31 (late): steps 1 and 2 are shipped (2026-08-24, 2026-08-31 /
 `sw.js` v16). Steps 3 and 4 are unstarted.**
-Step 3 (count from coverage and time, §4.4) is the resume point, and it is now
-blocked on **one** open question, not two. Question 6 — the pattern-level weekly
-volume figure — still needs sourcing before §4.4 can ship at all.
+Step 3 (count from coverage and time, §4.4) is the resume point, and as of
+**2026-09-01 it is no longer blocked**. Question 6 — the pattern-level weekly
+volume figure — was sourced that day, and the answer changed the design: the
+target is per goal (~10 hypertrophy, ~4 max-strength, power at or below
+strength), not the single shared number §4.4 was written against. §8 question 6
+carries the evidence.
 Question 9 is **answered**: the athlete raised `MAIN_WORK_MAX_MIN` to 50 on
 2026-08-31, so the ramp's bias on `patternSets` — the exact signal §4.4's
 coverage rule reads — fell from ~25% to ~12% on lifting days (max-strength
@@ -804,10 +807,27 @@ clean while two real bugs sat in the code. Both layers are required.
    The *shape* — steps scale with load, reps fall as load rises, light work
    gets none — is `[corroborated]`. If any number in this document gets
    challenged next, it should be these three.
-6. The weekly per-muscle-group volume figure (~10 sets) is `[verified]` for
-   hypertrophy specifically. Its transfer to max-strength and power patterns is
-   `[unverified]`, and the coverage rule in §4.4 leans on that transfer. A
-   pattern-by-pattern weekly share needs sourcing before §4.4 ships.
+6. **CLOSED 2026-09-01. The transfer was invalid, and §4.4 is unblocked.**
+   The ~10-set figure is `[verified]` for hypertrophy only, and this was right
+   to distrust: a meta-regression over 67 studies / 2,058 participants
+   ([Pelland et al. 2025, *Sports Medicine*](https://pubmed.ncbi.nlm.nih.gov/41343037/),
+   `[verified]`) models the two dose-responses separately and they do not have
+   the same shape. Strength's minimum effective dose is **1** weekly set per
+   muscle group, its efficient band ends at **4**, and beyond 5 more sets do
+   not consistently add detectable strength — against hypertrophy's efficient
+   band of 5–10 continuing to pay past 20. Median study volume was 6 sets/week
+   for strength against 10.5 for hypertrophy. Applying the hypertrophy number
+   to a max-strength day asks for roughly **2.5× the volume that buys
+   anything**. Targets are now per goal (basis §2, rule 5), and the shared
+   constant was split on the same day. Two further findings came with it:
+   **frequency** raises strength (100% posterior) but not hypertrophy, which
+   matters at his 1–3 sessions/week; and the paper's central methodological
+   result — that an **indirect set counts 0.5** — is the sourced way to handle
+   this app counting per *movement pattern* where the literature counts per
+   *muscle group*. **Power** still has no dose-response literature: 3–6 sets of
+   2–5 reps, 2–3×/week, quality over volume, `[corroborated]` from NSCA
+   practitioner guidance, bounded at or below strength and never to be
+   presented as measured.
 7. Olympic-derivative warm-up practice (2–3 sets of 3–5 reps at 25–50% 1RM) is
    `[corroborated]` from practitioner sources, not from a trial. It informs the
    `technical: 3` branch in §4.3.
