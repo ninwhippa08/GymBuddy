@@ -7,12 +7,12 @@
 // between sessions. spec §4.1, §8.
 
 import {
-  resolveSession, offerableEquipment, swapBlock, makeRng
+  resolveSession, offerableEquipment, swapBlock, makeRng, localDate
 } from './generator.js';
 import { SORENESS_JOINTS } from './rules.js';
 import {
   loadProfile, saveProfile, loadHistory, commitSession, sessionFor,
-  pendingConfirmations, confirmSession, discardSession,
+  pendingConfirmations, confirmSession, unconfirmSession, discardSession,
   addDraft, loadDrafts, removeDraft
 } from './storage.js';
 import {
@@ -29,8 +29,10 @@ const ISSUE_BASE = 'https://github.com/ninwhippa08/GymBuddy/issues/new';
 
 let library = null;
 
+// The local calendar day. NOT toISOString() -- see generator.js's localDate
+// for why that locked his card the morning after an evening session.
 function today() {
-  return new Date().toISOString().slice(0, 10);
+  return localDate();
 }
 
 // --------------------------------------------------------------------------
@@ -115,6 +117,10 @@ function showSession({
     // marks it as training he did, which is what keeps it out of tomorrow's
     // "Did you finish this?" and what stops it being rerolled away.
     onDone: () => { confirmSession(today()); showSession(); },
+    // Lifts the confirmation and nothing else: the session stays on the
+    // record, the card unlocks, Reroll comes back, and the day goes back into
+    // tomorrow's prompt. Not discardSession -- "undo" is not "I didn't do it".
+    onUndo: () => { unconfirmSession(today()); showSession(); },
     cuesFor,
     offer,
     soreness: {

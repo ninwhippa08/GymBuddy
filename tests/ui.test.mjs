@@ -537,3 +537,23 @@ test('a single set of distance work carries no chip', () => {
   // Same rule as a drill: "× 1" over one set of A-skips says nothing.
   assert.equal(volumeLine({ mode: 'contacts', sets: 1, reps: 1, footContacts: 0, sprintMeters: 20 }), '');
 });
+
+test('a confirmed card offers a way back', () => {
+  const node = renderSession(card({ confirmed: true }), {
+    onReroll() {}, onDone() {}, onUndo() {}
+  });
+  assert.ok(
+    node.querySelectorAll('button').some(b => /undo/i.test(b.textContent)),
+    `no undo on a confirmed card: ${JSON.stringify(node.querySelectorAll('button').map(b => b.textContent))}`
+  );
+});
+
+test('undo reports back, and does not pretend to be the reroll', () => {
+  let undone = 0, rerolled = 0;
+  const node = renderSession(card({ confirmed: true }), {
+    onReroll: () => { rerolled++; }, onDone() {}, onUndo: () => { undone++; }
+  });
+  node.querySelectorAll('button').find(b => /undo/i.test(b.textContent)).dispatch('click');
+  assert.equal(undone, 1);
+  assert.equal(rerolled, 0);
+});

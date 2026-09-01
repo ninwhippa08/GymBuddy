@@ -268,3 +268,39 @@ test('a store that has never held a draft reads as none, not as a crash', () => 
   installStorage({ 'gymbuddy.v1': JSON.stringify({ schemaVersion: 1, profile: null, history: [] }) });
   assert.deepEqual(storage.loadDrafts(), []);
 });
+
+// --------------------------------------------------------------------------
+// Undoing a confirmation
+// --------------------------------------------------------------------------
+
+// Confirming was a one-way door: the card locked, dropped its Reroll, and
+// there was no way back until the date rolled over. Reported from his phone --
+// "it says logged for today and I cannot click anything anymore".
+test('a confirmation can be undone, and the session survives it', () => {
+  installStorage();
+  storage.commitSession(sessionWith([], '2026-08-29'));
+  storage.confirmSession('2026-08-29');
+
+  assert.equal(storage.unconfirmSession('2026-08-29'), true);
+  assert.equal(storage.sessionFor('2026-08-29').confirmed, undefined);
+  // The session itself is untouched -- undo is not "I didn't do it", which
+  // removes the record entirely (discardSession). It only unlocks the card.
+  assert.equal(storage.sessionFor('2026-08-29').dayType, 'max-strength');
+});
+
+test('undoing a day with no session on record reports that it did nothing', () => {
+  installStorage();
+  assert.equal(storage.unconfirmSession('2026-07-04'), false);
+});
+
+test('an undone day is asked about again on the next launch', () => {
+  installStorage();
+  storage.commitSession(sessionWith([], '2026-08-29'));
+  storage.confirmSession('2026-08-29');
+  storage.unconfirmSession('2026-08-29');
+
+  assert.deepEqual(
+    storage.pendingConfirmations(storage.loadHistory(), '2026-08-30').map(s => s.date),
+    ['2026-08-29']
+  );
+});

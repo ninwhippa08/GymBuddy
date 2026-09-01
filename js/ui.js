@@ -7,6 +7,12 @@
 // Built with createElement and textContent throughout, never innerHTML. The
 // exercise library is a local file today, but a rendering path that cannot
 // interpret markup is one less thing to be careful about later.
+//
+// The one import: `localDate`. The setup screen's date picker needs today's
+// date, and a second copy of that four-line helper is how the UTC/local bug
+// it fixes would come back in one place and not the other.
+
+import { localDate } from './generator.js';
 
 // --------------------------------------------------------------------------
 // Element helper
@@ -542,8 +548,8 @@ export function renderNothingBuildable() {
 
 export function renderSession(
   session,
-  { onReroll, onDone, cuesFor, offer, equipment, soreness, addMove, onSwap,
-    swapNote } = {}
+  { onReroll, onDone, onUndo, cuesFor, offer, equipment, soreness, addMove,
+    onSwap, swapNote } = {}
 ) {
   // Three groups, not two. Prep and cool-down do different jobs at opposite
   // ends of the session, and one "Mobility & core" heading hid that.
@@ -616,7 +622,19 @@ export function renderSession(
     // reported doing -- and the replacement would arrive unconfirmed, losing
     // the record. spec §6 limitation 1.
     session.confirmed
-      ? el('p', { class: 'done-note', text: 'Done · logged for today' })
+      ? el('div', { class: 'done-note' }, [
+          el('span', { text: 'Done · logged for today' }),
+          // Confirming was a one-way door until the date rolled over, and he
+          // ran into it: "I cannot click anything anymore". Undo lifts the
+          // confirmation and nothing else -- the session is untouched, the
+          // card unlocks, Reroll comes back. Deliberately quiet: this is the
+          // rare correction, not the thing the screen is for.
+          el('button', {
+            class: 'btn-undo',
+            type: 'button',
+            onclick: onUndo
+          }, 'Undo')
+        ])
       : el('div', { class: 'actions' }, [
           // First and full width: at the foot of the card the session is over,
           // and this is the tap that day is for. Reroll is a decision from the
@@ -650,8 +668,10 @@ export function renderSetup({ onSubmit } = {}) {
     class: 'date-input',
     type: 'date',
     id: 'return-date',
-    max: new Date().toISOString().slice(0, 10),
-    value: new Date().toISOString().slice(0, 10)
+    // Local, not UTC: west of UTC an evening visitor was offered a `max` of
+    // tomorrow, and east of UTC could not pick the day they were standing in.
+    max: localDate(),
+    value: localDate()
   });
 
   return el('div', { class: 'screen screen-setup' }, [

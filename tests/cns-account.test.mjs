@@ -12,7 +12,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  generate, buildState, proposeDayType, countsTowardVolume
+  generate, buildState, proposeDayType, countsTowardVolume, localDate
 } from '../js/generator.js';
 import { HIGH_CNS_DAY_TYPES, CNS_VETO_THRESHOLD, CNS_DECAY } from '../js/rules.js';
 
@@ -75,7 +75,9 @@ test('every mobility-dynamic and mobility-static drill is excluded from cnsLoad 
 // -----------------------------------------------------------------------
 function highCnsSessionAt(dayType, midnightMs) {
   const s = generate({ library: LIB, dayType, seed: 3, now: midnightMs });
-  assert.equal(s.date, new Date(midnightMs).toISOString().slice(0, 10));
+  // Local, matching generate's stamp since the UTC/local fix -- this is a
+  // fixture sanity check that the timestamp landed on the day it names.
+  assert.equal(s.date, localDate(midnightMs));
   return s;
 }
 

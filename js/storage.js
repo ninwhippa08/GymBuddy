@@ -124,6 +124,24 @@ export function confirmSession(date) {
   return true;
 }
 
+// Confirming used to be a one-way door -- the card locked, dropped its Reroll
+// and there was no way back until the date rolled over, which he ran straight
+// into: "it says logged for today and I cannot click anything anymore".
+//
+// This is NOT discardSession. Undo means "I have not finished after all", so
+// the session stays exactly as it is and only the confirmation is lifted: the
+// card unlocks, Reroll comes back, and the day returns to the next-launch
+// prompt. Saying "I didn't do it" is a different answer with a different
+// consequence, and it is below.
+export function unconfirmSession(date) {
+  const state = readAll();
+  const session = state.history.find(s => s.date === date);
+  if (!session) return false;
+  delete session.confirmed;
+  writeAll(state);
+  return true;
+}
+
 // Removed, not flagged. A session he did not do must not reach the CNS account
 // or the neglect score, and the cheapest way to guarantee that is for it not to
 // be in the history at all.

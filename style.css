@@ -181,6 +181,10 @@ body {
 /* What the card says once he has confirmed the day. Not a button -- there is
    nothing left to tap, and the record is already written. */
 .done-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
   margin: 28px 0 0;
   padding: 14px;
   color: var(--text);
@@ -189,6 +193,27 @@ body {
   border-radius: var(--radius);
   text-align: center;
   font-weight: 600;
+}
+
+/* Quiet on purpose: correcting a mis-tap is rare, and it must not compete
+   with the workout. Still a full 44px of height to hit on a phone. */
+.btn-undo {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--surface-edge);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-undo:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
 }
 
 .btn {

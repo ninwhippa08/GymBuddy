@@ -69,19 +69,50 @@ function weightedPick(rng, items, weightOf) {
 }
 
 // --------------------------------------------------------------------------
+// Dates
+// --------------------------------------------------------------------------
+
+// A training day is a LOCAL calendar day, and every date in this app is a
+// `YYYY-MM-DD` key: the history record, the reroll's replace-by-date, the
+// next-launch confirmation prompt, and the "is today already on the record"
+// lookup all compare these strings.
+//
+// This used to be `toISOString().slice(0, 10)`, which is UTC. West of UTC a
+// 20:30 session was stamped with TOMORROW's date, so confirming an evening
+// workout locked the NEXT morning's card -- reported from his phone as "it
+// says logged for today and I cannot click anything anymore". East of UTC it
+// failed the other way: after local midnight it was still yesterday. There is
+// no timezone in which the UTC day is the day he trained, except UTC itself.
+export function localDate(ts = Date.now()) {
+  const d = new Date(ts);
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+// The inverse, and it must be the inverse: `Date.parse('2026-09-01')` resolves
+// to UTC MIDNIGHT, so reading a local day-string back with it skewed every
+// hours-since figure by the timezone offset. That is enough to move a session
+// across a 24/48/72 h CNS decay bucket and put two high-CNS days back to back
+// -- caught by the spacing test the moment the stamps became local.
+export function parseLocalDate(dateStr) {
+  const [y, m, d] = String(dateStr).split('-').map(Number);
+  return new Date(y, (m || 1) - 1, d || 1).getTime();
+}
+
+// --------------------------------------------------------------------------
 // 1-2  LOAD and STATE
 // --------------------------------------------------------------------------
 
 export function buildState(profile, history, now = Date.now()) {
   const recent = (history || []).filter(
-    s => now - Date.parse(s.date) <= VOLUME.HISTORY_DAYS * MS_PER_DAY
+    s => now - parseLocalDate(s.date) <= VOLUME.HISTORY_DAYS * MS_PER_DAY
   );
 
   // Rolling 7-day set count per pattern. Never count days -- an irregular week
   // must not confuse the model. basis §2 rule 1.
   const patternSets = {};
   for (const s of recent) {
-    if (now - Date.parse(s.date) > VOLUME.ROLLING_WINDOW_DAYS * MS_PER_DAY) continue;
+    if (now - parseLocalDate(s.date) > VOLUME.ROLLING_WINDOW_DAYS * MS_PER_DAY) continue;
     for (const [pattern, n] of Object.entries(s.patternSets || {})) {
       patternSets[pattern] = (patternSets[pattern] || 0) + n;
     }
@@ -101,14 +132,14 @@ export function buildState(profile, history, now = Date.now()) {
   const hoursSince = {};
   for (const dt of Object.keys(DAY_TYPES)) hoursSince[dt] = Infinity;
   for (const s of (history || [])) {
-    const h = (now - Date.parse(s.date)) / MS_PER_HOUR;
+    const h = (now - parseLocalDate(s.date)) / MS_PER_HOUR;
     if (s.dayType && h < (hoursSince[s.dayType] ?? Infinity)) hoursSince[s.dayType] = h;
   }
 
   // Decayed CNS account. basis §7.
   let cnsAccount = 0;
   for (const s of recent) {
-    const h = (now - Date.parse(s.date)) / MS_PER_HOUR;
+    const h = (now - parseLocalDate(s.date)) / MS_PER_HOUR;
     const bucket = CNS_DECAY.find(b => h < b.withinHours);
     cnsAccount += (s.cnsLoad || 0) * (bucket ? bucket.retained : 0);
   }
@@ -118,7 +149,7 @@ export function buildState(profile, history, now = Date.now()) {
   let weekContacts = 0;
   let weekMeters = 0;
   for (const s of recent) {
-    if (now - Date.parse(s.date) > VOLUME.ROLLING_WINDOW_DAYS * MS_PER_DAY) continue;
+    if (now - parseLocalDate(s.date) > VOLUME.ROLLING_WINDOW_DAYS * MS_PER_DAY) continue;
     weekContacts += s.footContacts || 0;
     weekMeters += s.sprintMeters || 0;
   }
@@ -149,7 +180,7 @@ export function buildState(profile, history, now = Date.now()) {
 
 export function rampWeekFor(profile, now = Date.now()) {
   if (!profile || !profile.returnDate) return RAMP.length; // no ramp declared
-  const days = (now - Date.parse(profile.returnDate)) / MS_PER_DAY;
+  const days = (now - parseLocalDate(profile.returnDate)) / MS_PER_DAY;
   if (days < 0) return 1;
   return clamp(Math.floor(days / 7) + 1, 1, RAMP.length);
 }
@@ -164,7 +195,7 @@ export function rampRow(rampWeek) {
 // design-running-programming.md §7.2.
 function chronicFrom(history, now) {
   const window = history.filter(
-    s => now - Date.parse(s.date) <= CHRONIC.WINDOW_DAYS * MS_PER_DAY
+    s => now - parseLocalDate(s.date) <= CHRONIC.WINDOW_DAYS * MS_PER_DAY
   );
 
   let chronicLoad = 0, gymLoad = 0;
@@ -182,7 +213,7 @@ function chronicFrom(history, now) {
   const weeks = Math.floor(CHRONIC.WINDOW_DAYS / 7);
   const perWeek = new Array(weeks).fill(0);
   for (const s of window) {
-    const w = Math.floor((now - Date.parse(s.date)) / (7 * MS_PER_DAY));
+    const w = Math.floor((now - parseLocalDate(s.date)) / (7 * MS_PER_DAY));
     if (w >= 0 && w < weeks) perWeek[w] += s.cnsLoad || 0;
   }
   const easyBelow = (chronicLoad / weeks) / 2;
@@ -1070,7 +1101,7 @@ export function generate({
   // score, so the ranking moved under every reroll and heavy days vetoed
   // themselves out of the rotation. On a first build of a day there is no such
   // record and this filter does nothing.
-  const date = new Date(now).toISOString().slice(0, 10);
+  const date = localDate(now);
   const priorHistory = (history || []).filter(s => s.date !== date);
   const state = buildState(profile, priorHistory, now);                  // 1-2
 
@@ -1218,7 +1249,7 @@ function finalise({ chosen, env, architecture, proposal, ordered, packed, cooled
   }
 
   return {
-    date: new Date(now).toISOString().slice(0, 10),
+    date: localDate(now),
     dayType: chosen,
     venue: env.venue,
     architecture,
