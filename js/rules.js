@@ -337,6 +337,22 @@ export const CNS_DECAY = Object.freeze([
 // 9 x 0.25 = 2.25 > 2) and clear only at 72 h+. Verified against a 21-day
 // daily-open simulation: 0 back-to-back high-CNS days, and every high-CNS
 // day type reappears in the rotation instead of being vetoed forever.
+//
+// The arithmetic above is a FLOOR, not the whole picture -- it treats the
+// account as if only the most recent hard day ever contributes, but
+// buildState sums decayed cnsLoad over every session in the window, of any
+// day type. hypertrophy (not itself high-CNS, so never vetoed by this rule)
+// measures 6-12, overlapping the high-CNS range of 5-11, so a hypertrophy
+// day's decayed contribution alone can sit right at the threshold: a load-8
+// hypertrophy session 48 h prior contributes 8 x 0.25 = 2.0, which is NOT
+// > 2 and so does not veto by itself -- but it eats into whatever margin the
+// isolated-day math above assumed, and stacks with anything else still
+// decaying. Real margins are tighter than a single-session calculation
+// implies. The bias only ever runs one direction: more accumulated load can
+// only make a high-CNS day MORE likely to be vetoed, never less, so this
+// cannot reproduce the original bug's failure mode (a permanently pinned
+// veto came from double-counting a single session's own cnsLoad, not from
+// cross-session accumulation, which was already correct and untouched).
 export const CNS_VETO_THRESHOLD = 2;
 
 // The acute account above is a 72 h horizon and cannot see a month. This is

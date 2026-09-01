@@ -112,23 +112,60 @@ test('a high-CNS day is vetoed at 1h and 24h, vetoed again at 48h, and permitted
   }
 });
 
-// Direct arithmetic check of CNS_DECAY x CNS_VETO_THRESHOLD across the
-// measured cnsLoad range (5-11), independent of any single generated
-// session -- this is the derivation itself, asserted as a property.
+// Direct arithmetic check of CNS_DECAY x CNS_VETO_THRESHOLD against the
+// measured cnsLoad range -- the derivation itself, asserted as a property.
+//
+// The range is SWEPT HERE, live, rather than hardcoded. A hardcoded
+// MEASURED_MIN_LOAD/MEASURED_MAX_LOAD is exactly the failure shape this PR
+// fixes: a number baked in as a comment or a literal, silently invalidated
+// the next time data/exercises.json changes, with nothing to notice. The old
+// CNS_VETO_THRESHOLD comment ("cnsCost 1-3 over a ~6-slot session") was
+// exactly that kind of stale literal.
+//
+// SEED_COUNT = 30: seeds 1..20 already reproduce the true 300-seed floor and
+// ceiling for every HIGH_CNS_DAY_TYPES member exactly (verified by hand --
+// max-strength's floor of 5 first appears at seed 20, the latest of any
+// type's extremum among the four); 30 keeps a margin past that first
+// occurrence without paying for anywhere near 300 generate() calls per type.
+// generate() is fast enough (this suite's other sweeps run hundreds of
+// sessions in milliseconds) that this adds negligible time to the run.
+const SEED_COUNT = 30;
+
+function sweepCnsLoadRange() {
+  let min = Infinity, max = -Infinity;
+  for (const dayType of HIGH_CNS_DAY_TYPES) {
+    for (let seed = 1; seed <= SEED_COUNT; seed++) {
+      const s = generate({ library: LIB, dayType, seed, now: 1e12 });
+      if (s.cnsLoad < min) min = s.cnsLoad;
+      if (s.cnsLoad > max) max = s.cnsLoad;
+    }
+  }
+  return { min, max };
+}
+
 test('the threshold enforces 48-72h spacing across the measured hard-day load range', () => {
   const retainedAt = (hours) => {
     const bucket = CNS_DECAY.find(b => hours < b.withinHours);
     return bucket.retained;
   };
-  const MEASURED_MIN_LOAD = 5;  // plyometric/max-strength floor, 300-seed sweep
-  const MEASURED_MAX_LOAD = 11; // power ceiling, 300-seed sweep
+  const { min: measuredMinLoad, max: measuredMaxLoad } = sweepCnsLoadRange();
 
-  // Nothing in the measured range clears before 48h.
-  assert.ok(MEASURED_MIN_LOAD * retainedAt(47) > CNS_VETO_THRESHOLD,
-    'the lightest measured hard day must still be vetoed just before 48h');
+  // Sanity: the sweep actually produced a real range, not a degenerate one
+  // (e.g. an empty library or a broken generator returning a constant).
+  assert.ok(Number.isFinite(measuredMinLoad) && measuredMinLoad > 0,
+    'the sweep should have measured a positive cnsLoad floor');
+
+  // Nothing in the measured range clears before 48h. This is the binding,
+  // safety-critical direction: it fails both if CNS_VETO_THRESHOLD is raised
+  // too high (>= 2.5 against today's floor of 5) AND if a future library
+  // edit quietly lowers the real floor below what the current threshold
+  // assumes is safe -- both change measuredMinLoad or CNS_VETO_THRESHOLD,
+  // and this assertion reads both live.
+  assert.ok(measuredMinLoad * retainedAt(47) > CNS_VETO_THRESHOLD,
+    `the lightest measured hard day (${measuredMinLoad}) must still be vetoed just before 48h`);
   // Everything clears by 72h -- retained is 0 there regardless of load.
   assert.equal(retainedAt(72), 0);
-  assert.ok(MEASURED_MAX_LOAD * retainedAt(72) <= CNS_VETO_THRESHOLD,
+  assert.ok(measuredMaxLoad * retainedAt(72) <= CNS_VETO_THRESHOLD,
     'the heaviest measured hard day must be clear at 72h');
 });
 

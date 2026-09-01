@@ -352,6 +352,23 @@ types were vetoed every day from day 3 onward, permanently. After, they
 reappear in the rotation at roughly 4–5 day intervals with zero back-to-back
 high-CNS days across the run.
 
+**The derivation above is a floor, not the whole picture.** It reasons as if
+only the most recent hard day contributes to the account, but `buildState`
+sums decayed `cnsLoad` over every session in the window, of any day type —
+correct, pre-existing behavior, untouched by this fix. `hypertrophy` (not
+itself high-CNS, so never vetoed by this rule) measures 6–12, overlapping
+the high-CNS range of 5–11, so cumulative load from non-high-CNS days draws
+the account too. A traced case from the 21-day simulation above: day 12
+(`plyometric`) sits 48 h after day 10 (`hypertrophy`, load 8), which alone
+contributes `8 × 0.25 = 2.0` to the account — not `> 2`, so it does not veto
+by itself, but the actual margin is 2.0 against a threshold of 2, the
+narrowest possible pass. Real spacing margins are tighter than the
+isolated-session arithmetic implies. The bias runs one direction only: more
+accumulated load can only make a high-CNS day *more* likely to be vetoed,
+never less, so it cannot reproduce the original bug's failure mode — that
+came from double-counting a single session's own `cnsLoad` via mobility
+blocks, not from cross-session accumulation.
+
 ---
 
 ## 8. Session ordering (fixed)
