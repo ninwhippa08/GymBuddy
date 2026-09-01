@@ -311,6 +311,47 @@ calendar, so irregular attendance does not break it:
 
 A high-CNS day type is vetoed while the account sits above threshold.
 
+**Bug, found and fixed 2026-08-31 (`sw.js` v17).** `finalise()` summed
+`cnsCost` over every block in the session, not just the ones that count as
+training work — prep drills and cool-down stretches went into `cnsLoad` too.
+That was harmless while the whole warm-up/cool-down was one `mode: 'time'`
+block worth zero `cnsCost`, but the 2026-08-24 mobility split
+(`design-mobility-and-warmup.md`) replaced it with roughly nine individual
+drill/stretch blocks, and every `mobility-dynamic` and `mobility-static`
+entry in `data/exercises.json` carries `cnsCost: 1`. That doubled a typical
+hard day's `cnsLoad` (measured ~16–18 at the old threshold of 8, against the
+doc's own description of a "full hard day" landing near 12–15) and pinned
+every high-CNS day type vetoed permanently after about three days of daily
+use — the account never decayed back under threshold. Fixed by moving the
+`cnsLoad` accumulation inside the same `countsTowardVolume` guard
+`patternSets` already uses: `VOLUME_MODES` excludes `drill`/`hold`/`time`
+modes, and `role` `core`/`prep` are excluded too, so mobility and prep work
+drop out the same way they always should have.
+
+**`CNS_VETO_THRESHOLD` re-derived to 2. `[measured]`, 300 seeds per
+high-CNS day type, `now: 1e12`, post-fix.** Measured `cnsLoad` range:
+max-strength 5–9 (median 7), power 7–11 (median 8), plyometric 5–7
+(median 6), sprint always 9. Overall range 5–11.
+
+Deriving from the decay table above: the veto must hold through the
+24–48 h bucket (retained 50%) for the *lightest* measured hard day, so no
+day type can ever repeat before 48 h regardless of how light it happened to
+land: `5 × 0.50 = 2.5`, so the threshold must be under 2.5. It clears
+automatically by 72 h+ for every load, since retained is 0% there regardless
+of threshold. **2** is the largest integer under 2.5, and checking both ends
+of the measured range against it confirms the result lands inside the
+required 48–72 h band: the lightest loads (plyometric, 5–7) clear at the
+48 h bucket (`7 × 0.25 = 1.75 ≤ 2`), while the heaviest (power's 11, sprint's
+9) hold through 48–72 h (`11 × 0.25 = 2.75 > 2`, `9 × 0.25 = 2.25 > 2`) and
+clear only at 72 h+ — heavier days earning longer spacing, lighter ones
+shorter, both within the sourced band.
+
+Verified against a 21-day daily-open simulation (build history by generating
+and committing one session per day): before the fix, all four high-CNS day
+types were vetoed every day from day 3 onward, permanently. After, they
+reappear in the rotation at roughly 4–5 day intervals with zero back-to-back
+high-CNS days across the run.
+
 ---
 
 ## 8. Session ordering (fixed)

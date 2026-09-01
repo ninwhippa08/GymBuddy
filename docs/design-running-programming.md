@@ -268,11 +268,16 @@ machinery.
 
 ### 7.1 Acute — unchanged
 
-The 72-hour decaying CNS account (`js/generator.js:96-100`, `CNS_DECAY`) and
-its veto at `CNS_VETO_THRESHOLD` 8 already prevent a hard day stacking on a
-hard day. `HIGH_CNS_DAY_TYPES` already includes `sprint` and `plyometric`
-(`js/rules.js:218`), so they correctly compete with max-strength and power for
-the same budget rather than serving as recovery.
+The 72-hour decaying CNS account (`js/generator.js:96-100`, `CNS_DECAY`)
+already prevents a hard day stacking on a hard day via a veto at
+`CNS_VETO_THRESHOLD`. `HIGH_CNS_DAY_TYPES` already includes `sprint` and
+`plyometric` (`js/rules.js:218`), so they correctly compete with
+max-strength and power for the same budget rather than serving as recovery.
+**`CNS_VETO_THRESHOLD` was 8 at the time this section was written; it was
+re-derived to 2 on 2026-08-31 after a mobility-accounting bug was found and
+fixed — see `programming-basis.md` §7 for the current value and its
+derivation. Not re-verifying the number here on every change is deliberate:
+read it from `js/rules.js` rather than trusting this sentence.**
 
 ### 7.2 Chronic — new
 

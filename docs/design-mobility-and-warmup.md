@@ -628,6 +628,20 @@ Every step leaves the app shippable. Steps 1 and 2 change what a session
 contains; step 3 changes how many exercises arrive; step 4 changes what kinds of
 session can be proposed at all.
 
+**Side effect found and fixed 2026-08-31, `sw.js` v17: step 1 silently doubled
+`cnsLoad` and starved the CNS account's own veto.** `finalise()` in
+`js/generator.js` summed `cnsCost` over every block, prep and cool-down
+mobility included. Splitting one timed mobility block into ~9 individual
+drill/stretch blocks (step 1, this doc) meant ~9 blocks at `cnsCost: 1` each
+now counted toward `cnsLoad` where one `mode: 'time'` block used to count
+zero — a hard day's `cnsLoad` went from ~16–18 to ~5–11 once the accumulation
+was moved inside the `countsTowardVolume` guard it should always have used
+(`programming-basis.md` §7). Left at the old `CNS_VETO_THRESHOLD` of 8, that
+inflated account pinned every high-CNS day type vetoed permanently from three
+days of use onward — the reported symptom was "only ever offered
+aerobic-steady and interval." The threshold is re-derived to 2; see
+`programming-basis.md` §7 for the arithmetic.
+
 ---
 
 ## 5. Time budget, re-derived
