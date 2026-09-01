@@ -161,32 +161,6 @@ only thing standing between a college PR and a hurt back.
 10. ORDER      enforce fixed sequence (§8)
 ```
 
-### 4.1a Warm-up ramps on loaded compounds
-
-**Built 2026-08-31, `sw.js` v15.** `js/rules.js` `WARMUP`, `js/generator.js`
-`buildRamp()`, wired into `prescribe()`. Design
-`design-mobility-and-warmup.md` §4.3.
-
-A loaded compound no longer prescribes one working number for every set. When
-its clamped working load clears `WARMUP.FLOOR` (0.50 of the movement's own
-max), `prescribe()` attaches `block.setPlan` — an array of per-set steps
-climbing from `WARMUP.START` (0.30) to the working load in jumps no larger
-than `WARMUP.MAX_JUMP` (0.15), followed by the working sets themselves. Each
-step carries its own `reps`, `pct` and `displayMultiplier`; `block.sets`,
-`block.reps` and `block.pct` keep meaning the working sets only, unchanged
-from before this work, so nothing downstream of `prescribe()` needed to learn
-a new meaning for them.
-
-**Warm-ups are excluded from volume accounting.** `patternSets`, `cnsLoad` and
-`footContacts` are computed from the scalar `sets`/`reps` fields, which never
-counted the ramp, so warm-up sets contribute nothing to the neglect model or
-the CNS account.
-
-**Warm-up rest is `TIME.WARMUP_REST_SEC` (60 s) and it is `[unverified]`** —
-no source names a rest interval for a warm-up set specifically. It is
-deliberately shorter than `TIME.DEFAULT_REST_SEC` (120 s) because a warm-up
-set is never taken near failure.
-
 ### 4.1 Soreness
 
 **Built 2026-08-30, `sw.js` v13.** `ui.sorenessMap`, wired in `app.js`, with the
@@ -223,6 +197,39 @@ joints.
 `proposeDayType` only applies when the app *proposes* a day type. Changing
 soreness on a day already generated keeps that day type and drops the movements
 instead, because the athlete chose it directly.
+
+### 4.1a Warm-up ramps on loaded compounds
+
+**Built 2026-08-31, `sw.js` v15.** `js/rules.js` `WARMUP`, `js/generator.js`
+`buildWarmup()`, wired into `prescribe()`. Design
+`design-mobility-and-warmup.md` §4.3.
+
+A loaded compound no longer prescribes one working number for every set. When
+its clamped working load clears `WARMUP.FLOOR` (0.50 of the movement's own
+max), `prescribe()` attaches `block.setPlan` — an array of per-set steps
+climbing from `WARMUP.START` (0.30) to the working load in jumps no larger
+than `WARMUP.MAX_JUMP` (0.15), followed by the working sets themselves. Each
+step carries its own `reps`, `pct` and `displayMultiplier`; `block.sets`,
+`block.reps` and `block.pct` keep meaning the working sets only, unchanged
+from before this work, so nothing downstream of `prescribe()` needed to learn
+a new meaning for them.
+
+**Warm-ups are excluded from volume accounting.** `patternSets`, `cnsLoad` and
+`footContacts` are computed from the scalar `sets`/`reps` fields, which never
+counted the ramp, so warm-up sets contribute nothing to the neglect model or
+the CNS account.
+
+**Warm-up rest is `TIME.WARMUP_REST_SEC` (60 s) and it is `[unverified]`** —
+no source names a rest interval for a warm-up set specifically. It is
+deliberately shorter than `TIME.DEFAULT_REST_SEC` (120 s) because a warm-up
+set is never taken near failure.
+
+**A ramped block floors at two working sets.** `packToBudget()` shaves working
+sets to fit the main-work budget and never shaves a warm-up rung, so the old
+one-set floor could leave a block that was all ramp and no work — measured at
+136 blocks over a 21,000-session sweep, worst case five warm-up sets before a
+single working set. The shave loop now stops at two working sets for any block
+carrying a `setPlan`.
 
 ### 4.2 Swap
 

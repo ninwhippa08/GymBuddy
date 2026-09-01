@@ -106,7 +106,8 @@ test('no session exceeds 60 minutes plus the measured floor-overrun allowance', 
 // power/seed 7919, which a 1000-seed sweep never reaches, so the test passed
 // against a stale 4 min allowance. A ceiling test that cannot reach the seed
 // producing the ceiling is not a test. The seed count must stay >= the one
-// the allowance was derived from -- currently 10000 x 4 day types = 40,000.
+// the allowance was derived from -- currently 10000 x the 7 PHASE_1_DAY_TYPES
+// = 70,000.
 // It costs about 7s of the suite's ~9s; that is the price of the number
 // being measured rather than asserted.
 test('duration sweep (10000 seeds x day type): observed maximum stays within the measured allowance', () => {
