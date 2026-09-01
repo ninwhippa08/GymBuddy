@@ -19,11 +19,16 @@ running the suite.
 | `secondary+accessory :: jump :: (any)` | 1 | 3 | 0% (ankle) | exempt | 16 | 16 | 13 |
 | `primary :: jump :: (any)` | 1 | 6 | 0% (hip) | exempt | 16 | 16 | 10 |
 | `primary+secondary :: jump :: (any)` | 1 | 8 | 0% (hip) | exempt | 16 | 16 | 8 |
+| `accessory :: lunge/rotate :: hypertrophy` | 1 | 12 | 8% (hip) | 12 | 16 | 16 | 4 |
+| `accessory :: lunge/carry :: hypertrophy` | 1 | 13 | 23% (hip) | 5 | 16 | 16 | 3 |
 | `primary :: hinge/pull-h :: power` | 1 | 13 | 0% (hip) | exempt | 16 | 16 | 3 |
+| `secondary+accessory :: pull-v/pull-h :: hypertrophy` | 1 | 14 | 7% (elbow) | 14 | 16 | 16 | 2 |
+| `secondary+accessory :: squat/hinge :: hypertrophy` | 1 | 15 | 20% (hip) | 5 | 16 | 16 | 1 |
 | `primary :: squat/hinge/push-h/push-v/pull-v :: max-strength` | 1 | 21 | 29% (hip) | 4 | 16 | 16 | 0 |
 | `primary+secondary :: (any) :: max-strength` | 1 | 38 | 39% (hip) | 3 | 16 | 16 | 0 |
 | `secondary+accessory :: (any) :: hypertrophy` | 1 | 68 | 56% (hip) | 2 | 16 | 16 | 0 |
 | `accessory :: lunge/hinge/pull-h/carry :: hypertrophy` | 1 | 27 | 48% (hip) | 3 | 16 | 16 | 0 |
+| `secondary+accessory :: push-v/push-h :: hypertrophy` | 1 | 17 | 12% (shoulder) | 9 | 16 | 16 | 0 |
 | `primary+secondary :: jump/throw :: power` | 1 | 16 | 19% (hip) | 6 | 16 | 16 | 0 |
 | `primary+secondary :: squat/push-h/push-v :: power` | 1 | 16 | 25% (shoulder) | 4 | 16 | 16 | 0 |
 | `primary :: squat/hinge/push-h/push-v/pull-v :: hypertrophy` | 1 | 16 | 38% (hip) | 3 | 16 | 16 | 0 |
@@ -49,6 +54,6 @@ running the suite.
 
 `**n**` is below target. `n·` is outside that pool's scope.
 
-Raw shortfall across all pools: **103** (pools overlap, so an
+Raw shortfall across all pools: **113** (pools overlap, so an
 entry can close more than one).
 

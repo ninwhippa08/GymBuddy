@@ -1178,7 +1178,26 @@ export function generate({
   const blocks = [];
   const zoneBySlot = {};
   const unfilled = [];
+  // §4.4: coverage drives the count up, time bounds it above. A required slot
+  // is always taken. An optional slot is taken only while some pattern it
+  // could serve still owes volume this week, and only while the main work
+  // still fits -- a session that does not fit is not a session.
+  //
+  // `patterns: null` means "any pattern this tier and modality allow" (slots
+  // MAX_STRENGTH B/C, POWER D, HYPERTROPHY B/C/E all use it), so such a slot
+  // serves every target rather than none. Reading it as none would have
+  // silently dropped the isolation finisher and both null-pattern accessories
+  // from every session. Not in plan-07's design -- found on contact with the
+  // real templates.
+  const targets = (DAY_TYPES[chosen] && DAY_TYPES[chosen].targets) || [];
   for (const slot of template) {                                         // 6-7
+    if (slot.optional && targets.length) {
+      const serves = slot.patterns
+        ? slot.patterns.filter(p => targets.includes(p))
+        : targets;
+      if (!serves.some(p => patternDebt(p, chosen, state) > 0)) continue;
+      if (estimateMinutes(blocks) >= TIME.MAIN_WORK_MAX_MIN) break;
+    }
     let exercise = fillSlot(slot, library, ctx, rng);
 
     // A REQUIRED slot that comes back empty is retried across every tier

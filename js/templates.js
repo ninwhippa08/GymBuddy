@@ -138,6 +138,31 @@ const MAX_STRENGTH = Object.freeze([
     tier: ['accessory'], patterns: ['lunge', 'hinge', 'pull-h', 'carry'],
     modality: 'hypertrophy', zone: 'hypertrophy', mode: 'load',
     sets: [2, 3], reps: [8, 12], restSec: [60, 90], optional: true
+  }),
+  // E-G are CANDIDATES, not a longer session. design §4.4: the template is
+  // consumed in priority order and stops where coverage is paid off or the
+  // clock runs out, so these are reached only when a targeted pattern still
+  // owes volume this week. Every dose here is slot D's -- the accessory dose
+  // this template already uses -- because a new dose would need its own
+  // source. Ordered pull, push, assistance: the pull side is one slot in a
+  // four-slot day and is the first thing coverage asks for. plan-07 Task 3.
+  Object.freeze({
+    slot: 'E', role: 'coverage: pull',
+    tier: ['secondary', 'accessory'], patterns: ['pull-v', 'pull-h'],
+    modality: 'hypertrophy', zone: 'hypertrophy', mode: 'load',
+    sets: [2, 3], reps: [8, 12], restSec: [60, 90], optional: true
+  }),
+  Object.freeze({
+    slot: 'F', role: 'coverage: push',
+    tier: ['secondary', 'accessory'], patterns: ['push-v', 'push-h'],
+    modality: 'hypertrophy', zone: 'hypertrophy', mode: 'load',
+    sets: [2, 3], reps: [8, 12], restSec: [60, 90], optional: true
+  }),
+  Object.freeze({
+    slot: 'G', role: 'coverage: assistance',
+    tier: ['accessory'], patterns: ['lunge', 'carry'],
+    modality: 'hypertrophy', zone: 'hypertrophy', mode: 'load',
+    sets: [2, 3], reps: [8, 12], restSec: [60, 90], optional: true
   })
 ]);
 
@@ -168,6 +193,21 @@ const POWER = Object.freeze([
   Object.freeze({
     slot: 'D', role: 'accessory, opposing pattern',
     tier: ['secondary', 'accessory'], patterns: null,
+    modality: 'hypertrophy', zone: 'hypertrophy', mode: 'load',
+    sets: [3, 3], reps: [8, 10], restSec: [90, 120], optional: true
+  }),
+  // Coverage candidates. E first: on a power day a second explosive
+  // expression outranks assistance, and it carries slot A's potentiation dose
+  // rather than a new one. F carries slot D's accessory dose. plan-07 Task 3.
+  Object.freeze({
+    slot: 'E', role: 'coverage: second explosive expression',
+    tier: ['primary', 'secondary'], patterns: ['jump', 'throw'],
+    modality: 'power', zone: null, mode: 'contacts',
+    sets: [3, 3], reps: [3, 3], restSec: [90, 120], optional: true
+  }),
+  Object.freeze({
+    slot: 'F', role: 'coverage: squat or hinge',
+    tier: ['secondary', 'accessory'], patterns: ['squat', 'hinge'],
     modality: 'hypertrophy', zone: 'hypertrophy', mode: 'load',
     sets: [3, 3], reps: [8, 10], restSec: [90, 120], optional: true
   })
@@ -205,6 +245,27 @@ const HYPERTROPHY = Object.freeze([
     tier: ['accessory'], patterns: null,
     modality: 'isolation', zone: 'muscularEndurance', mode: 'load',
     sets: [2, 3], reps: [12, 15], restSec: [45, 60], optional: true
+  }),
+  // Coverage candidates, at slot D's dose. Pull before push before rotation:
+  // a hypertrophy day already reaches squat and hinge through slots A-C, so
+  // the pull side is what its coverage most often still owes. plan-07 Task 3.
+  Object.freeze({
+    slot: 'F', role: 'coverage: pull',
+    tier: ['secondary', 'accessory'], patterns: ['pull-v', 'pull-h'],
+    modality: 'hypertrophy', zone: 'hypertrophy', mode: 'load',
+    sets: [2, 3], reps: [10, 15], restSec: [60, 90], optional: true
+  }),
+  Object.freeze({
+    slot: 'G', role: 'coverage: push',
+    tier: ['secondary', 'accessory'], patterns: ['push-v', 'push-h'],
+    modality: 'hypertrophy', zone: 'hypertrophy', mode: 'load',
+    sets: [2, 3], reps: [10, 15], restSec: [60, 90], optional: true
+  }),
+  Object.freeze({
+    slot: 'H', role: 'coverage: assistance',
+    tier: ['accessory'], patterns: ['lunge', 'rotate'],
+    modality: 'hypertrophy', zone: 'hypertrophy', mode: 'load',
+    sets: [2, 3], reps: [10, 15], restSec: [60, 90], optional: true
   })
 ]);
 

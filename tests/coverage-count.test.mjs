@@ -5,8 +5,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { DAY_TYPES, PHASE_1_DAY_TYPES } from '../js/templates.js';
-import { patternDebt, weeklySetTarget } from '../js/generator.js';
+import { DAY_TYPES, PHASE_1_DAY_TYPES, TEMPLATES } from '../js/templates.js';
+import { patternDebt, weeklySetTarget, generate } from '../js/generator.js';
 
 const LIB = JSON.parse(
   readFileSync(new URL('../data/exercises.json', import.meta.url), 'utf8')
@@ -56,4 +56,76 @@ test('the same history leaves more debt on a hypertrophy day than a strength day
   const done = stateWith({ squat: 4 });
   assert.equal(patternDebt('squat', 'max-strength', done), 0);
   assert.ok(patternDebt('squat', 'hypertrophy', done) > 0);
+});
+
+test('a lifting template offers more slots than a session will use', () => {
+  // §4.4: "TEMPLATES stays a list, but becomes longer than will fit and is
+  // consumed in priority order". Before plan-07 these were 4, 4 and 5 -- the
+  // exact counts spec.md calls invented.
+  assert.ok(TEMPLATES['max-strength'].length > 4);
+  assert.ok(TEMPLATES.power.length > 4);
+  assert.ok(TEMPLATES.hypertrophy.length > 5);
+});
+
+test('every slot beyond the original ones is optional', () => {
+  // The required core of each day is unchanged, so coverage can only ADD.
+  for (const [dt, originallyRequired] of [['max-strength', 3], ['power', 3], ['hypertrophy', 3]]) {
+    const required = TEMPLATES[dt].filter(s => !s.optional).length;
+    assert.equal(required, originallyRequired,
+      `${dt} changed its required slot count, which changes what a session must contain`);
+  }
+});
+
+test('every added slot can be filled from the library', () => {
+  for (const dt of ['max-strength', 'power', 'hypertrophy']) {
+    for (const slot of TEMPLATES[dt]) {
+      if (!slot.patterns) continue;   // a null-pattern slot is filled by tier
+      const pool = LIB.filter(e => slot.patterns.includes(e.pattern));
+      assert.ok(pool.length > 0,
+        `${dt} slot ${slot.slot} names patterns no exercise has: ${JSON.stringify(slot.patterns)}`);
+    }
+  }
+});
+
+const mainBlocks = s =>
+  s.blocks.filter(b => b.role !== 'prep' && b.role !== 'mobility' && b.role !== 'core');
+
+function countMain(dayType, patternSets, seed = 11) {
+  const history = Object.keys(patternSets).length
+    ? [{ date: '2026-08-30', dayType: 'hypertrophy', cnsLoad: 0, patternSets, blocks: [] }]
+    : [];
+  const s = generate({
+    library: LIB, profile: { banned: [], plyoLevel: 'beginner' },
+    history, soreness: {}, dayType, excludeEquipment: [], seed,
+    now: Date.parse('2026-09-01T12:00:00Z')
+  });
+  return mainBlocks(s).length;
+}
+
+test('a week with nothing trained pulls in more exercises than a week already covered', () => {
+  // The complaint §4.4 answers: the count never responded to what was trained.
+  //
+  // Measured on hypertrophy, not max-strength. At full volume a max-strength
+  // day already spends its whole main-work budget on the three required slots
+  // -- measured 259 of 300 seeds at exactly 3 blocks -- so TIME binds there and
+  // coverage has nothing to spend. That is §4.4 working as written ("time wins
+  // and the session is flagged"), not coverage failing, and a test that cannot
+  // observe the property it names is not a test of it.
+  const fresh = countMain('hypertrophy', {});
+  const covered = countMain('hypertrophy', {
+    squat: 20, hinge: 20, 'push-h': 20, 'push-v': 20,
+    'pull-h': 20, 'pull-v': 20, lunge: 20
+  });
+  assert.ok(fresh > covered,
+    `coverage is not driving the count: ${fresh} exercises on a fresh week ` +
+    `vs ${covered} on a fully covered one`);
+});
+
+test('the required core of a day is always delivered', () => {
+  // Even with every pattern at its target, a session is still a session.
+  const covered = countMain('hypertrophy', {
+    squat: 99, hinge: 99, 'push-h': 99, 'push-v': 99,
+    'pull-h': 99, 'pull-v': 99, lunge: 99
+  });
+  assert.ok(covered >= 3, `only ${covered} main blocks -- the required slots must survive`);
 });
