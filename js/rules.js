@@ -468,19 +468,22 @@ export const TIME = Object.freeze({
   // This number moves with the pool. Expect to re-derive it again as the
   // remaining pools are closed. design-library-expansion.md.
   //
-  // RE-DERIVED 2026-08-31, held at 5. Task 6 priced buildRamp's warm-up
+  // RE-DERIVED 2026-08-31, held at 5. Task 6 priced buildWarmup's warm-up
   // ladder into estimateMinutes and packToBudget (plan-05 tasks 1-5) and
-  // re-swept to confirm the allowance still covers it. 70,000 deterministic
-  // sessions -- PHASE_1_DAY_TYPES's 7 day types x 10,000 seeds each, the same
-  // population and call shape as the committed sweep below (no returnDate,
-  // now: 1e12) -- put the worst case at 65 min still, unchanged: 56 min x3733,
-  // 57 x4592, 58 x5748, 59 x6391, 60 x6098, 61 x4090, 62 x1545, 63 x320,
-  // 64 x49, 65 x6. Six sessions reach 65: max-strength/7917, max-strength/7919,
-  // power/4743, hypertrophy/7546, hypertrophy/9918, interval/2348 -- so the
-  // ceiling is no longer a single-day-type artifact of the prep block, it now
-  // also shows up on interval. The ramp did not move the ceiling: it adds
-  // warm-up sets ahead of the working sets already inside MAIN_WORK_MAX_MIN,
-  // not after the cool-down or prep floors that produced the 65. Held at 5,
-  // not lowered -- see plan-05-set-plan/task-6-report.md for the full tail.
+  // re-swept to confirm the allowance still covers it. Re-swept again the same
+  // day after packToBudget gained the two-working-set floor for ramped blocks
+  // (that floor stops the shave earlier, so it can only make sessions longer).
+  // 70,000 deterministic sessions -- PHASE_1_DAY_TYPES's 7 day types x 10,000
+  // seeds each, the same population and call shape as the committed sweep
+  // below (no returnDate, now: 1e12) -- put the worst case at 65 min still,
+  // unchanged: 56 min x3736, 57 x4598, 58 x5775, 59 x6382, 60 x6091,
+  // 61 x4081, 62 x1538, 63 x318, 64 x47, 65 x6. The same six sessions reach
+  // 65: max-strength/7917, max-strength/7919, power/4743, hypertrophy/7546,
+  // hypertrophy/9918, interval/2348 -- so the ceiling is no longer a
+  // single-day-type artifact of the prep block, it now also shows up on
+  // interval. The ramp did not move the ceiling: it adds warm-up sets ahead of
+  // the working sets already inside MAIN_WORK_MAX_MIN, not after the cool-down
+  // or prep floors that produced the 65. Held at 5, not lowered -- see
+  // plan-05-set-plan/task-6-report.md for the pre-floor tail.
   FLOOR_OVERRUN_ALLOWANCE_MIN: 5
 });

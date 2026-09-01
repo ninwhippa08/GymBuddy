@@ -422,7 +422,7 @@ function repsForStep(pct) {
 //
 // `workingPct` is a fraction of THIS movement's own max, already clamped by
 // env.pctCeiling, so the ladder inherits the return ramp for free.
-export function buildRamp(workingPct, exercise = {}) {
+export function buildWarmup(workingPct, exercise = {}) {
   if (workingPct < WARMUP.FLOOR) return [];
   const gap = workingPct - WARMUP.START;
   if (gap <= 0) return [];
@@ -562,10 +562,10 @@ export function prescribe(slot, exercise, env, rng, state) {
   // over a clamped working set. For prCoef 1.15 in ramp week 1 that is not
   // hypothetical -- it prints a warm-up heavier than the work. plan-05
   // decision 2; design §4.3 assumed prCoef 1.00 and says no clamp is needed.
-  const ramp = buildRamp(pct, exercise);
-  if (slot.mode === 'load' && ramp.length) {
+  const ladder = buildWarmup(pct, exercise);
+  if (slot.mode === 'load' && ladder.length) {
     block.setPlan = [
-      ...ramp.map(s => ({
+      ...ladder.map(s => ({
         kind: s.kind,
         reps: s.reps,
         pct: Math.round(s.pct * 100) / 100,
@@ -791,8 +791,13 @@ export function packToBudget(blocks, budgetMin = TIME.MAIN_WORK_MAX_MIN) {
 
   let guard = 0;
   while (estimateMinutes(out) > budgetMin && guard++ < 50) {
+    // A ramped block floors at TWO working sets, not one. Warm-ups cannot be
+    // trimmed -- they are the safety feature -- so a ramped block that keeps
+    // shrinking ends up all ramp and no work: five warm-up sets to perform one
+    // working set is not a prescription anyone would write by hand. Two is the
+    // floor at which the ramp still buys something.
     const target = out
-      .filter(b => b.mode !== 'time' && b.sets > 1)
+      .filter(b => b.mode !== 'time' && b.sets > (b.setPlan ? 2 : 1))
       .sort((a, b) => b.sets * b.reps - a.sets * a.reps)[0];
     if (!target) break;
     target.sets -= 1;

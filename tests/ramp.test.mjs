@@ -5,38 +5,38 @@
 // without anything special-casing it.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildRamp } from '../js/generator.js';
+import { buildWarmup } from '../js/generator.js';
 import { WARMUP } from '../js/rules.js';
 
-const pcts = ramp => ramp.map(s => Math.round(s.pct * 100) / 100);
+const pcts = ladder => ladder.map(s => Math.round(s.pct * 100) / 100);
 const plain = { technical: 1 };
 
 test('a working load under the floor gets no ramp at all', () => {
   // "Light work gets nothing, which is what the sources say and what a rest
   // day should feel like." §4.3
-  assert.deepEqual(buildRamp(0.49, plain), []);
-  assert.deepEqual(buildRamp(0.30, plain), []);
+  assert.deepEqual(buildWarmup(0.49, plain), []);
+  assert.deepEqual(buildWarmup(0.30, plain), []);
 });
 
 test('the step count falls out of the gap, so heavier means longer', () => {
-  assert.equal(buildRamp(0.55, plain).length, 2);
-  assert.equal(buildRamp(0.65, plain).length, 3);
-  assert.equal(buildRamp(0.80, plain).length, 4);
+  assert.equal(buildWarmup(0.55, plain).length, 2);
+  assert.equal(buildWarmup(0.65, plain).length, 3);
+  assert.equal(buildWarmup(0.80, plain).length, 4);
   // ceil(0.60 / 0.15) = 4. §4.3's table says 5 for this row and is wrong --
   // see decision 3 in plan-05. Every jump here is exactly 0.15, none larger.
-  assert.equal(buildRamp(0.90, plain).length, 4);
+  assert.equal(buildWarmup(0.90, plain).length, 4);
 });
 
 test('the ladder starts at WARMUP.START and never reaches the working load', () => {
-  const ramp = buildRamp(0.80, plain);
-  assert.equal(ramp[0].pct, WARMUP.START);
-  assert.ok(ramp[ramp.length - 1].pct < 0.80);
+  const ladder = buildWarmup(0.80, plain);
+  assert.equal(ladder[0].pct, WARMUP.START);
+  assert.ok(ladder[ladder.length - 1].pct < 0.80);
 });
 
 test('no jump between steps, or into the work, exceeds MAX_JUMP', () => {
   // The one invariant that makes this a ramp rather than a list of numbers.
   for (const working of [0.52, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]) {
-    const stops = [...buildRamp(working, plain).map(s => s.pct), working];
+    const stops = [...buildWarmup(working, plain).map(s => s.pct), working];
     for (let i = 1; i < stops.length; i++) {
       const jump = stops[i] - stops[i - 1];
       assert.ok(jump <= WARMUP.MAX_JUMP + 1e-9,
@@ -46,22 +46,22 @@ test('no jump between steps, or into the work, exceeds MAX_JUMP', () => {
 });
 
 test('the 0.80 ladder is the worked example from §2.3', () => {
-  assert.deepEqual(pcts(buildRamp(0.80, plain)), [0.3, 0.43, 0.55, 0.68]);
+  assert.deepEqual(pcts(buildWarmup(0.80, plain)), [0.3, 0.43, 0.55, 0.68]);
 });
 
 test('reps fall as the step gets heavier', () => {
-  const ramp = buildRamp(0.90, plain);
-  const reps = ramp.map(s => s.reps);
+  const ladder = buildWarmup(0.90, plain);
+  const reps = ladder.map(s => s.reps);
   for (let i = 1; i < reps.length; i++) {
     assert.ok(reps[i] <= reps[i - 1], `reps went up: ${JSON.stringify(reps)}`);
   }
-  assert.equal(ramp[0].reps, 8, 'a 0.30 step is eight reps');
+  assert.equal(ladder[0].reps, 8, 'a 0.30 step is eight reps');
 });
 
 test('an Olympic lift gets an extra technique set and never eights', () => {
   // "repetition at light load, never eight reps of a snatch" §4.3
-  const oly = buildRamp(0.80, { technical: 3 });
-  const bar = buildRamp(0.80, { technical: 1 });
+  const oly = buildWarmup(0.80, { technical: 3 });
+  const bar = buildWarmup(0.80, { technical: 1 });
   assert.equal(oly.length, bar.length + 1);
   assert.equal(oly[0].pct, WARMUP.START);
   assert.equal(oly[1].pct, WARMUP.START, 'the extra set is a second one at the start');
@@ -71,11 +71,11 @@ test('an Olympic lift gets an extra technique set and never eights', () => {
 });
 
 test('a missing technical rating is treated as the plain progression', () => {
-  assert.deepEqual(buildRamp(0.80, {}), buildRamp(0.80, { technical: 1 }));
+  assert.deepEqual(buildWarmup(0.80, {}), buildWarmup(0.80, { technical: 1 }));
 });
 
 test('every step is marked as a warm-up', () => {
-  for (const s of buildRamp(0.85, plain)) assert.equal(s.kind, 'warmup');
+  for (const s of buildWarmup(0.85, plain)) assert.equal(s.kind, 'warmup');
 });
 
 import { readFileSync } from 'node:fs';
@@ -274,4 +274,40 @@ test('trimming never removes a warm-up', () => {
   const before = block.setPlan.filter(s => s.kind === 'warmup').length;
   const { blocks } = packToBudget([block], 1);
   assert.equal(blocks[0].setPlan.filter(s => s.kind === 'warmup').length, before);
+});
+
+test('trimming never leaves a ramped block with one working set', () => {
+  // Five warm-up sets to perform ONE working set is not a prescription anyone
+  // would write by hand, and it is what the old `b.sets > 1` shave floor
+  // produced: max-strength/seed 34 printed pause-squat at 1 x 6 @ 0.71 behind
+  // five rungs, and 136 ramped blocks over a 21,000-session sweep (7 day types
+  // x 3,000 seeds, now: 1e12) ended the same way. Warm-ups cannot be shaved --
+  // they are the safety
+  // feature -- so the working sets are the only thing left to cut, and two is
+  // the floor at which the ramp still buys something.
+  const squat = LIB.find(e => e.id === 'back-squat');
+  const block = prescribe(SLOT, squat, ENV, rng, {});
+  assert.ok(block.setPlan, 'this test needs a ramped block');
+  const { blocks } = packToBudget([block], 1);   // an impossible budget
+  assert.equal(blocks[0].sets, 2,
+    'a ramped block was shaved past the two-working-set floor');
+});
+
+test('no generated session prescribes a ramp for fewer than two working sets', () => {
+  // The population the regression was measured on. NOT "no ramped block
+  // carries more warm-ups than working sets" -- that is false by construction
+  // and always was: a technical: 3 lift at a high ceiling gets six rungs and a
+  // power slot may only ask for two working sets, with no trimming involved.
+  // The floor is on the WORK, which is the part packToBudget can take away.
+  for (const dayType of ['max-strength', 'power', 'hypertrophy']) {
+    for (let seed = 1; seed <= 300; seed++) {
+      const s = generate({ library: LIB, dayType, seed, now: 1e12 });
+      for (const b of s.blocks) {
+        if (!b.setPlan) continue;
+        assert.ok(b.sets >= 2,
+          `${dayType} seed ${seed} ${b.exerciseId}: ${b.sets} working set behind ` +
+          `${b.setPlan.filter(x => x.kind === 'warmup').length} warm-ups`);
+      }
+    }
+  }
 });
