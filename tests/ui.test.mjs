@@ -11,7 +11,7 @@ installDom();
 const {
   loadLine, volumeLine, equipmentControl, renderNothingBuildable,
   renderConfirmPrevious, sorenessMap, addMoveControl, warmupLine,
-  renderSession, blockCard
+  renderSession, blockCard, renderCalendar, renderHome
 } = await import('../js/ui.js');
 const { SORENESS_JOINTS } = await import('../js/rules.js');
 
@@ -556,4 +556,83 @@ test('undo reports back, and does not pretend to be the reroll', () => {
   node.querySelectorAll('button').find(b => /undo/i.test(b.textContent)).dispatch('click');
   assert.equal(undone, 1);
   assert.equal(rerolled, 0);
+});
+
+
+// --------------------------------------------------------------------------
+// The calendar. design-home-and-calendar.md §5, §8.
+// --------------------------------------------------------------------------
+
+const trained = (date, dayType = 'max-strength') =>
+  ({ date, dayType, confirmed: true, blocks: [] });
+
+const cal = (over = {}) => renderCalendar({
+  year: 2026, month: 9, history: [], today: '2026-09-14',
+  onPrev() {}, onNext() {}, onPick() {}, ...over
+});
+
+const dayButton = (node, label) => node.querySelectorAll('button').find(
+  b => new RegExp(label).test(b.getAttribute('aria-label') || '')
+);
+
+test('the calendar shows the month and year', () => {
+  assert.match(cal().textContent, /September 2026/);
+});
+
+test('the calendar has seven weekday headings starting Monday', () => {
+  const heads = cal().querySelectorAll('.cal-weekday');
+  assert.equal(heads.length, 7);
+  assert.equal(heads[0].textContent, 'Mon');
+});
+
+test('a trained day carries its two-letter code', () => {
+  const node = cal({ history: [trained('2026-09-14', 'power')] });
+  assert.match(node.textContent, /PW/);
+});
+
+test('a trained day is a button', () => {
+  const node = cal({ history: [trained('2026-09-14')] });
+  assert.ok(dayButton(node, '14 September'), 'no button for the trained day');
+});
+
+test('an untrained day is not focusable -- there is nothing to open', () => {
+  assert.equal(dayButton(cal(), '14 September'), undefined);
+});
+
+test('the accessible name says the date and the day type, not just a colour', () => {
+  // design §8: colour is never the only encoding, and it is never the name.
+  const node = cal({ history: [trained('2026-09-14', 'hypertrophy')] });
+  assert.match(dayButton(node, '14 September').getAttribute('aria-label'), /Hypertrophy/i);
+});
+
+test('tapping a trained day reports its date', () => {
+  let picked = null;
+  const node = cal({ history: [trained('2026-09-14')], onPick: d => { picked = d; } });
+  dayButton(node, '14 September').dispatch('click');
+  assert.equal(picked, '2026-09-14');
+});
+
+test('the month arrows report which way', () => {
+  const seen = [];
+  const node = cal({ onPrev: () => seen.push('prev'), onNext: () => seen.push('next') });
+  node.querySelector('.cal-prev').dispatch('click');
+  node.querySelector('.cal-next').dispatch('click');
+  assert.deepEqual(seen, ['prev', 'next']);
+});
+
+test('today is marked even when nothing was trained', () => {
+  assert.ok(cal().querySelector('.is-today'), 'no today marker');
+});
+
+test('a legend entry exists for every day type that appears', () => {
+  const node = cal({ history: [trained('2026-09-14', 'power'), trained('2026-09-16', 'sprint')] });
+  const legend = node.querySelector('.cal-legend').textContent;
+  assert.match(legend, /PW/);
+  assert.match(legend, /SP/);
+});
+
+test('the legend lists only day types present in the month', () => {
+  // A legend of all seven every month is noise; it explains marks that are there.
+  const node = cal({ history: [trained('2026-09-14', 'power')] });
+  assert.equal(/HY/.test(node.querySelector('.cal-legend').textContent), false);
 });

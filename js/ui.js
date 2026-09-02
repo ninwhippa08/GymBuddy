@@ -13,6 +13,9 @@
 // it fixes would come back in one place and not the other.
 
 import { localDate } from './generator.js';
+import {
+  monthGrid, monthLabel, WEEKDAY_LABELS, DAY_TYPE_CODE
+} from './calendar.js';
 
 // --------------------------------------------------------------------------
 // Element helper
@@ -701,4 +704,78 @@ export function renderError(message) {
 export function mount(root, node) {
   root.replaceChildren(node);
   window.scrollTo(0, 0);
+}
+
+// --------------------------------------------------------------------------
+// The calendar. design-home-and-calendar.md §5, §8.
+// --------------------------------------------------------------------------
+
+// Colour is never the only encoding: every trained cell carries its two-letter
+// code as text, and the accessible name spells the day type out in full. Seven
+// hues separable by every form of colour vision do not exist. design §8.
+export function renderCalendar({
+  year, month, history, today, onPrev, onNext, onPick
+} = {}) {
+  const weeks = monthGrid(year, month, history, today);
+  const monthName = monthLabel(year, month).split(' ')[0];
+
+  const head = el('div', { class: 'cal-head' }, [
+    el('button', {
+      class: 'cal-prev', type: 'button',
+      'aria-label': 'Previous month', onclick: () => onPrev && onPrev()
+    }, '‹'),
+    el('h2', { class: 'cal-title', text: monthLabel(year, month) }),
+    el('button', {
+      class: 'cal-next', type: 'button',
+      'aria-label': 'Next month', onclick: () => onNext && onNext()
+    }, '›')
+  ]);
+
+  const weekdays = el('div', { class: 'cal-weekdays' },
+    WEEKDAY_LABELS.map(d => el('div', { class: 'cal-weekday', text: d })));
+
+  const grid = el('div', { class: 'cal-grid' }, weeks.flat().map(cell => {
+    const num = String(Number(cell.date.slice(8, 10)));
+    const classes = extra => [
+      'cal-cell', ...extra, cell.isToday ? 'is-today' : ''
+    ].filter(Boolean).join(' ');
+
+    // Not a button when there is nothing behind it. A focusable element that
+    // does nothing is worse than no element -- it costs a tab stop per empty
+    // day, thirty-odd of them a month, to reach the one that matters.
+    if (!cell.session) {
+      return el('div', {
+        class: classes([cell.inMonth ? '' : 'is-outside']),
+        text: cell.inMonth ? num : ''
+      });
+    }
+
+    const type = cell.session.dayType;
+    return el('button', {
+      class: classes(['is-trained', `type-${type}`]),
+      type: 'button',
+      'aria-label': `${num} ${monthName}, ${titleCase(type)}`,
+      onclick: () => onPick && onPick(cell.date)
+    }, [
+      el('span', { class: 'cal-num', text: num }),
+      el('span', { class: 'cal-code', text: DAY_TYPE_CODE[type] || '??' })
+    ]);
+  }));
+
+  // Only what is on screen. A fixed legend of all seven every month explains
+  // marks that are not there and buries the two that are.
+  const present = [];
+  for (const cell of weeks.flat()) {
+    if (cell.session && !present.includes(cell.session.dayType)) {
+      present.push(cell.session.dayType);
+    }
+  }
+  const legend = el('div', { class: 'cal-legend' }, present.map(type =>
+    el('span', { class: `cal-key type-${type}` }, [
+      el('span', { class: 'cal-code', text: DAY_TYPE_CODE[type] || '??' }),
+      el('span', { text: ` ${titleCase(type)}` })
+    ])
+  ));
+
+  return el('section', { class: 'calendar' }, [head, weekdays, grid, legend]);
 }
