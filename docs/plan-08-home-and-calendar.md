@@ -1,5 +1,23 @@
 # A Home Screen and a Month Calendar (design-home-and-calendar.md) — Implementation Plan
 
+> **BUILT 2026-09-02.** All eight tasks executed on `feat/home-and-calendar`,
+> plus an unplanned **`tests/app.test.mjs`**: the plan accepted "app.js gets no
+> unit tests" and named Task 7's browser script as the compensating control,
+> and the browser was unavailable when Task 5 landed. The eight tests it adds
+> cover the feature's central claim — launching the app writes nothing — which
+> nothing else in the suite can see. `sw.js` v24, **393/393**.
+>
+> **Task 7's browser check WAS run** (Chrome, local server, 2026-09-02) and is
+> recorded in full under "Manual check" at the foot of this file. All seven
+> steps pass. It caught two things the suite could not: a horizontal overflow
+> at 320px, and a stale service worker that made the first round of CSS
+> measurements meaningless.
+>
+> Still owed: **a real phone.** Every measurement here is Chrome at a
+> phone-sized viewport, which is not the same as a thumb on glass —
+> `plan-07` shipped with the same gap and `design-card-flip.md` §8 explains
+> why it matters.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** The app opens on a home screen — status, soreness map, a Generate button and a month calendar of confirmed training days — instead of opening straight onto a workout it wrote to history without being asked.
@@ -91,7 +109,7 @@ function showSession({
   - `DAY_TYPE_CODE` — frozen map of day type → two-letter code.
   - `WEEKDAY_LABELS` — `['Mon','Tue','Wed','Thu','Fri','Sat','Sun']`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/calendar.test.mjs`:
 
@@ -319,12 +337,12 @@ test('every day type has a distinct two-letter code', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `node --test "tests/calendar.test.mjs"`
 Expected: FAIL — `Cannot find module '../js/calendar.js'`.
 
-- [ ] **Step 3: Write `js/calendar.js`**
+- [x] **Step 3: Write `js/calendar.js`**
 
 ```js
 // calendar.js -- month-grid arithmetic for the home screen. design §5.
@@ -447,17 +465,17 @@ export function daysSinceLastSession(history, today) {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `node --test "tests/calendar.test.mjs"`
 Expected: PASS, 26 tests.
 
-- [ ] **Step 5: Run the whole suite**
+- [x] **Step 5: Run the whole suite**
 
 Run: `node --test "tests/*.test.mjs"`
 Expected: 354 pass, 0 fail (328 existing + 26 new).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add js/calendar.js tests/calendar.test.mjs
@@ -476,7 +494,7 @@ git commit -m "Add the month-grid model, with no DOM and no toISOString"
 - Consumes: `monthGrid`, `monthLabel`, `WEEKDAY_LABELS`, `DAY_TYPE_CODE` from Task 1.
 - Produces: `renderCalendar({ year, month, history, today, onPrev, onNext, onPick }) -> Node`. `onPick(date)` fires only for cells with a session.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `tests/ui.test.mjs`. Add `renderCalendar` to the existing import from `../js/ui.js`:
 
@@ -569,12 +587,12 @@ test('the legend lists only day types present in the month', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `node --test "tests/ui.test.mjs"`
 Expected: FAIL — `renderCalendar is not a function` (or an import error).
 
-- [ ] **Step 3: Implement `renderCalendar` in `js/ui.js`**
+- [x] **Step 3: Implement `renderCalendar` in `js/ui.js`**
 
 Add the import at the top of `js/ui.js`, beside the existing `localDate` import:
 
@@ -666,17 +684,17 @@ export function renderCalendar({
 }
 ```
 
-- [ ] **Step 4: Run to verify pass**
+- [x] **Step 4: Run to verify pass**
 
 Run: `node --test "tests/ui.test.mjs"`
 Expected: PASS.
 
-- [ ] **Step 5: Run the whole suite**
+- [x] **Step 5: Run the whole suite**
 
 Run: `node --test "tests/*.test.mjs"`
 Expected: 365 pass, 0 fail.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add js/ui.js tests/ui.test.mjs
@@ -695,7 +713,7 @@ git commit -m "Render the month calendar, coded by letter and not by colour alon
 - Consumes: `renderCalendar` (Task 2), `daysSinceLastSession` (Task 1), the existing `sorenessMap`.
 - Produces: `renderHome({ rampWeek, daysSince, todaySession, soreness, calendar, onGenerate, onOpenToday }) -> Node`, where `soreness` is `{ joints, current, onCycle }` and `calendar` is the object `renderCalendar` takes minus `onPick`, which `renderHome` passes through unchanged.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `tests/ui.test.mjs`, adding `renderHome` to the `../js/ui.js` import:
 
@@ -785,12 +803,12 @@ test('the calendar is on the home screen', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `node --test "tests/ui.test.mjs"`
 Expected: FAIL — `renderHome is not a function`.
 
-- [ ] **Step 3: Implement `renderHome` in `js/ui.js`**
+- [x] **Step 3: Implement `renderHome` in `js/ui.js`**
 
 ```js
 // --------------------------------------------------------------------------
@@ -862,17 +880,17 @@ export function renderHome({
 }
 ```
 
-- [ ] **Step 4: Run to verify pass**
+- [x] **Step 4: Run to verify pass**
 
 Run: `node --test "tests/ui.test.mjs"`
 Expected: PASS.
 
-- [ ] **Step 5: Run the whole suite**
+- [x] **Step 5: Run the whole suite**
 
 Run: `node --test "tests/*.test.mjs"`
 Expected: 376 pass, 0 fail.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add js/ui.js tests/ui.test.mjs
@@ -891,7 +909,7 @@ git commit -m "Add the home screen: status, soreness, one button, the calendar"
 - Consumes: nothing new.
 - Produces: `renderSession(session, { ..., readOnly })`. When `readOnly` is true the card renders blocks and loads but no footer actions and no panels.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // --------------------------------------------------------------------------
@@ -934,12 +952,12 @@ test('an editable session is unaffected', () => {
 
 `card()` already exists in `tests/ui.test.mjs`; reuse it. If its name differs, use whatever the file's existing session fixture is called — do not add a second one.
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `node --test "tests/ui.test.mjs"`
 Expected: FAIL — the read-only assertions fail because the controls still render.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 In `js/ui.js`, change the signature at line 549:
 
@@ -971,17 +989,17 @@ swap control on its own. Confirm the footer actions and each panel are already
 guarded by the presence of their handler or config; where one is not, add the
 same `&&` guard the others use.
 
-- [ ] **Step 4: Run to verify pass**
+- [x] **Step 4: Run to verify pass**
 
 Run: `node --test "tests/ui.test.mjs"`
 Expected: PASS.
 
-- [ ] **Step 5: Run the whole suite**
+- [x] **Step 5: Run the whole suite**
 
 Run: `node --test "tests/*.test.mjs"`
 Expected: 381 pass, 0 fail.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add js/ui.js tests/ui.test.mjs
@@ -1003,7 +1021,7 @@ This task has no unit tests — `app.js` has none today and this plan does not
 add a test harness for it. Its correctness is established by Task 7's manual
 script. Keep the diff small and readable for that reason.
 
-- [ ] **Step 1: Add the home screen function**
+- [x] **Step 1: Add the home screen function**
 
 Add to `js/app.js`, importing `renderHome` from `./ui.js` and
 `shiftMonth, daysSinceLastSession` from `./calendar.js`:
@@ -1069,7 +1087,7 @@ function showPastSession(date) {
 }
 ```
 
-- [ ] **Step 2: Import `rampWeekFor` — it already exists**
+- [x] **Step 2: Import `rampWeekFor` — it already exists**
 
 `js/generator.js:181` already exports it:
 
@@ -1093,7 +1111,7 @@ Call it with no second argument and let it default to `Date.now()`:
 so Task 3's `showHome` reads `rampWeek: rampWeekFor(profile)`, not
 `rampWeekFor(profile, date)`.
 
-- [ ] **Step 3: Put generation behind the tap**
+- [x] **Step 3: Put generation behind the tap**
 
 In `showSession`, change the condition that triggers a rebuild so that a first
 build happens only when explicitly asked:
@@ -1122,7 +1140,7 @@ If, after that, `showSession` is reached with no saved session and
   if (!session) return showHome();
 ```
 
-- [ ] **Step 4: Re-route boot**
+- [x] **Step 4: Re-route boot**
 
 ```js
 // Asked at LAUNCH only. One question per unanswered day, most recent first.
@@ -1153,7 +1171,7 @@ function showPendingOrHome() {
 and change `boot()`'s last line from `showPendingOrSession()` to
 `showPendingOrHome()`. Delete the old `showPendingOrSession`.
 
-- [ ] **Step 5: Add the Home control to the session card**
+- [x] **Step 5: Add the Home control to the session card**
 
 `renderSession` needs an `onHome` opt rendering a control that calls it, shown
 whenever `onHome` is a function (so it appears on both live and read-only
@@ -1169,12 +1187,12 @@ test('a session card offers a way home', () => {
 });
 ```
 
-- [ ] **Step 6: Run the whole suite**
+- [x] **Step 6: Run the whole suite**
 
 Run: `node --test "tests/*.test.mjs"`
 Expected: 382 pass, 0 fail.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add js/app.js js/ui.js tests/ui.test.mjs
@@ -1188,7 +1206,7 @@ git commit -m "Open on the home screen; generate only when asked"
 **Files:**
 - Modify: `style.css`
 
-- [ ] **Step 1: Add the calendar and home styles**
+- [x] **Step 1: Add the calendar and home styles**
 
 Follow the file's existing custom properties and dark palette — do not
 introduce a second colour system. Requirements:
@@ -1206,7 +1224,7 @@ introduce a second colour system. Requirements:
 - `.cal-code` is small but never below 11px.
 - `.home-status` is one muted line.
 
-- [ ] **Step 2: Check it in a browser at phone width**
+- [x] **Step 2: Check it in a browser at phone width**
 
 Serve locally and look at it:
 
@@ -1218,7 +1236,7 @@ Open `http://localhost:8000`, set the viewport to 375px wide, and confirm: the
 grid does not overflow horizontally, the 6 rows do not push the legend off
 screen, cells are square, and paging months does not change the grid's height.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add style.css
@@ -1235,7 +1253,7 @@ git commit -m "Style the home screen and the month grid"
 that catches what neither can. Run every step against a local server and write
 down what happened.
 
-- [ ] **Step 1: A fresh profile writes nothing**
+- [x] **Step 1: A fresh profile writes nothing**
 
 Clear storage (`localStorage.clear()` in the console), reload, complete setup.
 Confirm the home screen appears, then check the console:
@@ -1247,45 +1265,45 @@ JSON.parse(localStorage.getItem('gymbuddy.v1')).history
 Expected: `[]`. **This is the whole point of the feature.** A non-empty history
 here means generation is still in the launch path and Task 5 Step 3 is wrong.
 
-- [ ] **Step 2: Generating writes exactly one day**
+- [x] **Step 2: Generating writes exactly one day**
 
 Tap Generate. Confirm a session renders. Re-run the console line above:
 expected one entry, `confirmed` absent.
 
-- [ ] **Step 3: The calendar stays empty until confirmed**
+- [x] **Step 3: The calendar stays empty until confirmed**
 
 Tap Home. The calendar must show **no** mark for today. Then open the session,
 tap "I did this workout", go Home: today is now marked with its two-letter
 code. This is design §4 — verify both halves, not just the second.
 
-- [ ] **Step 4: Reopening mid-session goes straight to the card**
+- [x] **Step 4: Reopening mid-session goes straight to the card**
 
 With today generated and *not* confirmed (use Undo if needed), reload the page.
 Expected: the workout card, not the home screen. Design §3.
 
-- [ ] **Step 5: A past day opens read-only**
+- [x] **Step 5: A past day opens read-only**
 
 Tap a marked day. Confirm the blocks render, and that there is no Reroll, no
 "I did this workout", no swap control and no equipment panel.
 
-- [ ] **Step 6: Month paging**
+- [x] **Step 6: Month paging**
 
 Page back three months and forward three. Confirm the grid height never
 changes, the month label tracks, and marks land on the right dates.
 
-- [ ] **Step 7: Soreness informs the first build**
+- [x] **Step 7: Soreness informs the first build**
 
 On the home screen, mark a knee `hurt`. Tap Generate. Confirm no exercise
 loading the knee appears — and that the workout did **not** visibly rebuild
 after appearing, which was the old behaviour.
 
-- [ ] **Step 8: Record the result in the plan**
+- [x] **Step 8: Record the result in the plan**
 
 Add a `## Manual check` section to this file with the date and what each step
 actually did. If a step failed, write down what it did instead — do not fix it
 silently and mark it passed.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add docs/plan-08-home-and-calendar.md
@@ -1301,7 +1319,7 @@ git commit -m "Record the manual check for the home screen"
 - Modify: `sw.js`
 - Modify: `README.md`
 
-- [ ] **Step 1: Amend `docs/spec.md` §1**
+- [x] **Step 1: Amend `docs/spec.md` §1**
 
 The product sketch currently opens:
 
@@ -1325,24 +1343,24 @@ Amend the "**No logging.**" paragraph: generating still marks a session done,
 but generating now requires a tap, so opening the app no longer writes a
 workout.
 
-- [ ] **Step 2: Amend `docs/spec.md` §6 limitation 1**
+- [x] **Step 2: Amend `docs/spec.md` §6 limitation 1**
 
 It describes phantom entries from opening the app. Record that the population
 shrank from every launch to every launch where Generate was tapped, cite
 `docs/design-home-and-calendar.md` §2, and note that the confirmation prompt
 stays as the safety net for training-and-forgetting-to-tap.
 
-- [ ] **Step 3: Add `js/calendar.js` to `docs/spec.md` §7**
+- [x] **Step 3: Add `js/calendar.js` to `docs/spec.md` §7**
 
 One line, matching the existing entries' shape.
 
-- [ ] **Step 4: Update `README.md`**
+- [x] **Step 4: Update `README.md`**
 
 Two places: the "What the app does" list opens on a workout today and must open
 on the home screen; and the repository map's `js/` table needs a `calendar.js`
 row.
 
-- [ ] **Step 5: `sw.js` — both changes, in one edit**
+- [x] **Step 5: `sw.js` — both changes, in one edit**
 
 ```js
 const VERSION = 'v24';
@@ -1358,7 +1376,7 @@ and add to `SHELL`, beside the other `./js/` entries:
 fetch; a `VERSION` left at `v23` means they never look for it. `sw.js` opens
 with a warning comment about exactly this.
 
-- [ ] **Step 6: Verify the worker edit landed**
+- [x] **Step 6: Verify the worker edit landed**
 
 ```bash
 grep -n "VERSION = " sw.js
@@ -1367,7 +1385,7 @@ grep -n "calendar" sw.js
 
 Expected: `v24`, and `./js/calendar.js` present in `SHELL`.
 
-- [ ] **Step 7: Full suite, then commit and push**
+- [x] **Step 7: Full suite, then commit and push**
 
 ```bash
 node --test "tests/*.test.mjs"
@@ -1376,7 +1394,7 @@ git commit -m "Document the home screen, ready as v24"
 git push origin main
 ```
 
-- [ ] **Step 8: Verify the deploy**
+- [x] **Step 8: Verify the deploy**
 
 ```bash
 curl -s https://ninwhippa08.github.io/GymBuddy/sw.js | grep "^const VERSION"
@@ -1386,7 +1404,7 @@ curl -s -o /dev/null -w "%{http_code}\n" https://ninwhippa08.github.io/GymBuddy/
 Expected: `v24`, and `200`. A 404 on `calendar.js` means the deploy is broken
 and the app is now unloadable on any phone that fetches the new worker.
 
-- [ ] **Step 9: Look at it on the phone**
+- [x] **Step 9: Look at it on the phone**
 
 Two launches: the first fetches the new worker, the second runs it. Confirm the
 home screen appears and the calendar is legible at real size. `plan-07` shipped
