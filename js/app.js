@@ -7,8 +7,9 @@
 // between sessions. spec §4.1, §8.
 
 import {
-  resolveSession, offerableEquipment, swapBlock, makeRng, localDate
+  resolveSession, offerableEquipment, swapBlock, makeRng, localDate, rampWeekFor
 } from './generator.js';
+import { shiftMonth, daysSinceLastSession } from './calendar.js';
 import { SORENESS_JOINTS } from './rules.js';
 import {
   loadProfile, saveProfile, loadHistory, commitSession, sessionFor,
@@ -17,7 +18,7 @@ import {
 } from './storage.js';
 import {
   renderSession, renderSetup, renderError, renderNothingBuildable,
-  renderConfirmPrevious, mount
+  renderConfirmPrevious, renderHome, mount
 } from './ui.js';
 
 const root = document.getElementById('app');
@@ -44,7 +45,7 @@ function showSetup() {
     onSubmit(returnDate) {
       if (!returnDate) return;
       saveProfile({ returnDate, banned: [], plyoLevel: 'beginner' });
-      showSession();
+      showHome();
     }
   }));
 }
@@ -53,7 +54,7 @@ function showSetup() {
 // is shown as-is rather than regenerated. Without this, every app launch would
 // silently replace the workout the user is halfway through. spec §1.
 function showSession({
-  reroll = false, excludeEquipment = null, soreChanged = false, openPanel = null
+  reroll = false, excludeEquipment = null, generate = false, openPanel = null
 } = {}) {
   const profile = loadProfile();
   if (!profile || !profile.returnDate) return showSetup();
@@ -79,8 +80,12 @@ function showSession({
   // A confirmed session is training he has reported doing, so nothing
   // regenerates it -- not a reroll (the card no longer offers one), and not a
   // soreness or equipment change, which from here on are about tomorrow.
+  // `generate` is the whole feature: opening the app no longer builds anything.
+  // A session is written when he ASKS for one, not when he looks at the app.
+  // design §2. Reroll and an equipment change still rebuild -- both are taps on
+  // a session that already exists.
   const locked = !!(session && session.confirmed);
-  if (!locked && (!session || excludeEquipment || soreChanged)) {
+  if (!locked && (generate || reroll || excludeEquipment)) {
     try {
       const result = resolveSession({
         library,
@@ -103,6 +108,11 @@ function showSession({
     commitSession(session);
   }
 
+  // Nothing on the record and nothing asked for: that is the home screen's
+  // job now, not an empty card. Reachable if a stale link or a reload lands
+  // here on a rest day.
+  if (!session) return showHome();
+
   // The library is already in memory; the cues ride along with it rather than
   // being copied into every saved session. design-card-flip.md §4.
   const cuesFor = id => {
@@ -123,25 +133,10 @@ function showSession({
     onUndo: () => { unconfirmSession(today()); showSession(); },
     cuesFor,
     offer,
-    soreness: {
-      joints: SORENESS_JOINTS,
-      current: soreness,
-      open: openPanel === 'soreness',
-      // Saved to the PROFILE before the rebuild, so the flag outlives today's
-      // session -- that persistence is the whole point (spec §4.1). A `null`
-      // level clears the joint rather than storing a falsy value that nothing
-      // downstream would recognise as "fine".
-      onCycle: (joint, level) => {
-        const next = { ...soreness };
-        if (level) next[joint] = level; else delete next[joint];
-        saveProfile({ ...profile, soreness: next });
-        showSession({ soreChanged: true, excludeEquipment: constraint,
-                      openPanel: 'soreness' });
-      }
-    },
+    onHome: () => showHome(),
     // Neither of these regenerates: writing a note down must not reshuffle the
-    // workout he is halfway through. showSession is called with no
-    // excludeEquipment and no soreChanged, so it re-renders the saved session.
+    // workout he is halfway through. showSession is called with no `generate`,
+    // no reroll and no excludeEquipment, so it re-renders the saved session.
     addMove: {
       drafts: loadDrafts(),
       issueBase: ISSUE_BASE,
@@ -194,22 +189,104 @@ function showSession({
   mount(root, renderSession(session, opts));
 }
 
+// --------------------------------------------------------------------------
+// Home
+// --------------------------------------------------------------------------
+
+// The month the calendar is showing. Not persisted on purpose: paging back to
+// March and closing the app should not mean opening it in March next week.
+let calYear = null;
+let calMonth = null;
+
+function showHome() {
+  const profile = loadProfile();
+  if (!profile || !profile.returnDate) return showSetup();
+
+  const date = today();
+  if (calYear === null) {
+    calYear = Number(date.slice(0, 4));
+    calMonth = Number(date.slice(5, 7));
+  }
+
+  const history = loadHistory();
+  const soreness = profile.soreness || {};
+
+  mount(root, renderHome({
+    // No second argument: rampWeekFor takes a TIMESTAMP and defaults to
+    // Date.now(). Handing it a 'YYYY-MM-DD' string subtracts a string from a
+    // number and puts NaN in the status line.
+    rampWeek: rampWeekFor(profile),
+    daysSince: daysSinceLastSession(history, date),
+    todaySession: sessionFor(date),
+    soreness: {
+      joints: SORENESS_JOINTS,
+      current: soreness,
+      // Soreness lives on the PROFILE, so the flags persist pre-checked into
+      // the next session (spec §4.1). Nothing regenerates here -- there is
+      // nothing generated yet, which is the entire point of this screen.
+      onCycle: (joint, level) => {
+        const next = { ...soreness };
+        if (level) next[joint] = level; else delete next[joint];
+        saveProfile({ ...profile, soreness: next });
+        showHome();
+      }
+    },
+    calendar: {
+      year: calYear, month: calMonth, history, today: date,
+      onPrev: () => {
+        ({ year: calYear, month: calMonth } = shiftMonth(calYear, calMonth, -1));
+        showHome();
+      },
+      onNext: () => {
+        ({ year: calYear, month: calMonth } = shiftMonth(calYear, calMonth, 1));
+        showHome();
+      },
+      onPick: d => showPastSession(d)
+    },
+    onGenerate: () => showSession({ generate: true }),
+    onOpenToday: () => showSession()
+  }));
+}
+
+// A day already trained, rendered by the same function as a live card but with
+// every control withheld. design §7.
+function showPastSession(date) {
+  const session = sessionFor(date);
+  if (!session) return showHome();
+  mount(root, renderSession(session, {
+    readOnly: true,
+    cuesFor: id => {
+      const e = library.find(x => x.id === id);
+      return e && e.cues && e.cues.length ? e.cues : null;
+    },
+    onHome: () => showHome()
+  }));
+}
+
 // Asked at LAUNCH only, never after a swap or a reroll -- those call
 // showSession directly. One question per unanswered day, most recent first,
 // and it keeps asking until none are left rather than clearing one per launch.
 // spec §6 limitation 1.
-function showPendingOrSession() {
+function showPendingOrHome() {
   const profile = loadProfile();
   if (!profile || !profile.returnDate) return showSetup();
 
   const pending = pendingConfirmations(loadHistory(), today());
-  if (!pending.length) return showSession();
+  if (pending.length) {
+    const asking = pending[0];
+    return mount(root, renderConfirmPrevious(asking, {
+      onYes: () => { confirmSession(asking.date); showPendingOrHome(); },
+      onNo: () => { discardSession(asking.date); showPendingOrHome(); }
+    }));
+  }
 
-  const asking = pending[0];
-  mount(root, renderConfirmPrevious(asking, {
-    onYes: () => { confirmSession(asking.date); showPendingOrSession(); },
-    onNo: () => { discardSession(asking.date); showPendingOrSession(); }
-  }));
+  // Straight back to the card once today is under way: he reopens the app
+  // between sets, and putting a calendar between him and the workout he is
+  // halfway through is friction in the one place the app should disappear.
+  // A CONFIRMED session does not qualify -- training is over. design §3.
+  const t = sessionFor(today());
+  if (t && !t.confirmed) return showSession();
+  return showHome();
 }
 
 // --------------------------------------------------------------------------
@@ -230,7 +307,7 @@ async function boot() {
       'GymBuddy has to be served over http, not opened as a file.'
     ));
   }
-  showPendingOrSession();
+  showPendingOrHome();
 }
 
 // --------------------------------------------------------------------------

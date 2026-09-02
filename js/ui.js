@@ -13,6 +13,9 @@
 // it fixes would come back in one place and not the other.
 
 import { localDate } from './generator.js';
+import {
+  monthGrid, monthLabel, WEEKDAY_LABELS, DAY_TYPE_CODE
+} from './calendar.js';
 
 // --------------------------------------------------------------------------
 // Element helper
@@ -549,8 +552,21 @@ export function renderNothingBuildable() {
 export function renderSession(
   session,
   { onReroll, onDone, onUndo, cuesFor, offer, equipment, soreness, addMove,
-    onSwap, swapNote } = {}
+    onSwap, swapNote, onHome, readOnly = false } = {}
 ) {
+  // One gate, not eight. A past day is rendered by the same function as a live
+  // one -- the block rendering, the load lines and the flip cards are a few
+  // hundred lines that must not fork (design §7) -- so read-only is expressed
+  // by withholding the inputs rather than by branching through the renderer.
+  //
+  // onHome is deliberately NOT withheld: on a past day it is the only way
+  // back, and suppressing it would strand him on the card.
+  if (readOnly) {
+    onReroll = onDone = onUndo = onSwap = undefined;
+    equipment = soreness = addMove = undefined;
+    offer = null;
+    swapNote = null;
+  }
   // Three groups, not two. Prep and cool-down do different jobs at opposite
   // ends of the session, and one "Mobility & core" heading hid that.
   // design 4.2, discrepancy 6.
@@ -569,6 +585,14 @@ export function renderSession(
 
   return el('div', { class: 'screen' }, [
     el('header', { class: 'session-head' }, [
+      // Only rendered when there is somewhere to go. Before the home screen
+      // existed the card WAS the app, and nothing wired this.
+      onHome
+        ? el('button', {
+            class: 'session-home', type: 'button',
+            'aria-label': 'Back to home', onclick: () => onHome()
+          }, '‹ Home')
+        : null,
       el('h1', { class: 'day-type', text: titleCase(session.dayType) }),
       el('p', { class: 'facts', text: facts.join(' · ') }),
       session.reason ? el('p', { class: 'reason', text: session.reason }) : null
@@ -621,7 +645,7 @@ export function renderSession(
     // Leaving Reroll here would let one tap replace a workout he has just
     // reported doing -- and the replacement would arrive unconfirmed, losing
     // the record. spec §6 limitation 1.
-    session.confirmed
+    readOnly ? null : session.confirmed
       ? el('div', { class: 'done-note' }, [
           el('span', { text: 'Done · logged for today' }),
           // Confirming was a one-way door until the date rolled over, and he
@@ -701,4 +725,146 @@ export function renderError(message) {
 export function mount(root, node) {
   root.replaceChildren(node);
   window.scrollTo(0, 0);
+}
+
+// --------------------------------------------------------------------------
+// The calendar. design-home-and-calendar.md §5, §8.
+// --------------------------------------------------------------------------
+
+// Colour is never the only encoding: every trained cell carries its two-letter
+// code as text, and the accessible name spells the day type out in full. Seven
+// hues separable by every form of colour vision do not exist. design §8.
+export function renderCalendar({
+  year, month, history, today, onPrev, onNext, onPick
+} = {}) {
+  const weeks = monthGrid(year, month, history, today);
+  const monthName = monthLabel(year, month).split(' ')[0];
+
+  const head = el('div', { class: 'cal-head' }, [
+    el('button', {
+      class: 'cal-prev', type: 'button',
+      'aria-label': 'Previous month', onclick: () => onPrev && onPrev()
+    }, '‹'),
+    el('h2', { class: 'cal-title', text: monthLabel(year, month) }),
+    el('button', {
+      class: 'cal-next', type: 'button',
+      'aria-label': 'Next month', onclick: () => onNext && onNext()
+    }, '›')
+  ]);
+
+  const weekdays = el('div', { class: 'cal-weekdays' },
+    WEEKDAY_LABELS.map(d => el('div', { class: 'cal-weekday', text: d })));
+
+  const grid = el('div', { class: 'cal-grid' }, weeks.flat().map(cell => {
+    const num = String(Number(cell.date.slice(8, 10)));
+    const classes = extra => [
+      'cal-cell', ...extra, cell.isToday ? 'is-today' : ''
+    ].filter(Boolean).join(' ');
+
+    // Not a button when there is nothing behind it. A focusable element that
+    // does nothing is worse than no element -- it costs a tab stop per empty
+    // day, thirty-odd of them a month, to reach the one that matters.
+    if (!cell.session) {
+      return el('div', {
+        class: classes([cell.inMonth ? '' : 'is-outside']),
+        text: cell.inMonth ? num : ''
+      });
+    }
+
+    const type = cell.session.dayType;
+    return el('button', {
+      class: classes(['is-trained', `type-${type}`]),
+      type: 'button',
+      'aria-label': `${num} ${monthName}, ${titleCase(type)}`,
+      onclick: () => onPick && onPick(cell.date)
+    }, [
+      el('span', { class: 'cal-num', text: num }),
+      el('span', { class: 'cal-code', text: DAY_TYPE_CODE[type] || '??' })
+    ]);
+  }));
+
+  // Only what is on screen. A fixed legend of all seven every month explains
+  // marks that are not there and buries the two that are.
+  const present = [];
+  for (const cell of weeks.flat()) {
+    if (cell.session && !present.includes(cell.session.dayType)) {
+      present.push(cell.session.dayType);
+    }
+  }
+  const legend = el('div', { class: 'cal-legend' }, present.map(type =>
+    el('span', { class: `cal-key type-${type}` }, [
+      el('span', { class: 'cal-code', text: DAY_TYPE_CODE[type] || '??' }),
+      el('span', { text: ` ${titleCase(type)}` })
+    ])
+  ));
+
+  return el('section', { class: 'calendar' }, [head, weekdays, grid, legend]);
+}
+
+// --------------------------------------------------------------------------
+// The home screen. design-home-and-calendar.md §6.
+// --------------------------------------------------------------------------
+
+// Two facts, not a dashboard. Both are things the app knows and shows nowhere
+// else, and the screen is otherwise one button and a grid.
+function statusLine(rampWeek, daysSince) {
+  const parts = [];
+  if (rampWeek != null) parts.push(`Return week ${rampWeek}`);
+  // null means never trained. daysSinceLastSession returns it rather than a
+  // sentinel number precisely so that a number can never reach this sentence.
+  if (daysSince === null || daysSince === undefined) parts.push('No sessions yet');
+  else if (daysSince === 0) parts.push('Trained today');
+  else if (daysSince === 1) parts.push('Last trained 1 day ago');
+  else parts.push(`Last trained ${daysSince} days ago`);
+  return parts.join(' · ');
+}
+
+export function renderHome({
+  rampWeek, daysSince, todaySession, soreness, calendar, onGenerate, onOpenToday
+} = {}) {
+  const children = [
+    el('h1', { class: 'day-type', text: 'GymBuddy' }),
+    el('p', { class: 'home-status', text: statusLine(rampWeek, daysSince) })
+  ];
+
+  // Before the button, not after it: the ordering IS the fix. Flag what is
+  // sore, then generate, so soreness informs the first build instead of
+  // rebuilding the session already on screen. design §6.1.
+  if (soreness) {
+    children.push(el('div', { class: 'home-soreness' }, [
+      el('p', { class: 'setup-label', text: 'Anything sore?' }),
+      sorenessMap(soreness.joints, soreness.current, soreness.onCycle)
+    ]));
+  }
+
+  if (!todaySession) {
+    children.push(el('div', { class: 'actions' }, [
+      el('button', {
+        class: 'btn home-generate', type: 'button',
+        onclick: () => onGenerate && onGenerate()
+      }, "Generate today's workout")
+    ]));
+  } else {
+    // Nothing to generate either way -- today is already on the record. The
+    // difference is only whether training is over. Whether a second session in
+    // one day is ever wanted is left open in design §12; until it is asked
+    // for, the button is simply absent rather than guessed at.
+    const doneToday = todaySession.confirmed === true;
+    children.push(el('p', {
+      class: 'home-today',
+      text: doneToday
+        ? `Done today — ${titleCase(todaySession.dayType)}`
+        : `Today: ${titleCase(todaySession.dayType)}`
+    }));
+    children.push(el('div', { class: 'actions' }, [
+      el('button', {
+        class: 'btn home-open', type: 'button',
+        onclick: () => onOpenToday && onOpenToday()
+      }, doneToday ? 'View it' : 'Open it')
+    ]));
+  }
+
+  if (calendar) children.push(renderCalendar(calendar));
+
+  return el('div', { class: 'screen screen-home' }, children);
 }

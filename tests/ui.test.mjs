@@ -11,7 +11,7 @@ installDom();
 const {
   loadLine, volumeLine, equipmentControl, renderNothingBuildable,
   renderConfirmPrevious, sorenessMap, addMoveControl, warmupLine,
-  renderSession, blockCard
+  renderSession, blockCard, renderCalendar, renderHome
 } = await import('../js/ui.js');
 const { SORENESS_JOINTS } = await import('../js/rules.js');
 
@@ -556,4 +556,246 @@ test('undo reports back, and does not pretend to be the reroll', () => {
   node.querySelectorAll('button').find(b => /undo/i.test(b.textContent)).dispatch('click');
   assert.equal(undone, 1);
   assert.equal(rerolled, 0);
+});
+
+
+// --------------------------------------------------------------------------
+// The calendar. design-home-and-calendar.md §5, §8.
+// --------------------------------------------------------------------------
+
+const trained = (date, dayType = 'max-strength') =>
+  ({ date, dayType, confirmed: true, blocks: [] });
+
+const cal = (over = {}) => renderCalendar({
+  year: 2026, month: 9, history: [], today: '2026-09-14',
+  onPrev() {}, onNext() {}, onPick() {}, ...over
+});
+
+const dayButton = (node, label) => node.querySelectorAll('button').find(
+  b => new RegExp(label).test(b.getAttribute('aria-label') || '')
+);
+
+test('the calendar shows the month and year', () => {
+  assert.match(cal().textContent, /September 2026/);
+});
+
+test('the calendar has seven weekday headings starting Monday', () => {
+  const heads = cal().querySelectorAll('.cal-weekday');
+  assert.equal(heads.length, 7);
+  assert.equal(heads[0].textContent, 'Mon');
+});
+
+test('a trained day carries its two-letter code', () => {
+  const node = cal({ history: [trained('2026-09-14', 'power')] });
+  assert.match(node.textContent, /PW/);
+});
+
+test('a trained day is a button', () => {
+  const node = cal({ history: [trained('2026-09-14')] });
+  assert.ok(dayButton(node, '14 September'), 'no button for the trained day');
+});
+
+test('an untrained day is not focusable -- there is nothing to open', () => {
+  assert.equal(dayButton(cal(), '14 September'), undefined);
+});
+
+test('the accessible name says the date and the day type, not just a colour', () => {
+  // design §8: colour is never the only encoding, and it is never the name.
+  const node = cal({ history: [trained('2026-09-14', 'hypertrophy')] });
+  assert.match(dayButton(node, '14 September').getAttribute('aria-label'), /Hypertrophy/i);
+});
+
+test('tapping a trained day reports its date', () => {
+  let picked = null;
+  const node = cal({ history: [trained('2026-09-14')], onPick: d => { picked = d; } });
+  dayButton(node, '14 September').dispatch('click');
+  assert.equal(picked, '2026-09-14');
+});
+
+test('the month arrows report which way', () => {
+  const seen = [];
+  const node = cal({ onPrev: () => seen.push('prev'), onNext: () => seen.push('next') });
+  node.querySelector('.cal-prev').dispatch('click');
+  node.querySelector('.cal-next').dispatch('click');
+  assert.deepEqual(seen, ['prev', 'next']);
+});
+
+test('today is marked even when nothing was trained', () => {
+  assert.ok(cal().querySelector('.is-today'), 'no today marker');
+});
+
+test('a legend entry exists for every day type that appears', () => {
+  const node = cal({ history: [trained('2026-09-14', 'power'), trained('2026-09-16', 'sprint')] });
+  const legend = node.querySelector('.cal-legend').textContent;
+  assert.match(legend, /PW/);
+  assert.match(legend, /SP/);
+});
+
+test('the legend lists only day types present in the month', () => {
+  // A legend of all seven every month is noise; it explains marks that are there.
+  const node = cal({ history: [trained('2026-09-14', 'power')] });
+  assert.equal(/HY/.test(node.querySelector('.cal-legend').textContent), false);
+});
+
+
+// --------------------------------------------------------------------------
+// The home screen. design-home-and-calendar.md §6.
+// --------------------------------------------------------------------------
+
+const home = (over = {}) => renderHome({
+  rampWeek: 2,
+  daysSince: 3,
+  todaySession: null,
+  soreness: { joints: SORENESS_JOINTS, current: {}, onCycle() {} },
+  calendar: {
+    year: 2026, month: 9, history: [], today: '2026-09-14',
+    onPrev() {}, onNext() {}, onPick() {}
+  },
+  onGenerate() {},
+  onOpenToday() {},
+  ...over
+});
+
+test('the home screen offers to generate when nothing exists for today', () => {
+  const btn = home().querySelector('.home-generate');
+  assert.ok(btn);
+  assert.match(btn.textContent, /generate/i);
+});
+
+test('generating is reported once, on tap', () => {
+  let taps = 0;
+  home({ onGenerate: () => { taps++; } }).querySelector('.home-generate').dispatch('click');
+  assert.equal(taps, 1);
+});
+
+test('an unconfirmed session for today offers a way back into it', () => {
+  const node = home({
+    todaySession: { date: '2026-09-14', dayType: 'power', blocks: [] }
+  });
+  assert.equal(node.querySelector('.home-generate'), null);
+  assert.match(node.querySelector('.home-today').textContent, /power/i);
+});
+
+test('a confirmed session for today does not offer to generate again', () => {
+  // design §12 leaves a second session for a day unanswered; until it is
+  // asked for, the button is simply not there.
+  const node = home({
+    todaySession: { date: '2026-09-14', dayType: 'power', confirmed: true, blocks: [] }
+  });
+  assert.equal(node.querySelector('.home-generate'), null);
+  assert.match(node.textContent, /done/i);
+});
+
+test('the status line carries the ramp week', () => {
+  assert.match(home().querySelector('.home-status').textContent, /week 2/i);
+});
+
+test('the status line carries days since the last session', () => {
+  assert.match(home().querySelector('.home-status').textContent, /3 days/i);
+});
+
+test('one day ago is not "1 days"', () => {
+  assert.match(home({ daysSince: 1 }).querySelector('.home-status').textContent, /1 day\b/);
+});
+
+test('training today reads as today, not "0 days ago"', () => {
+  assert.match(home({ daysSince: 0 }).querySelector('.home-status').textContent, /today/i);
+});
+
+test('never having trained does not render a number', () => {
+  // daysSinceLastSession returns null, and null must not reach the sentence.
+  const text = home({ daysSince: null }).querySelector('.home-status').textContent;
+  assert.equal(/null|NaN|undefined|Infinity/.test(text), false);
+});
+
+test('the soreness map is on the home screen', () => {
+  // design §6.1: flagged BEFORE generating, so it informs the first build
+  // instead of rebuilding the session being looked at.
+  //
+  // Scoped to .soreness rather than counting the screen's buttons: the
+  // calendar contributes its own, and a count over both would pass for the
+  // wrong reason on a month with training in it.
+  const map = home().querySelector('.soreness');
+  assert.ok(map, 'no soreness map on home');
+  assert.equal(map.querySelectorAll('button').length, SORENESS_JOINTS.length);
+});
+
+test('the soreness map on home reports a cycle to its caller', () => {
+  // The home screen saves to the profile and re-renders; it must receive the
+  // joint and the level like the session card did.
+  let seen = null;
+  const node = home({
+    soreness: {
+      joints: SORENESS_JOINTS, current: {},
+      onCycle: (joint, level) => { seen = [joint, level]; }
+    }
+  });
+  node.querySelector('.soreness').querySelectorAll('button')[0].dispatch('click');
+  assert.deepEqual(seen, [SORENESS_JOINTS[0], 'sore']);
+});
+
+test('the calendar is on the home screen', () => {
+  assert.ok(home().querySelector('.calendar'));
+});
+
+
+// --------------------------------------------------------------------------
+// A past day, read-only. design-home-and-calendar.md §7.
+// --------------------------------------------------------------------------
+
+test('a read-only session still shows its work', () => {
+  const node = renderSession(card(), { readOnly: true });
+  assert.match(node.textContent, /Back squat/i);
+});
+
+test('a read-only session offers no reroll, no done and no undo', () => {
+  const node = renderSession(card(), {
+    readOnly: true, onReroll() {}, onDone() {}, onUndo() {}
+  });
+  const labels = buttonText(node).join(' ');
+  assert.equal(/reroll/i.test(labels), false, `reroll survived: ${labels}`);
+  assert.equal(/did this workout/i.test(labels), false, `done survived: ${labels}`);
+  assert.equal(/undo/i.test(labels), false, `undo survived: ${labels}`);
+});
+
+test('a read-only CONFIRMED session offers no undo either', () => {
+  // The confirmed branch renders a different footer; both must be suppressed.
+  const node = renderSession(card({ confirmed: true }), {
+    readOnly: true, onUndo() {}
+  });
+  assert.equal(/undo/i.test(buttonText(node).join(' ')), false);
+});
+
+test('a read-only session offers no swap even when a handler is passed', () => {
+  const node = renderSession(card(), { readOnly: true, onSwap() {} });
+  assert.equal(node.querySelector('.block-swap'), null);
+});
+
+test('a read-only session shows no equipment or add-move panel', () => {
+  const node = renderSession(card(), {
+    readOnly: true,
+    equipment: { items: ['barbell'], selected: [], open: false, onToggle() {} },
+    addMove: { drafts: [], issueBase: 'x', open: false, onSave() {}, onRemove() {} }
+  });
+  assert.equal(node.querySelector('.equipment'), null);
+  assert.equal(node.querySelector('.addmove'), null);
+});
+
+test('an editable session is unaffected', () => {
+  const node = renderSession(card(), { onSwap() {}, onDone() {}, onReroll() {} });
+  assert.ok(node.querySelector('.block-swap'), 'swap vanished from a live card');
+  assert.match(buttonText(node).join(' '), /did this workout/i);
+});
+
+test('a session card offers a way home', () => {
+  let home = 0;
+  const node = renderSession(card(), { onHome: () => { home++; } });
+  node.querySelector('.session-home').dispatch('click');
+  assert.equal(home, 1);
+});
+
+test('a read-only card still offers a way home', () => {
+  // It is the ONLY way back from a past day -- suppressing it would strand him.
+  const node = renderSession(card(), { readOnly: true, onHome() {} });
+  assert.ok(node.querySelector('.session-home'));
 });
