@@ -120,8 +120,19 @@ const done = (date, dayType = 'max-strength') =>
 test('calendar.js never calls toISOString', () => {
   // localDate() exists because toISOString() locked the card the morning after
   // an evening session. Month arithmetic is that bug one step harder.
+  //
+  // Comments are stripped before the check. The module's own header explains
+  // at length why it does not use toISOString, and the first version of this
+  // test failed on that explanation -- which would have left exactly two ways
+  // to go green: delete the reasoning, or weaken the test. Neither is the
+  // thing being asked for. What is being asked for is that no CODE calls it.
   const src = readFileSync(new URL('../js/calendar.js', import.meta.url), 'utf8');
-  assert.equal(/toISOString/.test(src), false);
+  const code = src
+    .replace(/\/\*[\s\S]*?\*\//g, '')   // block comments
+    .replace(/^[ 	]*\/\/.*$/gm, '')    // whole-line comments
+    .replace(/[ 	]+\/\/.*$/gm, '');    // trailing comments
+  assert.equal(/toISOString/.test(code), false,
+    'js/calendar.js calls toISOString outside a comment');
 });
 
 // --------------------------------------------------------------------------
@@ -439,12 +450,12 @@ export function daysSinceLastSession(history, today) {
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `node --test "tests/calendar.test.mjs"`
-Expected: PASS, 24 tests.
+Expected: PASS, 26 tests.
 
 - [ ] **Step 5: Run the whole suite**
 
 Run: `node --test "tests/*.test.mjs"`
-Expected: 352 pass, 0 fail (328 existing + 24 new).
+Expected: 354 pass, 0 fail (328 existing + 26 new).
 
 - [ ] **Step 6: Commit**
 
@@ -663,7 +674,7 @@ Expected: PASS.
 - [ ] **Step 5: Run the whole suite**
 
 Run: `node --test "tests/*.test.mjs"`
-Expected: 363 pass, 0 fail.
+Expected: 365 pass, 0 fail.
 
 - [ ] **Step 6: Commit**
 
@@ -859,7 +870,7 @@ Expected: PASS.
 - [ ] **Step 5: Run the whole suite**
 
 Run: `node --test "tests/*.test.mjs"`
-Expected: 374 pass, 0 fail.
+Expected: 376 pass, 0 fail.
 
 - [ ] **Step 6: Commit**
 
@@ -968,7 +979,7 @@ Expected: PASS.
 - [ ] **Step 5: Run the whole suite**
 
 Run: `node --test "tests/*.test.mjs"`
-Expected: 379 pass, 0 fail.
+Expected: 381 pass, 0 fail.
 
 - [ ] **Step 6: Commit**
 
@@ -1161,7 +1172,7 @@ test('a session card offers a way home', () => {
 - [ ] **Step 6: Run the whole suite**
 
 Run: `node --test "tests/*.test.mjs"`
-Expected: 380 pass, 0 fail.
+Expected: 382 pass, 0 fail.
 
 - [ ] **Step 7: Commit**
 
