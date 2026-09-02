@@ -711,3 +711,193 @@ body {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+/* -------------------------------------------------------------------------
+   Home screen + calendar -- design-home-and-calendar.md §6, §8
+
+   ON THE 56px TAP TARGET RULE AT THE TOP OF THIS FILE. The calendar breaks it,
+   deliberately. Seven columns inside .screen's 16px padding leaves 343px of
+   content on a 375px phone; after the gaps that is ~45px per cell. Seven
+   columns is what a week is, so the only ways to reach 56px are to drop the
+   padding to zero or to scroll the grid sideways, and both are worse.
+
+   The rule's stated reason is "it gets read mid-set, at arm's length, with
+   sweaty hands". The calendar is not that surface: it is looked at before
+   training or after it, standing still, with one hand free. The 44px WCAG
+   floor still holds, and is what these cells are sized against.
+   ------------------------------------------------------------------------- */
+
+.home-status {
+  margin: -4px 0 24px;
+  color: var(--text-dim);
+  font-size: 15px;
+}
+
+.home-soreness { margin-bottom: 24px; }
+
+.home-today {
+  margin: 0 0 12px;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.calendar { margin-top: 36px; }
+
+.cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.cal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  flex: 1;
+}
+
+.cal-prev,
+.cal-next {
+  min-width: 56px;
+  min-height: 56px;
+  border: 1px solid var(--surface-edge);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.cal-prev:focus-visible,
+.cal-next:focus-visible,
+.cal-cell:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* One track definition, shared, so the headings cannot drift out of line with
+   the cells they label. */
+.cal-weekdays,
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.cal-weekdays {
+  margin-bottom: 6px;
+}
+
+.cal-weekday {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cal-cell {
+  /* Square, so six rows of them are a predictable height and the legend does
+     not move when you page months. */
+  aspect-ratio: 1;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text-dim);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Another month's days. Present so the grid is a real calendar, dimmed so they
+   read as context rather than as days you could have trained. */
+.cal-cell.is-outside {
+  background: transparent;
+  color: transparent;
+}
+
+/* A ring, never a fill: today is frequently also a trained day, and a fill
+   would have to fight the day-type colour for the same pixels. */
+.cal-cell.is-today {
+  border-color: var(--accent);
+}
+
+.cal-cell.is-trained {
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cal-num { font-size: 14px; line-height: 1.1; }
+
+/* Never below 11px: this is the encoding, not the decoration. */
+.cal-code {
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+}
+
+.cal-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.cal-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cal-key .cal-code {
+  padding: 2px 5px;
+  border-radius: 5px;
+  font-weight: 600;
+  opacity: 1;
+}
+
+/* The seven day types. Decoration only -- every cell states its code as text
+   and every button names its day type in full in aria-label. These are chosen
+   to stay distinguishable in greyscale by lightness as well as by hue. */
+.type-max-strength   { background: #7c3aed; }   /* violet   ST */
+.type-power          { background: #d9480f; }   /* burnt    PW */
+.type-hypertrophy    { background: #1971c2; }   /* blue     HY */
+.type-aerobic-steady { background: #2f9e44; }   /* green    AE */
+.type-interval       { background: #0c8599; }   /* teal     IV */
+.type-sprint         { background: #ae3ec9; }   /* magenta  SP */
+.type-plyometric     { background: #b08900; }   /* ochre    PL */
+
+/* Back to the home screen, from a live card or a past one. Quiet: it is
+   navigation, not a decision. */
+.session-home {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-bottom: 8px;
+  padding: 0 4px 0 0;
+  border: 0;
+  background: none;
+  color: var(--text-dim);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.session-home:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
