@@ -1,0 +1,234 @@
+# GymBuddy
+
+An offline-first workout generator. It proposes **one training session at a
+time**, chosen from what you have recently trained, what is sore today, and how
+long you have been back in the gym — and it prescribes every lift as a
+percentage of your own personal records rather than an absolute weight.
+
+**Live app:** <https://ninwhippa08.github.io/GymBuddy/>
+Open it on a phone and add it to the home screen; after the first visit it runs
+with no network at all.
+
+The user it was built for is a retired college American football athlete
+returning to training after a long lay-off, lifting 1–3 times per week on an
+irregular schedule. Every rule the generator applies is written down and sourced
+in [`docs/programming-basis.md`](docs/programming-basis.md).
+
+---
+
+## Table of contents
+
+- [Running it](#running-it)
+- [What the app does](#what-the-app-does)
+- [Repository map](#repository-map)
+- [How a session is generated](#how-a-session-is-generated)
+- [Tests](#tests)
+- [Design decisions worth knowing](#design-decisions-worth-knowing)
+
+---
+
+## Running it
+
+There are three ways, in order of least effort.
+
+### 1. Open the deployed app (nothing to install)
+
+<https://ninwhippa08.github.io/GymBuddy/>
+
+It is served from GitHub Pages straight out of this repository — the files in
+`main` *are* the deployment, there is no build output. On a phone, use the
+browser's **Add to Home Screen**; it then launches full-screen and works in
+airplane mode.
+
+### 2. Run it locally from a checkout
+
+The app is static files, but it **must be served over HTTP** — it loads ES
+modules and `fetch`es `data/exercises.json`, and browsers block both from a
+`file://` page. Any static server works:
+
+```bash
+git clone https://github.com/ninwhippa08/GymBuddy.git
+cd GymBuddy
+python -m http.server 8000     # or: npx serve .
+```
+
+Then open <http://localhost:8000>. No install step, no dependencies, no build.
+
+### 3. Run the test suite
+
+Requires Node 18 or newer (developed on Node 24). Nothing to install first.
+
+```bash
+node --test tests/*.test.mjs
+```
+
+Expected result: **328 passing, 0 failing.**
+
+---
+
+## What the app does
+
+1. **First run** asks exactly one question: the date you started training again.
+   The first five weeks ramp volume and the load ceiling, so the app cannot
+   generate anything safe without it.
+2. **Each session** starts with a body map. Tapping a joint cycles it through
+   clear → sore → hurt, and last session's flags come pre-ticked. An exercise
+   that loads a **sore** joint is heavily downweighted; one that loads a
+   **hurt** joint is excluded outright.
+3. The app **proposes a day type** — one of `max-strength`, `power`,
+   `hypertrophy`, `aerobic-steady`, `interval`, `sprint`, `plyometric` — and
+   states the reason it chose that one. You can reroll into a different type.
+4. It builds the **full session**: a warm-up, main work, and a mobility and core
+   cool-down, with sets, reps, rest, and a load written as a multiplier of a
+   named lift — `0.85 × Back Squat PR`, never a number in kilograms.
+5. Any exercise you cannot do today (equipment busy, machine missing) can be
+   **swapped** for an equivalent one.
+6. Tapping **"I did this workout"** commits it to history, which is what the
+   next session's choices are computed from.
+
+There is no account, no server and no analytics. All state lives in the
+browser's `localStorage` under a single key.
+
+---
+
+## Repository map
+
+Everything a grader needs to read is in four folders. There is no framework, no
+package manager, and no generated code — every file here was written by hand.
+
+```
+GymBuddy/
+├── index.html            App shell. ~30 lines: meta tags, one <main>, one <script>.
+├── style.css             All styling (713 lines). Dark theme, CSS custom properties.
+├── manifest.json         PWA metadata — name, icons, colours, standalone display.
+├── sw.js                 Service worker. Cache-first offline shell.
+├── .nojekyll             Tells GitHub Pages to serve the files as-is.
+│
+├── js/                   The application. Vanilla ES modules, no bundler.
+│   ├── app.js            Entry point and screen routing. Wires storage → generator → UI.
+│   ├── generator.js      The session pipeline. The core of the project (~1400 lines).
+│   ├── rules.js          Every training constant, transcribed from the basis doc. No logic.
+│   ├── templates.js      Day types and their slot templates — the *shape* of a session.
+│   ├── storage.js        localStorage read/write. Nothing else.
+│   └── ui.js             DOM rendering. Pure: data in, detached DOM nodes out.
+│
+├── data/
+│   └── exercises.json    The exercise library: 236 exercises + 6 PR roots.
+│
+├── tests/                Node's built-in test runner. 328 tests, zero dependencies.
+│   ├── *.test.mjs        One file per subject (session, ramp, coverage, ui, storage, …).
+│   ├── dom-shim.mjs      A minimal DOM so ui.js can be tested without a browser.
+│   ├── cue-guard.mjs     Shared assertions for the exercise library's coaching cues.
+│   └── coef-provenance.mjs  Provenance record for every load coefficient in the library.
+│
+├── docs/                 Written before the code, and kept in step with it.
+│   ├── spec.md              What the product is. Sections are cited from code as "spec §n".
+│   ├── programming-basis.md The training science. Every number, with its source and a
+│   │                        provenance tag: [verified] / [corroborated] / [unverified] /
+│   │                        [measured].
+│   ├── coverage-matrix.md   Which movement patterns the library actually covers.
+│   ├── design-*.md          Design notes for each major feature, with open questions.
+│   └── plan-*.md            The implementation plan each feature was built from.
+│
+└── icons/                PWA icons (192px, 512px, apple-touch).
+```
+
+### Where to start reading
+
+| If you want to see… | Read |
+|---|---|
+| What the product is meant to be | `docs/spec.md` |
+| The single most important file | `js/generator.js` — its header comment lists the 10-step pipeline |
+| Why a number is what it is | `js/rules.js`, then the section it cites in `docs/programming-basis.md` |
+| How the code is verified | `tests/session.test.mjs` and `tests/ramp.test.mjs` |
+| How the UI is built without a framework | `js/ui.js` — the `el()` helper at the top explains the whole approach |
+
+### Reading conventions used throughout the code
+
+- Comments cite the document that justifies the code: `spec §4.3`,
+  `design-card-flip.md §5.1`, `plan-07`. Those are real, findable sections.
+- `js/rules.js` holds constants and no logic; `js/generator.js` holds logic and
+  no magic numbers. Changing a training rule means editing one constant.
+- `js/generator.js` is **pure** — the library, profile and history all arrive as
+  arguments. It never touches `localStorage` or the DOM, which is exactly why it
+  can be tested without a browser.
+- `js/ui.js` builds nodes with `createElement` and `textContent`, never
+  `innerHTML`.
+
+---
+
+## How a session is generated
+
+`js/generator.js` runs ten steps in a fixed order. The header comment in that
+file is the authoritative version; this is the summary.
+
+| # | Step | What it decides |
+|---|---|---|
+| 1 | LOAD | Profile and recent history |
+| 2 | STATE | Rolling volume per movement pattern, hours since each day type, a decayed "CNS account", and which week of the return ramp you are in |
+| 3 | PROPOSE | Scores each day type by how neglected it is, then vetoes on fatigue and soreness |
+| 4 | ENVELOPE | Turns the day type into an intensity zone, clamped by the ramp ceiling |
+| 5 | ARCHITECT | Picks a session architecture (straight sets, EMOM, cluster, superset, circuit, …) |
+| 6 | FILL | Chooses an actual exercise for each slot in the template |
+| 7 | PRESCRIBE | Sets and reps at a percentage of a PR — or foot contacts, or minutes |
+| 8 | PACK | Estimates duration and trims optional slots to the main-work budget |
+| 9 | PREP / COOL | Appends the dynamic warm-up and the static cool-down plus core |
+| 10 | ORDER | Enforces the fixed sequence: prep first, cool-down last |
+
+Two ideas hold the design together:
+
+- **A template is a shape, not a workout.** A slot says "a primary-tier Olympic
+  derivative in the power zone, 5–6 sets of 2–3"; step 6 decides which exercise
+  lands there. Variety comes from that choice, not from maintaining dozens of
+  hand-written workouts.
+- **The venue is an output, not an input.** You are never asked whether you are
+  at a gym or a park. The generated session decides.
+
+---
+
+## Tests
+
+```bash
+node --test tests/*.test.mjs
+```
+
+328 tests, using only Node's built-in `node:test` and `node:assert/strict`.
+There is no `package.json` and nothing to install.
+
+They are not only unit tests. Several are **sweeps**: they generate thousands of
+sessions across many profiles and histories and assert a property holds for
+every one — that no gym session exceeds 70 minutes, that the return ramp never
+prescribes above its ceiling, that every movement pattern is eventually covered,
+that no exercise is ever prescribed without the equipment it needs. Those are
+what catch the bugs that matter, because the generator is randomised and a
+single example proves nothing.
+
+`tests/dom-shim.mjs` is a hand-written ~120-line DOM, present so that `js/ui.js`
+can be tested in Node without pulling in a dependency. Its own header is honest
+about the limit: it is not a substitute for looking at the app in a real
+browser, and the project has been bitten once by trusting it too far.
+
+---
+
+## Design decisions worth knowing
+
+**Zero dependencies, by requirement.** No npm, no bundler, no framework, no
+transpiler, no CSS preprocessor. Every line in `js/`, `tests/` and `style.css`
+is readable on its own terms, and the deployed app is byte-for-byte the source.
+
+**Offline-first, not offline-capable.** The service worker is cache-first
+always. A gym basement with no signal is the design target, not an edge case.
+The cost is that `VERSION` in `sw.js` must be bumped on every deploy, which is
+why that file opens with a large warning comment.
+
+**Loads are always relative.** The app never prescribes a weight in kilograms
+directly — only `× PR`. Six PR roots cover the library; other lifts derive from
+them through a `prCoef`, and every one of those coefficients has a provenance
+record in `tests/coef-provenance.mjs`.
+
+**Sources are tagged, including the weak ones.** `docs/programming-basis.md`
+marks each number `[verified]`, `[corroborated]`, `[unverified]`, or
+`[measured]`, and documents three discrepancies found when the secondary sources
+were re-checked against primary ones. Numbers tagged `[measured]` have no source
+at all and were derived by sweeping generated sessions — the doc says so rather
+than dressing them up.
