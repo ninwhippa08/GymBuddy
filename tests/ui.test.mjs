@@ -636,3 +636,104 @@ test('the legend lists only day types present in the month', () => {
   const node = cal({ history: [trained('2026-09-14', 'power')] });
   assert.equal(/HY/.test(node.querySelector('.cal-legend').textContent), false);
 });
+
+
+// --------------------------------------------------------------------------
+// The home screen. design-home-and-calendar.md §6.
+// --------------------------------------------------------------------------
+
+const home = (over = {}) => renderHome({
+  rampWeek: 2,
+  daysSince: 3,
+  todaySession: null,
+  soreness: { joints: SORENESS_JOINTS, current: {}, onCycle() {} },
+  calendar: {
+    year: 2026, month: 9, history: [], today: '2026-09-14',
+    onPrev() {}, onNext() {}, onPick() {}
+  },
+  onGenerate() {},
+  onOpenToday() {},
+  ...over
+});
+
+test('the home screen offers to generate when nothing exists for today', () => {
+  const btn = home().querySelector('.home-generate');
+  assert.ok(btn);
+  assert.match(btn.textContent, /generate/i);
+});
+
+test('generating is reported once, on tap', () => {
+  let taps = 0;
+  home({ onGenerate: () => { taps++; } }).querySelector('.home-generate').dispatch('click');
+  assert.equal(taps, 1);
+});
+
+test('an unconfirmed session for today offers a way back into it', () => {
+  const node = home({
+    todaySession: { date: '2026-09-14', dayType: 'power', blocks: [] }
+  });
+  assert.equal(node.querySelector('.home-generate'), null);
+  assert.match(node.querySelector('.home-today').textContent, /power/i);
+});
+
+test('a confirmed session for today does not offer to generate again', () => {
+  // design §12 leaves a second session for a day unanswered; until it is
+  // asked for, the button is simply not there.
+  const node = home({
+    todaySession: { date: '2026-09-14', dayType: 'power', confirmed: true, blocks: [] }
+  });
+  assert.equal(node.querySelector('.home-generate'), null);
+  assert.match(node.textContent, /done/i);
+});
+
+test('the status line carries the ramp week', () => {
+  assert.match(home().querySelector('.home-status').textContent, /week 2/i);
+});
+
+test('the status line carries days since the last session', () => {
+  assert.match(home().querySelector('.home-status').textContent, /3 days/i);
+});
+
+test('one day ago is not "1 days"', () => {
+  assert.match(home({ daysSince: 1 }).querySelector('.home-status').textContent, /1 day\b/);
+});
+
+test('training today reads as today, not "0 days ago"', () => {
+  assert.match(home({ daysSince: 0 }).querySelector('.home-status').textContent, /today/i);
+});
+
+test('never having trained does not render a number', () => {
+  // daysSinceLastSession returns null, and null must not reach the sentence.
+  const text = home({ daysSince: null }).querySelector('.home-status').textContent;
+  assert.equal(/null|NaN|undefined|Infinity/.test(text), false);
+});
+
+test('the soreness map is on the home screen', () => {
+  // design §6.1: flagged BEFORE generating, so it informs the first build
+  // instead of rebuilding the session being looked at.
+  //
+  // Scoped to .soreness rather than counting the screen's buttons: the
+  // calendar contributes its own, and a count over both would pass for the
+  // wrong reason on a month with training in it.
+  const map = home().querySelector('.soreness');
+  assert.ok(map, 'no soreness map on home');
+  assert.equal(map.querySelectorAll('button').length, SORENESS_JOINTS.length);
+});
+
+test('the soreness map on home reports a cycle to its caller', () => {
+  // The home screen saves to the profile and re-renders; it must receive the
+  // joint and the level like the session card did.
+  let seen = null;
+  const node = home({
+    soreness: {
+      joints: SORENESS_JOINTS, current: {},
+      onCycle: (joint, level) => { seen = [joint, level]; }
+    }
+  });
+  node.querySelector('.soreness').querySelectorAll('button')[0].dispatch('click');
+  assert.deepEqual(seen, [SORENESS_JOINTS[0], 'sore']);
+});
+
+test('the calendar is on the home screen', () => {
+  assert.ok(home().querySelector('.calendar'));
+});

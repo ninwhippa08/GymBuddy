@@ -779,3 +779,71 @@ export function renderCalendar({
 
   return el('section', { class: 'calendar' }, [head, weekdays, grid, legend]);
 }
+
+// --------------------------------------------------------------------------
+// The home screen. design-home-and-calendar.md §6.
+// --------------------------------------------------------------------------
+
+// Two facts, not a dashboard. Both are things the app knows and shows nowhere
+// else, and the screen is otherwise one button and a grid.
+function statusLine(rampWeek, daysSince) {
+  const parts = [];
+  if (rampWeek != null) parts.push(`Return week ${rampWeek}`);
+  // null means never trained. daysSinceLastSession returns it rather than a
+  // sentinel number precisely so that a number can never reach this sentence.
+  if (daysSince === null || daysSince === undefined) parts.push('No sessions yet');
+  else if (daysSince === 0) parts.push('Trained today');
+  else if (daysSince === 1) parts.push('Last trained 1 day ago');
+  else parts.push(`Last trained ${daysSince} days ago`);
+  return parts.join(' · ');
+}
+
+export function renderHome({
+  rampWeek, daysSince, todaySession, soreness, calendar, onGenerate, onOpenToday
+} = {}) {
+  const children = [
+    el('h1', { class: 'day-type', text: 'GymBuddy' }),
+    el('p', { class: 'home-status', text: statusLine(rampWeek, daysSince) })
+  ];
+
+  // Before the button, not after it: the ordering IS the fix. Flag what is
+  // sore, then generate, so soreness informs the first build instead of
+  // rebuilding the session already on screen. design §6.1.
+  if (soreness) {
+    children.push(el('div', { class: 'home-soreness' }, [
+      el('p', { class: 'setup-label', text: 'Anything sore?' }),
+      sorenessMap(soreness.joints, soreness.current, soreness.onCycle)
+    ]));
+  }
+
+  if (!todaySession) {
+    children.push(el('div', { class: 'actions' }, [
+      el('button', {
+        class: 'btn home-generate', type: 'button',
+        onclick: () => onGenerate && onGenerate()
+      }, "Generate today's workout")
+    ]));
+  } else {
+    // Nothing to generate either way -- today is already on the record. The
+    // difference is only whether training is over. Whether a second session in
+    // one day is ever wanted is left open in design §12; until it is asked
+    // for, the button is simply absent rather than guessed at.
+    const doneToday = todaySession.confirmed === true;
+    children.push(el('p', {
+      class: 'home-today',
+      text: doneToday
+        ? `Done today — ${titleCase(todaySession.dayType)}`
+        : `Today: ${titleCase(todaySession.dayType)}`
+    }));
+    children.push(el('div', { class: 'actions' }, [
+      el('button', {
+        class: 'btn home-open', type: 'button',
+        onclick: () => onOpenToday && onOpenToday()
+      }, doneToday ? 'View it' : 'Open it')
+    ]));
+  }
+
+  if (calendar) children.push(renderCalendar(calendar));
+
+  return el('div', { class: 'screen screen-home' }, children);
+}
