@@ -737,3 +737,65 @@ test('the soreness map on home reports a cycle to its caller', () => {
 test('the calendar is on the home screen', () => {
   assert.ok(home().querySelector('.calendar'));
 });
+
+
+// --------------------------------------------------------------------------
+// A past day, read-only. design-home-and-calendar.md §7.
+// --------------------------------------------------------------------------
+
+test('a read-only session still shows its work', () => {
+  const node = renderSession(card(), { readOnly: true });
+  assert.match(node.textContent, /Back squat/i);
+});
+
+test('a read-only session offers no reroll, no done and no undo', () => {
+  const node = renderSession(card(), {
+    readOnly: true, onReroll() {}, onDone() {}, onUndo() {}
+  });
+  const labels = buttonText(node).join(' ');
+  assert.equal(/reroll/i.test(labels), false, `reroll survived: ${labels}`);
+  assert.equal(/did this workout/i.test(labels), false, `done survived: ${labels}`);
+  assert.equal(/undo/i.test(labels), false, `undo survived: ${labels}`);
+});
+
+test('a read-only CONFIRMED session offers no undo either', () => {
+  // The confirmed branch renders a different footer; both must be suppressed.
+  const node = renderSession(card({ confirmed: true }), {
+    readOnly: true, onUndo() {}
+  });
+  assert.equal(/undo/i.test(buttonText(node).join(' ')), false);
+});
+
+test('a read-only session offers no swap even when a handler is passed', () => {
+  const node = renderSession(card(), { readOnly: true, onSwap() {} });
+  assert.equal(node.querySelector('.block-swap'), null);
+});
+
+test('a read-only session shows no equipment or add-move panel', () => {
+  const node = renderSession(card(), {
+    readOnly: true,
+    equipment: { items: ['barbell'], selected: [], open: false, onToggle() {} },
+    addMove: { drafts: [], issueBase: 'x', open: false, onSave() {}, onRemove() {} }
+  });
+  assert.equal(node.querySelector('.equipment'), null);
+  assert.equal(node.querySelector('.addmove'), null);
+});
+
+test('an editable session is unaffected', () => {
+  const node = renderSession(card(), { onSwap() {}, onDone() {}, onReroll() {} });
+  assert.ok(node.querySelector('.block-swap'), 'swap vanished from a live card');
+  assert.match(buttonText(node).join(' '), /did this workout/i);
+});
+
+test('a session card offers a way home', () => {
+  let home = 0;
+  const node = renderSession(card(), { onHome: () => { home++; } });
+  node.querySelector('.session-home').dispatch('click');
+  assert.equal(home, 1);
+});
+
+test('a read-only card still offers a way home', () => {
+  // It is the ONLY way back from a past day -- suppressing it would strand him.
+  const node = renderSession(card(), { readOnly: true, onHome() {} });
+  assert.ok(node.querySelector('.session-home'));
+});

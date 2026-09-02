@@ -552,8 +552,21 @@ export function renderNothingBuildable() {
 export function renderSession(
   session,
   { onReroll, onDone, onUndo, cuesFor, offer, equipment, soreness, addMove,
-    onSwap, swapNote } = {}
+    onSwap, swapNote, onHome, readOnly = false } = {}
 ) {
+  // One gate, not eight. A past day is rendered by the same function as a live
+  // one -- the block rendering, the load lines and the flip cards are a few
+  // hundred lines that must not fork (design §7) -- so read-only is expressed
+  // by withholding the inputs rather than by branching through the renderer.
+  //
+  // onHome is deliberately NOT withheld: on a past day it is the only way
+  // back, and suppressing it would strand him on the card.
+  if (readOnly) {
+    onReroll = onDone = onUndo = onSwap = undefined;
+    equipment = soreness = addMove = undefined;
+    offer = null;
+    swapNote = null;
+  }
   // Three groups, not two. Prep and cool-down do different jobs at opposite
   // ends of the session, and one "Mobility & core" heading hid that.
   // design 4.2, discrepancy 6.
@@ -572,6 +585,14 @@ export function renderSession(
 
   return el('div', { class: 'screen' }, [
     el('header', { class: 'session-head' }, [
+      // Only rendered when there is somewhere to go. Before the home screen
+      // existed the card WAS the app, and nothing wired this.
+      onHome
+        ? el('button', {
+            class: 'session-home', type: 'button',
+            'aria-label': 'Back to home', onclick: () => onHome()
+          }, '‹ Home')
+        : null,
       el('h1', { class: 'day-type', text: titleCase(session.dayType) }),
       el('p', { class: 'facts', text: facts.join(' · ') }),
       session.reason ? el('p', { class: 'reason', text: session.reason }) : null
@@ -624,7 +645,7 @@ export function renderSession(
     // Leaving Reroll here would let one tap replace a workout he has just
     // reported doing -- and the replacement would arrive unconfirmed, losing
     // the record. spec §6 limitation 1.
-    session.confirmed
+    readOnly ? null : session.confirmed
       ? el('div', { class: 'done-note' }, [
           el('span', { text: 'Done · logged for today' }),
           // Confirming was a one-way door until the date rolled over, and he
