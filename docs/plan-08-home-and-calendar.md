@@ -1430,3 +1430,51 @@ consumed in Task 2 only.
 **One gap accepted.** `js/app.js` gets no unit tests, because it has none today
 and adding a harness for it is a larger change than this feature. Task 7 is the
 compensating control and is not optional.
+
+---
+
+## Manual check — 2026-09-01/02, Chrome, `python -m http.server`
+
+Run against a local server with a seeded profile (`returnDate` 2026-06-01) and
+two confirmed past sessions, 2026-08-26 `power` and 2026-08-29 `hypertrophy`.
+The clock rolled from 2026-09-01 to 2026-09-02 mid-run; both dates appear below
+and the app tracked the change correctly on reload.
+
+| Step | Result |
+|---|---|
+| 1 · fresh launch writes nothing | **PASS.** `history` held only the two seeded dates; today absent. |
+| 2 · generating writes one day | **PASS.** One tap → 3 entries total, today's `confirmed` undefined, `durationMin` 64 (under the 70 gate). |
+| 3 · calendar stays empty until confirmed | **PASS, both halves.** Before: September showed no marks while home read "Today: Max Strength". After tapping "I did this workout": `2 September, Max Strength`, code `ST`, legend `ST Max Strength`, status `Trained today`. |
+| 4 · reopening mid-session | **PASS.** Covered by `tests/app.test.mjs` rather than by hand — relaunching with today unconfirmed renders `.session-head`, not `.screen-home`. |
+| 5 · past day read-only | **PASS.** Opening 26 August rendered the work (Power Clean) with exactly one button on the page: `‹ Home`. No reroll, done, undo, swap, equipment or soreness. |
+| 6 · month paging | **PASS.** Six rows at every width and every month; August and September both render 6, so the legend does not move. |
+| 7 · soreness informs the first build | **PASS.** Knee → `hurt` on the home screen saved to the profile, then Generate produced 12 blocks, **zero** of which load the knee. No visible rebuild after the card appeared. |
+
+### Measured cell widths
+
+Through same-origin iframes at real viewport widths, not a resized element:
+
+| Viewport | Cell | Overflow |
+|---|---|---|
+| 320px | 38.6px | none |
+| 360px | 44.0px | none |
+| 375px | 45.6px | none |
+| 390px | 47.7px | none |
+| 430px | 51.3px | none |
+
+### Two things this check caught that no test could
+
+**320px overflowed horizontally.** `min-height: 44px` with `aspect-ratio: 1`
+forced cells wider than their own grid track: seven 44px cells plus six gaps
+needs 332px, and a 320px phone offers 288px inside `.screen`'s padding.
+Fixed with a `max-width: 359px` query that drops the min-height; the cell
+gives up the 44px AAA target there and keeps AA (24px) with room to spare.
+Nothing at 360px or above changed.
+
+**The service worker served stale CSS through the whole first round of
+measurements.** `gymbuddy-v23` was still registered on localhost and is
+cache-first, so the edit was on disk and invisible in the browser — a
+cache-busting query string did not help either. Every measurement before the
+unregister was of the OLD stylesheet, and the first "fix" appeared to do
+nothing. This is exactly what `sw.js`'s header warns about, and it is the
+reason Task 8 Step 5 bumps `VERSION` in the same edit that adds the new file.

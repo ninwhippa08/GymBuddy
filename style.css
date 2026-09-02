@@ -901,3 +901,24 @@ body {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+/* Below 360px the 44px cell stops fitting. Seven of them plus six gaps needs
+   308px+ of content, and a 320px phone offers 288 inside .screen's padding --
+   so min-height forces cells wider than their own track and the grid scrolls
+   sideways. Measured in Chrome 2026-09-01: 44.0px cells, overflow true.
+
+   A horizontally scrolling calendar is worse than a slightly smaller one, so
+   at this width the cell gives up the 44px AAA target (WCAG 2.5.5) and keeps
+   AA (2.5.8, 24px) with room to spare. Nothing above 360px is affected: at
+   375px cells measure 45.6px and at 390px, 47.7px. */
+@media (max-width: 359px) {
+  .cal-weekdays,
+  .cal-grid { gap: 3px; }
+
+  .cal-cell {
+    min-height: 0;
+    font-size: 13px;
+  }
+
+  .cal-num { font-size: 13px; }
+}
