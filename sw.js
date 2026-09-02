@@ -15,7 +15,7 @@
 // differ. Forgetting this is the one way to ship an invisible update.
 // ------------------------------------------------------------------------
 
-const VERSION = 'v23';
+const VERSION = 'v24';
 const CACHE = `gymbuddy-${VERSION}`;
 
 // Relative, every one of them. GitHub Pages serves this from /GymBuddy/, not
@@ -32,6 +32,7 @@ const SHELL = [
   './js/generator.js',
   './js/rules.js',
   './js/templates.js',
+  './js/calendar.js',
   './data/exercises.json',
   './icons/icon-192.png',
   './icons/icon-512.png',

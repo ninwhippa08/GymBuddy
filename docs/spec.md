@@ -12,7 +12,9 @@ Rules cited as **§n** refer to sections of [`programming-basis.md`](./programmi
 
 ```
 open app
+  → HOME: return week, days since the last session, a month of training
   → tap body map for anything sore  (last session's flags pre-checked)
+  → tap "Generate today's workout"
   → app proposes a day type, with a reason
   → accept, or reroll into another type
   → workout appears
@@ -21,11 +23,17 @@ open app
   → tap "I did this workout" at the foot of the card
 ```
 
+Reopening the app while today's session is unconfirmed goes **straight back to
+the card**, not to home: he reopens it between sets, and a calendar in front of
+the workout he is halfway through is friction in the one place the app should
+disappear. `design-home-and-calendar.md` §3.
+
 The **venue is an output, not an input.** The generated session determines
 whether this is a gym day or a park day. There is no equipment checklist.
 
-**No logging.** Generating a session marks it as done. The user declined
-confirmation prompts; the drift this introduces is accepted and documented in §6.
+**No logging.** Generating a session still marks it as done — but as of
+`sw.js` v24, generating requires a **tap**. Opening the app writes nothing.
+The user declined confirmation prompts; the residual drift is documented in §6.
 
 ---
 
@@ -374,10 +382,17 @@ are kept because 20–40 m is pace-able by eye on any surface.
 
 Recorded deliberately, each traceable to a decision the user made:
 
-1. **History is proposals, not performance — MITIGATED 2026-08-30 (`sw.js` v12)
-   and 2026-09-01 (v18).**
+1. **History is proposals, not performance — MITIGATED 2026-08-30 (`sw.js` v12),
+   2026-09-01 (v18) and 2026-09-02 (v24).**
    There is still no confirmation *during* a session, so a shortened one counts
-   as done. But the phantom entries are gone: on launch the app asks
+   as done. **v24 removed the largest source of these entirely:** generating
+   moved behind a tap on the home screen, so merely opening the app no longer
+   writes a workout. What remains is the smaller and far more deliberate set —
+   days he asked for a session and then did not train — and the prompt below
+   still catches those. `design-home-and-calendar.md` §2. The prompt was kept
+   rather than replaced by silent auto-discard: training and forgetting to tap
+   is likelier than the reverse, and deleting a real session would make the
+   generator think he is fresher than he is. On launch the app asks
    **"Did you finish this?"** once per unanswered past day, most recent first,
    and keeps asking until none are left. *I did it* marks the record
    `confirmed`; *I didn't* **removes it from history entirely** — not a flag,
@@ -435,6 +450,7 @@ gymbuddy/
 │   ├── generator.js    the pipeline in §4
 │   ├── rules.js        constants transcribed from programming-basis.md
 │   ├── templates.js    day-type templates (§5)
+│   ├── calendar.js     month-grid arithmetic; no DOM, no toISOString
 │   └── storage.js      localStorage read/write
 ├── data/
 │   └── exercises.json  the library

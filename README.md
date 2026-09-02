@@ -62,7 +62,7 @@ Requires Node 18 or newer (developed on Node 24). Nothing to install first.
 node --test tests/*.test.mjs
 ```
 
-Expected result: **328 passing, 0 failing.**
+Expected result: **393 passing, 0 failing.**
 
 ---
 
@@ -71,20 +71,25 @@ Expected result: **328 passing, 0 failing.**
 1. **First run** asks exactly one question: the date you started training again.
    The first five weeks ramp volume and the load ceiling, so the app cannot
    generate anything safe without it.
-2. **Each session** starts with a body map. Tapping a joint cycles it through
+2. **Every launch lands on a home screen** showing which return week you're in,
+   how long since you last trained, and a month calendar of the days you
+   actually trained. Nothing is generated until you ask — opening the app
+   writes nothing.
+3. **Before generating**, a body map. Tapping a joint cycles it through
    clear → sore → hurt, and last session's flags come pre-ticked. An exercise
    that loads a **sore** joint is heavily downweighted; one that loads a
    **hurt** joint is excluded outright.
-3. The app **proposes a day type** — one of `max-strength`, `power`,
+4. Tap **Generate today's workout** and the app **proposes a day type** — one of `max-strength`, `power`,
    `hypertrophy`, `aerobic-steady`, `interval`, `sprint`, `plyometric` — and
    states the reason it chose that one. You can reroll into a different type.
-4. It builds the **full session**: a warm-up, main work, and a mobility and core
+5. It builds the **full session**: a warm-up, main work, and a mobility and core
    cool-down, with sets, reps, rest, and a load written as a multiplier of a
    named lift — `0.85 × Back Squat PR`, never a number in kilograms.
-5. Any exercise you cannot do today (equipment busy, machine missing) can be
+6. Any exercise you cannot do today (equipment busy, machine missing) can be
    **swapped** for an equivalent one.
-6. Tapping **"I did this workout"** commits it to history, which is what the
-   next session's choices are computed from.
+7. Tapping **"I did this workout"** marks the day trained. Only then does it
+   appear on the calendar — if you didn't tap it, you didn't do it. Tapping a
+   past day on the calendar reopens that session, read-only.
 
 There is no account, no server and no analytics. All state lives in the
 browser's `localStorage` under a single key.
@@ -109,14 +114,17 @@ GymBuddy/
 │   ├── generator.js      The session pipeline. The core of the project (~1400 lines).
 │   ├── rules.js          Every training constant, transcribed from the basis doc. No logic.
 │   ├── templates.js      Day types and their slot templates — the *shape* of a session.
+│   ├── calendar.js       Month-grid arithmetic. Pure: no DOM, no toISOString.
 │   ├── storage.js        localStorage read/write. Nothing else.
 │   └── ui.js             DOM rendering. Pure: data in, detached DOM nodes out.
 │
 ├── data/
 │   └── exercises.json    The exercise library: 236 exercises + 6 PR roots.
 │
-├── tests/                Node's built-in test runner. 328 tests, zero dependencies.
+├── tests/                Node's built-in test runner. 393 tests, zero dependencies.
 │   ├── *.test.mjs        One file per subject (session, ramp, coverage, ui, storage, …).
+│   ├── app.test.mjs      The launch path: asserts opening the app writes nothing.
+│   ├── calendar.test.mjs The month model: leap years, month edges, Monday weeks.
 │   ├── dom-shim.mjs      A minimal DOM so ui.js can be tested without a browser.
 │   ├── cue-guard.mjs     Shared assertions for the exercise library's coaching cues.
 │   └── coef-provenance.mjs  Provenance record for every load coefficient in the library.
@@ -192,7 +200,7 @@ Two ideas hold the design together:
 node --test tests/*.test.mjs
 ```
 
-328 tests, using only Node's built-in `node:test` and `node:assert/strict`.
+393 tests, using only Node's built-in `node:test` and `node:assert/strict`.
 There is no `package.json` and nothing to install.
 
 They are not only unit tests. Several are **sweeps**: they generate thousands of
@@ -207,6 +215,12 @@ single example proves nothing.
 can be tested in Node without pulling in a dependency. Its own header is honest
 about the limit: it is not a substitute for looking at the app in a real
 browser, and the project has been bitten once by trusting it too far.
+
+`tests/app.test.mjs` boots the whole app headlessly to assert one thing above
+all: **launching it writes nothing to history.** That was the app's oldest bug —
+merely opening it on a rest day recorded a completed workout, which then fed the
+fatigue and neglect models — and it is a regression nothing else in the suite
+would catch.
 
 ---
 
