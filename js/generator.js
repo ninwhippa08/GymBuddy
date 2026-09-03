@@ -412,6 +412,14 @@ export function eligibleFor(slot, library, ctx) {
           excludeEquipment = [] } = ctx;
   return library.filter(e => {
     if (excludeIds.has(e.id)) return false;
+    // DELIBERATELY DORMANT, not dead. `profile.banned` is empty in every
+    // profile the app has ever written, because nothing puts anything on it:
+    // the UI for retiring a movement permanently was declined on 2026-09-03,
+    // not deferred. Asked whether any movement the app had offered was one he
+    // wanted gone for good, the athlete said no -- swap covers "not today",
+    // which is the case that occurs. This line stays because it is one line
+    // and the field is already on every stored profile, so wanting it later
+    // costs a control rather than a redesign. spec §10. Do not "clean it up".
     if (banned.includes(e.id)) return false;
     // An entry's `equipment` array is a conjunction: a back squat lists
     // barbell AND rack because it needs both, so losing either one rules it

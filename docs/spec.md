@@ -496,8 +496,9 @@ for 4 day types · generator pipeline · one workout screen · deployed to GitHu
 Pages and installed on the phone.
 
 **Phase 2 — adaptation.**
-Soreness body map with sore/hurt severity · swap button · ban list · history in
-`localStorage` · remaining 5 day types · library to ~350.
+Soreness body map with sore/hurt severity · swap button · ~~ban list~~
+(declined 2026-09-03, §10) · history in `localStorage` · remaining 5 day types ·
+library to ~350.
 
 **Phase 3 — intelligence.**
 Neglect-aware proposals with reason strings ("nothing explosive in 9 days") ·
@@ -770,10 +771,16 @@ Still queued, unchanged by the above:
   whole argument for doing it early.
 - ~~**Soreness body map**~~ — **done 2026-08-30**, see §4.1. The engine had been
   finished since Phase 1; `app.js` passing a hardcoded `{}` was the whole gap.
-- **Ban list.** `eligibleFor` already filters `profile.banned`; what is missing
-  is the UI to put something on that list. **The swap half of this item is
-  done** — `swapBlock` re-fills one slot and the per-block control is wired
-  (§4.2), shipped with the equipment constraint in v9.
+- ~~**Ban list.**~~ — **DECLINED 2026-09-03, not deferred.** `eligibleFor`
+  filters `profile.banned` and always has; the missing half was a UI to put
+  something on that list. Asked directly whether any movement the app had
+  offered was one he wanted gone permanently, the athlete said no and asked for
+  the idea to be dropped. Swap covers "not today", which is the case that
+  occurs; "not ever" was a case nobody had. **The field stays wired** — one
+  line in `eligibleFor`, present in every profile already written — so this
+  can become a control rather than a redesign if it is ever wanted. **The swap
+  half was already done** in v9 with the equipment constraint (§4.2). Do not
+  re-propose this without new evidence.
 - **Architecture variation last.** `prescribe()` only knows straight sets, so
   EMOM, cluster, complex, circuit and ladder each need a prescription shape.
   Deepest change in the project. Note `setPlan` (design §4.3) is deliberately

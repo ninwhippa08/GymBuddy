@@ -1540,6 +1540,25 @@ in the app that destroys data. Now `.btn-danger` in `--warn`.
 **A refused file was visible but silent.** Choosing a file re-mounts the whole
 screen, so the error carried no announcement. It now has `role="alert"`.
 
+### The phone, 2026-09-03 — export PASSES, restore untested
+
+Reported by the athlete from the installed PWA on his iPhone: **saving a
+backup works.** That settles the one thing Chrome could not — that
+`navigator.share({files})` reaches a usable iOS share sheet from a standalone
+PWA, which is why it is first in the cascade rather than second.
+
+**Restoring is still unverified on the device.** Every part of it has been
+driven in Chrome through the real handlers (`plan-08` table above) and every
+branch is covered by the suite, but no file has been picked through the real
+iOS picker. The remaining unknown is narrow and specific: whether
+`<input type="file">` in a standalone iOS PWA returns a `File` whose `.text()`
+resolves. Nothing else in the flow is device-dependent.
+
+There is a test of it that risks nothing: **restore the backup he just
+saved.** If it works the state is replaced with itself and nothing changes; if
+the picker misbehaves the refusal path catches it and the history is untouched
+either way, because `readImport` writes nothing.
+
 ### Known cosmetic wart, not fixed
 
 After a file is chosen the native input re-reads "no file selected", because

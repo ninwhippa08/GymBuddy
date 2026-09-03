@@ -286,11 +286,15 @@ backdating it skips the safety ramp completely.
 load a hurt joint, and that is the whole of it. Everything else is population
 guidance, which is the documented scope limit.
 
-### Specified but not built
+**No way to retire a movement permanently.** `profile.banned` exists and
+`js/generator.js:415` filters every exercise against it, but nothing writes to
+that list and nothing will: the athlete was asked in September 2026 whether
+any movement the app had offered him was one he wanted gone for good, and the
+answer was no. Swap handles "not today", which is the case that actually comes
+up. The field stays wired rather than being torn out, so the day a movement
+does need retiring the work is a control and not a redesign.
 
-**No ban list.** `profile.banned` exists and `js/generator.js:415` filters on
-it, but no control ever writes to it. Swap changes one movement for one
-session; there is no way to retire a movement permanently.
+### Specified but not built
 
 **Seven of the nine day types in `docs/spec.md` §5 exist.** `isolation` and
 `mobility` are specified and unimplemented.
