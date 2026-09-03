@@ -11,7 +11,7 @@ installDom();
 const {
   loadLine, volumeLine, equipmentControl, renderNothingBuildable,
   renderConfirmPrevious, sorenessMap, addMoveControl, warmupLine,
-  renderSession, blockCard, renderCalendar, renderHome
+  renderSession, blockCard, renderCalendar, renderHome, backupControl
 } = await import('../js/ui.js');
 const { SORENESS_JOINTS } = await import('../js/rules.js');
 
@@ -798,4 +798,160 @@ test('a read-only card still offers a way home', () => {
   // It is the ONLY way back from a past day -- suppressing it would strand him.
   const node = renderSession(card(), { readOnly: true, onHome() {} });
   assert.ok(node.querySelector('.session-home'));
+});
+
+// --------------------------------------------------------------------------
+// The backup control. spec §6 "no export or import".
+// --------------------------------------------------------------------------
+//
+// Collapsed, like the add-move panel, and for the same reason: it is a control
+// he touches a handful of times a year and it must not compete with the one
+// button the home screen exists for.
+//
+// What is asserted here is the SHAPE and the guard. The delivery cascade
+// (`navigator.share` -> `<a download>` -> clipboard) is app.js's job, needs a
+// real device, and no shim can honestly stand in for it.
+
+const SUMMARY = { sessions: 47, drafts: 2, from: '2026-06-01', to: '2026-09-01',
+                  hasProfile: true };
+
+test('the backup panel is collapsed until it is asked for', () => {
+  const node = backupControl({});
+  assert.equal(node.tagName, 'DETAILS');
+  assert.equal(node.getAttribute('open'), null);
+  assert.match(node.querySelector('summary').textContent, /backup/i);
+});
+
+test('saving a backup is one tap and reports nothing else', () => {
+  let called = 0;
+  const node = backupControl({ onExport: () => { called += 1; } });
+  node.querySelectorAll('button').find(b => /save a backup/i.test(b.textContent))
+      .dispatch('click');
+  assert.equal(called, 1);
+});
+
+test('a file picker is offered, restricted to JSON', () => {
+  const input = backupControl({}).querySelector('input');
+  assert.equal(input.getAttribute('type'), 'file');
+  assert.match(input.getAttribute('accept'), /json/);
+});
+
+// The guard. Restoring destroys every session on the device, so it must never
+// be reachable in one gesture from a file picker that opens on a tap.
+test('choosing a file does not restore anything on its own', () => {
+  let applied = 0;
+  const node = backupControl({ pending: SUMMARY, onApply: () => { applied += 1; } });
+  assert.equal(applied, 0, 'rendering the confirmation restored data by itself');
+});
+
+test('the confirmation names what it is about to destroy', () => {
+  const node = backupControl({ pending: SUMMARY, existing: { sessions: 12 } });
+  const text = node.textContent;
+  assert.match(text, /47/, 'does not say how many sessions are coming in');
+  assert.match(text, /12/, 'does not say how many sessions are being replaced');
+  assert.match(text, /2026-06-01/);
+  assert.match(text, /2026-09-01/);
+  assert.match(text, /replace/i);
+});
+
+test('confirming reports it once, and only when it is confirmed', () => {
+  let applied = 0;
+  const node = backupControl({ pending: SUMMARY, existing: { sessions: 12 },
+                               onApply: () => { applied += 1; } });
+  node.querySelectorAll('button').find(b => /replace/i.test(b.textContent))
+      .dispatch('click');
+  assert.equal(applied, 1);
+});
+
+test('a restore can be backed out of before it happens', () => {
+  let applied = 0, cancelled = 0;
+  const node = backupControl({ pending: SUMMARY, existing: { sessions: 12 },
+                               onApply: () => { applied += 1; },
+                               onCancel: () => { cancelled += 1; } });
+  node.querySelectorAll('button').find(b => /cancel/i.test(b.textContent))
+      .dispatch('click');
+  assert.equal(cancelled, 1);
+  assert.equal(applied, 0);
+});
+
+test('with nothing chosen there is no confirm button to hit', () => {
+  const node = backupControl({});
+  const confirm = node.querySelectorAll('button')
+    .find(b => /replace/i.test(b.textContent));
+  assert.equal(confirm, undefined);
+});
+
+test('a refused file shows the reason instead of the confirmation', () => {
+  const node = backupControl({ error: 'That is not a GymBuddy backup file.' });
+  assert.match(node.textContent, /not a GymBuddy backup/);
+  assert.equal(
+    node.querySelectorAll('button').find(b => /replace/i.test(b.textContent)),
+    undefined,
+    'a file that was refused still offered to overwrite the history');
+});
+
+test('an empty backup still says so rather than reading as a no-op', () => {
+  const node = backupControl({
+    pending: { sessions: 0, drafts: 0, from: null, to: null, hasProfile: false },
+    existing: { sessions: 12 }
+  });
+  assert.match(node.textContent, /0 session|no session/i);
+});
+
+test('the home screen carries the backup panel, below the calendar', () => {
+  const node = home({ backup: {} });
+  const panel = node.querySelector('.backup');
+  assert.ok(panel, 'no backup panel on the home screen');
+  assert.equal(panel.tagName, 'DETAILS');
+
+  // Below the calendar, not above it. The one thing this screen is for is the
+  // Generate button; a rarely-used panel must not push the month grid down.
+  const kids = node.childNodes.filter(c => c.nodeType === 1);
+  const cal = kids.findIndex(c => c.classList.contains('calendar'));
+  const bak = kids.findIndex(c => c.classList.contains('backup'));
+  assert.ok(cal >= 0 && bak > cal, `calendar at ${cal}, backup at ${bak}`);
+});
+
+test('no backup panel is rendered when the screen is not given one', () => {
+  assert.equal(home().querySelector('.backup'), null);
+});
+
+// --------------------------------------------------------------------------
+// Found by reviewing the rendered panel in Chrome at 320-430px, not by the
+// suite. Each of these was visible on screen and invisible to every assertion
+// above it.
+// --------------------------------------------------------------------------
+
+test('the file picker is labelled by something you can actually tap', () => {
+  // Measured at 320/360/390/430px: the bare <input type="file"> lays out 25px
+  // tall against 44px for every other control on the screen. Wrapping it in a
+  // label gives the visible text a hit target and makes the row tappable, and
+  // the label is then the accessible name, so the aria-label comes off --
+  // semantic HTML before ARIA.
+  const node = backupControl({});
+  const label = node.querySelector('label');
+  assert.ok(label, 'the file input has no label element');
+  assert.ok(label.querySelector('input'), 'the label does not wrap the input');
+  assert.match(label.textContent, /restore/i);
+  assert.equal(node.querySelector('input').getAttribute('aria-label'), null,
+    'aria-label duplicates the visible label and overrides it');
+});
+
+test('a refused file announces itself', () => {
+  // The whole screen is re-mounted when a file is chosen, so a message that is
+  // only visible is a message a screen reader never gets.
+  const node = backupControl({ error: 'That is not a GymBuddy backup file.' });
+  assert.equal(node.querySelector('.backup-error').getAttribute('role'), 'alert');
+});
+
+test('the destructive button does not dress as the safe one', () => {
+  // "Replace everything" was rendering in --accent, the same colour as
+  // "Generate today's workout" -- the most inviting thing on the screen, worn
+  // by the only control that can destroy the history.
+  const node = backupControl({ pending: SUMMARY, existing: { sessions: 12 } });
+  const apply = node.querySelector('.backup-apply');
+  assert.ok(apply.classList.contains('btn-danger'),
+    'the restore button still wears the primary accent');
+  const cancel = node.querySelector('.backup-cancel');
+  assert.ok(!cancel.classList.contains('btn-danger'));
 });

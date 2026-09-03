@@ -180,3 +180,70 @@ test('generating twice in one day does not write a second entry', async () => {
 
   assert.equal(readState(store).history.length, 1);
 });
+
+// --------------------------------------------------------------------------
+// Backup. spec §6.6
+// --------------------------------------------------------------------------
+//
+// The delivery cascade (`navigator.share` -> `<a download>` -> clipboard) is
+// NOT asserted anywhere and cannot be: it needs a real share sheet on a real
+// phone. What this boot CAN prove is the half that would otherwise only be
+// proven by opening the app -- that the panel is on the launched screen at
+// all, that it is wired to the real storage module rather than to a fixture,
+// and that a `navigator` with no `share` on it does not stop the app booting.
+
+test('the backup panel is on the screen a launch renders', async () => {
+  const { root, store } = installBrowser();
+  seedProfile(store);
+
+  await boot();
+
+  const panel = root.querySelector('.backup');
+  assert.ok(panel, 'no backup panel on the home screen');
+  assert.ok(root.querySelector('.backup-save'), 'no way to save a backup');
+  assert.ok(root.querySelector('.backup-file'), 'no way to choose a file');
+  // Collapsed, and offering nothing destructive until a file has been read.
+  assert.equal(panel.getAttribute('open'), null);
+  assert.equal(root.querySelector('.backup-apply'), null,
+    'a launch offered to overwrite the history');
+});
+
+test('rendering the backup panel writes nothing', async () => {
+  // The panel reads the history to say how many sessions a restore would
+  // destroy. Reading is all it may do -- this is the same claim as the first
+  // test in this file, re-made against the code that was added after it.
+  const { store } = installBrowser();
+  seedProfile(store);
+  const before = store.get(KEY);
+
+  await boot();
+
+  assert.equal(store.get(KEY), before, 'launching with the panel wrote to storage');
+});
+
+test('a backup taken from a booted app can be read back by the app', async () => {
+  // End to end through the real modules, not through a hand-built blob: boot,
+  // generate a session so there is something worth keeping, export, wipe, and
+  // import. This is the claim the whole feature exists to make.
+  const { root, store } = installBrowser();
+  seedProfile(store);
+  await boot();
+
+  root.querySelector('.home-generate').dispatch('click');
+  for (let i = 0; i < 20; i++) await new Promise(r => setTimeout(r, 0));
+  const trained = readState(store).history;
+  assert.equal(trained.length, 1, 'nothing was generated to back up');
+
+  const storage = await import('../js/storage.js');
+  const { json } = storage.exportBlob();
+
+  store.delete(KEY);                       // the phone is gone
+  assert.deepEqual(storage.loadHistory(), []);
+
+  const result = storage.readImport(json);
+  assert.equal(result.ok, true, result.error);
+  assert.equal(storage.applyImport(result.state), true);
+
+  assert.deepEqual(storage.loadHistory().map(s => s.date), trained.map(s => s.date));
+  assert.equal(storage.loadProfile().returnDate, '2026-01-05');
+});

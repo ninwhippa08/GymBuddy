@@ -1508,3 +1508,42 @@ This is a use report, not a step-by-step run of the table above, and it is
 recorded as what it is. It covers the thing the desktop check could not: the
 installed PWA on the real device, at the real viewport, over the real service
 worker. It does not independently re-verify any numbered step.
+
+### The backup panel — checked in Chrome, 2026-09-03
+
+Run against `python -m http.server 8123` with a seeded profile and three
+confirmed sessions. Driven through the real handlers: a `File` set on the
+input via `DataTransfer`, then a real `change` event.
+
+| Check | Result |
+|---|---|
+| panel present, collapsed, no destructive control | **PASS.** `.backup` closed on launch; no `.backup-apply` anywhere. |
+| choosing a file destroys nothing | **PASS.** Confirmation appeared naming 3 sessions from 2026-07-04 to 2026-07-11; the 3 sessions already on the device were still in `localStorage`, untouched. |
+| Cancel backs out | **PASS.** Confirmation gone, history unchanged. |
+| Replace everything restores | **PASS.** History became the July dates, `profile.returnDate` became 2026-03-15, and the status line re-read "Last trained 54 days ago". |
+| a file from another app is refused | **PASS.** `{"app":"something-else"}` produced "That is not a GymBuddy backup file.", offered no apply button, and left the restored history in place. |
+| export round-trips | **PASS.** `gymbuddy-backup-2026-09-03.json`, envelope correct, indented, and `readImport` accepts its own output. |
+| delivery branch | `navigator.canShare({files})` is **true** in this Chrome, so the share path is the one that fires. The iOS share sheet itself is still unverified — that needs the phone. |
+
+### Three things this check caught that the suite could not
+
+**The file input was 25px tall.** Measured through same-origin iframes at 320,
+360, 390 and 430px, against 44px for every other control on the screen. It is
+now wrapped in a `<label>` that carries the target: 96px at every width, and
+the visible text became part of the hit area. The `aria-label` came off with
+it, since the label is now the accessible name.
+
+**"Replace everything" was wearing `--accent`** — the same amber as "Generate
+today's workout", the most inviting thing on the screen, on the only control
+in the app that destroys data. Now `.btn-danger` in `--warn`.
+
+**A refused file was visible but silent.** Choosing a file re-mounts the whole
+screen, so the error carried no announcement. It now has `role="alert"`.
+
+### Known cosmetic wart, not fixed
+
+After a file is chosen the native input re-reads "no file selected", because
+`showHome()` rebuilds the DOM and the fresh input has no `FileList`. The
+confirmation box directly below states what was loaded, so the screen is not
+ambiguous, but the two lines disagree. Preserving a `FileList` across a
+re-render is more machinery than the confusion costs.
