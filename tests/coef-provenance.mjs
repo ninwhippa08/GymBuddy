@@ -29,7 +29,25 @@
 
 export const COEF_PROVENANCE = {
   "box-squat"                 : { coef: 0.9  , of: "back-squat"      , tag: 'unverified' },
-  "safety-bar-squat"          : { coef: 0.9  , of: "back-squat"      , tag: 'unverified' },
+  // SOURCED 2026-09-03 AND HELD UNCHANGED, the second entry to survive contact
+  // with the literature. Three within-subject 1RM comparisons, and they agree
+  // more tightly than any other family in this register:
+  //   Vantrease et al. (n=32 trained men): 144.7 vs 128.8 kg, back squat
+  //     +11.6%  ->  0.890
+  //   n=12 competitive powerlifters: +11.3%  ->  0.898
+  //   a third comparison: +10.9%  ->  0.902
+  //   https://www.strongerbyscience.com/safety-bar-squats/
+  //   https://pubmed.ncbi.nlm.nih.gov/38595263/
+  // The band is 0.890-0.902 and the inherited 0.90 sits inside it. Unlike
+  // close-grip above, the sources here do not disagree -- a 0.7-point spread
+  // is agreement -- so there is no lower bound to prefer, and trap-bar's
+  // precedent applies: the value needed no correction. Taking the bottom of
+  // the band anyway would be 0.89, a 1% change and a false precision.
+  //
+  // 'corroborated', not 'verified', for trap-bar's reason: a tag describes the
+  // strength of the claim, not the prestige of the citation. Three samples of
+  // 12-32 people agreeing is strong; it is not a measurement of the ratio.
+  "safety-bar-squat"          : { coef: 0.9  , of: "back-squat"      , tag: 'corroborated' },
   // SOURCED 2026-09-03, AND IT MOVED DOWN. 0.85 -> 0.78.
   //
   // Gullett et al. 2009 (JSCR 23(1):284-292) is the right shape of evidence
@@ -62,8 +80,46 @@ export const COEF_PROVENANCE = {
   "zercher-squat"             : { coef: 0.65 , of: "back-squat"      , tag: 'unverified' },
   "good-morning"              : { coef: 0.4  , of: "back-squat"      , tag: 'unverified' },
   "floor-press"               : { coef: 0.92 , of: "bench-press"     , tag: 'unverified' },
+  // INVESTIGATED 2026-09-03 AND LEFT UNSOURCED. A NEGATIVE RESULT, recorded so
+  // the next pass does not spend the same hour.
+  //
+  // The paused/touch-and-go 1RM ratio does not appear to have been measured.
+  // What exists is powerlifting coaching on why a competition pause is trained
+  // (it removes the stretch-shortening contribution) and forum self-reports,
+  // which is not evidence of a ratio. The DIRECTION is not in doubt and the
+  // library already has it right -- a paused press is lighter, and this entry
+  // sits below 1.00. The MAGNITUDE, 8%, has nothing behind it.
+  //
+  // Note the root is a touch-and-go press: `bench-press`'s cues say "bar to
+  // the lower chest" and never mention a pause, so the comparison is at least
+  // well-posed. That is worth more than it sounds -- it is the condition
+  // incline-bench and close-grip needed before their studies could be used.
   "pause-bench-press"         : { coef: 0.92 , of: "bench-press"     , tag: 'unverified' },
-  "close-grip-bench-press"    : { coef: 0.9  , of: "bench-press"     , tag: 'unverified' },
+  // SOURCED 2026-09-03, AND IT IS THE FIRST ONE THAT WAS TOO LOW. 0.90 -> 0.93.
+  //
+  // Lockwood et al. (PMC5968970): n=27 resistance-trained (21M, 6F, >=2 years,
+  // >=2 sessions/week, experienced with maximal lifts), repeated measures, the
+  // same people on both lifts.
+  //   traditional  87.35 +/- 27.23 kg     close-grip  83.03 +/- 24.67 kg
+  //   83.03 / 87.35 = 0.951, a significant but trivial effect (d = 0.17)
+  //   https://pmc.ncbi.nlm.nih.gov/articles/PMC5968970/
+  //
+  // AND THE GRIP MATCHES, which is the second time the library's own cues have
+  // made a study usable. CGBP was standardised at 95% of biacromial distance;
+  // biacromial distance IS shoulder width, and this entry's first cue says
+  // "Hands about shoulder-width -- close, not touching in the middle."
+  //
+  // 0.93, NOT the measured 0.951. Between-subject competition data puts the
+  // ratio nearer 0.93-0.94, so the estimates disagree and the LOWER is taken,
+  // exactly as the overhead-press ladder did. That rule was written to stop
+  // overloads; here it costs a little load instead, and it is applied in the
+  // direction that is inconvenient rather than only when convenient.
+  //
+  // Worth noting that this is a coefficient RISING, which puts more weight on
+  // the bar than yesterday. It is defensible because the root's own cue
+  // mandates a spotter or rack pins, and because 0.90 was below every estimate
+  // found rather than inside the spread.
+  "close-grip-bench-press"    : { coef: 0.93 , of: "bench-press"     , tag: 'corroborated' },
   // SOURCED 2026-09-03, AND IT MOVED DOWN. 0.85 -> 0.78. The best-evidenced
   // entry in this register.
   //
@@ -140,6 +196,31 @@ export const COEF_PROVENANCE = {
   // spread, not a measurement of it. A tag describes the strength of the
   // claim, not the prestige of the citation.
   "trap-bar-deadlift"         : { coef: 1.05 , of: "deadlift"        , tag: 'corroborated' },
+  // INVESTIGATED 2026-09-03 AND LEFT AT 1.00, because THERE IS NO POPULATION
+  // RATIO TO FIND. This is rack-pull's outcome reached by a different road.
+  //
+  // The literature on sumo vs conventional is biomechanics -- joint moments,
+  // EMG, bar path, lever distance -- and a joint moment is not a 1RM ratio, the
+  // same category error rack-pull's note already rejects. The 1RM comparisons
+  // that do exist are unusable in opposite ways:
+  //   - Between-subject competition data is SELF-SELECTED. Lifters choose the
+  //     style they are better at, and sumo "disproportionately rewards people
+  //     who already have great leverages", so the best deadlifters are
+  //     disproportionately sumo pullers. The elite "sumo is 20-25% more" figure
+  //     describes who chose sumo, not what a ratio is.
+  //   - The one within-subject comparison found conventional > sumo in subjects
+  //     who ALSO had more conventional training experience. That is a skill
+  //     effect wearing a leverage effect's clothes.
+  // The honest conclusion is that this ratio is individual and dominated by
+  // which style is trained -- the same finding as front-squat above, where the
+  // spread runs 50-60% to 90% on training emphasis alone.
+  //
+  // SO WHY LEAVE 1.00, when front-squat moved on the same reasoning? Because
+  // the failure mode is benign and unique in this register. A sumo pull that
+  // is too heavy DOES NOT MOVE: the bar stays on the floor, which is the
+  // safest miss in the library -- nothing is caught overhead, nothing has to
+  // be escaped from under. §8's asymmetry is about the cost of being high, and
+  // here that cost is a wasted set in both directions.
   "sumo-deadlift"             : { coef: 1    , of: "deadlift"        , tag: 'unverified' },
   "deficit-deadlift"          : { coef: 0.85 , of: "deadlift"        , tag: 'unverified' },
   "romanian-deadlift"         : { coef: 0.7  , of: "deadlift"        , tag: 'unverified' },
@@ -221,6 +302,23 @@ export const COEF_PROVENANCE = {
   //   https://store.torokhtiy.com/blogs/guides/power-clean-standards
   "squat-clean"               : { coef: 1.18 , of: "power-clean"     , tag: 'corroborated' },
   "clean-high-pull"           : { coef: 1    , of: "power-clean"     , tag: 'unverified' },
+  // INVESTIGATED 2026-09-03 AND LEFT UNSOURCED, HAVING NEARLY BEEN "SOURCED"
+  // BY A NUMBER THAT MEANS SOMETHING ELSE. Recorded because the trap is
+  // subtle and the next pass will meet it too.
+  //
+  // Everett gives hang power clean loading as "about 70-80%", and 0.90 sits
+  // above that, so it reads as an overload found. IT IS NOT A 1RM RATIO. That
+  // is a PRESCRIPTION -- what to put on the bar on a lighter technique day --
+  // and this register's coefficients are CAPACITIES, which the day type's
+  // envelope then takes a percentage of. Using it would apply the training
+  // percentage twice and halve the load.
+  //   https://www.catalystathletics.com/article/1917/
+  //
+  // The same category error as rack-pull's force-plate data and sumo's joint
+  // moments: three different quantities that all look like the one this file
+  // needs. A number is only usable here if it answers "what is the most he
+  // could lift", and a coach answering "what should he lift today" is not
+  // answering it.
   "hang-power-clean"          : { coef: 0.9  , of: "power-clean"     , tag: 'unverified' },
   "high-hang-clean"           : { coef: 0.82 , of: "power-clean"     , tag: 'unverified' },
   // SOURCED 2026-08-25, unchanged -- same argument as clean-pull above, and
@@ -291,9 +389,22 @@ export const COEF_PROVENANCE = {
 // Lowered 23 -> 21 on 2026-09-03 for front-squat and incline-bench-press, the
 // FIRST SUB-PARITY entries to be paid off. Both were 0.85 and both moved to
 // 0.78; both had been sitting at the top of a population band as though it
-// were the middle of one. The work above the line is finished as far as reading can
+// were the middle of one.
+// Lowered 21 -> 20 the same day for close-grip-bench-press, which went the
+// OTHER WAY: 0.90 was below every estimate found, and it rose to 0.93. Worth
+// recording that the register is not a one-way ratchet on the numbers even
+// though it is one on the debt -- three of the four sub-parity entries sourced
+// so far were wrong, and they were not all wrong in the safe direction.
+// Two more were investigated and honestly left alone: pause-bench-press (no
+// measurement of the ratio appears to exist) and sumo-deadlift (no population
+// ratio exists to find). Negative results are recorded at their entries so the
+// next pass does not re-spend the search.
+// Lowered 20 -> 19 for safety-bar-squat, SOURCED AND UNCHANGED. Three
+// within-subject studies put it at 0.890-0.902 and the inherited 0.90 is
+// inside that. The debt falls when a number gains a source, not when it
+// changes -- trap-bar established that and this is the second case. The work above the line is finished as far as reading can
 // take it, so the remaining debt is the cheap-to-be-wrong half: an error
 // under 1.00 wastes a set where an error above it is an overload. That does
 // not make these free -- front-squat was 9% high against the only
 // within-subject measurement there is.
-export const UNVERIFIED_BUDGET = 21;
+export const UNVERIFIED_BUDGET = 19;

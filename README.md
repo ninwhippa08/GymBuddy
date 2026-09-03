@@ -312,8 +312,13 @@ instead, on the precedent already set for `aerobic-steady`. The recommendation
 is recorded and deliberately not taken: it widens a rule governing every pool
 in the app, and that is the athlete's call to make.
 
-**23 of the 31 load coefficients are tagged `[unverified]`.**
+**19 of the 31 load coefficients are tagged `[unverified]`.**
 `tests/coef-provenance.mjs` records the provenance of every one, and a test
-fails if the unverified count rises above its budget. The number is visible
-rather than hidden, which is the point of keeping the register.
+fails if the unverified count rises above its budget, so the debt can shrink
+and never grow. The number is visible rather than hidden, which is the point
+of keeping the register. Four were sourced on 2026-09-03 and three of the four
+were wrong: the front squat and the 30-degree incline bench were both 9% high,
+and the close-grip bench was 3% low. Entries that were investigated and could
+not be sourced say so, and say why, so the next pass does not repeat the
+search.
 

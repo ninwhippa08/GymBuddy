@@ -373,7 +373,7 @@
       "modalities": ["max-strength","hypertrophy"] },
 
     { "id": "close-grip-bench-press", "name": "Close-Grip Bench Press", "pattern": "push-h", "tier": "secondary",
-      "loadable": true, "prRef": "bench-press", "prCoef": 0.90,
+      "loadable": true, "prRef": "bench-press", "prCoef": 0.93,
       "joints": ["shoulder","elbow"], "equipment": ["barbell","bench","rack"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": false,
       "cues": ["Hands about shoulder-width -- close, not touching in the middle.","Elbows tuck in towards the ribs and the bar lands on the lower chest.","Keep the wrists stacked over the elbows rather than bent back.","The triceps run out before the chest does, so the last rep arrives early."],
