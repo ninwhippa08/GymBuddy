@@ -32,7 +32,7 @@ The **venue is an output, not an input.** The generated session determines
 whether this is a gym day or a park day. There is no equipment checklist.
 
 **No logging.** Generating a session still marks it as done — but as of
-`sw.js` v25, generating requires a **tap**. Opening the app writes nothing.
+`sw.js` v26, generating requires a **tap**. Opening the app writes nothing.
 The user declined confirmation prompts; the residual drift is documented in §6.
 
 ---
@@ -416,6 +416,27 @@ Recorded deliberately, each traceable to a decision the user made:
 4. **The ramp assumes honesty about `returnDate`.** Setting it to a past date
    skips the safety ramp entirely.
 5. **No individual injury modelling.** Population guidelines only (§ scope limit).
+6. **`localStorage` was the only copy of the profile and the history — CLOSED
+   2026-09-03 (`sw.js` v26).** Clearing site data, an origin evicted under
+   storage pressure, or a new phone lost everything, and with no account and no
+   server there was nothing to restore from. Unlike the other four this was not
+   a consequence of a decision; it was missing. The home screen now carries a
+   collapsed **Backup** panel. *Save a backup* wraps the whole state in an
+   envelope (`app`, `schemaVersion`, `exportedAt`) and hands the file to
+   `navigator.share`, falling back to `<a download>` and then to the clipboard;
+   the athlete is on an iPhone, where the share sheet is the only one of the
+   three that reliably works from an installed PWA. Restoring **replaces** and
+   never merges — joining two histories by date needs a rule for every conflict
+   and no way to be sure it chose right — and it takes two taps: choosing a
+   file only produces a summary of what it holds and what it would destroy, and
+   a second, separate tap writes. `storage.readImport` validates and returns;
+   `storage.applyImport` is the only function that writes. That seam is the
+   design: one function doing both would have exactly one bad day, the day a
+   truncated file passes the first half of validation and fails the second,
+   after the old data is already gone. A refused import is asserted to leave
+   the store byte-identical. **Not covered by the suite:** the share/download/
+   clipboard cascade needs a real device, and is checked by hand like every
+   other release.
 
 ---
 
@@ -481,7 +502,7 @@ Soreness body map with sore/hurt severity · swap button · ban list · history 
 **Phase 3 — intelligence.**
 Neglect-aware proposals with reason strings ("nothing explosive in 9 days") ·
 CNS account · ramp enforcement · architecture variation beyond straight sets ·
-JSON export/import.
+~~JSON export/import~~ — **built 2026-09-03, `sw.js` v26.** §6.6.
 
 ---
 

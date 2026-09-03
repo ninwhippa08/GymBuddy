@@ -14,7 +14,7 @@ import { SORENESS_JOINTS } from './rules.js';
 import {
   loadProfile, saveProfile, loadHistory, commitSession, sessionFor,
   pendingConfirmations, confirmSession, unconfirmSession, discardSession,
-  addDraft, loadDrafts, removeDraft
+  addDraft, loadDrafts, removeDraft, exportBlob, readImport, applyImport
 } from './storage.js';
 import {
   renderSession, renderSetup, renderError, renderNothingBuildable,
@@ -29,6 +29,14 @@ const root = document.getElementById('app');
 const ISSUE_BASE = 'https://github.com/ninwhippa08/GymBuddy/issues/new';
 
 let library = null;
+
+// A chosen-but-not-yet-applied backup, and why the last one was refused. Held
+// here rather than on the profile because it must not survive a reload: a
+// pending restore is a question waiting for an answer on THIS screen, and one
+// that outlived a relaunch would sit there offering to wipe the history of a
+// session that has moved on.
+let pendingRestore = null;      // { state, summary } from readImport
+let restoreError = '';
 
 // The local calendar day. NOT toISOString() -- see generator.js's localDate
 // for why that locked his card the morning after an evening session.
@@ -198,6 +206,128 @@ function showSession({
 let calYear = null;
 let calMonth = null;
 
+// --------------------------------------------------------------------------
+// Backup delivery. spec §6
+// --------------------------------------------------------------------------
+
+// Three ways to hand over a file, tried in order, because no single one of
+// them works everywhere and the athlete is on an iPhone.
+//
+// 1. `navigator.share` with a File. On iOS this is the only path that behaves:
+//    it opens the share sheet, so the backup can go to Files, AirDrop or Mail.
+//    Requires a secure context and a user gesture, both of which a tap on the
+//    button gives us.
+// 2. `<a download>` with a blob URL. The desktop answer, and Android's. In an
+//    iOS standalone PWA it has historically done nothing at all, which is
+//    exactly why it is second and not first.
+// 3. The clipboard. A last resort and openly a poor one: a year of training is
+//    around half a megabyte of JSON, and pasting that anywhere useful on a
+//    phone is unpleasant. It is here so that the answer is never "nothing
+//    happened".
+//
+// NONE of this is covered by the test suite. It needs a real device with a
+// real share sheet, and a shim standing in for `navigator.share` would only
+// assert that the code calls the function it obviously calls. `tests/
+// storage.test.mjs` carries the same note about `showSession`. Checked by hand
+// on the phone, like every other release.
+async function deliver(filename, json) {
+  const file = typeof File === 'function'
+    ? new File([json], filename, { type: 'application/json' })
+    : null;
+
+  // canShare({files}) is the documented way to ask, and skipping it is how you
+  // get a rejected promise on a browser that has share() but not file sharing.
+  if (file && navigator.share && navigator.canShare
+      && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: filename });
+      return 'shared';
+    } catch (e) {
+      // A cancelled share sheet is not a failure and must not fall through to
+      // dumping half a megabyte on the clipboard. Every other error may.
+      if (e && e.name === 'AbortError') return 'cancelled';
+    }
+  }
+
+  try {
+    const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    // Not revoked synchronously: Safari has cancelled the download it just
+    // started when the URL went away in the same tick.
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    return 'downloaded';
+  } catch { /* fall through */ }
+
+  try {
+    await navigator.clipboard.writeText(json);
+    return 'copied';
+  } catch {
+    return 'failed';
+  }
+}
+
+function backupPanel() {
+  return {
+    open: pendingRestore !== null || restoreError !== '',
+    pending: pendingRestore && pendingRestore.summary,
+    existing: { sessions: loadHistory().length },
+    error: restoreError,
+
+    onExport: async () => {
+      const { filename, json } = exportBlob();
+      const how = await deliver(filename, json);
+      restoreError = how === 'failed'
+        ? 'This phone would not let the app hand over the file.'
+        : how === 'copied'
+          ? 'Saving was not available, so the backup is on your clipboard instead.'
+          : '';
+      if (restoreError) showHome();
+    },
+
+    onFile: async f => {
+      pendingRestore = null;
+      restoreError = '';
+      if (!f) return;
+      let text;
+      try {
+        text = await f.text();
+      } catch {
+        restoreError = 'That file could not be read.';
+        return showHome();
+      }
+      const result = readImport(text);
+      if (result.ok) pendingRestore = result;
+      else restoreError = result.error;
+      showHome();
+    },
+
+    // The only call that writes. Everything above this point is reversible.
+    onApply: () => {
+      if (!pendingRestore) return;
+      const ok = applyImport(pendingRestore.state);
+      pendingRestore = null;
+      restoreError = ok ? '' : 'The restore could not be saved to this phone.';
+      // The calendar is pinned to a month that may predate the restored
+      // history, and the profile behind the whole screen has just been
+      // replaced. Reset both and rebuild from what is now on disk.
+      calYear = null;
+      calMonth = null;
+      showHome();
+    },
+
+    onCancel: () => {
+      pendingRestore = null;
+      restoreError = '';
+      showHome();
+    }
+  };
+}
+
 function showHome() {
   const profile = loadProfile();
   if (!profile || !profile.returnDate) return showSetup();
@@ -243,6 +373,7 @@ function showHome() {
       },
       onPick: d => showPastSession(d)
     },
+    backup: backupPanel(),
     onGenerate: () => showSession({ generate: true }),
     onOpenToday: () => showSession()
   }));

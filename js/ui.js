@@ -820,7 +820,8 @@ function statusLine(rampWeek, daysSince) {
 }
 
 export function renderHome({
-  rampWeek, daysSince, todaySession, soreness, calendar, onGenerate, onOpenToday
+  rampWeek, daysSince, todaySession, soreness, calendar, backup,
+  onGenerate, onOpenToday
 } = {}) {
   const children = [
     el('h1', { class: 'day-type', text: 'GymBuddy' }),
@@ -865,6 +866,104 @@ export function renderHome({
   }
 
   if (calendar) children.push(renderCalendar(calendar));
+  // Last on the screen on purpose. It is touched a handful of times a year and
+  // must not push the month grid, or the one button this screen exists for,
+  // any further down the phone.
+  if (backup) children.push(backupControl(backup));
 
   return el('div', { class: 'screen screen-home' }, children);
+}
+
+// --------------------------------------------------------------------------
+// Backup. spec §6 "no export or import"
+// --------------------------------------------------------------------------
+
+// Collapsed by default and sitting at the foot of the home screen, for the
+// same reason the add-move panel is: this is a control touched a handful of
+// times a year, and the home screen exists for one button.
+//
+// The shape here is driven entirely by the fact that RESTORING DESTROYS
+// EVERYTHING. A file picker opens on a tap and returns on a tap, so if the
+// restore fired on `change` the whole history would be gone two gestures after
+// an idle poke at a panel. So choosing a file only ever produces a `pending`
+// summary, and this function renders the confirmation for it; the write is a
+// second, separate, deliberate tap. `storage.readImport` and
+// `storage.applyImport` are split down the same seam.
+//
+// No `window.confirm`. The app builds its own UI everywhere else, a native
+// dialog in an installed PWA looks like a browser error, and a modal cannot
+// show the counts that make the confirmation mean anything.
+export function backupControl({
+  pending = null,          // a summary from storage.readImport, or null
+  existing = null,         // { sessions } that would be destroyed
+  error = '',              // why the chosen file was refused
+  onExport = () => {},
+  onFile = () => {},
+  onApply = () => {},
+  onCancel = () => {},
+  open = false
+} = {}) {
+  const file = el('input', {
+    type: 'file',
+    class: 'backup-file',
+    // The picker on a phone lists everything unless it is told not to.
+    accept: 'application/json,.json',
+    'aria-label': 'Choose a backup file to restore',
+    onchange: e => onFile(e && e.target && e.target.files && e.target.files[0])
+  });
+
+  const children = [
+    el('summary', { text: 'Backup' }),
+    el('p', {
+      class: 'backup-note',
+      text: 'Your training history lives only on this phone. A backup is the '
+          + 'only way to get it onto another one.'
+    }),
+    el('div', { class: 'backup-actions' }, [
+      el('button', {
+        type: 'button', class: 'btn btn-secondary backup-save',
+        text: 'Save a backup', onclick: () => onExport()
+      })
+    ]),
+    el('p', { class: 'setup-label', text: 'Restore from a file' }),
+    file
+  ];
+
+  if (error) {
+    children.push(el('p', { class: 'backup-error', text: error }));
+  }
+
+  if (pending) {
+    // Named, not counted vaguely. "Replace your history?" is a question he
+    // cannot answer; "replace 12 sessions with 47" is one he can.
+    const span = pending.from
+      ? `${pending.sessions} session${pending.sessions === 1 ? '' : 's'} `
+        + `from ${pending.from} to ${pending.to}`
+      // An empty backup is a real file and a real answer -- restoring one is
+      // how the app gets wiped deliberately. It must not read as a no-op.
+      : '0 sessions — this backup is empty';
+    const have = existing && typeof existing.sessions === 'number'
+      ? existing.sessions : 0;
+
+    children.push(el('div', { class: 'backup-confirm' }, [
+      el('p', { class: 'backup-what', text: `This file holds ${span}.` }),
+      el('p', {
+        class: 'backup-cost',
+        text: `Restoring will replace the ${have} session`
+            + `${have === 1 ? '' : 's'} on this phone. That cannot be undone.`
+      }),
+      el('div', { class: 'backup-actions' }, [
+        el('button', {
+          type: 'button', class: 'btn backup-apply',
+          text: 'Replace everything', onclick: () => onApply()
+        }),
+        el('button', {
+          type: 'button', class: 'btn btn-secondary backup-cancel',
+          text: 'Cancel', onclick: () => onCancel()
+        })
+      ])
+    ]));
+  }
+
+  return el('details', { class: 'backup', open }, children);
 }

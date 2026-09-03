@@ -304,3 +304,138 @@ test('an undone day is asked about again on the next launch', () => {
     ['2026-08-29']
   );
 });
+
+// --------------------------------------------------------------------------
+// Backup: export and import. spec §6 "no export or import".
+// --------------------------------------------------------------------------
+//
+// localStorage holds the only copy of the profile and the history, so this is
+// the one gap in the app with no workaround at all -- clearing site data or
+// changing phones loses everything. These tests cover the half a shim can
+// honestly measure: building the blob, and reading one back. The delivery
+// cascade (`navigator.share` -> `<a download>` -> clipboard) lives in app.js,
+// needs a real device, and is asserted nowhere. Same honesty as the note at
+// the top of this file about `showSession`.
+
+test('an export carries an envelope, so an import can recognise it', () => {
+  installStorage();
+  storage.saveProfile(PROFILE);
+  storage.commitSession(sessionWith([], '2026-08-29'));
+
+  const { filename, json } = storage.exportBlob();
+  const parsed = JSON.parse(json);
+
+  // The envelope is what makes "is this one of ours?" answerable. Without it a
+  // truncated file, or any other JSON on the phone, reaches the writer.
+  assert.equal(parsed.app, 'gymbuddy');
+  assert.equal(parsed.schemaVersion, 1);
+  assert.match(parsed.exportedAt, /^\d{4}-\d{2}-\d{2}T/);
+  assert.equal(parsed.state.profile.returnDate, '2026-08-01');
+  assert.equal(parsed.state.history.length, 1);
+  assert.match(filename, /^gymbuddy-backup-\d{4}-\d{2}-\d{2}\.json$/);
+});
+
+test('a backup read back reports what it holds before anything is written', () => {
+  installStorage();
+  storage.saveProfile(PROFILE);
+  storage.commitSession(sessionWith([], '2026-08-29'));
+  storage.commitSession(sessionWith([], '2026-08-31'));
+  storage.addDraft('Dumbbell Clean', 'from the rack');
+
+  const { json } = storage.exportBlob();
+  const result = storage.readImport(json);
+
+  assert.equal(result.ok, true);
+  // The summary is what the confirmation names. A destructive step that cannot
+  // say what it is about to destroy is not a confirmation.
+  assert.equal(result.summary.sessions, 2);
+  assert.equal(result.summary.drafts, 1);
+  assert.equal(result.summary.from, '2026-08-29');
+  assert.equal(result.summary.to, '2026-08-31');
+  assert.equal(result.summary.hasProfile, true);
+});
+
+test('a full round trip restores the profile, the history and the drafts', () => {
+  installStorage();
+  storage.saveProfile(PROFILE);
+  storage.commitSession(sessionWith(['barbell'], '2026-08-29'));
+  storage.addDraft('Dumbbell Clean', 'from the rack');
+  const { json } = storage.exportBlob();
+
+  installStorage();                       // a different phone: nothing on it
+  assert.equal(storage.loadHistory().length, 0);
+
+  const result = storage.readImport(json);
+  assert.equal(storage.applyImport(result.state), true);
+
+  assert.equal(storage.loadProfile().returnDate, '2026-08-01');
+  assert.deepEqual(storage.sessionFor('2026-08-29').excludeEquipment, ['barbell']);
+  assert.equal(storage.loadDrafts()[0].name, 'Dumbbell Clean');
+});
+
+test('importing replaces what is there rather than merging into it', () => {
+  installStorage();
+  storage.commitSession(sessionWith([], '2026-08-29'));
+  const { json } = storage.exportBlob();
+
+  installStorage();
+  storage.commitSession(sessionWith([], '2026-09-02'));   // a day not in the file
+  storage.applyImport(storage.readImport(json).state);
+
+  assert.deepEqual(storage.loadHistory().map(s => s.date), ['2026-08-29']);
+});
+
+// --------------------------------------------------------------------------
+// Everything that must be refused
+// --------------------------------------------------------------------------
+
+const REJECTED = [
+  ['not JSON at all', 'this is not json {'],
+  ['JSON that is not an object', '"a string"'],
+  ['a JSON array', '[1, 2, 3]'],
+  ['some other app\'s export', JSON.stringify({ app: 'notgymbuddy', state: {} })],
+  ['an envelope with no state', JSON.stringify({ app: 'gymbuddy', schemaVersion: 1 })],
+  ['a state with no history array', JSON.stringify({
+    app: 'gymbuddy', schemaVersion: 1, state: { profile: null, history: 'nope' } })],
+  ['a session with no date', JSON.stringify({
+    app: 'gymbuddy', schemaVersion: 1,
+    state: { profile: null, history: [{ dayType: 'power' }], drafts: [] } })],
+  ['a schemaVersion from the future', JSON.stringify({
+    app: 'gymbuddy', schemaVersion: 99,
+    state: { profile: null, history: [], drafts: [] } })]
+];
+
+for (const [label, text] of REJECTED) {
+  test(`${label} is refused with a reason`, () => {
+    installStorage();
+    const result = storage.readImport(text);
+    assert.equal(result.ok, false, `${label} was accepted`);
+    assert.equal(typeof result.error, 'string');
+    assert.ok(result.error.length > 0, 'a refusal with no reason tells him nothing');
+  });
+}
+
+// The reason readImport and applyImport are two functions rather than one.
+test('a refused import leaves the existing data byte-identical', () => {
+  const map = installStorage();
+  storage.saveProfile(PROFILE);
+  storage.commitSession(sessionWith([], '2026-08-29'));
+  const before = map.get('gymbuddy.v1');
+
+  for (const [, text] of REJECTED) storage.readImport(text);
+
+  assert.equal(map.get('gymbuddy.v1'), before,
+    'reading a bad import changed the store');
+});
+
+test('an empty but valid backup is accepted -- a new phone has nothing on it', () => {
+  installStorage();
+  const result = storage.readImport(JSON.stringify({
+    app: 'gymbuddy', schemaVersion: 1,
+    state: { profile: null, history: [], drafts: [] }
+  }));
+  assert.equal(result.ok, true);
+  assert.equal(result.summary.sessions, 0);
+  assert.equal(result.summary.from, null);
+  assert.equal(result.summary.hasProfile, false);
+});

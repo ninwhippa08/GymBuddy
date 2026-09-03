@@ -197,3 +197,128 @@ export function removeDraft(id) {
   writeAll(state);
   return true;
 }
+
+// --------------------------------------------------------------------------
+// Backup -- export and import
+// --------------------------------------------------------------------------
+
+// This file's opening comment says the whole state lives under one key so it
+// can be read, exported or wiped in one operation. Until now only two of those
+// three were true. localStorage holds the ONLY copy of the profile and the
+// history: clearing site data, a browser evicting the origin, or changing
+// phones loses all of it, and with no account and no server there is nothing
+// to restore from. Every other limitation in spec §6 is a consequence of a
+// decision; this one was just missing.
+//
+// Export and import are split across THREE functions rather than two, and the
+// split is the design. `readImport` validates and returns what it found;
+// `applyImport` is the only thing that writes. A single `import(text)` that
+// validated and wrote would have exactly one bad day -- the day a truncated
+// file passes the first half of validation and fails the second, after the
+// old data is already gone.
+const SCHEMA_VERSION = 1;
+
+// The local calendar day, NOT toISOString(). The same reason generator.js has
+// its own `localDate`: an evening export in a western timezone gets tomorrow's
+// date off toISOString, and a file named for a day he did not make it on is a
+// small lie that makes two backups sort wrongly. Not imported from
+// generator.js -- this file has no imports and is not going to grow a
+// dependency on a 60 kB module to format eight characters.
+function localStamp(d) {
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
+export function exportBlob(now = new Date()) {
+  return {
+    filename: `gymbuddy-backup-${localStamp(now)}.json`,
+    // The envelope is what makes "is this one of ours?" answerable at all. A
+    // bare state object is indistinguishable from any other JSON on the phone,
+    // and the file picker will happily hand over any of them.
+    //
+    // Indented, because the one thing he can do with this file without the app
+    // is open it and look at it. The size cost is real -- a session record is
+    // ~4.8 kB and a year of training is around half a megabyte -- but it is
+    // paid on a file that gets saved, not on anything the app reads at launch.
+    json: JSON.stringify({
+      app: 'gymbuddy',
+      schemaVersion: SCHEMA_VERSION,
+      exportedAt: now.toISOString(),
+      state: readAll()
+    }, null, 2)
+  };
+}
+
+const refuse = error => ({ ok: false, error });
+
+// Returns what it found. Writes NOTHING, on any path, including the happy one.
+export function readImport(text) {
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return refuse('That file is not JSON. Pick the backup file GymBuddy saved.');
+  }
+
+  const isObject = v => v !== null && typeof v === 'object' && !Array.isArray(v);
+
+  if (!isObject(parsed) || parsed.app !== 'gymbuddy') {
+    return refuse('That is not a GymBuddy backup file.');
+  }
+  const v = parsed.schemaVersion;
+  if (!Number.isInteger(v) || v < 1 || v > SCHEMA_VERSION) {
+    // Forward compatibility is refused loudly rather than attempted. A newer
+    // file may hold fields this build would silently drop on the next write.
+    return refuse(
+      `That backup was written by a newer version of GymBuddy (${v}). ` +
+      `This one reads up to version ${SCHEMA_VERSION}.`);
+  }
+  const state = parsed.state;
+  if (!isObject(state)) return refuse('That backup has no data in it.');
+  if (!Array.isArray(state.history)) {
+    return refuse('That backup has no history in it.');
+  }
+  if (state.drafts != null && !Array.isArray(state.drafts)) {
+    return refuse('That backup\'s saved moves are damaged.');
+  }
+  // `date` is the key everything else joins on -- `sessionFor`, the calendar,
+  // `pendingConfirmations` and the rolling pattern counts all look it up. A
+  // session without one is not a session that reads oddly; it is one no screen
+  // can ever show and no count can ever reach.
+  for (const s of state.history) {
+    if (!isObject(s) || typeof s.date !== 'string' || s.date === '') {
+      return refuse('That backup holds a session with no date, so it is damaged.');
+    }
+  }
+
+  const dates = state.history.map(s => s.date).sort();
+  return {
+    ok: true,
+    // Rebuilt rather than passed through: an imported store must have the same
+    // shape as a written one, including the newest-first ordering commitSession
+    // maintains, and unknown top-level keys do not survive into it.
+    state: {
+      schemaVersion: SCHEMA_VERSION,
+      profile: state.profile || null,
+      history: [...state.history].sort((a, b) => (a.date < b.date ? 1 : -1)),
+      drafts: Array.isArray(state.drafts) ? state.drafts : []
+    },
+    // What the confirmation names. A destructive step that cannot say what it
+    // is about to destroy is not a confirmation, it is a button.
+    summary: {
+      sessions: state.history.length,
+      drafts: Array.isArray(state.drafts) ? state.drafts.length : 0,
+      from: dates.length ? dates[0] : null,
+      to: dates.length ? dates[dates.length - 1] : null,
+      hasProfile: Boolean(state.profile)
+    }
+  };
+}
+
+// Replaces, and does not merge. "Restore a backup" means the file becomes the
+// state; joining two histories by date would need a rule for every conflict
+// and no way to be sure it picked right. Only ever called with a `state` that
+// came back from `readImport`.
+export function applyImport(state) {
+  return writeAll(state);
+}

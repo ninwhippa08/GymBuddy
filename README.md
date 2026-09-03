@@ -63,7 +63,7 @@ Requires Node 18 or newer (developed on Node 24). Nothing to install first.
 node --test tests/*.test.mjs
 ```
 
-Expected result: **395 passing, 0 failing.**
+Expected result: **424 passing, 0 failing.**
 
 ---
 
@@ -92,8 +92,13 @@ Expected result: **395 passing, 0 failing.**
    appear on the calendar — if you didn't tap it, you didn't do it. Tapping a
    past day on the calendar reopens that session, read-only.
 
+8. **Save a backup** on the home screen writes the whole state to a JSON file
+   and hands it to the phone's share sheet, so it can go to Files, AirDrop or
+   mail. Restoring reads one back: it names what the file holds and what it
+   would destroy, then waits for a second tap before replacing anything.
+
 There is no account, no server and no analytics. All state lives in the
-browser's `localStorage` under a single key.
+browser's `localStorage` under a single key, which is why the backup exists.
 
 ---
 
@@ -122,7 +127,7 @@ GymBuddy/
 ├── data/
 │   └── exercises.json    The exercise library: 237 exercises + 6 PR roots.
 │
-├── tests/                Node's built-in test runner. 395 tests, zero dependencies.
+├── tests/                Node's built-in test runner. 424 tests, zero dependencies.
 │   ├── *.test.mjs        One file per subject (session, ramp, coverage, ui, storage, …).
 │   ├── app.test.mjs      The launch path: asserts opening the app writes nothing.
 │   ├── calendar.test.mjs The month model: leap years, month edges, Monday weeks.
@@ -201,7 +206,7 @@ Two ideas hold the design together:
 node --test tests/*.test.mjs
 ```
 
-395 tests, using only Node's built-in `node:test` and `node:assert/strict`.
+424 tests, using only Node's built-in `node:test` and `node:assert/strict`.
 There is no `package.json` and nothing to install.
 
 They are not only unit tests. Several are **sweeps**: they generate thousands of
@@ -286,11 +291,6 @@ guidance, which is the documented scope limit.
 **No ban list.** `profile.banned` exists and `js/generator.js:415` filters on
 it, but no control ever writes to it. Swap changes one movement for one
 session; there is no way to retire a movement permanently.
-
-**No export or import.** `localStorage` holds the only copy of the profile and
-history. Clearing site data or changing phones loses it, with no recovery
-path. There is no account and no server by design, which makes this the one
-gap with no workaround.
 
 **Seven of the nine day types in `docs/spec.md` §5 exist.** `isolation` and
 `mobility` are specified and unimplemented.
