@@ -26,8 +26,58 @@
 // HIGHEST PRIORITY TO SOURCE are the coefficients ABOVE 1.00, because those
 // prescribe MORE weight than the reference PR and an error there is an
 // overload rather than a wasted set.
+//
+// WHERE THE READING RUNS OUT -- established 2026-09-03, after working through
+// the sub-parity entries. The remaining debt is not one backlog, it is two,
+// and they need different work:
+//
+//   (a) Variations that get 1RM-TESTED IN THEIR OWN RIGHT. Front squat,
+//       incline bench, close-grip bench and the safety bar squat all have
+//       within-subject studies that measured a separate 1RM per variation,
+//       because those variations are common enough to be worth a protocol.
+//       All four were sourced in an afternoon and THREE OF THE FOUR WERE
+//       WRONG -- two 9% high, one 3% low.
+//
+//   (b) Everything else. The literature on box squats, sumo deadlifts, rack
+//       pulls and the Olympic variants is BIOMECHANICS: joint moments, EMG,
+//       bar path, lever distance. Those studies routinely load every variation
+//       at a percentage of ONE measured 1RM, so by construction they cannot
+//       report a ratio between variations. This is the same category error
+//       rack-pull's note identified in 2026-08 and it turns out to be
+//       structural rather than incidental -- it is what most of this
+//       literature is FOR.
+//
+// So the cheap wins are spent. What is left needs either a primary study
+// nobody has run, or a decision to stop pretending a coefficient is the right
+// instrument. Entries below say which of the two they are waiting on.
+//
+// ONE LEAD, NOT PURSUED, recorded so it is not rediscovered as though new.
+// "A Weight-Dependent 1RM Prediction Equation Optimized on 303,494
+// Near-Failure Sets Across 388 Exercises" (arXiv 2603.17495) covers far more
+// movements than any lab study ever will. It is probably still the wrong
+// instrument: it fits how REPS TO FAILURE predict a 1RM WITHIN an exercise,
+// which is a different quantity from how one exercise's 1RM relates to
+// another's, and a per-exercise coefficient in that equation is not a prCoef.
+// Reading it here also failed for a dull reason -- the PDF's text is
+// font-encoded and did not extract.
+//
+// What WOULD answer this file is the dataset underneath it rather than the
+// paper: logged sets from users who train several variations would give
+// within-subject ratios directly, at a sample size no protocol can match. If
+// that data is ever reachable, it is worth more than every source cited above
+// put together. Noted as a direction, not as evidence -- nothing here is
+// sourced on a paper nobody has read.
 
 export const COEF_PROVENANCE = {
+  // INVESTIGATED 2026-09-03 AND LEFT UNSOURCED. See "WHERE THE READING RUNS
+  // OUT" above -- this is the clearest instance of it.
+  //
+  // The one relevant paper (Swinton et al., PubMed 22505136) compares the
+  // traditional, powerlifting and box squats in 12 male powerlifters, and the
+  // subjects lifted at 30, 50 and 70% OF THEIR BACK SQUAT 1RM in all three
+  // variations. One 1RM, three exercises: the design cannot produce a ratio
+  // between them, whatever else it produces. What it reports is peak joint
+  // moments, which is not the quantity this file needs.
   "box-squat"                 : { coef: 0.9  , of: "back-squat"      , tag: 'unverified' },
   // SOURCED 2026-09-03 AND HELD UNCHANGED, the second entry to survive contact
   // with the literature. Three within-subject 1RM comparisons, and they agree
@@ -79,6 +129,16 @@ export const COEF_PROVENANCE = {
   "pause-squat"               : { coef: 0.85 , of: "back-squat"      , tag: 'unverified' },
   "zercher-squat"             : { coef: 0.65 , of: "back-squat"      , tag: 'unverified' },
   "good-morning"              : { coef: 0.4  , of: "back-squat"      , tag: 'unverified' },
+  // INVESTIGATED 2026-09-03 AND LEFT UNSOURCED. This entry was the TEST of the
+  // generalisation above rather than another instance of it: floor press is
+  // the borderline case, common enough in powerlifting to plausibly have been
+  // 1RM-tested but not common enough to be certain. It has not been. What
+  // exists is the same standards-site class of source the register already
+  // rejects, and the range-of-motion literature studies partial vs full ROM
+  // training EFFECTS, not the 1RM either produces.
+  //
+  // Recorded as a confirmation, because a generalisation nobody tried to break
+  // is just an assertion.
   "floor-press"               : { coef: 0.92 , of: "bench-press"     , tag: 'unverified' },
   // INVESTIGATED 2026-09-03 AND LEFT UNSOURCED. A NEGATIVE RESULT, recorded so
   // the next pass does not spend the same hour.
@@ -223,6 +283,21 @@ export const COEF_PROVENANCE = {
   // here that cost is a wasted set in both directions.
   "sumo-deadlift"             : { coef: 1    , of: "deadlift"        , tag: 'unverified' },
   "deficit-deadlift"          : { coef: 0.85 , of: "deadlift"        , tag: 'unverified' },
+  // INVESTIGATED 2026-09-03 AND LEFT UNSOURCED, but the DIRECTION was checked
+  // and it is the safe one.
+  //
+  // No primary literature. What exists is calculator sites and forums, and
+  // this register has already rejected that class of source once, when
+  // Strength Level's per-lift means implied a push jerk heavier than a split
+  // jerk. Worse, those pages mix the two quantities freely: "use 50-70% of
+  // your deadlift for RDLs" is a training prescription and "RDL 1RM is 70-85%
+  // of deadlift 1RM" is a capacity, and the same page will print both.
+  //
+  // Every capacity band quoted -- 65-85%, 70-80%, 70-85% -- sits AT OR ABOVE
+  // the inherited 0.70. So the number is not sourced, but it is at the bottom
+  // of the range everyone claims, which is the direction §8 says to err. It
+  // is left alone rather than raised toward a band no primary source supports:
+  // raising it would put weight on the bar on the authority of an SEO page.
   "romanian-deadlift"         : { coef: 0.7  , of: "deadlift"        , tag: 'unverified' },
   "barbell-row"               : { coef: 0.55 , of: "deadlift"        , tag: 'unverified' },
   "pendlay-row"               : { coef: 0.5  , of: "deadlift"        , tag: 'unverified' },
