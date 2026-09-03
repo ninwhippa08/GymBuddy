@@ -1496,3 +1496,15 @@ cache-busting query string did not help either. Every measurement before the
 unregister was of the OLD stylesheet, and the first "fix" appeared to do
 nothing. This is exactly what `sw.js`'s header warns about, and it is the
 reason Task 8 Step 5 bumps `VERSION` in the same edit that adds the new file.
+
+
+### The phone check — 2026-09-03, passed
+
+Reported by the athlete after using the deployed app on his own phone:
+*"the phone check passed. I had no problem using it."* Step 10 of design §11
+is now closed.
+
+This is a use report, not a step-by-step run of the table above, and it is
+recorded as what it is. It covers the thing the desktop check could not: the
+installed PWA on the real device, at the real viewport, over the real service
+worker. It does not independently re-verify any numbered step.
