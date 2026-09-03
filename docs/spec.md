@@ -32,7 +32,7 @@ The **venue is an output, not an input.** The generated session determines
 whether this is a gym day or a park day. There is no equipment checklist.
 
 **No logging.** Generating a session still marks it as done — but as of
-`sw.js` v27, generating requires a **tap**. Opening the app writes nothing.
+`sw.js` v28, generating requires a **tap**. Opening the app writes nothing.
 The user declined confirmation prompts; the residual drift is documented in §6.
 
 ---
