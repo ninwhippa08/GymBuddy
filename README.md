@@ -63,7 +63,7 @@ Requires Node 18 or newer (developed on Node 24). Nothing to install first.
 node --test tests/*.test.mjs
 ```
 
-Expected result: **424 passing, 0 failing.**
+Expected result: **427 passing, 0 failing.**
 
 ---
 
@@ -127,7 +127,7 @@ GymBuddy/
 ├── data/
 │   └── exercises.json    The exercise library: 237 exercises + 6 PR roots.
 │
-├── tests/                Node's built-in test runner. 424 tests, zero dependencies.
+├── tests/                Node's built-in test runner. 427 tests, zero dependencies.
 │   ├── *.test.mjs        One file per subject (session, ramp, coverage, ui, storage, …).
 │   ├── app.test.mjs      The launch path: asserts opening the app writes nothing.
 │   ├── calendar.test.mjs The month model: leap years, month edges, Monday weeks.
@@ -206,7 +206,7 @@ Two ideas hold the design together:
 node --test tests/*.test.mjs
 ```
 
-424 tests, using only Node's built-in `node:test` and `node:assert/strict`.
+427 tests, using only Node's built-in `node:test` and `node:assert/strict`.
 There is no `package.json` and nothing to install.
 
 They are not only unit tests. Several are **sweeps**: they generate thousands of

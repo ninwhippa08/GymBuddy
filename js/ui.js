@@ -908,9 +908,18 @@ export function backupControl({
     class: 'backup-file',
     // The picker on a phone lists everything unless it is told not to.
     accept: 'application/json,.json',
-    'aria-label': 'Choose a backup file to restore',
     onchange: e => onFile(e && e.target && e.target.files && e.target.files[0])
   });
+
+  // Wrapped in a label rather than labelled beside one. Measured in Chrome at
+  // 320-430px, a bare file input lays out 25px tall while every other control
+  // on this screen is 44px; the label carries the height and makes the visible
+  // text part of the same hit target. It is also the accessible name, so the
+  // input needs no aria-label -- semantic HTML before ARIA.
+  const restore = el('label', { class: 'backup-restore' }, [
+    el('span', { class: 'setup-label', text: 'Restore from a file' }),
+    file
+  ]);
 
   const children = [
     el('summary', { text: 'Backup' }),
@@ -925,12 +934,13 @@ export function backupControl({
         text: 'Save a backup', onclick: () => onExport()
       })
     ]),
-    el('p', { class: 'setup-label', text: 'Restore from a file' }),
-    file
+    restore
   ];
 
   if (error) {
-    children.push(el('p', { class: 'backup-error', text: error }));
+    // role=alert, because choosing a file re-mounts the whole screen: a
+    // message that is only visible is one a screen reader never receives.
+    children.push(el('p', { class: 'backup-error', role: 'alert', text: error }));
   }
 
   if (pending) {
@@ -953,8 +963,12 @@ export function backupControl({
             + `${have === 1 ? '' : 's'} on this phone. That cannot be undone.`
       }),
       el('div', { class: 'backup-actions' }, [
+        // NOT the plain `.btn`. That is `--accent`, the colour worn by
+        // "Generate today's workout" -- the most inviting thing on the screen,
+        // and the wrong dress for the only control that can destroy the
+        // history. Seen in the browser; no assertion above caught it.
         el('button', {
-          type: 'button', class: 'btn backup-apply',
+          type: 'button', class: 'btn btn-danger backup-apply',
           text: 'Replace everything', onclick: () => onApply()
         }),
         el('button', {

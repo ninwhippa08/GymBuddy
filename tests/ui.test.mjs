@@ -915,3 +915,43 @@ test('the home screen carries the backup panel, below the calendar', () => {
 test('no backup panel is rendered when the screen is not given one', () => {
   assert.equal(home().querySelector('.backup'), null);
 });
+
+// --------------------------------------------------------------------------
+// Found by reviewing the rendered panel in Chrome at 320-430px, not by the
+// suite. Each of these was visible on screen and invisible to every assertion
+// above it.
+// --------------------------------------------------------------------------
+
+test('the file picker is labelled by something you can actually tap', () => {
+  // Measured at 320/360/390/430px: the bare <input type="file"> lays out 25px
+  // tall against 44px for every other control on the screen. Wrapping it in a
+  // label gives the visible text a hit target and makes the row tappable, and
+  // the label is then the accessible name, so the aria-label comes off --
+  // semantic HTML before ARIA.
+  const node = backupControl({});
+  const label = node.querySelector('label');
+  assert.ok(label, 'the file input has no label element');
+  assert.ok(label.querySelector('input'), 'the label does not wrap the input');
+  assert.match(label.textContent, /restore/i);
+  assert.equal(node.querySelector('input').getAttribute('aria-label'), null,
+    'aria-label duplicates the visible label and overrides it');
+});
+
+test('a refused file announces itself', () => {
+  // The whole screen is re-mounted when a file is chosen, so a message that is
+  // only visible is a message a screen reader never gets.
+  const node = backupControl({ error: 'That is not a GymBuddy backup file.' });
+  assert.equal(node.querySelector('.backup-error').getAttribute('role'), 'alert');
+});
+
+test('the destructive button does not dress as the safe one', () => {
+  // "Replace everything" was rendering in --accent, the same colour as
+  // "Generate today's workout" -- the most inviting thing on the screen, worn
+  // by the only control that can destroy the history.
+  const node = backupControl({ pending: SUMMARY, existing: { sessions: 12 } });
+  const apply = node.querySelector('.backup-apply');
+  assert.ok(apply.classList.contains('btn-danger'),
+    'the restore button still wears the primary accent');
+  const cancel = node.querySelector('.backup-cancel');
+  assert.ok(!cancel.classList.contains('btn-danger'));
+});

@@ -238,6 +238,13 @@ body {
   color: var(--text);
 }
 
+/* For the one control in the app that destroys data. --accent means "this is
+   the thing to press"; this one is not, and it must not borrow that read. */
+.btn-danger {
+  background: var(--warn);
+  color: #14161a;
+}
+
 /* Full width on its own row, and it MUST come after `.btn`: both selectors are
    one class, so the later rule wins and `.btn { flex: 1 }` was quietly beating
    this one into a half-width column. Caught in the browser at 390px, where the
@@ -963,6 +970,17 @@ body {
   padding: 0 20px;
 }
 
+/* The label carries the tap target, not the input. A bare file input lays out
+   25px tall -- measured in Chrome at 320, 360, 390 and 430px -- against 44px
+   for every other control on this screen. */
+.backup-restore {
+  display: block;
+  min-height: 44px;
+  padding: 8px 0;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
 .backup-file {
   display: block;
   width: 100%;
@@ -974,7 +992,7 @@ body {
   color: var(--text-dim);
 }
 
-.backup-file:focus-visible {
+.backup-restore:focus-within {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 6px;
