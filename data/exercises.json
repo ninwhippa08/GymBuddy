@@ -723,6 +723,13 @@
       "cues": ["Step one foot back and across behind the other, like a curtsy.","Keep the hips square to the front -- do not let them open up.","Drive back up through the front heel, not the back toe."],
       "modalities": ["hypertrophy"] },
 
+    { "id": "single-leg-box-squat", "name": "Single-Leg Box Squat", "pattern": "lunge", "tier": "accessory",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["knee","hip","ankle"], "equipment": ["dumbbell","bench"], "venue": "gym",
+      "cnsCost": 1, "technical": 2, "unilateral": true,
+      "cues": ["Bench at about knee height, stand on one leg with the other reaching forward.","Hold the bell at your chest -- it counterweights you and keeps you upright.","Sit down to the bench under control, then stand up through the standing heel.","Do not let the standing knee fall inward; raise the bench if depth costs you that."],
+      "modalities": ["hypertrophy"] },
+
     { "id": "zercher-carry", "name": "Zercher Carry", "pattern": "carry", "tier": "accessory",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["elbow","thoracic","lumbar","hip"], "equipment": ["barbell"], "venue": "gym",

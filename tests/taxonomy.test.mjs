@@ -83,3 +83,46 @@ test('the warm-up jog exists and is cued like everything else', () => {
   assert.equal(e.tier, 'accessory');
   assert.ok(e.cues.length >= 3, 'needs at least three cues like the other 235');
 });
+
+// --------------------------------------------------------------------------
+// Knee-dominant single-leg work. Issue #2.
+// --------------------------------------------------------------------------
+
+// The athlete asked for this one through the app's Add-a-move panel, having
+// looked for it and not found it: "hold dumbell in hand, slowly squat until you
+// sit on a bench at knee level. Then get up". Nothing in the library was that
+// movement -- step-up and the split squats all keep a second foot down, and the
+// only other unilateral knee-dominant entry is the cossack squat, which is a
+// lateral movement. It is the one true single-leg squat here.
+test('the single-leg box squat exists and is filed as unilateral knee work', () => {
+  const e = byId['single-leg-box-squat'];
+  assert.ok(e, 'single-leg-box-squat is missing');
+  assert.equal(e.pattern, 'lunge');
+  assert.equal(e.tier, 'accessory');
+  assert.equal(e.unilateral, true);
+  // He sits to the bench rather than stopping short of it, so the bench is
+  // load-bearing equipment and not a suggestion -- without one there is no
+  // depth target and the movement is a different, harder exercise.
+  assert.deepEqual([...e.equipment].sort(), ['bench', 'dumbbell']);
+  assert.ok((e.joints || []).includes('ankle'),
+    'a single-leg squat is limited by ankle dorsiflexion before anything else');
+  assert.ok(e.cues && e.cues.length >= 3, 'needs cues like the other 236');
+});
+
+// The classification above is not a preference, it is the rule the two families
+// have always followed: `squat` is where both feet drive and `lunge` is where
+// one does. Every one of the 15 squat entries is bilateral and every one of the
+// 10 lunge entries is unilateral, and filing a single-leg movement under
+// `squat` would have let it be drawn as a squat-pattern accessory and counted
+// against back-squat volume. A ratchet, in the manner of the cued-pool guard:
+// it passes today, and it is what stops the next authoring pass breaking it.
+test('the squat family is bilateral and the lunge family is not', () => {
+  for (const e of LIB.filter(x => x.pattern === 'squat')) {
+    assert.equal(e.unilateral, false,
+      `${e.id} is a unilateral movement filed under squat`);
+  }
+  for (const e of LIB.filter(x => x.pattern === 'lunge')) {
+    assert.equal(e.unilateral, true,
+      `${e.id} is a bilateral movement filed under lunge`);
+  }
+});
