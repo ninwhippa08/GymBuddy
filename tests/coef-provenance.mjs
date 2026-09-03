@@ -30,14 +30,71 @@
 export const COEF_PROVENANCE = {
   "box-squat"                 : { coef: 0.9  , of: "back-squat"      , tag: 'unverified' },
   "safety-bar-squat"          : { coef: 0.9  , of: "back-squat"      , tag: 'unverified' },
-  "front-squat"               : { coef: 0.85 , of: "back-squat"      , tag: 'unverified' },
+  // SOURCED 2026-09-03, AND IT MOVED DOWN. 0.85 -> 0.78.
+  //
+  // Gullett et al. 2009 (JSCR 23(1):284-292) is the right shape of evidence
+  // for this register and the first sub-parity entry to get one: the SAME 15
+  // subjects (9M, 6F) performed both lifts, and every one had at least a year
+  // of front AND back squatting at least weekly, so the ratio is not
+  // confounded by which lift they train.
+  //   back squat  61.8 kg   front squat  48.5 kg   ->  0.785
+  //   https://pubmed.ncbi.nlm.nih.gov/19002072/
+  //
+  // 0.78 rather than 0.79, on §8's asymmetry, and rounding toward the lower
+  // of the estimates seen rather than away from it.
+  //
+  // 'corroborated', not 'verified'. One study at n=15 measures those fifteen
+  // people; it does not measure the ratio. The coaching bands agree with its
+  // direction -- 75-85% is the commonly quoted range for lifters who do both,
+  // and 0.85 sat at the very top of that band.
+  //
+  // WHAT IS STILL OWED, and it points DOWN, not up. Every source agrees the
+  // ratio is a function of TRAINING EMPHASIS rather than leverage: coaching
+  // puts it near 90% for weightlifters who mostly front squat and at 50-60%
+  // for lifters who mostly back squat. Gullett's subjects trained both. HE
+  // DID NOT -- he is a retired college football athlete, and football programs
+  // back squat. So 0.78 is very likely still high for him specifically, and
+  // the honest floor is unknown. It is not moved further on a forum-sourced
+  // band; that would be inventing a number wearing a safety costume, which is
+  // this project's signature failure. Recorded as standing debt instead.
+  "front-squat"                : { coef: 0.78 , of: "back-squat"      , tag: 'corroborated' },
   "pause-squat"               : { coef: 0.85 , of: "back-squat"      , tag: 'unverified' },
   "zercher-squat"             : { coef: 0.65 , of: "back-squat"      , tag: 'unverified' },
   "good-morning"              : { coef: 0.4  , of: "back-squat"      , tag: 'unverified' },
   "floor-press"               : { coef: 0.92 , of: "bench-press"     , tag: 'unverified' },
   "pause-bench-press"         : { coef: 0.92 , of: "bench-press"     , tag: 'unverified' },
   "close-grip-bench-press"    : { coef: 0.9  , of: "bench-press"     , tag: 'unverified' },
-  "incline-bench-press"       : { coef: 0.85 , of: "bench-press"     , tag: 'unverified' },
+  // SOURCED 2026-09-03, AND IT MOVED DOWN. 0.85 -> 0.78. The best-evidenced
+  // entry in this register.
+  //
+  // Rodriguez-Ridao et al. 2020, Int J Environ Res Public Health 17(19):7339.
+  // n=30 trained adults (>=1 year, >=3 sessions/week). The SAME subjects were
+  // tested at five inclinations and 1RM WAS MEASURED SEPARATELY AT EACH ONE,
+  // in randomised counterbalanced order -- so this is a direct measurement of
+  // the quantity this register needs, not a ratio inferred from two studies.
+  //     0 deg  81.4 +/- 15.5 kg      45 deg  57.9 +/- 9.7 kg
+  //    15 deg  72.0 +/- 14.0 kg      60 deg  52.2 +/- 9.0 kg
+  //    30 deg  63.3 +/- 12.3 kg
+  //   63.3 / 81.4 = 0.778
+  //   https://pmc.ncbi.nlm.nih.gov/articles/PMC7579505/
+  //
+  // AND IT LANDS ON THE RIGHT ANGLE. This entry's own first cue says "Bench at
+  // about 30 degrees -- steeper turns it into a shoulder press", so the 30 deg
+  // row is the one that applies. Had the library not pinned an angle the study
+  // would have been unusable here: 0.78 at 30 deg and 0.64 at 60 deg are the
+  // same exercise name and a 22% difference in what goes on the bar.
+  //
+  // 'corroborated', not 'verified'. One sample of 30 measures those thirty
+  // people. The commonly quoted population range for 30 deg is 80-85% of flat,
+  // which brackets the measured value from ABOVE, so they disagree slightly
+  // and 0.78 is the lower -- §8's asymmetry again, and the same direction
+  // front-squat moved. 0.85 was the top of the population band being used as
+  // if it were the middle.
+  //
+  // A widely repeated "flat is 28.6% higher than incline" traces to THIS
+  // study and no other: 81.4 / 63.3 = 1.286. It is the same finding quoted
+  // upside down, not independent support, and is not counted twice.
+  "incline-bench-press"       : { coef: 0.78 , of: "bench-press"     , tag: 'corroborated' },
   // INVESTIGATED 2026-08-25 AND DELIBERATELY LEFT UNSOURCED. Not skipped --
   // stopped, for a reason that is itself the finding. See design §5.7.
   //
@@ -231,4 +288,12 @@ export const COEF_PROVENANCE = {
 // coefficients above 1.00, five are now sourced (three moved, two held) and
 // three are blocked on something other than reading: rack-pull and
 // overhead-squat below, and the root question in the ladder above.
-export const UNVERIFIED_BUDGET = 23;
+// Lowered 23 -> 21 on 2026-09-03 for front-squat and incline-bench-press, the
+// FIRST SUB-PARITY entries to be paid off. Both were 0.85 and both moved to
+// 0.78; both had been sitting at the top of a population band as though it
+// were the middle of one. The work above the line is finished as far as reading can
+// take it, so the remaining debt is the cheap-to-be-wrong half: an error
+// under 1.00 wastes a set where an error above it is an overload. That does
+// not make these free -- front-squat was 9% high against the only
+// within-subject measurement there is.
+export const UNVERIFIED_BUDGET = 21;

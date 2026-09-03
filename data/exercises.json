@@ -20,7 +20,7 @@
       "modalities": ["max-strength","power","hypertrophy"] },
 
     { "id": "front-squat", "name": "Front Squat", "pattern": "squat", "tier": "primary",
-      "loadable": true, "prRef": "back-squat", "prCoef": 0.85,
+      "loadable": true, "prRef": "back-squat", "prCoef": 0.78,
       "joints": ["knee","hip","lumbar","thoracic","wrist"], "equipment": ["barbell","rack"], "venue": "gym",
       "cnsCost": 3, "technical": 3, "unilateral": false,
       "cues": ["Elbows high, bar resting on your shoulders -- the fingers only guide it.","When the elbows drop the bar follows, so keep them up all the way.","Stay upright and sit straight down between the hips.","Expect noticeably less than your back squat."],
@@ -366,7 +366,7 @@
       "modalities": ["max-strength","hypertrophy","power"] },
 
     { "id": "incline-bench-press", "name": "Incline Bench Press", "pattern": "push-h", "tier": "primary",
-      "loadable": true, "prRef": "bench-press", "prCoef": 0.85,
+      "loadable": true, "prRef": "bench-press", "prCoef": 0.78,
       "joints": ["shoulder","elbow","scapula"], "equipment": ["barbell","bench","rack"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": false,
       "cues": ["Bench at about 30 degrees -- steeper turns it into a shoulder press.","Bar to the upper chest, just below the collarbone.","Shoulder blades stay pinned back even on the incline."],
