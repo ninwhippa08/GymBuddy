@@ -257,7 +257,8 @@ in a browser before it is called done.
 7. Styles
 8. Docs (§9)
 9. `sw.js`: add `js/calendar.js` to `SHELL`, bump `VERSION` to `v24`
-10. Browser check on a real phone
+10. Browser check on a real phone — **done 2026-09-03, passed.** See the
+    note at the foot of `plan-08-home-and-calendar.md`.
 
 Step 9 is the one that silently ruins a deploy. A new file absent from `SHELL`
 is a file installed phones never fetch, and a `VERSION` left at `v23` means they
