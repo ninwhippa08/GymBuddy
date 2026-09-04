@@ -662,7 +662,7 @@
       "joints": ["shoulder","scapula"], "equipment": ["bands"], "venue": "either",
       "cnsCost": 1, "technical": 1, "unilateral": false,
       "cues": ["Arms straight out in front at shoulder height, band across the palms.","Pull it apart to the chest, squeezing the shoulder blades together.","Ribs down and the elbows straight the whole way through."],
-      "modalities": ["isolation"] },
+      "modalities": ["isolation","hypertrophy"] },
 
     { "id": "pull-up", "name": "Pull-Up", "pattern": "pull-v", "tier": "secondary",
       "loadable": false, "prRef": null, "prCoef": null,
@@ -1502,14 +1502,14 @@
       "joints": ["elbow","shoulder"], "equipment": ["dumbbell","bench"], "venue": "gym",
       "cnsCost": 1, "technical": 1, "unilateral": false,
       "cues": ["Lie back on an incline bench and let the arms hang down behind you.","Curl from that stretched position without letting the elbows come forward.","The stretch at the bottom is the entire reason to do it on an incline."],
-      "modalities": ["isolation"] },
+      "modalities": ["isolation","hypertrophy"] },
 
     { "id": "preacher-curl", "name": "Preacher Curl", "pattern": "pull-h", "tier": "accessory",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["elbow"], "equipment": ["bench","barbell"], "venue": "gym",
       "cnsCost": 1, "technical": 1, "unilateral": false,
       "cues": ["Armpits into the top of the pad with the arms flat along it.","Curl up, then lower all the way until the arms are straight again.","Do not bounce out of the bottom -- the elbow is exposed in that position."],
-      "modalities": ["isolation"] },
+      "modalities": ["isolation","hypertrophy"] },
 
     { "id": "tricep-pushdown", "name": "Tricep Pushdown", "pattern": "push-h", "tier": "accessory",
       "loadable": false, "prRef": null, "prCoef": null,
@@ -1587,7 +1587,7 @@
       "joints": ["wrist"], "equipment": ["dumbbell"], "venue": "gym",
       "cnsCost": 1, "technical": 1, "unilateral": false,
       "cues": ["Forearms on a bench or the thighs with the wrists hanging over the end.","Let the bells roll down to the fingertips, then curl them back up.","Small range, high reps, slow. Speed does nothing at all here."],
-      "modalities": ["isolation"] },
+      "modalities": ["isolation","hypertrophy"] },
 
     { "id": "ninety-ninety-hip-switch", "name": "90/90 Hip Switch", "pattern": "mobility", "tier": "mobility",
       "loadable": false, "prRef": null, "prCoef": null,

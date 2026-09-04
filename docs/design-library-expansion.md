@@ -1202,3 +1202,56 @@ better served by three than by one — but the sequence is a lesson: **audit wha
 a pool already contains before concluding it is short.** A pool can read short
 because a movement is missing, or because a movement present in it is wearing
 the wrong label, and only one of those is fixed by authoring.
+
+### 13.8 The remaining four, and the number that nearly stopped it — 2026-09-05, `sw.js` v42
+
+`band-pull-apart`, `incline-curl`, `preacher-curl` and `wrist-curl` gained
+`hypertrophy` on his instruction, once §13.7 had shown what the first two were
+worth. Tag added, not swapped; all six remain isolation work.
+
+**This one was checked before it shipped, and the first measurement looked
+bad.** All four are `pattern: 'pull-h'`, `tier: 'accessory'` — the same pool as
+every row. Over 4,000 hypertrophy sessions:
+
+| accessory `pull-h` slot draws | before | after |
+|---|---|---|
+| rows | 64.6% | **46.3%** |
+| arm isolation | 28.4% | 37.6% |
+| rear delt | 7.0% | 16.1% |
+
+Rows stop being the majority of that slot. Taken alone that reads as trading
+back work for curls, which is not what "more variety" was meant to buy.
+
+**Taken alone is the error.** That slot is not where the back work lives. Rows
+and pull-ups also occupy `primary` and `secondary` tiers — `pendlay-row`,
+`t-bar-row`, `pull-up`, `chin-up` — and none of the retagged entries can reach
+those, because all four are `accessory`. Measured over the same 4,000 sessions,
+counting every `pull-h` and `pull-v` set in the main work:
+
+| per hypertrophy session | before | after |
+|---|---|---|
+| back sets (row / pulldown / pull-up) | 3.40 | **3.26** |
+| arm sets (curl / wrist) | 0.76 | 1.03 |
+
+Back volume falls **4%**, not a third. The accessory slot changed character;
+the session did not. Shipped on that basis.
+
+**Why the first number was so much worse than the second, and it is worth
+knowing.** `pull-h` is one pattern covering both a barbell row and a wrist
+curl, so `patternDebt` credits a curl as horizontal-pull volume — doing curls
+tells the model you have done back work. That was already true of
+`barbell-curl`, `dumbbell-curl` and `hammer-curl`; this change doubles the
+number of entries it is true of. The effect is bounded here because the
+accessory slot is a small share of pull volume, but it is the same coarseness
+`js/generator.js`'s `patternDebt` comment already flags from the other
+direction, where it notes debt is *overstated* for patterns getting indirect
+work.
+
+**Not fixed, and deliberately not.** Splitting elbow flexion out of `pull-h`
+would touch the pattern taxonomy, the volume accounting, the neglect model and
+every template slot that names a pull — a large change to correct a 4%
+mis-attribution. A selection heuristic preferring compounds in accessory slots
+would be a new unsourced weight, of exactly the kind §12 has just finished
+removing from the recency model. Recorded here so the next person to widen a
+pool that shares a pattern with isolation work measures the session, not the
+slot.

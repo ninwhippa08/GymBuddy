@@ -195,12 +195,20 @@ test('no id appears twice in the library', () => {
 // separately (design-library-expansion.md §13.6) and made only on the
 // athlete's explicit instruction, 2026-09-05.
 //
-// DELIBERATELY NOT RETAGGED, and left unasserted here so a later reading can
-// still change them: `band-pull-apart`, `incline-curl`, `preacher-curl` and
-// `wrist-curl` sit the same way. He named two; two is what moved.
+// The other four followed on 2026-09-05, on his instruction, once the first
+// two had shown what the retag was actually worth. `band-pull-apart`,
+// `incline-curl`, `preacher-curl` and `wrist-curl` sat the same way.
+//
+// WHAT THIS COSTS, measured over 4,000 hypertrophy sessions, because it is a
+// programming change and not only a bookkeeping one: rows fall from 64.6% of
+// accessory `pull-h` slots to 46.3%, arm isolation rises 28.4% -> 37.6%, rear
+// delt 7.0% -> 16.1%. Rows stay the plurality but no longer the majority.
+// design-library-expansion.md §13.8 carries the table, and the reason the
+// taxonomy makes this happen at all.
 
-test('the rear-delt and lat isolation pulls are hypertrophy work as well', () => {
-  for (const id of ['face-pull', 'straight-arm-pulldown']) {
+test('the isolation pulls are hypertrophy work as well', () => {
+  for (const id of ['face-pull', 'straight-arm-pulldown', 'band-pull-apart',
+                    'incline-curl', 'preacher-curl', 'wrist-curl']) {
     const e = EX.find(x => x.id === id);
     assert.ok(e, `${id} is missing from the library`);
     assert.ok(e.modalities.includes('isolation'),
