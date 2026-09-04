@@ -206,7 +206,7 @@ Two ideas hold the design together:
 node --test tests/*.test.mjs
 ```
 
-427 tests, using only Node's built-in `node:test` and `node:assert/strict`.
+520 tests, using only Node's built-in `node:test` and `node:assert/strict`.
 There is no `package.json` and nothing to install.
 
 They are not only unit tests. Several are **sweeps**: they generate thousands of
@@ -221,6 +221,27 @@ single example proves nothing.
 can be tested in Node without pulling in a dependency. Its own header is honest
 about the limit: it is not a substitute for looking at the app in a real
 browser, and the project has been bitten once by trusting it too far.
+
+`tests/mutate.mjs` is a mutation-testing script — **not** part of the suite, run
+by hand while writing a guard. It breaks a rule on purpose and reports whether
+any test noticed; a rule whose mutant survives is a rule nothing is actually
+checking. It exists because this project keeps producing tests that pass for
+the wrong reason: four of the seven tasks that built the superset shipped one,
+every time because the fixture could not tell the real rule from a wrong rule
+that agreed with it on that input. **When a mutant survives, suspect the
+fixture before the rule.**
+
+```bash
+# one rule
+node tests/mutate.mjs js/generator.js tests/superset.test.mjs   "Math.min(A1.sets, A2.sets)" "Math.max(A1.sets, A2.sets)" "rounds take the longer block"
+
+# several, with the control run once
+node tests/mutate.mjs mutants.json
+```
+
+It refuses to report anything when the target text is absent, and refuses to
+run at all when the suite is already red — both of those produced a convincing
+false "survived" in the shell version it replaces.
 
 `tests/app.test.mjs` boots the whole app headlessly to assert one thing above
 all: **launching it writes nothing to history.** That was the app's oldest bug —
