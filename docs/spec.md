@@ -346,14 +346,44 @@ the fields are written and the `prCoef` sourced, the entry is committed to
 | `plyometric` | either | foot contacts (§4) | — | High |
 | `sprint` | outdoor | metres (§5) | — | High |
 | `hypertrophy` | gym | sets × reps | 67–85% | Moderate |
-| `isolation` | gym | sets × reps | 65–80% | Low |
+| ~~`isolation`~~ | gym | sets × reps | 65–80% | Low | — **declined 2026-09-04, see below** |
 | `aerobic-steady` | outdoor | minutes, HR zone | — | Low |
 | `interval` | outdoor | work:rest | — | Moderate |
 | `mobility` | either | time, quality | — | None |
 
-`isolation` (arm day) is always **selectable** but rarely **proposed** — at 1–3
-sessions per week the literature is explicit that multi-joint work comes first
-(§2).
+**`isolation` was DECLINED on 2026-09-04 and will not be built.** The rule
+above is why: at 1–3 sessions per week multi-joint work comes first (§2), and
+an isolation *day* at that frequency displaces a compound session rather than
+adding to it — `js/rules.js` puts it plainly, "isolation is what a fourth
+session buys". Asked what an arm day was for, the athlete said variety, and
+offered the choice with that reasoning he said to scrap it if it did not fit.
+
+It does not fit, and the variety is already there: measured over 3,000
+hypertrophy sessions, **89.9% carry an isolation finisher** in slot E, drawn
+from **53 isolation-capable entries** — curls, leg extensions, face pulls,
+calf raises. The wanted thing exists; it is simply not labelled "arm day".
+
+The plumbing stays wired and dormant, as `profile.banned` does:
+`VOLUME.ISOLATION_PROPOSAL_PENALTY` and the scoring line in `proposeDayType`
+both predate the template and both remain. If the week ever reaches four
+sessions, this is a template away rather than a redesign. §10.
+
+**`mobility` was BUILT 2026-09-04, `sw.js` v31** — as the deload, not as a
+rotation day. It declares no targets, has no main slots (the session is the
+prep block plus the full cool-down, so it invents no dose), and is deliberately
+absent from `PHASE_1_DAY_TYPES` so it never competes on neglect. It is reached
+only by the all-vetoed fallback in `proposeDayType`.
+
+That fallback used to be unreachable, and hid a real defect. `aerobic-steady`
+and `interval` had no veto path at all, so "every day type is vetoed" never
+happened — while every `run`, `sprint`, `agility` and `march` entry loads
+ankle, hip **and** knee, so one hurt joint empties those pools by construction.
+With hip, knee, ankle and lumbar hurt, all four conditioning day types produced
+**zero main work in 300/300 sessions** with 600–900 unfilled slots: the app
+proposed an easy run and handed over a warm-up, a cool-down and nothing else.
+`proposeDayType` now vetoes any day type whose **required** slots have no
+eligible exercise, asking the same `eligibleFor` the builder uses rather than a
+second rule that could drift from it.
 
 ### 5.1 Example template — `power`
 
@@ -499,8 +529,9 @@ Pages and installed on the phone.
 
 **Phase 2 — adaptation.**
 Soreness body map with sore/hurt severity · swap button · ~~ban list~~
-(declined 2026-09-03, §10) · history in `localStorage` · remaining 5 day types ·
-library to ~350.
+(declined 2026-09-03, §10) · history in `localStorage` · ~~remaining 5 day
+types~~ — **closed 2026-09-04**: 8 of the 9 exist, `mobility` built as the
+deload (§5) and `isolation` declined (§5) · library to ~350.
 
 **Phase 3 — intelligence.**
 Neglect-aware proposals with reason strings ("nothing explosive in 9 days") ·

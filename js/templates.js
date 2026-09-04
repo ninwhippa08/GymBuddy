@@ -74,13 +74,27 @@ export const DAY_TYPES = Object.freeze({
   plyometric: Object.freeze({
     venue: 'either', cnsClass: 'high', volumeUnit: 'contacts',
     mobilityCore: 'short', prep: 'running-plyo'
+  }),
+  // The deload, spec §5. It declares no targets and needs no main slots: the
+  // session IS the prep block plus the full cool-down, so every number in it
+  // is already sourced (design-mobility-and-warmup.md §2.1, §4.2) and this
+  // day type invents nothing.
+  //
+  // Deliberately NOT in PHASE_1_DAY_TYPES. It never competes on neglect and
+  // the reroll rotation never walks to it -- it appears only when every other
+  // day type is vetoed, which is the day it exists for. The athlete asked for
+  // "a deload when you are wrecked", not another day in the rotation.
+  mobility: Object.freeze({
+    venue: 'either', cnsClass: 'none', volumeUnit: 'time', mobilityCore: 'full'
   })
 });
 
-// Isolation and mobility days arrive in Phase 2. spec §8. The other three --
-// interval, sprint, plyometric -- landed here with the running programming;
-// their recovery vetoes were already wired in proposeDayType before they had
-// templates to select. design-running-programming.md §6.
+// The rotation. `mobility` is deliberately absent -- it is a day type with a
+// template, but it is reached only by proposeDayType's all-vetoed fallback, so
+// putting it here would make the app propose a deload because he had not
+// deloaded lately. `isolation` is absent because it was DECLINED, not deferred:
+// at 1-3 sessions a week an isolation day displaces a compound one, and 89.9%
+// of hypertrophy sessions already carry an isolation finisher. spec §5, §8.
 export const PHASE_1_DAY_TYPES = Object.freeze([
   'max-strength', 'power', 'hypertrophy',
   'aerobic-steady', 'interval', 'sprint', 'plyometric'
@@ -389,6 +403,11 @@ const PLYOMETRIC = Object.freeze([
   })
 ]);
 
+// No slots, and that is the design rather than a stub: a mobility day is the
+// prep block and the full cool-down with nothing in between. Adding main work
+// would mean inventing a dose for it. spec §5.
+const MOBILITY_DAY = Object.freeze([]);
+
 export const TEMPLATES = Object.freeze({
   'max-strength': MAX_STRENGTH,
   power: POWER,
@@ -396,7 +415,8 @@ export const TEMPLATES = Object.freeze({
   'aerobic-steady': AEROBIC_STEADY,
   interval: INTERVAL,
   sprint: SPRINT_DAY,
-  plyometric: PLYOMETRIC
+  plyometric: PLYOMETRIC,
+  mobility: MOBILITY_DAY
 });
 
 // --------------------------------------------------------------------------

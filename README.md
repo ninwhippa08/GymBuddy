@@ -307,10 +307,18 @@ given a citation it does not have, and
 is not repeated. The other two constants in that block were anchored on
 2026-09-04.
 
+**No arm day, and there will not be one.** `isolation` is in the spec and was
+declined on 2026-09-04. At 1–3 sessions a week an isolation day displaces a
+compound session rather than adding to one, and the variety it was wanted for
+is already there: 89.9% of hypertrophy sessions carry an isolation finisher,
+drawn from 53 isolation-capable entries. Its scoring penalty stays wired and
+dormant, like `profile.banned`, so a fourth weekly session would make it a
+template rather than a redesign.
+
 ### Specified but not built
 
-**Seven of the nine day types in `docs/spec.md` §5 exist.** `isolation` and
-`mobility` are specified and unimplemented.
+**Eight of the nine day types in `docs/spec.md` §5 exist.** `mobility` was
+built on 2026-09-04 as the deload; `isolation` was declined, above.
 
 ### Measured shortfalls, left open on purpose
 

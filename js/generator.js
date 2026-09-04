@@ -268,8 +268,10 @@ export function chronicBoost(dayType, state) {
 // The athlete (or a constrained regeneration) named the day type. Score the
 // field anyway: the candidates drive resolveSession's fallback, and the chosen
 // day still owes an explanation in the same words a proposal would use.
-function directChoice(dayType, state, { soreness, rng }) {
-  const proposal = proposeDayType(state, { soreness, rng });
+function directChoice(dayType, state, { soreness, rng, library, banned, excludeEquipment }) {
+  const proposal = proposeDayType(state, {
+    soreness, rng, library, banned, excludeEquipment
+  });
   const chosen = proposal.candidates.find(c => c.dayType === dayType);
   return {
     ...proposal,
@@ -291,8 +293,32 @@ function directChoice(dayType, state, { soreness, rng }) {
 // zero. Two rerolls therefore swapped the top two candidates back and forth
 // forever and a third day type was unreachable, however many times he tapped.
 // Excluding what has already been offered walks the ranking down instead.
+// The prefix that marks a veto raised because nothing could fill the slot,
+// as opposed to a recovery veto. resolveSession reads it to name the day type
+// that was ruled out -- see the announcement note there.
+const UNBUILDABLE = 'nothing eligible for ';
+
+// A day type the builder cannot fill is not worth proposing. This asks the
+// SAME rule the builder will use -- eligibleFor -- one step earlier, so the
+// two can never disagree about what is possible today. Optional slots are
+// ignored: they are allowed to come back empty.
+//
+// It is passed a library rather than reaching for one. Without it the check is
+// skipped and the proposer behaves exactly as it did before, which is what
+// keeps every existing caller and test honest.
+function unfillableSlots(dayType, library, ctx) {
+  const template = TEMPLATES[dayType];
+  if (!template) return [];
+  const venue = DAY_TYPES[dayType] && DAY_TYPES[dayType].venue;
+  return template.filter(slot => !slot.optional &&
+    eligibleFor(slot, library, {
+      ...ctx, venue: venue === 'either' ? undefined : venue
+    }).length === 0);
+}
+
 export function proposeDayType(state, {
-  soreness = {}, rng, dayTypes = PHASE_1_DAY_TYPES, offeredDayTypes = []
+  soreness = {}, rng, dayTypes = PHASE_1_DAY_TYPES, offeredDayTypes = [],
+  library = null, banned = [], excludeEquipment = []
 } = {}) {
   const ramp = rampRow(state.rampWeek);
   const candidates = dayTypes.map(dt => {
@@ -314,6 +340,16 @@ export function proposeDayType(state, {
     if (DAY_TYPES[dt] && DAY_TYPES[dt].venue === 'gym' && allHurt(soreness)) {
       vetoes.push('too much is hurt for a lifting day');
     }
+    // A day type whose required slots have nothing eligible cannot be built:
+    // with a hurt knee every run and erg entry is filtered out, and proposing
+    // an easy-run day would hand over a warm-up, a cool-down and two unfilled
+    // slots. spec §5.
+    if (library) {
+      const empty = unfillableSlots(dt, library, { soreness, banned, excludeEquipment });
+      if (empty.length) {
+        vetoes.push(UNBUILDABLE + empty.map(s => s.role).join(' or '));
+      }
+    }
     // Isolation is always selectable, rarely proposed. basis §2 rule 3.
     if (dt === 'isolation') score *= (1 - VOLUME.ISOLATION_PROPOSAL_PENALTY);
 
@@ -321,7 +357,20 @@ export function proposeDayType(state, {
   });
 
   const open = candidates.filter(c => !c.vetoed);
-  const field = open.length ? open : candidates; // never return nothing
+  // Every day type is vetoed. This used to return the best-scoring VETOED
+  // candidate -- it proposed heavy lifting immediately after saying too much
+  // was hurt to lift. The deload is the honest answer, and it is the only way
+  // the mobility day is ever reached. spec §5.
+  if (!open.length) {
+    return {
+      dayType: 'mobility',
+      reason: 'Everything else is vetoed today. Mobility and core only -- '
+        + 'move, do not train.',
+      candidates: candidates.sort((a, b) => b.score - a.score),
+      wrapped: false
+    };
+  }
+  const field = open; // every vetoed case now returns above
   // Once every day type he can train today has been offered, the rotation has
   // nothing left to walk to and starts again from the top. `wrapped` says so,
   // and generate resets the record's list -- otherwise the list would grow past
@@ -830,7 +879,21 @@ export function swapBlock(session, slotId, library, ctx, rng) {
 // I/O. design-equipment-and-swap.md §4.1, §4.3.
 export function resolveSession(opts) {
   const wanted = generate(opts);
-  if (requiredUnfilled(wanted).length === 0) return { session: wanted, offer: null };
+  if (requiredUnfilled(wanted).length === 0) {
+    // The session builds, so there is no failed build to announce -- but the
+    // proposer may have ruled out a HIGHER-scoring day type for being
+    // unbuildable (spec §5), and that day type never reached the builder to
+    // fail. Announce it from the veto instead. Without this, unticking the
+    // barbell silently hands back a run with no word about the lifting day it
+    // replaced, which is the whole point of the equipment offer.
+    // design-equipment-and-swap.md §6.1.
+    const ranked = wanted.candidates || [];
+    const chosenAt = ranked.findIndex(c => c.dayType === wanted.dayType);
+    const blocked = ranked
+      .slice(0, chosenAt === -1 ? 0 : chosenAt)
+      .find(c => c.vetoed && c.vetoes.some(v => v.startsWith(UNBUILDABLE)));
+    return { session: wanted, offer: blocked ? { blocked: blocked.dayType } : null };
+  }
 
   // proposeDayType's candidates arrive scored and veto-flagged, so the
   // fallback inherits the neglect model instead of inventing an order.
@@ -1188,8 +1251,13 @@ export function generate({
   // directly -- so the old placeholder 'chosen directly' would have become the
   // line the athlete actually reads.
   const proposal = dayType
-    ? directChoice(dayType, state, { soreness, rng })
-    : proposeDayType(state, { soreness, rng, offeredDayTypes: offered }); // 3
+    ? directChoice(dayType, state, {
+        soreness, rng, library, banned: profile.banned || [], excludeEquipment
+      })
+    : proposeDayType(state, {
+        soreness, rng, offeredDayTypes: offered,
+        library, banned: profile.banned || [], excludeEquipment
+      });                                                                // 3
   const chosen = proposal.dayType;
 
   const env = envelopeFor(chosen, state);                                // 4

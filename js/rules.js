@@ -240,6 +240,13 @@ export const VOLUME = Object.freeze({
   }),
   // Compounds first under low frequency; isolation is what a fourth session
   // buys. §2 rule 2. Applied as a scoring penalty, not a ban.
+  //
+  // DELIBERATELY DORMANT since 2026-09-04, like `profile.banned`. The isolation
+  // DAY TYPE was declined -- there is no `isolation` template and it is not in
+  // PHASE_1_DAY_TYPES, so nothing currently reaches this line. It stays because
+  // the reasoning it encodes is the reasoning that declined the day type, and
+  // because a fourth weekly session would make it live again for the cost of a
+  // template. spec §5. Do not "clean it up".
   ISOLATION_PROPOSAL_PENALTY: 0.25
 });
 
