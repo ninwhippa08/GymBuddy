@@ -168,6 +168,22 @@ export function warmupLine(block) {
   ).join('  ·  ');
 }
 
+// The WORKING sets, when they are not all the same. A straight block gets
+// nothing back: its hero line already states the load every set uses, and
+// repeating it would be noise. A ladder is the case this exists for -- its
+// rungs differ from one another, so the hero line (which carries wave 1's
+// first rung, the set he actually lifts first) is true of exactly one of them.
+// Without this the card reads "6 × 4" over "0.85 × Squat PR" and instructs six
+// sets at the lightest rung. design-architectures.md §3.3.
+export function workLine(block) {
+  if (block.architecture !== 'ladder') return '';
+  const sets = (block.setPlan || []).filter(s => s.kind === 'work');
+  if (!sets.length) return '';
+  return 'sets  ' + sets
+    .map(s => `${s.reps} × ${s.displayMultiplier.toFixed(2)}`)
+    .join('  ·  ');
+}
+
 // The top-right of the card. Timed work has no set count, and its effort cue
 // is a sentence -- too long for a header slot, so it drops to the meta line.
 export function volumeLine(block) {
@@ -202,6 +218,7 @@ export function volumeLine(block) {
 export function blockCard(block, cuesFor, onSwap) {
   const volume = volumeLine(block);
   const warmup = warmupLine(block);
+  const work = workLine(block);
 
   // The effort cue is already the headline for contact-less explosive work;
   // don't print it twice.
@@ -249,6 +266,10 @@ export function blockCard(block, cuesFor, onSwap) {
           class: 'block-note',
           text: 'needs equipment you do not have -- this is the closest movement available'
         })
+      : null,
+    // Above the warm-up line, because it is what he does after it.
+    work
+      ? el('p', { class: 'block-meta block-work', text: work })
       : null,
     warmup
       ? el('p', { class: 'block-meta block-warmup', text: warmup })

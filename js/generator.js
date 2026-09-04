@@ -28,7 +28,7 @@ import {
 
 import {
   DAY_TYPES, PHASE_1_DAY_TYPES, TEMPLATES, PREP_BLOCK, COOLDOWN_BLOCK,
-  ARCHITECTURES, PHASE_1_ARCHITECTURE
+  ARCHITECTURES, BUILT_ARCHITECTURES, PHASE_1_ARCHITECTURE
 } from './templates.js';
 
 const MS_PER_HOUR = 3600e3;
@@ -432,9 +432,24 @@ export function envelopeFor(dayType, state) {
 // 5  ARCHITECT
 // --------------------------------------------------------------------------
 
-export function chooseArchitecture(dayType, rng, { phase1 = true } = {}) {
-  const allowed = ARCHITECTURES[dayType] || [PHASE_1_ARCHITECTURE];
-  return phase1 ? PHASE_1_ARCHITECTURE : pick(rng, allowed);
+// ARCHITECTURES declares what a day type MAY use; BUILT_ARCHITECTURES says
+// which of those have a prescription shape. The intersection is what can
+// actually be drawn, so declaring an architecture never silently ships one --
+// and building one is a single addition to that list.
+// design-architectures.md 4.
+export function chooseArchitecture(dayType, rng, { phase1 = false } = {}) {
+  const allowed = (ARCHITECTURES[dayType] || [PHASE_1_ARCHITECTURE])
+    .filter(a => BUILT_ARCHITECTURES.includes(a));
+  if (phase1 || !allowed.length) return PHASE_1_ARCHITECTURE;
+  // Never draw for a foregone conclusion. `pick` consumes a number from the
+  // seeded stream, so drawing when only 'straight' survives the filter
+  // re-rolls every later choice in the session -- which is exactly what
+  // happened when this landed: power has no built architecture, laddered
+  // nothing, and still produced a different session that ran to 71 min
+  // against the athlete's stated 70 (spec.md:36). A day type with nothing
+  // built must be bit-for-bit what it was.
+  if (allowed.length === 1) return allowed[0];
+  return pick(rng, allowed);
 }
 
 // --------------------------------------------------------------------------
@@ -732,6 +747,96 @@ export function prescribe(slot, exercise, env, rng, state) {
 }
 
 // --------------------------------------------------------------------------
+// 7a  ARCHITECT -- apply
+// --------------------------------------------------------------------------
+
+// design-architectures.md 3.1. prescribe() draws the doses; this rearranges
+// what it drew. Separate pass rather than a branch inside prescribe() because
+// spec 10 warns setPlan is "deliberately not shaped for these": a transform
+// can be read against the straight-set version it replaced, a second mode
+// inside prescribe() cannot.
+//
+// Main-work blocks only, and volume is never changed -- the set COUNT is what
+// patternSets, cnsLoad and the neglect model read, so a ladder must arrange
+// the sets it was given rather than choose its own.
+
+// A 2+1 split is not a wave. Below this the block stays straight and says so.
+const MIN_LADDER_SETS = 4;
+// Per-rung spacing. Practitioner waves step 2.5-5% of 1RM per rung
+// [corroborated]; below the floor the rungs are indistinguishable at the bar
+// and the ladder is not worth building. design-architectures 2.2.
+const LADDER_STEP_MIN = 0.025;
+const LADDER_STEP_MAX = 0.05;
+
+export function applyArchitecture(blocks, architecture, zoneBySlot = {}) {
+  if (architecture !== 'ladder') return blocks;
+  return blocks.map(b => ladderise(b, ZONES[zoneBySlot[b.slot]]));
+}
+
+function ladderise(block, zone) {
+  if (!block.setPlan || !zone || block.mode !== 'load') return block;
+  const warmups = block.setPlan.filter(s => s.kind === 'warmup');
+  const work = block.setPlan.filter(s => s.kind === 'work');
+  if (work.length < MIN_LADDER_SETS) return { ...block, architecture: 'straight' };
+
+  // The odd set joins the FIRST wave, so the extra rung is a light one.
+  const rungs1 = Math.ceil(work.length / 2);
+  const rungs2 = work.length - rungs1;
+
+  // Positions in step units. Wave 2 sits half a step above wave 1, which is
+  // what makes this a wave rather than two identical runs.
+  const positions = [
+    ...Array.from({ length: rungs1 }, (_, i) => i),
+    ...Array.from({ length: rungs2 }, (_, i) => i + 0.5)
+  ];
+  const span = Math.max(...positions);
+  const mid = span / 2;
+
+  // CENTRED on the load prescribe() drew, not anchored to it. An earlier
+  // version made that load the TOP rung, which looked right at the middle of
+  // the zone and was wrong everywhere else: PCT_JITTER can put block.pct below
+  // the zone floor (0.83 against a floor of 0.85), and the step then came out
+  // NEGATIVE -- a "ladder" that descended. Centring means the mean rung equals
+  // what the straight session would have prescribed, so the ladder changes the
+  // arrangement and not the intensity, which is exactly the scope the athlete
+  // agreed to. design-architectures 3.2.
+  const roomBelow = block.pct - zone.pct[0];
+  const roomAbove = zone.pct[1] - block.pct;
+  const step = Math.min(roomBelow / mid, roomAbove / mid, LADDER_STEP_MAX);
+
+  // Not enough band to build a wave with sourced spacing. Practitioner waves
+  // step 2.5-5% per rung; anything tighter is not a wave, it is six sets of
+  // the same weight with the reps written differently. Straight, and it says
+  // so rather than pretending.
+  if (!(step >= LADDER_STEP_MIN)) return { ...block, architecture: 'straight' };
+
+  const repFloor = zone.reps[0];
+  const rungs = positions.map((pos, i) => {
+    const wavePos = i < rungs1 ? i : i - rungs1;
+    const pct = Math.round((block.pct + (pos - mid) * step) * 100) / 100;
+    return {
+      kind: 'work',
+      reps: Math.max(repFloor, block.reps - wavePos),
+      pct,
+      displayMultiplier:
+        Math.round(block.displayMultiplier * (pct / block.pct) * 100) / 100
+    };
+  });
+
+  // block.pct and block.reps stop being true of every working set. They become
+  // the set the card leads with -- wave 1's first rung -- which is also the
+  // first set he actually lifts. design-architectures 3.3.
+  return {
+    ...block,
+    architecture: 'ladder',
+    reps: rungs[0].reps,
+    pct: rungs[0].pct,
+    displayMultiplier: rungs[0].displayMultiplier,
+    setPlan: [...warmups, ...rungs]
+  };
+}
+
+// --------------------------------------------------------------------------
 // 8  PACK
 // --------------------------------------------------------------------------
 
@@ -770,7 +875,14 @@ export function estimateMinutes(blocks) {
       continue;
     }
 
-    sec += b.sets * b.reps * TIME.SECONDS_PER_REP * sides;
+    // A ladder's working sets are not identical, so sets x reps overstates it:
+    // 4-3-2 / 4-3-2 is 18 reps where six sets of four would be 24. Price the
+    // work from the plan whenever there is one. design-architectures 3.3.
+    const planned = (b.setPlan || []).filter(s => s.kind === 'work');
+    const workReps = planned.length
+      ? planned.reduce((a, s) => a + s.reps, 0)
+      : b.sets * b.reps;
+    sec += workReps * TIME.SECONDS_PER_REP * sides;
     sec += b.sets * (b.restSec || TIME.DEFAULT_REST_SEC);
     // The ramp is real time on the clock. Its sets are short and its rests
     // shorter, but four warm-up sets before a heavy squat is minutes, and the
@@ -1357,7 +1469,8 @@ export function generate({
     blocks.push(block);
   }
 
-  const packed = packToBudget(blocks, TIME.MAIN_WORK_MAX_MIN,           // 8
+  const shaped = applyArchitecture(blocks, architecture, zoneBySlot);   // 7a
+  const packed = packToBudget(shaped, TIME.MAIN_WORK_MAX_MIN,           // 8
                               { dayType: chosen, state });
   const prep = buildPrep(chosen, library, ctx, rng, env);               // 9a
   const cooled = packCooldown(

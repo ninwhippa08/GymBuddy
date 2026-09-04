@@ -1,15 +1,16 @@
 # Design — session architectures
 
 `spec.md` §4.3 calls architecture "the variety engine" and "the dial that does
-the most work". It is also the only dial in that table that has never moved.
-`chooseArchitecture` reads:
+the most work". Until 2026-09-04 it was the only dial in that table that had
+never moved. `chooseArchitecture` read:
 
 ```js
 return phase1 ? PHASE_1_ARCHITECTURE : pick(rng, allowed);
 ```
 
-`phase1` defaults to `true`. Every session the app has ever generated has been
-straight sets, and the `architecture` field on every stored record has said so.
+and `phase1` defaulted to `true`. Every session the app generated in its first
+year was straight sets, and the `architecture` field on every stored record
+said so, truthfully and pointlessly.
 `ARCHITECTURES` in `templates.js` declares seven architectures gated by day
 type; none of them has a prescription shape, which `spec.md` §10 records as the
 reason they were left last: *"`prescribe()` only knows straight sets, so EMOM,
@@ -139,38 +140,57 @@ given:
   draw 3, and when it does it gets straight sets and the architecture is
   recorded as `straight` for that block.
 
-**Loads step down from the working load `prescribe()` already computed.** That
-load is zone-drawn, jittered and `env.pctCeiling`-clamped, so anchoring the
-ladder's **top** rung to it inherits every existing clamp and adds none. The
-step comes from the zone's own band rather than a number invented here:
+**The ladder is CENTRED on the working load `prescribe()` already computed** —
+that load becomes the ladder's *mean*, not its top. It is zone-drawn, jittered
+and `env.pctCeiling`-clamped, so centring on it means the ladder changes the
+arrangement of the work and not its intensity, which is exactly the scope §1
+agreed.
+
+> **An earlier draft anchored it as the TOP rung, and that was wrong.** It
+> looked correct at the middle of the zone and failed everywhere else, because
+> `PCT_JITTER` (±0.025) can put `block.pct` *outside* the zone band — a draw of
+> 0.83 against a floor of 0.85. The step then came out **negative** and the
+> "ladder" ran downhill: 0.85, 0.84, 0.83. A single `rng` fixture of 0.5 hid it
+> through eleven passing tests. `tests/architecture.test.mjs` now sweeps the
+> draw across the whole range for exactly this reason.
+
+Rungs sit at half-step offsets, wave 2 half a step above wave 1 — which is what
+makes it a wave rather than two identical runs. The step is whatever fits the
+room available on *both* sides, capped at 5%:
 
 ```
-step = (zone.pct[1] - zone.pct[0]) / (rungs1 * 2 - 1)
+step = min( (pct − zone.pct[0]) / mid, (zone.pct[1] − pct) / mid, 0.05 )
 ```
 
-For `maxStrength` (0.85–0.95, band 0.10) with 3 rungs, `step` is **0.04** — 4%
-per rung, inside the 2.5–5% practitioner range `[corroborated]` and derived from
-the app's own zone rather than asserted. Wave 2 is offset half a step above wave
-1, which is what makes it a wave rather than two identical runs:
+where `mid` is half the rung span. For `maxStrength` with a drawn 0.90 and 3
+rungs a side, `step` is **0.04** — inside the 2.5–5% practitioner range
+`[corroborated]`:
 
-| | reps | load | worked, top = 0.95 |
-|---|---|---|---|
-| wave 1 | 3 | top − 2 steps | 0.87 |
-| | 2 | top − 1 step | 0.91 |
-| | 1 | top − ½ step… | 0.93 |
-| wave 2 | 3 | top − 1½ steps | 0.89 |
-| | 2 | top − ½ step | 0.93 |
-| | 1 | **top** | 0.95 |
+| | reps | load |
+|---|---|---|
+| wave 1 | 4 | 0.85 |
+| | 3 | 0.89 |
+| | 2 | 0.93 |
+| wave 2 | 4 | 0.87 |
+| | 3 | 0.91 |
+| | 2 | **0.95** |
 
-Every rung lands inside the zone, the heaviest single set equals what the
-straight session would have prescribed for every set, and the mean load is
-**lower** — which is Wood et al.'s finding applied rather than quoted.
+Mean 0.900 — exactly the straight session's load. Every rung inside the band,
+the first rung lighter than the straight session (Wood et al. applied rather
+than quoted), the last rung heavier, and the total volume identical.
 
-- **The top is `env.pctCeiling`-clamped** because `prescribe()` clamped it
-  before the ladder saw it. During the return ramp the ceiling is 0.65, below
-  the `maxStrength` band entirely, so no ladder is prescribed in the early
-  return weeks — by the same clamp that already shortens the warm-up ramp, with
-  nothing special-casing it.
+- **Below a 2.5% step the block stays straight and says so.** Practitioner
+  waves step 2.5–5% per rung; tighter than that the rungs are indistinguishable
+  at the bar and it is six sets of the same weight with the reps written
+  differently. This is what makes a ladder conditional rather than guaranteed:
+  measured over 3,000 max-strength sessions, **28.2% carry a ladder** and 34.5%
+  of eligible blocks take one.
+- **`env.pctCeiling` is inherited, not re-applied.** `prescribe()` clamped the
+  centre before the ladder saw it, and the step can only shrink the spread. In
+  the early return weeks the ceiling is 0.65, below the `maxStrength` band
+  entirely, so there is no room for a 2.5% step and no ladder is built — by the
+  same clamp that already shortens the warm-up ramp, with nothing special-casing
+  it.
 - **Reps descend by one per rung** from the count `prescribe()` drew, floored at
   the zone's rep minimum. Slot A draws 2–5, so a 3-rung wave from a drawn 4 is
   4-3-2. The scheme is therefore jittered per session exactly as every other
@@ -185,11 +205,12 @@ straight session would have prescribed for every set, and the mean load is
   `patternSets`, `cnsLoad` and the neglect model are untouched. A ladder is not
   more volume, it is the same volume arranged differently.
 - **`block.reps` and `block.pct` become the set the card leads with**, which is
-  wave 1's first rung. They stop being true of every working set, and that is a
-  real change: `tests/ramp.test.mjs`'s "the work entries restate the working set
-  exactly" asserts the old invariant and must become architecture-aware rather
-  than be deleted. It still holds for straight sets, which is every session
-  today.
+  wave 1's first rung and the first set he actually lifts. They stop being true
+  of every working set, so **the card had to change too**: `ui.workLine` prints
+  every rung under the hero line, because without it a laddered card reads
+  "6 × 4" over "0.85 × Squat PR" and instructs six sets at the lightest rung.
+  `tests/ramp.test.mjs`'s "the work entries restate the working set exactly"
+  still holds — it exercises a 3-set block, which stays straight.
 - **`estimateMinutes` must read `setPlan`**, not `sets × reps`. A 3-2-1-3-2-1
   ladder is 12 reps where `block.reps` would price six sets of three as 18. The
   time budget is the one place this error would be invisible and expensive.
@@ -206,6 +227,23 @@ the block travels with the block for free.
 
 Not designed further here. The ladder ships first, and the group design is
 written when the superset is built rather than guessed at now.
+
+---
+
+### 3.5 Choosing an architecture must not disturb the seed
+
+`chooseArchitecture` draws from `ARCHITECTURES[dayType]` filtered by
+`BUILT_ARCHITECTURES` — declaring an architecture is not building one, and the
+intersection is what may actually be drawn.
+
+**When only one option survives the filter it is returned without drawing.**
+`pick()` consumes a number from the seeded stream, so drawing for a foregone
+conclusion re-rolls every later choice in the session. That is not theoretical:
+flipping the `phase1` default made `power` — which has no built architecture and
+laddered nothing — produce a *different session*, and one of them ran to **71
+min against the athlete's stated ≤70** (`spec.md` line 36). The suite caught it
+on a 10,000-seed sweep. A day type with nothing built must be bit-for-bit what
+it was.
 
 ---
 

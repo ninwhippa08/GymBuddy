@@ -10,7 +10,7 @@ import { installDom } from './dom-shim.mjs';
 installDom();
 const {
   loadLine, volumeLine, equipmentControl, renderNothingBuildable,
-  renderConfirmPrevious, sorenessMap, addMoveControl, warmupLine,
+  renderConfirmPrevious, sorenessMap, addMoveControl, warmupLine, workLine,
   renderSession, blockCard, renderCalendar, renderHome, backupControl
 } = await import('../js/ui.js');
 const { SORENESS_JOINTS } = await import('../js/rules.js');
@@ -954,4 +954,41 @@ test('the destructive button does not dress as the safe one', () => {
     'the restore button still wears the primary accent');
   const cancel = node.querySelector('.backup-cancel');
   assert.ok(!cancel.classList.contains('btn-danger'));
+});
+
+// --------------------------------------------------------------------------
+// The ladder's working sets. design-architectures.md §3.3: block.reps and
+// block.pct stop being true of every working set, so a card that prints only
+// them would tell him to do six sets at the lightest rung.
+// --------------------------------------------------------------------------
+
+const LADDERED = {
+  mode: 'load', sets: 6, reps: 4, displayMultiplier: 0.85, prRef: 'back-squat',
+  architecture: 'ladder',
+  setPlan: [
+    { kind: 'warmup', reps: 8, pct: 0.3,  displayMultiplier: 0.3 },
+    { kind: 'work', reps: 4, pct: 0.85, displayMultiplier: 0.85 },
+    { kind: 'work', reps: 3, pct: 0.89, displayMultiplier: 0.89 },
+    { kind: 'work', reps: 2, pct: 0.93, displayMultiplier: 0.93 },
+    { kind: 'work', reps: 4, pct: 0.87, displayMultiplier: 0.87 },
+    { kind: 'work', reps: 3, pct: 0.91, displayMultiplier: 0.91 },
+    { kind: 'work', reps: 2, pct: 0.95, displayMultiplier: 0.95 }
+  ]
+};
+
+test('a ladder prints every working rung, not just the one it leads with', () => {
+  const line = workLine(LADDERED);
+  for (const [reps, mult] of [[4, '0.85'], [3, '0.89'], [2, '0.93'],
+                              [4, '0.87'], [3, '0.91'], [2, '0.95']]) {
+    assert.match(line, new RegExp(`${reps} × ${mult.replace('.', '\.')}`),
+      `the ${reps} × ${mult} rung is missing from "${line}"`);
+  }
+});
+
+test('a straight block gets no working-set line -- the hero already says it', () => {
+  assert.equal(workLine(RAMPED), '');
+});
+
+test('the ladder line never prints a warm-up rung as work', () => {
+  assert.equal((workLine(LADDERED).match(/0\.30/g) || []).length, 0);
 });

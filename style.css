@@ -167,6 +167,16 @@ body {
   line-height: 1.5;
 }
 
+/* A ladder's working sets. Same tabular figures so the rungs align, but NOT
+   dimmed like the warm-up: these are the working sets, read between sets, and
+   on a laddered block the hero line above is true of only the first of them.
+   design-architectures.md 3.3. */
+.block-work {
+  font-variant-numeric: tabular-nums;
+  line-height: 1.5;
+  color: var(--text, inherit);
+}
+
 /* -------------------------------------------------------------------------
    Actions
    ------------------------------------------------------------------------- */

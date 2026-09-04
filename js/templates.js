@@ -119,6 +119,15 @@ export const ARCHITECTURES = Object.freeze({
 
 export const PHASE_1_ARCHITECTURE = 'straight';
 
+// Which architectures have a prescription shape and may therefore be drawn.
+// ARCHITECTURES below declares what each day type MAY use -- seven of them --
+// but declaring one has never been the same as building it, and for the whole
+// life of the project chooseArchitecture ignored the declaration entirely and
+// returned 'straight'. This list is the difference: an architecture becomes
+// live by being added here, and until then it is documentation.
+// design-architectures.md 4.
+export const BUILT_ARCHITECTURES = Object.freeze(['straight', 'ladder']);
+
 // --------------------------------------------------------------------------
 // Templates
 // --------------------------------------------------------------------------
