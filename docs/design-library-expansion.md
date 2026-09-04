@@ -1,6 +1,9 @@
 # Design — library expansion (Project A)
 
-Status: approved 2026-08-24, not yet implemented.
+**Status:** built. Approved 2026-08-24; the coverage matrix and the pool
+targets shipped with it, and §11's derivation method was added and piloted on
+`core` on 2026-09-04. Open questions 4 and 5 are deliberately unresolved and
+say why.
 Predecessor: `design-mobility-and-warmup.md` step 1 (the mobility split), shipped.
 Successor: Project B — day-type proposal and block logic.
 

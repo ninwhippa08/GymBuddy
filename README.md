@@ -63,7 +63,8 @@ Requires Node 18 or newer (developed on Node 24). Nothing to install first.
 node --test tests/*.test.mjs
 ```
 
-Expected result: **427 passing, 0 failing.**
+Expected result: **every test passing, 0 failing.** The current count is in
+[Tests](#tests).
 
 ---
 
@@ -110,14 +111,14 @@ package manager, and no generated code — every file here was written by hand.
 ```
 GymBuddy/
 ├── index.html            App shell. ~30 lines: meta tags, one <main>, one <script>.
-├── style.css             All styling (713 lines). Dark theme, CSS custom properties.
+├── style.css             All styling (1,051 lines). Dark theme, CSS custom properties.
 ├── manifest.json         PWA metadata — name, icons, colours, standalone display.
 ├── sw.js                 Service worker. Cache-first offline shell.
 ├── .nojekyll             Tells GitHub Pages to serve the files as-is.
 │
 ├── js/                   The application. Vanilla ES modules, no bundler.
 │   ├── app.js            Entry point and screen routing. Wires storage → generator → UI.
-│   ├── generator.js      The session pipeline. The core of the project (~1400 lines).
+│   ├── generator.js      The session pipeline. The core of the project (~1,700 lines).
 │   ├── rules.js          Every training constant, transcribed from the basis doc. No logic.
 │   ├── templates.js      Day types and their slot templates — the *shape* of a session.
 │   ├── calendar.js       Month-grid arithmetic. Pure: no DOM, no toISOString.
@@ -127,13 +128,14 @@ GymBuddy/
 ├── data/
 │   └── exercises.json    The exercise library: 252 exercises + 6 PR roots.
 │
-├── tests/                Node's built-in test runner. 427 tests, zero dependencies.
+├── tests/                Node's built-in test runner, zero dependencies.
 │   ├── *.test.mjs        One file per subject (session, ramp, coverage, ui, storage, …).
 │   ├── app.test.mjs      The launch path: asserts opening the app writes nothing.
 │   ├── calendar.test.mjs The month model: leap years, month edges, Monday weeks.
 │   ├── dom-shim.mjs      A minimal DOM so ui.js can be tested without a browser.
 │   ├── cue-guard.mjs     Shared assertions for the exercise library's coaching cues.
-│   └── coef-provenance.mjs  Provenance record for every load coefficient in the library.
+│   ├── coef-provenance.mjs  Provenance record for every load coefficient in the library.
+│   └── mutate.mjs        Mutation testing. Breaks a rule on purpose to see if a test notices.
 │
 ├── docs/                 Written before the code, and kept in step with it.
 │   ├── spec.md              What the product is. Sections are cited from code as "spec §n".
@@ -182,12 +184,12 @@ file is the authoritative version; this is the summary.
 | 2 | STATE | Rolling volume per movement pattern, hours since each day type, a decayed "CNS account", and which week of the return ramp you are in |
 | 3 | PROPOSE | Scores each day type by how neglected it is, then vetoes on fatigue and soreness |
 | 4 | ENVELOPE | Turns the day type into an intensity zone, clamped by the ramp ceiling |
-| 5 | ARCHITECT | Picks a session architecture (straight sets, EMOM, cluster, superset, circuit, …) |
+| 5 | ARCHITECT | Picks a session architecture: straight sets, a ladder, or an antagonist superset. Three more are declared in `templates.js` and deliberately not built |
 | 6 | FILL | Chooses an actual exercise for each slot in the template |
 | 7 | PRESCRIBE | Sets and reps at a percentage of a PR — or foot contacts, or minutes |
-| 8 | PACK | Estimates duration and trims optional slots to the main-work budget |
+| 8 | PACK | Estimates duration and trims optional slots to the main-work budget, then pairs opposing lifts into supersets |
 | 9 | PREP / COOL | Appends the dynamic warm-up and the static cool-down plus core |
-| 10 | ORDER | Enforces the fixed sequence: prep first, cool-down last |
+| 10 | ORDER | Enforces the fixed sequence: prep first, cool-down last, and a superset's two halves adjacent |
 
 Two ideas hold the design together:
 
@@ -209,11 +211,12 @@ node --test tests/*.test.mjs
 520 tests, using only Node's built-in `node:test` and `node:assert/strict`.
 There is no `package.json` and nothing to install.
 
-They are not only unit tests. Several are **sweeps**: they generate thousands of
-sessions across many profiles and histories and assert a property holds for
-every one — that no gym session exceeds 70 minutes, that the return ramp never
-prescribes above its ceiling, that every movement pattern is eventually covered,
-that no exercise is ever prescribed without the equipment it needs. Those are
+They are not only unit tests. Several are **sweeps**: they generate sessions in
+bulk across profiles and histories and assert a property holds for every one —
+that no gym session exceeds 70 minutes, that the return ramp never prescribes
+above its ceiling, that every movement pattern is eventually covered, that no
+exercise is ever prescribed without the equipment it needs. The largest sweep
+runs 10,000 seeds against each of the seven day types: 70,000 sessions. Those are
 what catch the bugs that matter, because the generator is randomised and a
 single example proves nothing.
 

@@ -1,6 +1,9 @@
 # Design — a home screen and a month calendar
 
-Status: approved 2026-09-01, not built.
+**Status:** built 2026-09-02 (`sw.js` v24), from
+`plan-08-home-and-calendar.md`, which records the manual browser check in
+full. Still owed: a check on a real phone rather than Chrome at a phone-sized
+viewport.
 Sits after: `design-equipment-and-swap.md`, `plan-07-exercise-count.md`.
 Reason for that order: this moves the soreness map off the session card and
 takes one regeneration path out of `showSession`. Both are easier to do once the

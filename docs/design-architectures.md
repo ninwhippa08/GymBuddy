@@ -1,5 +1,9 @@
 # Design — session architectures
 
+**Status:** closed as scoped, 2026-09-04. `straight`, `ladder` and
+`antagonist-superset` are built (`sw.js` v36); `emom`, `cluster` and `complex`
+are out of scope by §1; `circuit` was researched and declined (§3.7).
+
 `spec.md` §4.3 calls architecture "the variety engine" and "the dial that does
 the most work". Until 2026-09-04 it was the only dial in that table that had
 never moved. `chooseArchitecture` read:

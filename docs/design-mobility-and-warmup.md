@@ -1,7 +1,10 @@
 # Design — mobility dosing, warm-up ramps, and where the exercise count comes from
 
 **Date:** 2026-08-21
-**Status:** proposed, revision 2 — awaiting review
+**Status:** built. The mobility split (`mobility-static` / `mobility-dynamic`)
+and the warm-up ramp (`rules.js` `WARMUP`) are both live; §8 q2's
+`[unverified]` pyramid claim is still used only to decline changes, never to
+justify one.
 **Supersedes:** `programming-basis.md` §9 (time budget), `templates.js`
 `MOBILITY_CORE_BLOCK` and `TEMPLATES`, `generator.js` `buildMobilityCore`,
 `prescribe`, `packToBudget` and `SESSION_ORDER`

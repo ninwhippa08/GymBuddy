@@ -1,7 +1,10 @@
 # Running programming — design
 
 **Date:** 2026-08-26
-**Status:** approved in brainstorming, awaiting user review before planning
+**Status:** built, from `plan-03-running-programming.md`. `aerobic-steady`,
+`interval`, `sprint` and `plyometric` are live day types. §11.0's
+recommendation to exempt the short pools from the variety target is recorded
+and deliberately NOT taken: it is the athlete's call.
 **Supersedes:** the `aerobic-steady` template in `js/templates.js:174`
 
 ---

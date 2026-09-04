@@ -14,8 +14,11 @@
 //   6  FILL       choose an exercise per slot
 //   7  PRESCRIBE  sets/reps/percentage, or contacts, or time
 //   8  PACK       estimate duration, trim to the main-work budget
+//   8b PAIR       group opposing lifts into supersets -- AFTER the trim, so
+//                 the architecture cannot change how much work survives it
 //   9  PREP/COOL  dynamic prep and static cool-down + core, always appended
-//  10  ORDER      enforce the fixed sequence -- prep first, cool-down last
+//  10  ORDER      enforce the fixed sequence -- prep first, cool-down last,
+//                 and a superset's two halves next to each other
 
 import {
   ZONES, PCT_JITTER, VOLUME, RAMP, WARMUP, CNS_DECAY, CNS_VETO_THRESHOLD,
