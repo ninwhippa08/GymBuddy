@@ -21,7 +21,7 @@
 //                 and a superset's two halves next to each other
 
 import {
-  ZONES, PCT_JITTER, VOLUME, RAMP, WARMUP, CNS_DECAY, CNS_VETO_THRESHOLD,
+  ZONES, PCT_JITTER, VOLUME, VARIETY, RAMP, WARMUP, CNS_DECAY, CNS_VETO_THRESHOLD,
   NEGLECT_CAP_DAYS,
   HIGH_CNS_DAY_TYPES, PLYO_CONTACTS_PER_SESSION, PLYO_TRANSITION_WEEKLY_CAP,
   PLYO_TRANSITION_LAST_WEEK, PLYO_RECOVERY_HOURS, SPRINT, SESSION_ORDER, TIME,
@@ -111,6 +111,14 @@ export function buildState(profile, history, now = Date.now()) {
     s => now - parseLocalDate(s.date) <= VOLUME.HISTORY_DAYS * MS_PER_DAY
   );
 
+  // The last N sessions by date, however long ago they were. History is not
+  // guaranteed sorted -- storage appends and commitSession replaces by date --
+  // so this sorts rather than assuming.
+  const recentSessions = (history || [])
+    .filter(s => parseLocalDate(s.date) <= now)
+    .sort((a, b) => parseLocalDate(b.date) - parseLocalDate(a.date))
+    .slice(0, VARIETY.RECENT_SESSIONS);
+
   // Rolling 7-day set count per pattern. Never count days -- an irregular week
   // must not confuse the model. basis §2 rule 1.
   const patternSets = {};
@@ -175,8 +183,14 @@ export function buildState(profile, history, now = Date.now()) {
     weekContacts,
     weekMeters,
     rampWeek: rampWeekFor(profile, now),
+    // NOT `recent` -- the third time this function has had to say that, and
+    // see VARIETY.RECENT_SESSIONS for why this one went unnoticed longest.
+    // `recent` is truncated to VOLUME.HISTORY_DAYS (14); a day type comes
+    // round every ~21 days at his cadence, so a set built from it was empty
+    // of exactly the movements worth penalising. Counted in SESSIONS now,
+    // which is the unit the variety target was always stated in.
     recentExerciseIds: new Set(
-      recent.flatMap(s => (s.blocks || []).map(b => b.exerciseId))
+      recentSessions.flatMap(s => (s.blocks || []).map(b => b.exerciseId))
     )
   };
 }

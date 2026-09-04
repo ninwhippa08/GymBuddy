@@ -911,3 +911,130 @@ What the pilot has to answer, before the method is applied to the eight lifting
 pools: how many variants a reviewed parent actually yields before the one-axis
 rule stops being satisfiable, and whether derived cues read as well as written
 ones when the athlete meets them on a card at the gym.
+
+---
+
+## 12  The variety target was in sessions; the mechanism was in days — BUILT 2026-09-04, `sw.js` v39
+
+### 12.1 The question that was asked, and the question that mattered
+
+He asked to grow the library — "there are hundred thousands of moves out there,
+I want to be able to add them" — and gave the reason: **"I don't want to do the
+same squat for weeks."**
+
+The reason is testable, and it was tested before anything was designed. It is
+not a library-size problem.
+
+`fillSlot` downweights a movement used recently (`w *= 0.25`,
+`js/generator.js`). The set it consults, `state.recentExerciseIds`, was built
+from `buildState`'s `recent` — which is truncated to `VOLUME.HISTORY_DAYS`
+(14). Simulating 200 athletes × 30 sessions at his real cadence (1–3×/week,
+irregular), committing each session the way the app does:
+
+```
+gap between consecutive sessions of the SAME day type (n = 4,600)
+  median 21 days,  p25 18,  p75 24
+  share of those gaps LONGER than the 14-day window:   100.0%
+  main work repeated from the previous session of that day type:  32.9%
+```
+
+**100.0%.** Not "most". With seven day types at 1–3 sessions a week, a day type
+comes round about every three weeks, so the recency penalty had never once
+applied to the comparison he actually notices — this squat day against the last
+squat day. About a third of a day type's main work repeated from its previous
+outing, by construction.
+
+Overall variety was never the problem and this section does not claim it was:
+across the first 10 sessions he sees ~30 distinct movements in ~32 filled
+slots. The repetition is concentrated *within* a day type, which is exactly
+where it would feel like "the same squat again".
+
+**The target had been stated in the right unit for months.** `SESSIONS_BEFORE_
+REPEAT = 16` — the athlete's own preference — is what `tests/coverage.test.mjs`
+uses to size every pool in §3.2, and what §4's shortfall is measured against.
+The target was in sessions; the enforcement was in days. His cadence is the gap
+between the two.
+
+### 12.2 The third instance of one bug
+
+`buildState` already carried two comments opening with the same words:
+
+> "**NOT `recent`**: it is truncated to `VOLUME.HISTORY_DAYS` (14)…"
+
+— on `hoursSince` (plan-06: every day type skipped for longer than a fortnight
+read `Infinity`, tied, and lost the tie-break, so `plyometric` was proposed
+**0 times in a simulated year**) and on `chronicFrom` (a 28-day window that was
+silently a 14-day one).
+
+`recentExerciseIds` was the third, and the one that went longest unnoticed —
+because unlike the other two it produces no wrong number and no missing
+session. It produces a session that is merely *duller than intended*, which no
+assertion was looking for.
+
+**The generalisation, worth stating once:** anything in `buildState` reasoning
+about training **history** has to escape the volume window; only things
+reasoning about training **volume** may live inside it.
+
+### 12.3 `VARIETY.RECENT_SESSIONS = 8`, swept not chosen
+
+The window is now the last N sessions by date, however long ago. N was swept on
+one harness — 80 runs × 24 sessions, post-ramp, committing each session:
+
+| N | same-day-type repeat | distinct movements / 24 sessions | unfilled required slots |
+|---|---|---|---|
+| 14 days *(before)* | 25.0% | 50.7 | 0 |
+| 4 | 25.0% | 50.7 | 0 |
+| 6 | 20.7% | 51.7 | 0 |
+| **8** | **14.1%** | 53.3 | 0 |
+| 12 | 15.2% | 54.1 | 0 |
+| 16 | 16.5% | 55.6 | 0 |
+| 24 | 17.3% | 56.1 | 0 |
+
+Two things in that table are worth more than the chosen value.
+
+**N = 4 reproduces the old behaviour exactly** (25.0%, 50.7). At this harness's
+3-day spacing, four sessions *is* about fourteen days. That is the cross-check
+that the sweep is measuring what it claims to.
+
+**Bigger is not better, and the curve turns at 8.** Past that, repeats climb
+again. The penalty is a multiplier applied to a pool: once nearly every
+movement in a pool has been used inside the window, all of them are multiplied
+by 0.25, the weighting flattens, and a uniform penalty is the same thing as no
+penalty at all. **A window wide enough to cover the pool stops discriminating.**
+Total variety keeps rising (50.7 → 56.1) because the flattened draw reaches
+rarer movements, but the thing he complained about gets worse. 8 is the
+measured minimum of the quantity he named.
+
+*Two harnesses, two honest numbers.* The 32.9% headline above is measured
+during the **return ramp**, where volume is clamped and sessions carry fewer
+main movements; the sweep table is **post-ramp** steady state. Against the fix,
+the ramp harness reads **32.9% → 20.0%** and the steady-state harness **25.0% →
+14.1%**. Both are real; they measure different periods, and neither number is
+quoted as the other.
+
+### 12.4 What did not move
+
+Only `recentExerciseIds`. `patternSets` stays a 7-day rolling count, the CNS
+account stays hour-decayed, and `recent` itself is untouched — all three are
+sourced against `VOLUME`, and widening them would be a different and much worse
+change. `tests/recency.test.mjs` asserts this directly: a session 90 days ago
+is visible to recency, contributes **zero** weekly volume and **zero** CNS
+load.
+
+The penalty is still a downweight, never a ban, so a thin pool degrades instead
+of failing — asserted across 800 committed sessions with **0** unfilled
+required slots.
+
+### 12.5 What this means for growing the library
+
+The library question stands, and §11's derivation method is still the way in.
+But the order matters, and it is now measured rather than assumed: **a third of
+the repetition he could feel was a windowing defect, not a shortage of
+movements.** Adding entries into a saturating penalty would have diluted their
+own benefit — the N = 16 and N = 24 rows are what that looks like.
+
+`docs/coverage-matrix.md` remains the map of where growth actually pays. On the
+gym side that is about **11 entries across five accessory/secondary pools**;
+the remaining ~100 of §4's shortfall is `sprint`, `run` and `jump`, where §11.1's
+conclusion is unchanged — a sixteenth way to sprint is worse than repeating the
+right one.

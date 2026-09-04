@@ -251,6 +251,40 @@ export const VOLUME = Object.freeze({
 });
 
 // --------------------------------------------------------------------------
+// Variety -- how far back "you just did this" reaches
+// --------------------------------------------------------------------------
+
+// Counted in SESSIONS, not in days, and that distinction is the whole point.
+//
+// fillSlot downweights a movement used recently. The set it consults used to
+// be built from buildState's `recent`, which is truncated to
+// VOLUME.HISTORY_DAYS (14). Measured over 200 simulated athletes x 30
+// sessions at the athlete's real cadence (1-3x/week, irregular): the gap
+// between consecutive sessions OF THE SAME DAY TYPE has a median of 21 days,
+// and **100.0%** of those gaps are longer than 14 days. Not most. All of
+// them. So the penalty never once applied to the comparison he notices --
+// this squat day against the last squat day -- and 32.9% of a day type's main
+// work repeated from its previous outing. "I don't want to do the same squat
+// for weeks", 2026-09-04.
+//
+// The target was already stated in sessions and had been for months:
+// SESSIONS_BEFORE_REPEAT = 16, the athlete's own preference, which
+// tests/coverage.test.mjs uses to size every pool. The target was in sessions
+// and the mechanism was in days; his cadence is the gap between the two.
+//
+// This is the THIRD instance of one bug in buildState. Two comments there
+// already open with "NOT `recent`: it is truncated to VOLUME.HISTORY_DAYS" --
+// hoursSince (plan-06: a day type starved for a simulated year) and
+// chronicFrom (a 28-day window that was silently 14). Anything in that
+// function reasoning about training HISTORY rather than training VOLUME has
+// to escape the volume window, and this was the one nobody caught.
+export const VARIETY = Object.freeze({
+  // [measured] -- swept, not chosen. See design-library-expansion.md §12 for
+  // the table: repeat rate and pool survival at N = 4, 6, 8, 12, 16.
+  RECENT_SESSIONS: 8
+});
+
+// --------------------------------------------------------------------------
 // §3  Return from inactivity -- the governing constraint
 // --------------------------------------------------------------------------
 

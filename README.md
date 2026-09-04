@@ -208,7 +208,7 @@ Two ideas hold the design together:
 node --test tests/*.test.mjs
 ```
 
-537 tests, using only Node's built-in `node:test` and `node:assert/strict`.
+543 tests, using only Node's built-in `node:test` and `node:assert/strict`.
 There is no `package.json` and nothing to install.
 
 They are not only unit tests. Several are **sweeps**: they generate sessions in
@@ -264,6 +264,21 @@ is readable on its own terms, and the deployed app is byte-for-byte the source.
 always. A gym basement with no signal is the design target, not an edge case.
 The cost is that `VERSION` in `sw.js` must be bumped on every deploy, which is
 why that file opens with a large warning comment.
+
+**Anti-repetition is counted in sessions, because a calendar window could not
+reach.** The generator downweights a movement used recently. That set was built
+from a 14-day window — and with seven day types at 1-3 sessions a week, a day
+type comes round about every 21 days, so **100%** of the time the penalty had
+already expired before it could apply. Measured across 4,600 same-day-type
+pairs: a third of a day type's main work repeated from its previous outing. The
+target had been stated in the right unit all along (`SESSIONS_BEFORE_REPEAT =
+16`, sizing every pool in the coverage matrix); only the mechanism was in days.
+It is the third time this file has had to escape the volume window — the
+neglect model and the chronic-load term both did, and both left a comment
+saying so. Swept rather than guessed: 8 sessions is the measured minimum, and
+a *wider* window is worse, because once every movement in a pool is penalised
+the multiplier is uniform and a uniform penalty is no penalty.
+`docs/design-library-expansion.md` §12.
 
 **The warm-up is matched to the work, by movement pattern and not by joint.**
 The prep block used to draw any 3–4 of the 19 dynamic drills, so a Romanian
