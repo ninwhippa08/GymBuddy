@@ -369,6 +369,19 @@ drawn from 53 isolation-capable entries. Its scoring penalty stays wired and
 dormant, like `profile.banned`, so a fourth weekly session would make it a
 template rather than a redesign.
 
+### Considered and declined
+
+**The circuit was researched, costed and declined on 2026-09-04.** The training
+case for it held up — with the round rest set to the longest of the members'
+rests, every station recovers for at least its own prescribed rest (measured
+worst margin +48 s), which preserves the volume load that the rest-interval
+literature says the effect actually depends on. 94.8% of hypertrophy sessions
+could have hosted a three-station circuit. What decided it was the gym: the
+athlete can hold two stations, not three, and **a circuit of two is the
+antagonist superset that already exists**. Building it would have been one
+feature under two names. `docs/design-architectures.md` §3.7 keeps the full
+reasoning, including what would reopen it.
+
 ### Specified but not built
 
 **Eight of the nine day types in `docs/spec.md` §5 exist.** `mobility` was

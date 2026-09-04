@@ -42,7 +42,7 @@ Three architectures are in scope in total:
 |---|---|---|
 | `ladder` | `max-strength` | per-set variation — `setPlan` only, no new field |
 | `antagonist-superset` | `hypertrophy` | `group` — two blocks that relate |
-| `circuit` | `hypertrophy` | the same `group`, N blocks |
+| ~~`circuit`~~ | `hypertrophy` | **DECLINED 2026-09-04, §3.7** — the same `group`, N blocks |
 
 ---
 
@@ -430,6 +430,73 @@ restructuring `blockGroup`, which every other block type depends on.
 
 ---
 
+### 3.7 The circuit — DECLINED 2026-09-04
+
+Slice 3 was researched, costed and then declined by the athlete. Recorded in
+full because the work is what makes the decision reusable, and because a
+feature that is *declined* is a different thing from one that is merely
+unbuilt: `ARCHITECTURES` still lists `circuit`, and without this section the
+next reader would take that as a to-do.
+
+**The sourcing came out in the circuit's FAVOUR, which is why the decline is
+worth writing down.** The obvious objection is that compressing rest across
+many stations costs hypertrophy, and the rest-interval literature does moderate
+on exactly that: Singer et al. 2024 (*Frontiers in Sports and Active Living*,
+Bayesian meta-analysis, 9 RCTs) finds a small benefit to inter-set rest >60 s —
+short (≤60 s) SMD 0.47 against intermediate (61–119 s) 0.65 — and **no
+appreciable difference beyond 90 s**. Schoenfeld et al. 2016 points the same
+way in trained men (3 min beat 1 min on squat and bench strength and quadriceps
+thickness). `[corroborated]`
+
+But the authors attribute the effect to **preservation of volume load** — short
+rest cuts the reps completed — and note that where volume load was equated, the
+difference **disappeared**. That is a constraint, not a veto, and it is one the
+group machinery already satisfies: with the round rest set to the longest of the
+members' drawn rests, every station's recovery is that round rest *plus every
+other station's work*, which cannot be less than its own drawn rest. Measured
+over 7,018 member-checks on real sessions, the worst margin was **+48 s**. The
+same algebra is why the antagonist superset is safe.
+
+Feasibility was there too. Measured over 10,000 hypertrophy sessions: **94.8%**
+offer three main-work blocks with distinct patterns and **69.5%** offer four.
+
+- Singer, A. et al. (2024). Give it a rest: a systematic review with Bayesian
+  meta-analysis on the effect of inter-set rest interval duration on muscle
+  hypertrophy. *Frontiers in Sports and Active Living*.
+  https://doi.org/10.3389/fspor.2024.1429789
+
+**What decided it was the gym, not the training.** Asked how many stations a
+circuit should hold, the athlete answered: *"I think at max 2 should be good. 3
+or more is very challenging."* A circuit of two stations **is** an antagonist
+superset — already built, already firing. Building `circuit` under that
+constraint would have been the same feature under a second name, which is
+discrepancy 5's failure (the same movement entered three times at three doses)
+moved from the library into the architecture list.
+
+**This is the third feature declined on the same question**, after the arm day
+and the isolation slot: *what is it for?* The machinery being free is not a
+reason to build something — it only lowers the price, and the price was never
+what was wrong.
+
+**What would reopen it.** Nothing about the sourcing; that work is done and
+should not be repeated. Only a change in where he trains — a home rack, an
+empty gym, a training partner holding stations. If that happens, everything
+this section records still stands and the build is small: `groupRounds`,
+`groupRestSec` and `groupAdjacent` are all N-safe already, and only
+`pairAntagonists` assumes exactly two members.
+
+**Left in `ARCHITECTURES` deliberately**, alongside `emom`, `cluster` and
+`complex`. `BUILT_ARCHITECTURES` remains the live list, and the gap between the
+two is the honest record of what has been considered.
+
+**A consequence that no longer applies, kept because it nearly shipped:** a
+third built architecture would have diluted the other two. `chooseArchitecture`
+draws uniformly, so adding `circuit` would have cut the superset from 24.3% to
+roughly 16% — a feature reducing how often another feature appears. If a fourth
+architecture is ever built, that is the question to settle first.
+
+---
+
 ## 4. Build order
 
 Each step leaves a working app and gets its own version bump.
@@ -443,7 +510,9 @@ Each step leaves a working app and gets its own version bump.
    `groupRestSec` (§3.6.5). `estimateMinutes`, `orderSession` and the card all
    changed. **Fires on 24.3% of hypertrophy sessions**, saving a mean of
    **3.43 min** and up to 13; 3.6% of sessions carry two pairs.
-3. **`circuit` on `hypertrophy`.** The same machinery, N blocks instead of two.
+3. **`circuit` on `hypertrophy`.** **DECLINED 2026-09-04 — §3.7.** The
+   machinery was free and the sourcing came out in its favour; the athlete
+   cannot hold the stations, and a circuit he can hold is a superset.
 
 ---
 

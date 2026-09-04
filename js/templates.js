@@ -110,6 +110,11 @@ export const PHASE_1_DAY_TYPES = Object.freeze([
 export const ARCHITECTURES = Object.freeze({
   'max-strength': Object.freeze(['straight', 'cluster', 'ladder']),
   power: Object.freeze(['straight', 'emom', 'complex', 'cluster']),
+  // `circuit` is DECLINED, not pending -- design-architectures.md 3.7. The
+  // sourcing favoured it and the machinery was free; the athlete cannot hold
+  // three stations, and a circuit of two IS the antagonist superset above.
+  // Left declared so the gap against BUILT_ARCHITECTURES stays the honest
+  // record of what has been considered.
   hypertrophy: Object.freeze(['straight', 'antagonist-superset', 'circuit']),
   'aerobic-steady': Object.freeze(['straight']),
   interval: Object.freeze(['straight']),
