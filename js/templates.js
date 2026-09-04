@@ -535,6 +535,13 @@ export const PREP_BLOCK = Object.freeze({
       slot: 'P1', role: 'prep', tier: ['mobility'], patterns: ['mobility'],
       modality: 'mobility-dynamic', zone: null, mode: 'drill',
       count: MOBILITY_DOSE.DYNAMIC_DRILLS, reps: MOBILITY_DOSE.DYNAMIC_REPS,
+      // Draw against the patterns the day actually trains, and spread the
+      // draw so each drill prepares something the last one did not. Without
+      // it this block drew any 3-4 of the 19 dynamic drills: the session that
+      // produced this flag was a Romanian deadlift, a close-grip bench and a
+      // woodchop, prepped by an inchworm, a walking quad pull and a squat to
+      // stand. 2026-09-04. design-mobility-and-warmup.md §9.
+      matchWork: true,
       effort: 'controlled, full range -- not a stretch', optional: false
     })
   ]),
@@ -563,6 +570,10 @@ export const COOLDOWN_BLOCK = Object.freeze({
     Object.freeze({
       slot: 'M1', role: 'mobility', tier: ['mobility'], patterns: ['mobility'],
       modality: 'mobility-static', zone: null, mode: 'hold',
+      // Stretch what the day trained. Same collision as the prep, one joint
+      // set apart: `seated-hamstring-stretch` is [hip, knee] and
+      // `standing-quad-stretch` is [knee, hip]. §9.
+      matchWork: true,
       count: MOBILITY_DOSE.STATIC_STRETCHES,
       holdSec: MOBILITY_DOSE.STATIC_HOLD_SEC,
       sets: MOBILITY_DOSE.STATIC_HOLD_SETS,
@@ -586,6 +597,7 @@ export const COOLDOWN_BLOCK = Object.freeze({
     Object.freeze({
       slot: 'M1', role: 'mobility', tier: ['mobility'], patterns: ['mobility'],
       modality: 'mobility-static', zone: null, mode: 'hold',
+      matchWork: true,
       count: Object.freeze([2, 3]), // [unverified] -- carried over from pre-split short block, not literature-sourced
       holdSec: MOBILITY_DOSE.STATIC_HOLD_SEC,
       sets: MOBILITY_DOSE.STATIC_HOLD_SETS,

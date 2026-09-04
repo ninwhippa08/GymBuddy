@@ -80,7 +80,8 @@ The user declined confirmation prompts; the residual drift is documented in §6.
 | `tier` | `primary` `secondary` `accessory` `core` `mobility` — slot eligibility |
 | `loadable` | false for plyos, sprints, mobility. Gates whether a `%PR` applies at all (§1) |
 | `prRef` | which PR to reference. A front squat may reference the back squat PR with a coefficient |
-| `joints` | drives soreness filtering |
+| `joints` | drives soreness filtering, and selects the running prep's drills (`design-running-programming.md` §5.3) |
+| `targets` | on the 38 mobility entries only: the movement patterns this drill or stretch serves. Matches the prep and cool-down to the day's main work. Joints could not do this job — `deadlift` and `walking-quad-pull` share `[knee, hip]` exactly (`design-mobility-and-warmup.md` §9.2) |
 | `venue` | `gym` `outdoor` `either` — determines where the session sends you |
 | `cnsCost` | 1–3, feeds the CNS account (§7) |
 | `technical` | 1–3, how much freshness the movement needs; drives ordering (§8) |

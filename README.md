@@ -188,7 +188,7 @@ file is the authoritative version; this is the summary.
 | 6 | FILL | Chooses an actual exercise for each slot in the template |
 | 7 | PRESCRIBE | Sets and reps at a percentage of a PR — or foot contacts, or minutes |
 | 8 | PACK | Estimates duration and trims optional slots to the main-work budget, then pairs opposing lifts into supersets |
-| 9 | PREP / COOL | Appends the dynamic warm-up and the static cool-down plus core |
+| 9 | PREP / COOL | Appends the dynamic warm-up and the static cool-down plus core, both **matched to the patterns the day actually trains**, then packs each to its budget |
 | 10 | ORDER | Enforces the fixed sequence: prep first, cool-down last, and a superset's two halves adjacent |
 
 Two ideas hold the design together:
@@ -208,7 +208,7 @@ Two ideas hold the design together:
 node --test tests/*.test.mjs
 ```
 
-520 tests, using only Node's built-in `node:test` and `node:assert/strict`.
+537 tests, using only Node's built-in `node:test` and `node:assert/strict`.
 There is no `package.json` and nothing to install.
 
 They are not only unit tests. Several are **sweeps**: they generate sessions in
@@ -265,6 +265,22 @@ always. A gym basement with no signal is the design target, not an edge case.
 The cost is that `VERSION` in `sw.js` must be bumped on every deploy, which is
 why that file opens with a large warning comment.
 
+**The warm-up is matched to the work, by movement pattern and not by joint.**
+The prep block used to draw any 3–4 of the 19 dynamic drills, so a Romanian
+deadlift and a close-grip bench could be prepped by a quad pull and a squat to
+stand. The obvious fix — filter drills by the joints the day's lifts use — is
+wrong, and the athlete broke it in one sentence: `deadlift` is
+`[hip, knee, lumbar]` and `walking-quad-pull` is `[knee, hip]`, a perfect joint
+overlap and still the wrong drill, because lengthening the quad does not
+prepare a hinge. The library has no muscle tagging to fall back on. So every
+drill and stretch names the movement **patterns** it serves, and the draw is
+coverage-ordered — each pick aims at a pattern the previous ones did not
+cover. The same applies to the cool-down, where `seated-hamstring-stretch`
+`[hip, knee]` and `standing-quad-stretch` `[knee, hip]` are the identical
+collision. Matching decides *which* movements, never *how many*: the 3–4 dose
+is sourced and a day whose patterns no drill serves still gets a full warm-up.
+`docs/design-mobility-and-warmup.md` §9.
+
 **Loads are always relative.** The app never prescribes a weight in kilograms
 directly — only `× PR`. Six PR roots cover the library; other lifts derive from
 them through a `prCoef`, and every one of those coefficients has a provenance
@@ -302,6 +318,15 @@ moved — but it changed which seeds land in the tail, and at a cap of 50 the
 tail sat exactly on the limit with nothing to spare. `MAIN_WORK_MAX_MIN` came
 down 50 → 49 to buy one real minute of margin, at a measured cost of 3.1% of
 max-strength working sets. The constant's comment carries the sweep.
+
+A second minute came back later, and not by trimming anything: **`packPrep`
+had never been called.** It was written for the case where a warm-up draws
+several per-side drills — which price at double — shipped with a passing unit
+test, and was simply not wired into the generator. The cool-down was packed;
+the prep was not. It went unnoticed for as long as it did because the constant
+bounding session length was itself derived from a sweep that assumed the
+packer was running. Wiring it took the measured worst case 69 → 68 min.
+`docs/design-mobility-and-warmup.md` §9.4.
 
 **Sources are tagged, including the weak ones.** `docs/programming-basis.md`
 marks each number `[verified]`, `[corroborated]`, `[unverified]`, or
