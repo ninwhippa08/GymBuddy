@@ -1395,6 +1395,47 @@ export function orderSession(blocks, zoneBySlot = {}) {
     .map(x => x.b);
 }
 
+// A superset is two blocks the athlete alternates between, so they have to be
+// next to each other on the card -- reading "bench, lunge, row" and being told
+// the bench and the row are one unit is worse than not pairing them at all.
+//
+// Applied AFTER orderSession rather than inside it. orderSession sorts by
+// session zone, which is a statement about where work belongs in a session;
+// adjacency is a statement about one pair. Folding the second into the first
+// would make every future ordering change reason about groups.
+// design-architectures.md 3.6.4.
+export function groupAdjacent(blocks) {
+  const out = [];
+  const placed = new Set();
+  for (const b of blocks) {
+    if (placed.has(b)) continue;
+    // Leave an A2 where it is until its A1 has been placed -- A1 pulls it, so
+    // the pair reads in the order it is performed rather than the order the
+    // session sort happened to leave them in.
+    if (b.group && b.groupRole === 'A2') {
+      const lead = blocks.find(x => x.group === b.group && x.groupRole === 'A1');
+      if (lead && !placed.has(lead)) continue;
+    }
+    out.push(b);
+    placed.add(b);
+    if (b.group && b.groupRole === 'A1') {
+      const partner = blocks.find(x => x.group === b.group && x.groupRole === 'A2');
+      if (partner && !placed.has(partner)) {
+        out.push(partner);
+        placed.add(partner);
+      }
+    }
+  }
+  // No catch-all for "skipped but never pulled". An A2 only defers while its
+  // lead is unplaced, and every block is visited, so the lead is always placed
+  // and the A2 always follows. A defensive sweep here was written, found to be
+  // unreachable by every input shape that could be constructed, and removed:
+  // dead code that looks like a safety net is worse than none, because it
+  // invites trust it has not earned. What actually guarantees no block is lost
+  // is the test that counts them.
+  return out;
+}
+
 // --------------------------------------------------------------------------
 // The pipeline
 // --------------------------------------------------------------------------

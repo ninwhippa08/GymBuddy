@@ -5,7 +5,7 @@
 // generator happens to produce is a rule nobody has tested the edges of.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { pairAntagonists, estimateMinutes } from '../js/generator.js';
+import { pairAntagonists, estimateMinutes, groupAdjacent } from '../js/generator.js';
 
 const blk = (over = {}) => ({
   slot: 'A', role: 'primary compound', mode: 'reps',
@@ -188,4 +188,80 @@ test('a half-pair is charged as the straight block it is, not mispriced', () => 
   // compound it by returning NaN or double-charging.
   const orphan = estimateMinutes([{ ...P1, group: 'S1', groupRole: 'A1', groupRounds: 3 }]);
   assert.equal(orphan, estimateMinutes([P1]));
+});
+
+// --------------------------------------------------------------------------
+// Ordering. design-architectures.md §3.6.4.
+// --------------------------------------------------------------------------
+
+const ord = (slot, role) => ({
+  slot, exerciseId: slot,
+  group: role ? 'S1' : undefined, groupRole: role
+});
+
+test('A2 is pulled up to sit immediately after A1', () => {
+  const out = groupAdjacent([ord('A', 'A1'), ord('B'), ord('C', 'A2'), ord('D')]);
+  assert.deepEqual(out.map(b => b.slot), ['A', 'C', 'B', 'D']);
+});
+
+test('A1 leads even when A2 came first in the ordering', () => {
+  const out = groupAdjacent([ord('C', 'A2'), ord('B'), ord('A', 'A1')]);
+  assert.deepEqual(out.map(b => b.slot), ['B', 'A', 'C']);
+});
+
+// The mirror of the crossed-pair case, for the OTHER lookup: an A2 that sits
+// after a different group's A1 must still defer to its own. A lead lookup that
+// matched any A1 would see one already placed and stop deferring, stranding
+// the A2 ahead of its partner.
+test('an A2 defers to its own A1, not to whichever A1 came first', () => {
+  const crossed = [
+    { slot: 'B', group: 'S2', groupRole: 'A1' },
+    { slot: 'C', group: 'S1', groupRole: 'A2' },
+    { slot: 'A', group: 'S1', groupRole: 'A1' },
+    { slot: 'D', group: 'S2', groupRole: 'A2' }
+  ];
+  assert.deepEqual(groupAdjacent(crossed).map(b => b.slot), ['B', 'D', 'A', 'C']);
+});
+
+test('ungrouped blocks keep their order', () => {
+  const out = groupAdjacent([ord('A'), ord('B'), ord('C')]);
+  assert.deepEqual(out.map(b => b.slot), ['A', 'B', 'C']);
+});
+
+test('every block survives, exactly once', () => {
+  const input = [ord('A', 'A1'), ord('B'), ord('C', 'A2'), ord('D')];
+  const out = groupAdjacent(input);
+  assert.equal(out.length, input.length);
+  assert.equal(new Set(out).size, input.length);
+});
+
+test('a half-pair is passed through rather than dropped', () => {
+  const out = groupAdjacent([ord('A', 'A1'), ord('B')]);
+  assert.deepEqual(out.map(b => b.slot), ['A', 'B']);
+  const orphanA2 = groupAdjacent([ord('A'), ord('C', 'A2')]);
+  assert.deepEqual(orphanA2.map(b => b.slot), ['A', 'C']);
+});
+
+test('two pairs are each made adjacent without interleaving', () => {
+  const two = [
+    { slot: 'A', group: 'S1', groupRole: 'A1' },
+    { slot: 'B', group: 'S2', groupRole: 'A1' },
+    { slot: 'C', group: 'S1', groupRole: 'A2' },
+    { slot: 'D', group: 'S2', groupRole: 'A2' }
+  ];
+  assert.deepEqual(groupAdjacent(two).map(b => b.slot), ['A', 'C', 'B', 'D']);
+});
+
+// The fixture above cannot tell "find my partner" from "find any A2": its A2s
+// happen to appear in the same order as its A1s, so both lookups agree. This
+// one crosses them, and a partner lookup that ignored the group id would pair
+// A with S2's half.
+test('a pair is matched by group id, not by finding any A2', () => {
+  const crossed = [
+    { slot: 'A', group: 'S1', groupRole: 'A1' },
+    { slot: 'B', group: 'S2', groupRole: 'A1' },
+    { slot: 'C', group: 'S2', groupRole: 'A2' },
+    { slot: 'D', group: 'S1', groupRole: 'A2' }
+  ];
+  assert.deepEqual(groupAdjacent(crossed).map(b => b.slot), ['A', 'D', 'B', 'C']);
 });
