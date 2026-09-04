@@ -560,6 +560,40 @@ export const TIME = Object.freeze({
   // FLOOR_OVERRUN_ALLOWANCE_MIN below, re-derived to match). GYM_SESSION_TOTAL_MIN
   // is unchanged -- only the main-work share of it moved.
   //
+  // 50 -> 49 [measured], 2026-09-04, TO BUY BACK MARGIN THE CEILING NEVER HAD.
+  // Growing the core pool 18 -> 33 (design-library-expansion.md §11) did not
+  // make sessions longer -- the duration distribution barely moved, 68 min
+  // 254 -> 279 sessions -- but it re-rolled WHICH seeds land in the tail, and
+  // at cap 50 the tail was sitting exactly on his limit with nothing to spare.
+  // One session in 70,000 came out at 71.
+  //
+  // That is not a fact about the new entries. It is a fact about the ceiling:
+  // 70 was never ENFORCED, only OBSERVED on one sample, because prep, main
+  // work and cool-down are packed against three independent budgets and
+  // nothing checks their sum. In the 71-minute session all three were at their
+  // limits at once -- prep 6.0 against a budget of 3, main 50.0 against a cap
+  // of 50, cool-down 15.0 against a budget of 12 -- with prep and cool-down
+  // over budget because their trims stop at SOURCED floors (three stretches,
+  // two core sets) and both core movements drawn were unilateral, which
+  // estimateMinutes doubles. Every pool this project grows re-rolls that
+  // sample, so at zero margin the next authoring commit breaks the limit again.
+  //
+  // Re-swept at 10,000 seeds x 7 PHASE_1_DAY_TYPES, now: 1e12, against the
+  // 252-entry library, one node process per cap:
+  //
+  //   cap 50 (was)     max 71 min   3 sessions at 70, 1 over   sets 10.48 / 15.20
+  //   cap 49 (CHOSEN)  max 69 min   0 at 70, 0 over            sets 10.16 / 14.80
+  //   cap 48           max 67 min   0 at 70, 0 over            sets  9.84 / 14.39
+  //
+  // (sets = mean working sets per session, max-strength / hypertrophy.)
+  //
+  // The athlete chose 49 with the cost stated first: -3.1% max-strength working
+  // sets, -2.6% hypertrophy, -1.9% power, and interval, sprint and plyometric
+  // unchanged. What it buys is one real minute between the worst observed
+  // session and the line he set, where before there was none. The cap may be
+  // lowered again on the same evidence; raising it past 49 needs the spec.md
+  // line 36 conversation again, exactly as cap 52 did.
+  //
   // CLOSED 2026-09-01, no change: the shared constant STAYS shared. This was
   // recorded as an open question because raising it to buy back ramped working
   // sets also gave packToBudget more room on day types that carry no ramp at
@@ -616,7 +650,7 @@ export const TIME = Object.freeze({
   // 70 min (spec.md:36) in a way trimming cannot rescue. If it ever starts
   // binding, LOWER IT -- never widen the limit.
   MAX_MAIN_SLOTS: 8,
-  MAIN_WORK_MAX_MIN: 50,
+  MAIN_WORK_MAX_MIN: 49,
   // Mandatory, never randomised out. Prep is capped by the drill dose rather
   // than by this figure; it is here so the three budgets can be seen to sum.
   PREP_MIN: 3,
@@ -703,5 +737,17 @@ export const TIME = Object.freeze({
   // his <=70 min requirement exactly, with no margin: this is the tightest
   // this allowance has ever sat against a stated constraint, and it is why
   // cap 52 (worst case 71, one session in 21,000) was rejected outright.
-  FLOOR_OVERRUN_ALLOWANCE_MIN: 10
+  //
+  // RE-DERIVED 2026-09-04, from 10 to 9, following MAIN_WORK_MAX_MIN 50 -> 49
+  // (see its comment above for the sweep and the choice). Same rule as before:
+  // the allowance is exactly worst - GYM_SESSION_TOTAL_MIN, measured and not
+  // rounded up, so 69 - 60 = 9. It FALLS here, which is the direction that
+  // matters -- this number has only ever been allowed to move to match a
+  // measurement, never to make room for one.
+  //
+  // The ceiling test above and the athlete's stated limit are now DIFFERENT
+  // numbers again (69 vs 70) rather than the same number, which is the point:
+  // the one minute between them is the margin that lets the next pool grow
+  // without breaking spec.md line 36.
+  FLOOR_OVERRUN_ALLOWANCE_MIN: 9
 });

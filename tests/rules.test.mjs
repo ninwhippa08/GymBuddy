@@ -22,13 +22,18 @@ test('prep leads the session order and static mobility still closes it', () => {
 
 test('the time budget matches design 5, main work raised past it 2026-08-31', () => {
   assert.equal(TIME.GYM_SESSION_TOTAL_MIN, 60);
-  // 45 -> 50, the athlete's call: see MAIN_WORK_MAX_MIN's comment in
-  // js/rules.js for the four measured options he was offered and why he
-  // picked this one. Design 5's "3 + 45 + 12 = 60" arithmetic no longer
-  // balances on purpose -- the three budgets now sum to 65, over the
+  // 45 -> 50 -> 49, the athlete's call both times: see MAIN_WORK_MAX_MIN's
+  // comment in js/rules.js for the measured options he was offered and why he
+  // picked each. Design 5's "3 + 45 + 12 = 60" arithmetic no longer
+  // balances on purpose -- the three budgets now sum to 64, over the
   // nominal 60, which is exactly what FLOOR_OVERRUN_ALLOWANCE_MIN exists to
   // absorb. Asserted as a bound below rather than pretending equality holds.
-  assert.equal(TIME.MAIN_WORK_MAX_MIN, 50);
+  //
+  // 2026-09-04: 50 -> 49, buying one minute of margin between the worst
+  // observed session (69) and his stated limit (70), because growing the core
+  // pool showed the ceiling was only ever OBSERVED at 70, never enforced --
+  // every pool this project grows re-rolls which seeds land in the tail.
+  assert.equal(TIME.MAIN_WORK_MAX_MIN, 49);
   assert.equal(TIME.PREP_MIN, 3);
   assert.equal(TIME.COOLDOWN_MIN, 12);
   assert.ok(

@@ -78,17 +78,56 @@ test('a single hurt joint leaves at least 3 static stretches at the gym', () => 
 // A plank dosed as "3 x 12 reps" is a wrong instruction, not a vague one --
 // the same failure class as the old "bodyweight" load line. Core holds are
 // dosed by time. design 2.1.
-test('isometric core holds are marked, and only they are', () => {
-  const HOLDS = [
-    'plank', 'side-plank', 'copenhagen-plank',
-    'hollow-hold', 'l-sit', 'suitcase-hold'
-  ];
-  const marked = EX.filter(e => e.isometric === true).map(e => e.id).sort();
-  assert.deepEqual(marked, [...HOLDS].sort());
-  for (const id of HOLDS) {
+//
+// This was an enumerated list of every marked entry, and 2026-09-03 predicted
+// it would "break next" -- it did, on the first authoring commit that added a
+// hold. A list every authoring commit must edit is a list nobody reads, so it
+// is replaced by the two invariants it was standing in for rather than bumped.
+//
+// The REVIEWED HOLDS below are the parents, not the population. They grow only
+// when a genuinely new held movement is authored, which is exactly the moment a
+// human should be looking at the flag -- and NOT when a variant is derived from
+// one, because derivation carries the flag across by inheritance (§11.2, and
+// derivation-guard.mjs asserts it still matches).
+//
+// A NAME-BASED RULE WAS TRIED AND REJECTED: matching /plank|hold|l-sit|hang/ on
+// the name misfires in both directions -- `hang-power-clean` names a start
+// position, `deep-squat-hold` and `dead-hang` are mobility entries dosed by the
+// mobility block, and `side-plank-reach-through` is a plank name for a dynamic
+// movement. There is no fact in the data that says which core movements are
+// held; that is a human claim, so the human claim is what is written down.
+const REVIEWED_HOLDS = [
+  'plank', 'side-plank', 'copenhagen-plank',
+  'hollow-hold', 'l-sit', 'suitcase-hold'
+];
+
+test('the isometric flag is only ever set where it is read', () => {
+  // generator.js resolves `mode: 'core'` per exercise -- a plank by time, an ab
+  // wheel by reps -- and that branch is the ONLY reader of `isometric`. A
+  // mobility or main-work entry carrying the flag would be dosed by its own
+  // block and the mark would silently mean nothing.
+  for (const e of EX.filter(x => x.isometric === true)) {
+    assert.equal(e.pattern, 'core', `${e.id} is marked isometric but is not a core entry`);
+  }
+});
+
+test('every marked hold is a reviewed one or inherits from one', () => {
+  for (const e of EX.filter(x => x.isometric === true)) {
+    if (REVIEWED_HOLDS.includes(e.id)) continue;
+    assert.ok(e.derivedFrom,
+      `${e.id} is marked isometric but is neither reviewed nor derived`);
+    const parent = EX.find(x => x.id === e.derivedFrom);
+    assert.ok(parent && parent.isometric === true,
+      `${e.id} inherits isometric from ${e.derivedFrom}, which is not a marked hold`);
+  }
+});
+
+test('every reviewed hold is still in the library, still a core hold', () => {
+  for (const id of REVIEWED_HOLDS) {
     const e = EX.find(x => x.id === id);
     assert.ok(e, `${id} missing from the library`);
     assert.equal(e.pattern, 'core', `${id} should be a core-pattern entry`);
+    assert.equal(e.isometric, true, `${id} is a reviewed hold but is not marked`);
   }
 });
 

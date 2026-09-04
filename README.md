@@ -125,7 +125,7 @@ GymBuddy/
 │   └── ui.js             DOM rendering. Pure: data in, detached DOM nodes out.
 │
 ├── data/
-│   └── exercises.json    The exercise library: 237 exercises + 6 PR roots.
+│   └── exercises.json    The exercise library: 252 exercises + 6 PR roots.
 │
 ├── tests/                Node's built-in test runner. 427 tests, zero dependencies.
 │   ├── *.test.mjs        One file per subject (session, ramp, coverage, ui, storage, …).
@@ -245,6 +245,25 @@ why that file opens with a large warning comment.
 directly — only `× PR`. Six PR roots cover the library; other lifts derive from
 them through a `prCoef`, and every one of those coefficients has a provenance
 record in `tests/coef-provenance.mjs`.
+
+**The library grows by derivation, and the parent link is load-bearing.** A
+variant moves exactly one axis — implement, stance or angle — off a reviewed
+parent and inherits the eight fields that would break silently if it drifted
+(`pattern`, `tier`, `joints`, `cnsCost`, `technical`, `unilateral`,
+`modalities`, `isometric`). It records where it came from in `derivedFrom`, and
+`tests/derivation-guard.mjs` fails the suite if a parent is ever repriced
+without its children moving too. `docs/design-library-expansion.md` §11 has the
+method; the first 15 entries built with it grew the `core` pool from 18 to 33.
+
+**A grown pool re-rolls every seeded draw, which is how the session ceiling
+turned out to be unenforced.** The 70-minute limit was only ever *observed* on
+a 70,000-session sweep, never guaranteed: prep, main work and cool-down are
+packed against three independent budgets and nothing checks their sum. Adding
+core entries did not make sessions longer — the duration distribution barely
+moved — but it changed which seeds land in the tail, and at a cap of 50 the
+tail sat exactly on the limit with nothing to spare. `MAIN_WORK_MAX_MIN` came
+down 50 → 49 to buy one real minute of margin, at a measured cost of 3.1% of
+max-strength working sets. The constant's comment carries the sweep.
 
 **Sources are tagged, including the weak ones.** `docs/programming-basis.md`
 marks each number `[verified]`, `[corroborated]`, `[unverified]`, or
