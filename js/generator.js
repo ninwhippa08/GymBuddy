@@ -836,6 +836,56 @@ function ladderise(block, zone) {
   };
 }
 
+// Direct opposites in the same plane, and nothing else. Cross-plane pairs and
+// squat/hinge were measured -- they would have reached 51.4% and 78.1% of
+// hypertrophy sessions against this rule's 47.7% -- and DECLINED: the effect
+// the source describes comes from loading the true opposing muscle, and a
+// squat paired with an RDL shares more than it opposes. Widening this table is
+// a training claim, not a tuning knob. design-architectures.md 3.6.2.
+const ANTAGONIST_OF = Object.freeze({
+  'push-h': 'pull-h', 'pull-h': 'push-h',
+  'push-v': 'pull-v', 'pull-v': 'push-v'
+});
+
+// Pair opposing main-work blocks into supersets. Runs AFTER packToBudget on
+// purpose: a supersetted session is shorter, so pairing first would let the
+// packer keep optional blocks it would otherwise trim, and the architecture
+// would silently ADD WORK -- which design 1's scope rule forbids. Running
+// after the packer also makes an orphaned half-pair impossible, because there
+// is nothing left to drop. design-architectures.md 3.6.3.
+export function pairAntagonists(blocks, architecture) {
+  if (architecture !== 'antagonist-superset') return blocks;
+
+  const out = blocks.map(b => ({ ...b }));
+  // "Main work" is countsTowardVolume's line, reused rather than restated. Two
+  // definitions of "the work" would drift, and the one that drifted would be
+  // the one nobody was reading. design-architectures.md 3.6.2.
+  const main = out.map((b, i) => ({ b, i })).filter(({ b }) => countsTowardVolume(b));
+
+  const taken = new Set();
+  let n = 0;
+  for (let a = 0; a < main.length; a++) {
+    if (taken.has(main[a].i)) continue;
+    for (let z = a + 1; z < main.length; z++) {
+      if (taken.has(main[z].i)) continue;
+      const A1 = main[a].b, A2 = main[z].b;
+      if (ANTAGONIST_OF[A1.pattern] !== A2.pattern) continue;
+
+      // The shorter block sets the round count; the longer one's remaining
+      // sets run straight, after the pair. The athlete took the pairing rule
+      // WITHOUT an equal-sets requirement, and this field is what pays for it.
+      const group = `S${++n}`;
+      const rounds = Math.min(A1.sets, A2.sets);
+      A1.group = group; A1.groupRole = 'A1'; A1.groupRounds = rounds;
+      A2.group = group; A2.groupRole = 'A2'; A2.groupRounds = rounds;
+      taken.add(main[a].i);
+      taken.add(main[z].i);
+      break;
+    }
+  }
+  return out;
+}
+
 // --------------------------------------------------------------------------
 // 8  PACK
 // --------------------------------------------------------------------------
