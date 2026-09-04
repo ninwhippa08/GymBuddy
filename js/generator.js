@@ -898,51 +898,86 @@ const transitionSec = b =>
     ? TIME.MOBILITY_TRANSITION_SEC
     : TIME.TRANSITION_SEC_PER_EXERCISE;
 
+// The rest a block takes between its own sets. Only main-work modes pair, and
+// those are the modes that fall through to the DEFAULT_REST_SEC branch in
+// blockSeconds, so this matches what blockSeconds would otherwise have charged.
+const restOf = b => (b.restSec || TIME.DEFAULT_REST_SEC);
+
+// One block's cost in seconds. This is the body estimateMinutes always had --
+// extracted unchanged so a pair can be priced AGAINST it rather than beside it.
+function blockSeconds(b) {
+  if (b.mode === 'time') return (b.durationMin || 0) * 60;
+  // An interval's work is its work seconds, not reps x SECONDS_PER_REP.
+  // Falling through to the generic branch below priced eight 90 s efforts
+  // at 24 seconds, so packToBudget never saw a session it should trim.
+  if (b.mode === 'interval') {
+    return b.sets * (b.workSec + (b.restSec || 0)) + transitionSec(b);
+  }
+
+  const sides = b.perSide ? 2 : 1;
+
+  if (b.mode === 'drill') {
+    return b.sets * b.reps * TIME.SECONDS_PER_REP * sides + transitionSec(b);
+  }
+  if (b.mode === 'hold') {
+    return b.sets * b.holdSec * sides
+      + b.sets * (b.restSec || 0)
+      + transitionSec(b);
+  }
+
+  let sec = 0;
+  // A ladder's working sets are not identical, so sets x reps overstates it:
+  // 4-3-2 / 4-3-2 is 18 reps where six sets of four would be 24. Price the
+  // work from the plan whenever there is one. design-architectures 3.3.
+  const planned = (b.setPlan || []).filter(s => s.kind === 'work');
+  const workReps = planned.length
+    ? planned.reduce((a, s) => a + s.reps, 0)
+    : b.sets * b.reps;
+  sec += workReps * TIME.SECONDS_PER_REP * sides;
+  sec += b.sets * restOf(b);
+  // The ramp is real time on the clock. Its sets are short and its rests
+  // shorter, but four warm-up sets before a heavy squat is minutes, and the
+  // budget has to see them or packToBudget trims the wrong thing.
+  for (const s of (b.setPlan || [])) {
+    if (s.kind !== 'warmup') continue;
+    sec += s.reps * TIME.SECONDS_PER_REP * sides;
+    sec += TIME.WARMUP_REST_SEC;
+  }
+  sec += transitionSec(b);
+  return sec;
+}
+
+// A superset changes ONLY the rest schedule: every working rep, every warm-up
+// rung and both transitions happen exactly as they would straight. So the pair
+// costs what the two blocks cost, minus the rest they would each have taken,
+// plus the rest the paired schedule actually takes. Pricing it as a fresh sum
+// would put the WORK estimate at risk for no gain -- and the work estimate is
+// what the whole time budget is built on. design-architectures 3.6.3.
+function pairSeconds(a, b) {
+  const R = a.groupRounds;
+  const straightRest = a.sets * restOf(a) + b.sets * restOf(b);
+  const pairedRest = R * Math.max(restOf(a), restOf(b))
+    + (a.sets - R) * restOf(a)
+    + (b.sets - R) * restOf(b);
+  return blockSeconds(a) + blockSeconds(b) - straightRest + pairedRest;
+}
+
 export function estimateMinutes(blocks) {
   let sec = 0;
+  const priced = new Set();
   for (const b of blocks) {
-    if (b.mode === 'time') { sec += (b.durationMin || 0) * 60; continue; }
-    // An interval's work is its work seconds, not reps x SECONDS_PER_REP.
-    // Falling through to the generic branch below priced eight 90 s efforts
-    // at 24 seconds, so packToBudget never saw a session it should trim.
-    if (b.mode === 'interval') {
-      sec += b.sets * (b.workSec + (b.restSec || 0));
-      sec += transitionSec(b);
-      continue;
+    if (b.group) {
+      if (priced.has(b.group)) continue;           // its partner already paid
+      const partner = blocks.find(x => x !== b && x.group === b.group);
+      if (partner) {
+        priced.add(b.group);
+        sec += pairSeconds(b, partner);
+        continue;
+      }
+      // A group with one member is a bug elsewhere, not a reason to misprice
+      // it here: fall through and charge it as the straight block it is.
     }
-
-    const sides = b.perSide ? 2 : 1;
-
-    if (b.mode === 'drill') {
-      sec += b.sets * b.reps * TIME.SECONDS_PER_REP * sides;
-      sec += transitionSec(b);
-      continue;
-    }
-    if (b.mode === 'hold') {
-      sec += b.sets * b.holdSec * sides;
-      sec += b.sets * (b.restSec || 0);
-      sec += transitionSec(b);
-      continue;
-    }
-
-    // A ladder's working sets are not identical, so sets x reps overstates it:
-    // 4-3-2 / 4-3-2 is 18 reps where six sets of four would be 24. Price the
-    // work from the plan whenever there is one. design-architectures 3.3.
-    const planned = (b.setPlan || []).filter(s => s.kind === 'work');
-    const workReps = planned.length
-      ? planned.reduce((a, s) => a + s.reps, 0)
-      : b.sets * b.reps;
-    sec += workReps * TIME.SECONDS_PER_REP * sides;
-    sec += b.sets * (b.restSec || TIME.DEFAULT_REST_SEC);
-    // The ramp is real time on the clock. Its sets are short and its rests
-    // shorter, but four warm-up sets before a heavy squat is minutes, and the
-    // budget has to see them or packToBudget trims the wrong thing.
-    for (const s of (b.setPlan || [])) {
-      if (s.kind !== 'warmup') continue;
-      sec += s.reps * TIME.SECONDS_PER_REP * sides;
-      sec += TIME.WARMUP_REST_SEC;
-    }
-    sec += transitionSec(b);
+    sec += blockSeconds(b);
   }
   return Math.round(sec / 60);
 }

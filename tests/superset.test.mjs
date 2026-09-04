@@ -5,7 +5,7 @@
 // generator happens to produce is a rule nobody has tested the edges of.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { pairAntagonists } from '../js/generator.js';
+import { pairAntagonists, estimateMinutes } from '../js/generator.js';
 
 const blk = (over = {}) => ({
   slot: 'A', role: 'primary compound', mode: 'reps',
@@ -103,4 +103,89 @@ test('the input blocks are not mutated', () => {
   const blocks = [blk({ pattern: 'push-h' }), blk({ slot: 'B', pattern: 'pull-h' })];
   pairAntagonists(blocks, 'antagonist-superset');
   assert.equal(blocks[0].group, undefined);
+});
+
+// --------------------------------------------------------------------------
+// Pricing. design-architectures.md §3.6.3.
+// --------------------------------------------------------------------------
+
+// Same two blocks, paired and unpaired. Everything except rest is identical,
+// so the difference must be exactly the rest arithmetic in §3.6.3.
+const P1 = { slot: 'A', role: 'primary compound', mode: 'reps', pattern: 'push-h',
+             exerciseId: 'a', sets: 3, reps: 10, restSec: 90 };
+const P2 = { slot: 'B', role: 'accessory', mode: 'reps', pattern: 'pull-h',
+             exerciseId: 'b', sets: 3, reps: 10, restSec: 60 };
+
+test('pairing removes one rest per round and keeps every second of work', () => {
+  const straight = estimateMinutes([P1, P2]);
+  const paired = estimateMinutes([
+    { ...P1, group: 'S1', groupRole: 'A1', groupRounds: 3 },
+    { ...P2, group: 'S1', groupRole: 'A2', groupRounds: 3 }
+  ]);
+  // straight rest: 3x90 + 3x60 = 450 s. paired rest: 3 x max(90,60) = 270 s.
+  // Difference is exactly 180 s = 3 min.
+  assert.equal(straight - paired, 3);
+});
+
+test('the round rest is the LONGER of the two, never the shorter', () => {
+  const paired = estimateMinutes([
+    { ...P1, group: 'S1', groupRole: 'A1', groupRounds: 3 },
+    { ...P2, group: 'S1', groupRole: 'A2', groupRounds: 3 }
+  ]);
+  const ifShorter = estimateMinutes([
+    { ...P1, restSec: 60, group: 'S1', groupRole: 'A1', groupRounds: 3 },
+    { ...P2, restSec: 60, group: 'S1', groupRole: 'A2', groupRounds: 3 }
+  ]);
+  assert.ok(paired > ifShorter,
+    'taking the shorter rest would invent a recovery saving the source does not describe');
+});
+
+test('unequal sets: only the common rounds are paired, the tail runs straight', () => {
+  const four = { ...P1, sets: 4 };
+  const two = { ...P2, sets: 2 };
+  const straight = estimateMinutes([four, two]);
+  const paired = estimateMinutes([
+    { ...four, group: 'S1', groupRole: 'A1', groupRounds: 2 },
+    { ...two, group: 'S1', groupRole: 'A2', groupRounds: 2 }
+  ]);
+  // straight rest: 4x90 + 2x60 = 480. paired: 2x90 (rounds) + 2x90 (A1 tail)
+  // + 0 (A2 has no tail) = 360. Difference 120 s = 2 min.
+  assert.equal(straight - paired, 2);
+});
+
+// A2 is whichever block comes second in slot order, NOT whichever is shorter,
+// so the leftover tail can sit on either side. Every fixture above happened to
+// put the longer block first, which left the A2 tail term untested -- a mutant
+// that dropped it survived the whole file.
+test('the leftover tail is charged whichever side it falls on', () => {
+  const short = { ...P1, sets: 2 };
+  const long = { ...P2, sets: 4 };
+  const straight = estimateMinutes([short, long]);
+  const paired = estimateMinutes([
+    { ...short, group: 'S1', groupRole: 'A1', groupRounds: 2 },
+    { ...long, group: 'S1', groupRole: 'A2', groupRounds: 2 }
+  ]);
+  // straight rest: 2x90 + 4x60 = 420. paired: 2x90 (rounds) + 0 (A1 tail)
+  // + 2x60 (A2 tail) = 300. Difference 120 s = 2 min.
+  assert.equal(straight - paired, 2);
+});
+
+test('a pair is priced once, not once per member', () => {
+  const paired = estimateMinutes([
+    { ...P1, group: 'S1', groupRole: 'A1', groupRounds: 3 },
+    { ...P2, group: 'S1', groupRole: 'A2', groupRounds: 3 }
+  ]);
+  const single = estimateMinutes([P1]);
+  assert.ok(paired < single * 2 + 5, `pair priced at ${paired} min looks doubled`);
+});
+
+test('an unpaired block is priced exactly as it was before', () => {
+  assert.equal(estimateMinutes([P1]), estimateMinutes([{ ...P1, group: undefined }]));
+});
+
+test('a half-pair is charged as the straight block it is, not mispriced', () => {
+  // A group with one member is a bug elsewhere; estimateMinutes must not
+  // compound it by returning NaN or double-charging.
+  const orphan = estimateMinutes([{ ...P1, group: 'S1', groupRole: 'A1', groupRounds: 3 }]);
+  assert.equal(orphan, estimateMinutes([P1]));
 });
