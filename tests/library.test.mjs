@@ -172,3 +172,41 @@ test('no id appears twice in the library', () => {
   }
   assert.deepEqual(dupes, [], `duplicated ids: ${dupes.join(', ')}`);
 });
+
+// --------------------------------------------------------------------------
+// Two entries were under-tagged, not missing — 2026-09-05
+// --------------------------------------------------------------------------
+
+// Found while measuring the shortfall in `secondary+accessory :: pull-v/pull-h
+// :: hypertrophy`, which read two entries short. It was not short of
+// MOVEMENTS. `face-pull` and `straight-arm-pulldown` were already in the
+// library carrying `modalities: ["isolation"]` and nothing else, so a
+// hypertrophy day could never select them and they counted toward no
+// hypertrophy pool.
+//
+// That is a rear-delt movement and a lat movement, both prescribed in sets of
+// 10-15 for size by anyone who programmes them, sitting beside `barbell-curl`,
+// `dumbbell-curl` and `hammer-curl` which all carry
+// `["isolation","hypertrophy"]`. The single tag looks like an oversight rather
+// than a judgement.
+//
+// Retagging is NOT the same act as adding an entry: it changes which DAYS a
+// movement already in circulation can be selected on. So it was raised
+// separately (design-library-expansion.md §13.6) and made only on the
+// athlete's explicit instruction, 2026-09-05.
+//
+// DELIBERATELY NOT RETAGGED, and left unasserted here so a later reading can
+// still change them: `band-pull-apart`, `incline-curl`, `preacher-curl` and
+// `wrist-curl` sit the same way. He named two; two is what moved.
+
+test('the rear-delt and lat isolation pulls are hypertrophy work as well', () => {
+  for (const id of ['face-pull', 'straight-arm-pulldown']) {
+    const e = EX.find(x => x.id === id);
+    assert.ok(e, `${id} is missing from the library`);
+    assert.ok(e.modalities.includes('isolation'),
+      `${id} must stay isolation work -- this adds a tag, it does not swap one`);
+    assert.ok(e.modalities.includes('hypertrophy'),
+      `${id} is tagged ${JSON.stringify(e.modalities)}, so no hypertrophy day ` +
+      'can ever select it');
+  }
+});

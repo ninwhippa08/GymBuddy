@@ -655,7 +655,7 @@
       "joints": ["shoulder","scapula"], "equipment": ["cable"], "venue": "gym",
       "cnsCost": 1, "technical": 1, "unilateral": false,
       "cues": ["Rope at about head height, hands turning outwards as you pull.","Pull to the forehead and finish with the knuckles beside the ears.","Light weight and high reps. This is shoulder maintenance, not a lift."],
-      "modalities": ["isolation"] },
+      "modalities": ["isolation","hypertrophy"] },
 
     { "id": "band-pull-apart", "name": "Band Pull-Apart", "pattern": "pull-h", "tier": "accessory",
       "loadable": false, "prRef": null, "prCoef": null,
@@ -711,7 +711,7 @@
       "joints": ["shoulder","scapula"], "equipment": ["cable"], "venue": "gym",
       "cnsCost": 1, "technical": 1, "unilateral": false,
       "cues": ["Stand back from a high pulley with the arms straight and the elbows soft.","Sweep the bar down to the thighs without bending the arms.","Lats only. If the elbows bend it has become a triceps exercise."],
-      "modalities": ["isolation"] },
+      "modalities": ["isolation","hypertrophy"] },
 
     { "id": "farmers-carry", "name": "Farmer's Carry", "pattern": "carry", "tier": "secondary",
       "loadable": false, "prRef": null, "prCoef": null,

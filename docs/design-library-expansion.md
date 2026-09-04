@@ -1163,8 +1163,42 @@ short. `incline-curl`, `preacher-curl` and `wrist-curl` sit the same way, while
 `["isolation","hypertrophy"]`.
 
 A face pull is a rear-delt hypertrophy movement by any ordinary reading, so the
-tagging looks accidental rather than considered. **Deliberately not changed
-here.** Retagging an entry changes which *days* it can be selected on, for
+tagging looks accidental rather than considered. It was **not** changed in the
+batch above: retagging an entry changes which *days* it can be selected on, for
 movements already in circulation — a different kind of change from adding a new
 entry, and one that should be decided on its own rather than swept in behind a
-batch that was about something else. Raised so it is on the record.
+batch that was about something else.
+
+### 13.7 The retag, and what it turned out to be worth — 2026-09-05, `sw.js` v41
+
+Decided by the athlete, on the record above. `face-pull` and
+`straight-arm-pulldown` gained `hypertrophy`; the tag was **added**, not
+swapped, so both remain isolation work. The other four sit unchanged and
+deliberately unasserted in `tests/library.test.mjs`, so a later reading can
+still move them: `band-pull-apart`, `incline-curl`, `preacher-curl`,
+`wrist-curl`. He named two; two moved.
+
+**The count was the least of it.** `secondary+accessory :: pull-v/pull-h ::
+hypertrophy` went 16 → 18, which was the visible effect. The real one is in the
+survival column:
+
+| | before | after |
+|---|---|---|
+| worst hurt joint | 6% (elbow) | 17% (scapula) |
+| FLOOR required | 16 | 6 |
+
+Because a face pull and a straight-arm pulldown load `["shoulder","scapula"]`
+and **no elbow at all**, they are the movements that stay legal when the elbow
+is the sore joint. Before the retag, a hurt elbow left that entire pool holding
+exactly **one** entry — `shrug`. It now holds three. The binding constraint
+moved off the elbow entirely.
+
+That is the §3.1 FLOOR rule doing what it exists to do, and it is worth stating
+plainly: **two of the six entries authored in §13.4 were bought by a tagging
+error.** Had the retag come first, `meadows-row` and `single-arm-lat-pulldown`
+would not have been needed to close that pool. They are good movements and they
+stay — the pool is better at 18 than at 16, and the hurt-elbow case above is
+better served by three than by one — but the sequence is a lesson: **audit what
+a pool already contains before concluding it is short.** A pool can read short
+because a movement is missing, or because a movement present in it is wearing
+the wrong label, and only one of those is fixed by authoring.

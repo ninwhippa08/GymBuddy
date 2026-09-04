@@ -213,7 +213,7 @@ Two ideas hold the design together:
 node --test tests/*.test.mjs
 ```
 
-558 tests, using only Node's built-in `node:test` and `node:assert/strict`.
+559 tests, using only Node's built-in `node:test` and `node:assert/strict`.
 There is no `package.json` and nothing to install.
 
 They are not only unit tests. Several are **sweeps**: they generate sessions in

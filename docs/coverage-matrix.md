@@ -22,9 +22,9 @@ running the suite.
 | `primary :: hinge/pull-h :: power` | 1 | 13 | 0% (hip) | exempt | 16 | 16 | 3 |
 | `primary :: squat/hinge/push-h/push-v/pull-v :: max-strength` | 1 | 21 | 29% (hip) | 4 | 16 | 16 | 0 |
 | `primary+secondary :: (any) :: max-strength` | 1 | 38 | 39% (hip) | 3 | 16 | 16 | 0 |
-| `secondary+accessory :: (any) :: hypertrophy` | 1 | 75 | 55% (hip) | 2 | 16 | 16 | 0 |
-| `accessory :: lunge/hinge/pull-h/carry :: hypertrophy` | 1 | 33 | 45% (hip) | 3 | 16 | 16 | 0 |
-| `secondary+accessory :: pull-v/pull-h :: hypertrophy` | 1 | 16 | 6% (elbow) | 16 | 16 | 16 | 0 |
+| `secondary+accessory :: (any) :: hypertrophy` | 1 | 77 | 56% (hip) | 2 | 16 | 16 | 0 |
+| `accessory :: lunge/hinge/pull-h/carry :: hypertrophy` | 1 | 34 | 47% (hip) | 3 | 16 | 16 | 0 |
+| `secondary+accessory :: pull-v/pull-h :: hypertrophy` | 1 | 18 | 17% (scapula) | 6 | 16 | 16 | 0 |
 | `secondary+accessory :: push-v/push-h :: hypertrophy` | 1 | 17 | 12% (shoulder) | 9 | 16 | 16 | 0 |
 | `accessory :: lunge/carry :: hypertrophy` | 1 | 17 | 18% (hip) | 6 | 16 | 16 | 0 |
 | `primary+secondary :: jump/throw :: power` | 1 | 16 | 19% (hip) | 6 | 16 | 16 | 0 |
