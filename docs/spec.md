@@ -217,7 +217,9 @@ A loaded compound no longer prescribes one working number for every set. When
 its clamped working load clears `WARMUP.FLOOR` (0.50 of the movement's own
 max), `prescribe()` attaches `block.setPlan` — an array of per-set steps
 climbing from `WARMUP.START` (0.30) to the working load in jumps no larger
-than `WARMUP.MAX_JUMP` (0.15), followed by the working sets themselves. Each
+than that movement's band — `WARMUP.MAX_JUMP` (0.15) for lower-body and
+unclassified lifts, `WARMUP.MAX_JUMP_UPPER` (0.10) for the four upper-body
+patterns — followed by the working sets themselves. Each
 step carries its own `reps`, `pct` and `displayMultiplier`; `block.sets`,
 `block.reps` and `block.pct` keep meaning the working sets only, unchanged
 from before this work, so nothing downstream of `prescribe()` needed to learn

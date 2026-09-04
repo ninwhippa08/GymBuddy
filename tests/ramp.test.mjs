@@ -199,10 +199,13 @@ test('the return ramp shortens the ladder on its own', () => {
         { pctCeiling: 0.65, volumeMultiplier: 1 }, rng, {});
       if (!block.setPlan) continue;
       const warmups = block.setPlan.filter(s => s.kind === 'warmup').length;
-      // ceil((0.65 - 0.30) / 0.15) = 3 rungs, PLUS the extra technique set an
-      // Olympic derivative gets. §4.3 says "no ramp exceeds three steps" and
-      // overlooked its own technical rule; four is correct for those lifts.
-      const cap = ex.technical === 3 ? 4 : 3;
+      // ceil((0.65 - 0.30) / 0.15) = 3 rungs on the lower-body band, and
+      // ceil((0.65 - 0.30) / 0.10) = 4 on the upper-body one (design §8 q5,
+      // closed 2026-09-04), PLUS the extra technique set an Olympic derivative
+      // gets. §4.3 said "no ramp exceeds three steps" and overlooked its own
+      // technical rule; the cap is per band and per technical rating.
+      const cap = (WARMUP.UPPER_BODY_PATTERNS.includes(ex.pattern) ? 4 : 3)
+        + (ex.technical === 3 ? 1 : 0);
       assert.ok(warmups <= cap,
         `${ex.id} (technical ${ex.technical}) ${zone}: ${warmups} warm-up sets under a 0.65 ceiling`);
     }
@@ -310,4 +313,43 @@ test('no generated session prescribes a ramp for fewer than two working sets', (
       }
     }
   }
+});
+
+// --------------------------------------------------------------------------
+// The jump splits by body region. design §8 q5, closed 2026-09-04: the sourced
+// increment band is 5-10% for upper-body lifts and 10-20% for lower-body ones,
+// so one constant could not be right for both.
+// --------------------------------------------------------------------------
+
+const upper = { technical: 1, pattern: 'push-h' };
+const lower = { technical: 1, pattern: 'squat' };
+
+test('an upper-body lift ramps in smaller steps than a lower-body one', () => {
+  const bench = buildWarmup(0.85, upper);
+  const squat = buildWarmup(0.85, lower);
+  assert.ok(bench.length > squat.length,
+    `bench took ${bench.length} steps and squat ${squat.length} -- the upper-body ` +
+    `band tops out at 10%, so the bench ladder must have more rungs`);
+});
+
+test('no upper-body jump, or jump into the work, exceeds the upper band', () => {
+  for (const working of [0.55, 0.65, 0.75, 0.85, 0.95]) {
+    const rungs = [...buildWarmup(working, upper).map(s => s.pct), working];
+    for (let i = 1; i < rungs.length; i++) {
+      const jump = rungs[i] - rungs[i - 1];
+      // 0.10 is written out rather than read from WARMUP: this test pins the
+      // SOURCED ceiling of the 5-10% upper-body band, so widening the constant
+      // must break it. Asserting against the constant would only prove the
+      // code agrees with itself.
+      assert.ok(jump <= 0.10 + 1e-9,
+        `working ${working}: a jump of ${jump.toFixed(3)} exceeds the 10% upper-body band`);
+    }
+  }
+});
+
+test('lower-body and unclassified lifts keep the wider band', () => {
+  // The default must stay the wider number: a movement the taxonomy has not
+  // classified is never over-ramped on the strength of a missing field.
+  assert.deepEqual(pcts(buildWarmup(0.80, lower)), pcts(buildWarmup(0.80, plain)));
+  assert.equal(buildWarmup(0.90, lower).length, 4);
 });

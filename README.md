@@ -294,6 +294,19 @@ answer was no. Swap handles "not today", which is the case that actually comes
 up. The field stays wired rather than being torn out, so the day a movement
 does need retiring the work is a control and not a redesign.
 
+**One warm-up constant is still unsourced, and the search for it found a
+source that does not exist.** `WARMUP.FLOOR` (0.50) decides the working load
+below which no ramp is built. Searching for a threshold returns, confidently
+and repeatedly, a *"2017 NSCA position stand on resistance training warm-ups"*
+putting it near 60% of 1RM. There is no such position stand: the underlying
+paper is a 2010 systematic review in a different journal that names no
+threshold, and the only chain of custody for the figure was a commercial
+calculator page. The constant is therefore left `[unverified]` rather than
+given a citation it does not have, and
+`docs/design-mobility-and-warmup.md` §8 q5 records the dead end so the search
+is not repeated. The other two constants in that block were anchored on
+2026-09-04.
+
 ### Specified but not built
 
 **Seven of the nine day types in `docs/spec.md` §5 exist.** `isolation` and

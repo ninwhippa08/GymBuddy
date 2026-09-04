@@ -526,7 +526,10 @@ export function buildWarmup(workingPct, exercise = {}) {
   // The 1e-9 guard absorbs float slop from the `workingPct - START`
   // subtraction (e.g. 0.90 - 0.30 = 0.6000000000000001 in IEEE-754), which
   // would otherwise push an exact-multiple gap one rung past its true count.
-  const count = Math.ceil(gap / WARMUP.MAX_JUMP - 1e-9);
+  const maxJump = WARMUP.UPPER_BODY_PATTERNS.includes(exercise.pattern)
+    ? WARMUP.MAX_JUMP_UPPER
+    : WARMUP.MAX_JUMP;
+  const count = Math.ceil(gap / maxJump - 1e-9);
   const spacing = gap / count;
   const technical = exercise.technical || 1;
   const cap = technical === 3 ? WARMUP.TECHNICAL_REP_CAP : Infinity;

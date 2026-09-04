@@ -158,15 +158,33 @@ export const PCT_JITTER = 0.025;
 // ceil((workingPct - START) / MAX_JUMP), so a heavier working set gets more
 // steps because the gap to bridge is longer, and nothing special-cases it.
 export const WARMUP = Object.freeze({
-  // Where every ladder starts, as a fraction of the movement's own max -- the
-  // empty bar, for most lifters. [corroborated] design §2.3.
+  // Where every ladder starts, as a fraction of the movement's own max.
+  // Ribeiro et al. 2020's effective progressive warm-up began at 40% of the
+  // training load, and that load was 80% of 1RM -- a first rung at 0.32 of the
+  // movement's max, two points from this. [corroborated] design §2.3, §8 q5.
+  //
+  // This used to read "the empty bar, for most lifters", which is arithmetic
+  // that only holds if the movement's max is ~67 kg. It described a lifter the
+  // athlete is not. The number was right; the reason was not.
   START: 0.30,
-  // No step, and no jump into the working set, may exceed this.
-  // [corroborated] from the worked ladders in design §2.3.
+  // No step, and no jump into the working set, may exceed this. The sourced
+  // increment band splits by body region -- 10-20% for lower-body lifts,
+  // 5-10% for upper-body ones -- so one number could not be right for both.
+  // 0.15 is the midpoint of the lower band; it was ABOVE the upper band
+  // entirely until 2026-09-04. [corroborated] design §2.3, §8 q5.
   MAX_JUMP: 0.15,
+  MAX_JUMP_UPPER: 0.10,
+  // Which patterns take the upper-body band. Everything else, and anything
+  // with no pattern at all, takes MAX_JUMP -- the default stays the wider one
+  // so a movement the taxonomy has not classified is never over-ramped.
+  UPPER_BODY_PATTERNS: Object.freeze(['push-h', 'push-v', 'pull-h', 'pull-v']),
   // Below this working load there is no ramp at all -- there is nothing to
-  // bridge. [corroborated] design §2.3: "the lighter the weight, the less
-  // warming up you'll need".
+  // bridge. The PRINCIPLE is [corroborated] -- design §2.3, "the lighter the
+  // weight, the less warming up you'll need" -- but 0.50 itself is still
+  // [unverified] and no source found gives a floor. Note before searching: a
+  // "2017 NSCA position stand on warm-ups" putting the threshold at ~60% of
+  // 1RM is returned confidently by search and DOES NOT EXIST. design §8 q5
+  // records the whole dead end. Do not go looking for it again.
   FLOOR: 0.50,
   // Reps for a step, by that step's own load. Descending; first match wins.
   // [corroborated] from the 75% and 90% thresholds in design §2.3.

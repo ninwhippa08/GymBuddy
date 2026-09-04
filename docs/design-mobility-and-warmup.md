@@ -120,7 +120,9 @@ example for an 80% working set is bar → 30% → 50% → 65% → 75%. `[corrobo
 Both are correct for their movements. A generator that applies one to the other
 is doing the same thing that produced discrepancy 3.
 
-**Do not stop light.** A controlled trial on squat and bench press found that
+**Do not stop light.** A controlled trial on squat and bench press
+([Ribeiro et al. 2020](https://doi.org/10.3390/ijerph17186882), n = 40,
+crossover — see §8 q5, which reads the protocol's loads back out) found that
 "warming-up with few repetitions and low loads is not enough to optimize squat
 and bench press performances." `[verified]` For the squat a single
 higher-intensity set at 80% of training load outperformed a light one; for bench
@@ -264,8 +266,12 @@ percentage ladder appears anywhere in the code.
 
 **Step count falls out of the gap, so it scales with the load automatically.**
 Steps climb from `WARMUP.START` (0.30 of the movement's max) to the working
-load, with no jump larger than `WARMUP.MAX_JUMP` (0.15). The count is
-`ceil((workingPct - WARMUP.START) / WARMUP.MAX_JUMP)`:
+load, with no jump larger than the movement's own band — `WARMUP.MAX_JUMP`
+(0.15) for lower-body and unclassified lifts, `WARMUP.MAX_JUMP_UPPER` (0.10)
+for `push-h`, `push-v`, `pull-h` and `pull-v`, per §8 q5. The count is
+`ceil((workingPct - WARMUP.START) / band)`. The table below is the lower-body
+band; an upper-body lift at the same load takes the same shape with more rungs
+(0.85 gives 4 rungs lower, 5 upper):
 
 | Working load | Warm-up steps | Ramp |
 |---|---|---|
@@ -313,10 +319,12 @@ gets a ramp, and a primary lift prescribed light does not. `mode: 'reps'`,
 `'contacts'` and `'time'` never receive one.
 
 **Emergent property worth stating.** During the return ramp `env.pctCeiling` is
-0.65, so no working load can exceed it, so no ramp exceeds **three steps — or
-four for a `technical: 3` lift**, which gains one extra technique set at
-`WARMUP.START` on top of the computed rungs. `ceil((0.65 - 0.30) / 0.15)` is 3;
-the `unshift` in `buildWarmup()` makes it 4 for the Olympic derivatives.
+0.65, so no working load can exceed it, so no ramp exceeds **three steps on
+the lower-body band, four on the upper-body one, plus one more for a
+`technical: 3` lift**, which gains an extra technique set at `WARMUP.START` on
+top of the computed rungs. `ceil((0.65 - 0.30) / 0.15)` is 3 and
+`ceil((0.65 - 0.30) / 0.10)` is 4; the `unshift` in `buildWarmup()` adds the
+technique set for the Olympic derivatives.
 (Corrected: this section originally said three and overlooked its own technical
 rule. Verified against `buildWarmup()` over every working load from 0.30 to
 0.65 — the maximum is 3 plain and 4 technical. `tests/ramp.test.mjs`'s "the
@@ -909,14 +917,75 @@ clean while two real bugs sat in the code. Both layers are required.
    and his ≤ 70 min limit intact. He declined the session time. Nothing in the
    app changed; the gap is recorded here so that it is a **known limitation
    rather than an oversight**, and so nobody re-derives it from scratch.
-5. `WARMUP.START` 0.30, `WARMUP.MAX_JUMP` 0.15 and `WARMUP.FLOOR` 0.50 (this
+5. **CLOSED 2026-09-04. Two of the three are now anchored; the floor is not,
+   and one plausible-looking source for it turned out not to exist.**
+   `WARMUP.START` 0.30, `WARMUP.MAX_JUMP` 0.15 and `WARMUP.FLOOR` 0.50 (this
    document originally called the block `RAMP` before the build renamed it to
-   `WARMUP` — see §4.3's "as built" note) are `[unverified]` as exact values.
-   They are tuned to reproduce the worked example in §2.3 and to satisfy the
-   scaling principle, which is a weaker claim than being read from a source.
-   The *shape* — steps scale with load, reps fall as load rises, light work
-   gets none — is `[corroborated]`. If any number in this document gets
-   challenged next, it should be these three.
+   `WARMUP` — see §4.3's "as built" note) were all `[unverified]`, tuned to
+   reproduce the worked example in §2.3 rather than read from a source.
+
+   **`START` 0.30 — `[corroborated]`, and its stated reason was wrong.**
+   [Ribeiro et al. 2020, *Int J Environ Res Public Health* 17(18):6882](https://doi.org/10.3390/ijerph17186882)
+   — the crossover trial this document already cites at §2.3 for "do not stop
+   light", n = 40 resistance-trained males — ran its effective progressive
+   warm-up at **40% and 80% of the training load**, and the training load was
+   80% of 1RM. In units of the movement's own max that is a first rung at
+   **0.32**, two points from our 0.30. `[verified]` for the trial's protocol,
+   `[corroborated]` for the transfer.
+
+   The constant's *justification* was the part that was wrong. It read "the
+   empty bar, for most lifters", which is arithmetic that only works if the
+   movement's max is about 67 kg — a 20 kg bar is 30% of 67 kg. For this
+   athlete's squat the empty bar is nowhere near 30% of max, so the comment
+   was describing a lifter he is not. The number survives; the reason for it
+   has been replaced in `js/rules.js`.
+
+   **`MAX_JUMP` 0.15 — `[corroborated]`, and it was one number doing two
+   jobs.** The increment band repeated consistently across 1RM-testing
+   protocols is **5–10% for upper-body lifts and 10–20% for lower-body ones**.
+   `[corroborated]` — it is stated the same way by several independent
+   secondary sources, but every one of them presents it as general practice
+   rather than citing a trial, so it does not reach `[verified]`. Ribeiro's
+   own final jump, 0.64 → 0.80 of 1RM, is 0.16 and agrees with the lower band.
+
+   0.15 is the midpoint of the lower-body band and sits **above the upper-body
+   band entirely**. §2.3 already says traditions differ and "the difference is
+   the movement, not the author"; the app was applying one tradition to both.
+   **BUILT 2026-09-04**, `WARMUP.MAX_JUMP_UPPER` 0.10 for `push-h`, `push-v`,
+   `pull-h` and `pull-v`, with 0.15 kept as the default so a movement the
+   taxonomy has not classified is never over-ramped.
+
+   **What it cost, measured over 3,000 seeds per day type at `now: 1e12`:**
+   working sets **−4.1% on max-strength** (32,716 → 31,360), −1.8% on
+   hypertrophy, −0.3% on power, for **+15.5%** more warm-up sets on
+   max-strength. Session length barely moved — mean 64.01 → 64.13 min, and the
+   observed maximum held at 69 min — because `packToBudget` paid for the extra
+   rungs out of working sets rather than the clock, which is the same feedback
+   shape §4.3's "as built" note warned about. It is an order of magnitude
+   smaller than the −24.6% the ramp itself cost when first shipped (see q9),
+   and the athlete accepted it with the displacement stated in advance.
+
+   **`FLOOR` 0.50 — still `[unverified]`, and here is the dead end so nobody
+   walks into it twice.** A search returns, confidently and more than once, a
+   *"2017 NSCA position stand on resistance training warm-ups"* said to
+   establish that an ascending ramp beats no ramp "for any compound lift over
+   approximately 60% of 1RM" — which is exactly the threshold a sourced
+   `FLOOR` would need. **It does not exist.** The NSCA's position statements
+   are youth resistance training, long-term athletic development, resistance
+   training for older adults, weightlifting for sports performance and a few
+   others; none concerns warm-ups. The underlying paper is
+   [Fradkin et al. 2010, *J Strength Cond Res* 24(1):140–148](https://doi.org/10.1519/JSC.0b013e3181c643a0),
+   a systematic review with meta-analysis — not a position stand, not 2017,
+   and it reports that warm-up improved performance in 79% of criteria
+   examined without naming a load threshold at all. The only chain of custody
+   for the "60%" figure was a commercial warm-up-calculator page.
+
+   Ribeiro tested a single 80% working load, so it says nothing about where a
+   ramp stops being worth doing. **No source found gives a floor.** 0.50
+   stays, `[unverified]`, on the same footing as before: it satisfies "the
+   lighter the weight, the less warming up you'll need" `[corroborated]` and
+   nothing sharper. Do not re-run this search expecting the position stand to
+   turn up.
 6. **CLOSED 2026-09-01. The transfer was invalid, and §4.4 is unblocked.**
    The ~10-set figure is `[verified]` for hypertrophy only, and this was right
    to distrust: a meta-regression over 67 studies / 2,058 participants
