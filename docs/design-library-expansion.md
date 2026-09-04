@@ -794,3 +794,99 @@ programs are set, and would rather decide than be asked to guess. That covers
 `aerobic-steady`'s missing numeric target (question 4), the strides slot in
 §5.3, and the `locomotion` pools generally. Nothing is blocked by the wait; the
 lifting side is complete except question 5.
+
+## 11  Growth by parent-derived variants — added 2026-09-04
+
+Status: method agreed 2026-09-04. Guard built; `core` is the pilot pool.
+
+### 11.1 What the cost of an entry actually is
+
+The library is 237 entries. Asked for a way to grow it substantially, the first
+thing to establish was what an entry costs, because the obvious answer — names —
+is wrong.
+
+- **Cues are the bottleneck.** 790 hand-written lines, **3.33 per entry**, each
+  capped at 90 characters by `cue-guard.mjs`, each of which has to be true about
+  a movement the athlete will perform unsupervised. `core` is one of the seven
+  `CUED_POOLS`, so an entry added there cannot arrive blank.
+- **Only 36 of 237 are loadable**, and `tests/coefficients.test.mjs` is an
+  explicit ratchet — the unverified debt may shrink, never grow. The barbell
+  half of the library cannot grow without sourcing a coefficient per entry.
+  That is the rule working, not an obstacle, and §11.3 does not route around it.
+- **The 111-entry shortfall in §4 is the wrong target.** It is concentrated in
+  `sprint`, `run` and `jump`, where the README's conclusion stands: inventing a
+  sixteenth way to sprint is worse than repeating the right one. The pools where
+  growth buys the athlete something are the **87 non-loadable entries across the
+  nine lifting patterns**, plus **18 `core`** and **38 `mobility`**.
+
+### 11.2 The method
+
+> A **derived variant** takes a reviewed parent and moves **exactly one axis** —
+> implement, stance, or angle. Never a cross-product.
+
+It inherits from the parent, unchanged: `pattern`, `tier`, `joints`, `venue`,
+`cnsCost`, `technical`, `unilateral`, `modalities`, `isometric`. It carries a
+new optional field **`derivedFrom: "<parent-id>"`** naming where it came from.
+
+The inherited list is the definition, not a convenience. Each field on it is an
+input to something that would break silently if the variant drifted:
+
+- `joints` is the soreness filter's only input. **If a variant would load
+  different joints, it is not a derived variant** — it is a new movement, and it
+  is authored fresh under §8 with its own review.
+- `cnsCost` and `technical` price the session; `tier` and `pattern` decide which
+  pool and which slot it can ever reach; `venue` decides whether it exists at
+  all today.
+- `isometric` was **added to the list during the core pilot, before any entry
+  was authored**. The agreed list did not carry it; `generator.js:1214` shows it
+  is the switch that decides whether the card prescribes a **hold in seconds or
+  reps**, which makes it dose-shaping in exactly the way `cnsCost` is. A variant
+  that flips it has not moved one axis, it has changed what the movement is —
+  so `plank` cannot derive `plank-with-shoulder-tap`, and that entry is authored
+  fresh under §8 instead. The field is absent on rep-based entries, and absent
+  inherits as absent.
+
+`loadable` is **`false` unless a coefficient is sourced for the variant itself**.
+A parent's `prCoef` is a dose measured on the parent, and derivation never
+inherits a measurement — that is exactly the fabrication the register exists to
+stop.
+
+**Cues are derived, and say so.** Inherit the parent's lines, rewrite only the
+line the moved axis actually changes, keep the rest. A variant whose cues are
+byte-identical to its parent's has not moved an axis worth an entry.
+
+Depth is one. **A parent may not itself be derived**, so every variant is one
+edit away from a line a human reviewed. Chains would let three small drifts add
+up to an entry nobody has ever checked.
+
+### 11.3 The guard, and the failure it exists to prevent
+
+Derivation rots in one specific way: the parent changes — a joint is added, a
+`cnsCost` is repriced — and the children keep the old values. Nothing in the
+suite would notice, and the divergence is invisible because both entries still
+look well-formed on their own.
+
+`tests/derivation-guard.mjs` therefore asserts, for every entry carrying
+`derivedFrom`, that **the parent exists** and that **every inherited field still
+equals the parent's**. It is test-side rather than app-side for the same reason
+as the cue guard and `coef-provenance.mjs`: the library is authored in this repo
+and gated by this suite, so a malformed entry can never reach a user, and §2's
+"no schema change" holds.
+
+The guard makes the parent link load-bearing. Repricing a parent now fails the
+suite until its children are repriced with it — which is the intended cost, and
+the reason a variant is cheap to add and honest to keep.
+
+### 11.4 Why `core` is the pilot
+
+Picked to produce a real yield number instead of an estimate, on the pool with
+the fewest confounds: 18 entries, **no coefficients owed** (not one is
+loadable), and a live consumer — it is the pool the mobility deload day and
+89.9% of hypertrophy sessions draw their finisher from. Its implement axis is
+also the narrowest in the library: bodyweight 9, cable 2, pull-up-bar 2, and one
+each of bench, ab-wheel, dip-bar, open-space, dumbbell.
+
+What the pilot has to answer, before the method is applied to the eight lifting
+pools: how many variants a reviewed parent actually yields before the one-axis
+rule stops being satisfiable, and whether derived cues read as well as written
+ones when the athlete meets them on a card at the gym.
