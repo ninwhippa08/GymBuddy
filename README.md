@@ -255,6 +255,20 @@ parent and inherits the eight fields that would break silently if it drifted
 without its children moving too. `docs/design-library-expansion.md` §11 has the
 method; the first 15 entries built with it grew the `core` pool from 18 to 33.
 
+**Two opposing lifts can be paired into a superset.** On a hypertrophy day a
+horizontal push may be paired with a horizontal pull (or a vertical push with
+a vertical pull), alternating between them with no rest in between and one
+rest at the end of the round. It changes **only rest and order** — the sets,
+the reps and the loads are identical to the straight session, and the tests
+assert that by recomputing the volume from the blocks with the pairing
+stripped off. Sourced to a 2025 *Sports Medicine* review of 26 studies:
+roughly 37% less session time at preserved volume, with strength and
+hypertrophy outcomes indistinguishable from straight sets. Tagged
+`[corroborated]` rather than `[verified]`, because exactly one
+agonist-antagonist trial in that review (n = 23) followed chronic adaptation.
+It fires on **24.3%** of hypertrophy sessions and saves a mean of **3.43
+minutes**. `docs/design-architectures.md` §3.6.
+
 **A grown pool re-rolls every seeded draw, which is how the session ceiling
 turned out to be unenforced.** The 70-minute limit was only ever *observed* on
 a 70,000-session sweep, never guaranteed: prep, main work and cool-down are

@@ -116,6 +116,18 @@ body {
   border-radius: var(--radius);
 }
 
+/* The two halves of a superset read as one unit. A shared left edge is enough
+   to group them -- they are already adjacent, guaranteed by groupAdjacent --
+   and it costs no vertical space, unlike a heading between the block list's
+   cards. design-architectures.md 3.6.4. */
+.block.superset {
+  border-left: 3px solid var(--accent);
+}
+
+.block-superset {
+  color: var(--accent);
+}
+
 .block-head {
   display: flex;
   align-items: baseline;

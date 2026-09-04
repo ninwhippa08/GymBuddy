@@ -836,6 +836,67 @@ function ladderise(block, zone) {
   };
 }
 
+// Direct opposites in the same plane, and nothing else. Cross-plane pairs and
+// squat/hinge were measured -- they would have reached 51.4% and 78.1% of
+// hypertrophy sessions against this rule's 47.7% -- and DECLINED: the effect
+// the source describes comes from loading the true opposing muscle, and a
+// squat paired with an RDL shares more than it opposes. Widening this table is
+// a training claim, not a tuning knob. design-architectures.md 3.6.2.
+const ANTAGONIST_OF = Object.freeze({
+  'push-h': 'pull-h', 'pull-h': 'push-h',
+  'push-v': 'pull-v', 'pull-v': 'push-v'
+});
+
+// Pair opposing main-work blocks into supersets. Runs AFTER packToBudget on
+// purpose: a supersetted session is shorter, so pairing first would let the
+// packer keep optional blocks it would otherwise trim, and the architecture
+// would silently ADD WORK -- which design 1's scope rule forbids. Running
+// after the packer also makes an orphaned half-pair impossible, because there
+// is nothing left to drop. design-architectures.md 3.6.3.
+export function pairAntagonists(blocks, architecture) {
+  if (architecture !== 'antagonist-superset') return blocks;
+
+  const out = blocks.map(b => ({ ...b }));
+  // "Main work" is countsTowardVolume's line, reused rather than restated. Two
+  // definitions of "the work" would drift, and the one that drifted would be
+  // the one nobody was reading. design-architectures.md 3.6.2.
+  const main = out.map((b, i) => ({ b, i })).filter(({ b }) => countsTowardVolume(b));
+
+  const taken = new Set();
+  let n = 0;
+  for (let a = 0; a < main.length; a++) {
+    if (taken.has(main[a].i)) continue;
+    for (let z = a + 1; z < main.length; z++) {
+      if (taken.has(main[z].i)) continue;
+      const A1 = main[a].b, A2 = main[z].b;
+      if (ANTAGONIST_OF[A1.pattern] !== A2.pattern) continue;
+
+      // The shorter block sets the round count; the longer one's remaining
+      // sets run straight, after the pair. The athlete took the pairing rule
+      // WITHOUT an equal-sets requirement, and this field is what pays for it.
+      const group = `S${++n}`;
+      const rounds = Math.min(A1.sets, A2.sets);
+      // The rest between rounds, denormalised onto BOTH blocks because the
+      // card renders one block at a time and cannot look up a partner. Without
+      // it the card prints the block's own restSec, which for a paired block
+      // is simply false -- the real schedule is no rest after A1 and this
+      // rest after A2. A card that states a rest he does not take is the
+      // "lying card" failure the time budget already guards against.
+      // It is a second copy of Math.max(restOf(A1), restOf(A2)), which
+      // pairSeconds computes independently, so the two are asserted to agree
+      // rather than trusted -- the same rule the coefficient register follows.
+      const roundRest = Math.max(restOf(A1), restOf(A2));
+      A1.group = group; A1.groupRole = 'A1'; A1.groupRounds = rounds;
+      A2.group = group; A2.groupRole = 'A2'; A2.groupRounds = rounds;
+      A1.groupRestSec = roundRest; A2.groupRestSec = roundRest;
+      taken.add(main[a].i);
+      taken.add(main[z].i);
+      break;
+    }
+  }
+  return out;
+}
+
 // --------------------------------------------------------------------------
 // 8  PACK
 // --------------------------------------------------------------------------
@@ -848,51 +909,86 @@ const transitionSec = b =>
     ? TIME.MOBILITY_TRANSITION_SEC
     : TIME.TRANSITION_SEC_PER_EXERCISE;
 
+// The rest a block takes between its own sets. Only main-work modes pair, and
+// those are the modes that fall through to the DEFAULT_REST_SEC branch in
+// blockSeconds, so this matches what blockSeconds would otherwise have charged.
+const restOf = b => (b.restSec || TIME.DEFAULT_REST_SEC);
+
+// One block's cost in seconds. This is the body estimateMinutes always had --
+// extracted unchanged so a pair can be priced AGAINST it rather than beside it.
+function blockSeconds(b) {
+  if (b.mode === 'time') return (b.durationMin || 0) * 60;
+  // An interval's work is its work seconds, not reps x SECONDS_PER_REP.
+  // Falling through to the generic branch below priced eight 90 s efforts
+  // at 24 seconds, so packToBudget never saw a session it should trim.
+  if (b.mode === 'interval') {
+    return b.sets * (b.workSec + (b.restSec || 0)) + transitionSec(b);
+  }
+
+  const sides = b.perSide ? 2 : 1;
+
+  if (b.mode === 'drill') {
+    return b.sets * b.reps * TIME.SECONDS_PER_REP * sides + transitionSec(b);
+  }
+  if (b.mode === 'hold') {
+    return b.sets * b.holdSec * sides
+      + b.sets * (b.restSec || 0)
+      + transitionSec(b);
+  }
+
+  let sec = 0;
+  // A ladder's working sets are not identical, so sets x reps overstates it:
+  // 4-3-2 / 4-3-2 is 18 reps where six sets of four would be 24. Price the
+  // work from the plan whenever there is one. design-architectures 3.3.
+  const planned = (b.setPlan || []).filter(s => s.kind === 'work');
+  const workReps = planned.length
+    ? planned.reduce((a, s) => a + s.reps, 0)
+    : b.sets * b.reps;
+  sec += workReps * TIME.SECONDS_PER_REP * sides;
+  sec += b.sets * restOf(b);
+  // The ramp is real time on the clock. Its sets are short and its rests
+  // shorter, but four warm-up sets before a heavy squat is minutes, and the
+  // budget has to see them or packToBudget trims the wrong thing.
+  for (const s of (b.setPlan || [])) {
+    if (s.kind !== 'warmup') continue;
+    sec += s.reps * TIME.SECONDS_PER_REP * sides;
+    sec += TIME.WARMUP_REST_SEC;
+  }
+  sec += transitionSec(b);
+  return sec;
+}
+
+// A superset changes ONLY the rest schedule: every working rep, every warm-up
+// rung and both transitions happen exactly as they would straight. So the pair
+// costs what the two blocks cost, minus the rest they would each have taken,
+// plus the rest the paired schedule actually takes. Pricing it as a fresh sum
+// would put the WORK estimate at risk for no gain -- and the work estimate is
+// what the whole time budget is built on. design-architectures 3.6.3.
+function pairSeconds(a, b) {
+  const R = a.groupRounds;
+  const straightRest = a.sets * restOf(a) + b.sets * restOf(b);
+  const pairedRest = R * Math.max(restOf(a), restOf(b))
+    + (a.sets - R) * restOf(a)
+    + (b.sets - R) * restOf(b);
+  return blockSeconds(a) + blockSeconds(b) - straightRest + pairedRest;
+}
+
 export function estimateMinutes(blocks) {
   let sec = 0;
+  const priced = new Set();
   for (const b of blocks) {
-    if (b.mode === 'time') { sec += (b.durationMin || 0) * 60; continue; }
-    // An interval's work is its work seconds, not reps x SECONDS_PER_REP.
-    // Falling through to the generic branch below priced eight 90 s efforts
-    // at 24 seconds, so packToBudget never saw a session it should trim.
-    if (b.mode === 'interval') {
-      sec += b.sets * (b.workSec + (b.restSec || 0));
-      sec += transitionSec(b);
-      continue;
+    if (b.group) {
+      if (priced.has(b.group)) continue;           // its partner already paid
+      const partner = blocks.find(x => x !== b && x.group === b.group);
+      if (partner) {
+        priced.add(b.group);
+        sec += pairSeconds(b, partner);
+        continue;
+      }
+      // A group with one member is a bug elsewhere, not a reason to misprice
+      // it here: fall through and charge it as the straight block it is.
     }
-
-    const sides = b.perSide ? 2 : 1;
-
-    if (b.mode === 'drill') {
-      sec += b.sets * b.reps * TIME.SECONDS_PER_REP * sides;
-      sec += transitionSec(b);
-      continue;
-    }
-    if (b.mode === 'hold') {
-      sec += b.sets * b.holdSec * sides;
-      sec += b.sets * (b.restSec || 0);
-      sec += transitionSec(b);
-      continue;
-    }
-
-    // A ladder's working sets are not identical, so sets x reps overstates it:
-    // 4-3-2 / 4-3-2 is 18 reps where six sets of four would be 24. Price the
-    // work from the plan whenever there is one. design-architectures 3.3.
-    const planned = (b.setPlan || []).filter(s => s.kind === 'work');
-    const workReps = planned.length
-      ? planned.reduce((a, s) => a + s.reps, 0)
-      : b.sets * b.reps;
-    sec += workReps * TIME.SECONDS_PER_REP * sides;
-    sec += b.sets * (b.restSec || TIME.DEFAULT_REST_SEC);
-    // The ramp is real time on the clock. Its sets are short and its rests
-    // shorter, but four warm-up sets before a heavy squat is minutes, and the
-    // budget has to see them or packToBudget trims the wrong thing.
-    for (const s of (b.setPlan || [])) {
-      if (s.kind !== 'warmup') continue;
-      sec += s.reps * TIME.SECONDS_PER_REP * sides;
-      sec += TIME.WARMUP_REST_SEC;
-    }
-    sec += transitionSec(b);
+    sec += blockSeconds(b);
   }
   return Math.round(sec / 60);
 }
@@ -1310,6 +1406,47 @@ export function orderSession(blocks, zoneBySlot = {}) {
     .map(x => x.b);
 }
 
+// A superset is two blocks the athlete alternates between, so they have to be
+// next to each other on the card -- reading "bench, lunge, row" and being told
+// the bench and the row are one unit is worse than not pairing them at all.
+//
+// Applied AFTER orderSession rather than inside it. orderSession sorts by
+// session zone, which is a statement about where work belongs in a session;
+// adjacency is a statement about one pair. Folding the second into the first
+// would make every future ordering change reason about groups.
+// design-architectures.md 3.6.4.
+export function groupAdjacent(blocks) {
+  const out = [];
+  const placed = new Set();
+  for (const b of blocks) {
+    if (placed.has(b)) continue;
+    // Leave an A2 where it is until its A1 has been placed -- A1 pulls it, so
+    // the pair reads in the order it is performed rather than the order the
+    // session sort happened to leave them in.
+    if (b.group && b.groupRole === 'A2') {
+      const lead = blocks.find(x => x.group === b.group && x.groupRole === 'A1');
+      if (lead && !placed.has(lead)) continue;
+    }
+    out.push(b);
+    placed.add(b);
+    if (b.group && b.groupRole === 'A1') {
+      const partner = blocks.find(x => x.group === b.group && x.groupRole === 'A2');
+      if (partner && !placed.has(partner)) {
+        out.push(partner);
+        placed.add(partner);
+      }
+    }
+  }
+  // No catch-all for "skipped but never pulled". An A2 only defers while its
+  // lead is unplaced, and every block is visited, so the lead is always placed
+  // and the A2 always follows. A defensive sweep here was written, found to be
+  // unreachable by every input shape that could be constructed, and removed:
+  // dead code that looks like a safety net is worse than none, because it
+  // invites trust it has not earned. What actually guarantees no block is lost
+  // is the test that counts them.
+  return out;
+}
+
 // --------------------------------------------------------------------------
 // The pipeline
 // --------------------------------------------------------------------------
@@ -1472,13 +1609,21 @@ export function generate({
   const shaped = applyArchitecture(blocks, architecture, zoneBySlot);   // 7a
   const packed = packToBudget(shaped, TIME.MAIN_WORK_MAX_MIN,           // 8
                               { dayType: chosen, state });
+  // 8b. AFTER the packer, never before -- design-architectures.md 3.6.3.
+  // Pairing first would shorten the estimate the packer trims against, so a
+  // superset would quietly buy back optional blocks and CHANGE THE WORK,
+  // which design 1's scope rule forbids. It also means there is nothing left
+  // to drop, so a half-pair cannot be orphaned.
+  const paired = pairAntagonists(packed.blocks, architecture);
   const prep = buildPrep(chosen, library, ctx, rng, env);               // 9a
   const cooled = packCooldown(
     buildCooldown(chosen, library, ctx, rng, env)                        // 9b
   );
-  const ordered = orderSession(
-    prep.concat(packed.blocks, cooled.blocks), zoneBySlot                // 10
-  );
+  // groupAdjacent runs OUTSIDE orderSession: the sort is about session zones,
+  // adjacency is about one pair. 3.6.4.
+  const ordered = groupAdjacent(orderSession(                            // 10
+    prep.concat(paired, cooled.blocks), zoneBySlot
+  ));
 
   return finalise({
     chosen, env, architecture, proposal, ordered, packed, cooled,

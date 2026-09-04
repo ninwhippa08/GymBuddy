@@ -306,6 +306,18 @@ them would have been an extrapolation presented as a finding. Measured over
 | + cross-plane and squat/hinge, equal sets | 51.4% |
 | + cross-plane and squat/hinge, any sets | 78.1% |
 
+**Measured after building: the rule fires on 24.3% of sessions, not 47.7%,
+and the gap is an error in the QUESTION rather than in either number.** 47.7%
+is how often a hypertrophy session *contains* a pairable push/pull
+combination. But `straight` is still in `ARCHITECTURES` for hypertrophy, so
+`chooseArchitecture` draws between two options and the superset is selected
+about half the time: 0.5 × 47.7% ≈ 24%. The table below measures how often a
+pair is *possible*, which is not how often one *happens*, and nothing revealed
+that until the architecture was live. Kept as it was measured, with the
+correction beside it, because the mistake is the reusable part — the same trap
+is waiting for the circuit in slice 3. The outcome puts the superset next to
+the ladder's 28.2%, which is the band a variety feature should sit in.
+
 **Set counts are not required to match — the athlete's call.** The equal-sets
 variant was recommended because it makes the card a clean list of rounds, and
 he took the wider rule instead. The cost is a ragged tail, and `groupRounds`
@@ -390,6 +402,32 @@ architecture, paid once, exactly as the ladder paid it for `max-strength`. It
 requires a full duration re-sweep before the commit, against the one minute of
 ceiling margin bought on 2026-09-04.
 
+#### 3.6.5 `groupRestSec`, and the rest the card would otherwise have lied about
+
+Found while building the card, not while designing it. `blockCard` prints
+`formatRest(block.restSec)` on every card, and for a paired block that number
+is **false**: the schedule is A1, straight into A2, then the round rest. Left
+alone it would have stated a recovery he does not take, twice per round — the
+"lying card" failure the time budget already exists to prevent, relocated into
+the one place no duration test would ever look.
+
+The card renders one block at a time and cannot look up a partner, so the
+round rest is **denormalised onto both halves as `groupRestSec`** — the same
+write-time move `finalise()` already makes for the counters. It is a second
+copy of the `max(restA1, restA2)` that `pairSeconds` computes independently,
+so a test asserts the two agree rather than trusting them; that is the rule
+the coefficient register follows for exactly the same reason.
+
+A1's card reads *"no rest between rounds — go straight into the next
+movement"*; A2's carries the rest for the whole round.
+
+**Deviation from §3.6.4, recorded rather than quietly taken:** that section
+says the pair renders "under one Superset heading". It does not. Adjacency is
+already guaranteed by `groupAdjacent`, so the two halves are joined by a
+shared left border and each names its role and round count. A heading between
+cards would cost vertical space on a phone held between sets, and would mean
+restructuring `blockGroup`, which every other block type depends on.
+
 ---
 
 ## 4. Build order
@@ -400,9 +438,11 @@ Each step leaves a working app and gets its own version bump.
    relationships; `setPlan` only. It proves the whole path —
    `chooseArchitecture` actually choosing, the record carrying the choice,
    `estimateMinutes` pricing it, the card rendering it.
-2. **`antagonist-superset` on `hypertrophy`.** DESIGNED 2026-09-04, §3.6.
-   Introduces `group`, `groupRole` and `groupRounds`. This is where
-   `ui.blockGroup`, `estimateMinutes` and — newly — `orderSession` change.
+2. **`antagonist-superset` on `hypertrophy`.** BUILT 2026-09-04 (v35), §3.6.
+   Introduced `group`, `groupRole`, `groupRounds` and — unplanned —
+   `groupRestSec` (§3.6.5). `estimateMinutes`, `orderSession` and the card all
+   changed. **Fires on 24.3% of hypertrophy sessions**, saving a mean of
+   **3.43 min** and up to 13; 3.6% of sessions carry two pairs.
 3. **`circuit` on `hypertrophy`.** The same machinery, N blocks instead of two.
 
 ---
