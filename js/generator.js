@@ -503,6 +503,16 @@ export function eligibleFor(slot, library, ctx) {
     if (slot.joints && !(e.joints || []).some(j => slot.joints.includes(j))) {
       return false;
     }
+    // A prep or cool-down slot names the movement patterns it serves, and an
+    // entry names the ones it targets. Joints could not express this: the
+    // athlete's case was `deadlift` [hip, knee, lumbar] against
+    // `walking-quad-pull` [knee, hip] -- a perfect joint overlap and still
+    // the wrong drill, because lengthening the quad does not prepare a hinge.
+    // `seated-hamstring-stretch` and `standing-quad-stretch` are the same
+    // collision on the cool-down side. 2026-09-04.
+    if (slot.targets && !(e.targets || []).some(t => slot.targets.includes(t))) {
+      return false;
+    }
     // The one field standing between a warm-up build-up and a maximal sprint.
     // Tier and pattern cannot separate them: resisted-sprint and
     // three-point-start are secondary-tier sprints too.
@@ -1150,6 +1160,24 @@ export function countsTowardVolume(block) {
   return block.role !== 'core' && block.role !== 'prep';
 }
 
+// The movement patterns a session's main work actually trains -- what a prep
+// drill has to prepare and a cool-down stretch has to release.
+//
+// Reads main work by the same rule the volume accounting uses, so the answer
+// cannot drift from what the session counts as work. That also excludes the
+// prep and cool-down themselves, which matters more than it looks: every
+// mobility entry is pattern 'mobility', so including them would put
+// 'mobility' on the target list and match the entire pool -- exactly the
+// undirected selection this exists to replace.
+export function sessionTargets(blocks) {
+  const out = [];
+  for (const b of blocks) {
+    if (!countsTowardVolume(b)) continue;
+    if (b.pattern && !out.includes(b.pattern)) out.push(b.pattern);
+  }
+  return out;
+}
+
 // Trim to the main-work budget: drop optional blocks last-first, then shave
 // sets off the highest-volume block. Never drops a required block -- if the
 // budget still cannot be met, the session is returned over budget and flagged,
@@ -1221,12 +1249,19 @@ export function packToBudget(blocks, budgetMin = TIME.MAIN_WORK_MAX_MIN, opts = 
 // it, and only for the ramp's volume multiplier.
 const NEUTRAL_ENV = Object.freeze({ volumeMultiplier: 1 });
 
-export function buildPrep(dayType, library, ctx, rng, env = NEUTRAL_ENV) {
-  return buildBlockGroups(groupsFor(PREP_BLOCK, dayType, 'prep'), library, ctx, rng, env);
+// `mainWork` is the session's already-selected main blocks. Both builders run
+// AFTER the main work is chosen and packed, so the day's patterns are known by
+// the time a drill or a stretch is drawn. Passing nothing keeps the old
+// undirected behaviour, which is what the running prep wants -- its stages
+// select on joints and its main work is pattern 'run', which no drill targets.
+export function buildPrep(dayType, library, ctx, rng, env = NEUTRAL_ENV, mainWork = []) {
+  return buildBlockGroups(groupsFor(PREP_BLOCK, dayType, 'prep'), library, ctx,
+                          rng, env, sessionTargets(mainWork));
 }
 
-export function buildCooldown(dayType, library, ctx, rng, env = NEUTRAL_ENV) {
-  return buildBlockGroups(groupsFor(COOLDOWN_BLOCK, dayType), library, ctx, rng, env);
+export function buildCooldown(dayType, library, ctx, rng, env = NEUTRAL_ENV, mainWork = []) {
+  return buildBlockGroups(groupsFor(COOLDOWN_BLOCK, dayType), library, ctx,
+                          rng, env, sessionTargets(mainWork));
 }
 
 // `variantKey` lets prep and cool-down diverge. They used to share
@@ -1251,13 +1286,23 @@ function staticFloorFor(dayType) {
 
 // Mutates ctx.excludeIds on purpose: prep, main work and cool-down draw from
 // one library, and a movement should appear once in a session.
-function buildBlockGroups(groups, library, ctx, rng, env = NEUTRAL_ENV) {
+function buildBlockGroups(groups, library, ctx, rng, env = NEUTRAL_ENV, targets = []) {
   const out = [];
   for (const group of groups) {
     const n = intBetween(rng, group.count);
+    // Filtering to the day's patterns is not enough on its own. A hinge/press
+    // day that filtered and then drew freely could still take three hinge
+    // drills and prepare nothing for the press, which is the same complaint
+    // in a smaller box. So the draw tracks what it has covered and aims each
+    // new pick at what it has not.
+    const matched = group.matchWork && targets.length > 0;
+    const uncovered = matched ? new Set(targets) : null;
     for (let i = 0; i < n; i++) {
-      const e = fillSlot(group, library, ctx, rng);
+      const e = matched
+        ? fillMatched(group, library, ctx, rng, targets, uncovered)
+        : fillSlot(group, library, ctx, rng);
       if (!e) break;                       // pool exhausted -- short block
+      if (uncovered) for (const t of (e.targets || [])) uncovered.delete(t);
       ctx.excludeIds.add(e.id);
       // The running prep raises with a jog and potentiates with sprints or
       // jumps, so a block group is no longer always a mobility drill. The
@@ -1271,6 +1316,22 @@ function buildBlockGroups(groups, library, ctx, rng, env = NEUTRAL_ENV) {
     }
   }
   return out;
+}
+
+// Aim at an uncovered pattern, then settle for any of the day's, then take
+// what the block would have taken before any of this existed.
+//
+// The last rung is the one that matters: MOBILITY_DOSE's 3-4 movements is a
+// sourced dose, and a day whose patterns are thinly served -- a carry day has
+// no dynamic drill filed against it at all -- must still get a full warm-up.
+// Matching decides WHICH movements, never HOW MANY.
+function fillMatched(group, library, ctx, rng, targets, uncovered) {
+  if (uncovered.size) {
+    const aimed = fillSlot({ ...group, targets: [...uncovered] }, library, ctx, rng);
+    if (aimed) return aimed;
+  }
+  return fillSlot({ ...group, targets }, library, ctx, rng)
+      || fillSlot(group, library, ctx, rng);
 }
 
 const MOBILITY_BLOCK_MODES = new Set(['drill', 'hold', 'core']);
@@ -1618,9 +1679,25 @@ export function generate({
   // which design 1's scope rule forbids. It also means there is nothing left
   // to drop, so a half-pair cannot be orphaned.
   const paired = pairAntagonists(packed.blocks, architecture);
-  const prep = buildPrep(chosen, library, ctx, rng, env);               // 9a
+  // `paired` is the main work as it will actually be performed, after the
+  // packer has dropped or shaved anything that did not fit. Prepping work the
+  // packer removed would warm up a lift the athlete is not going to do.
+  //
+  // packPrep was written for ruling A2 and then never called from here: the
+  // cool-down was packed, the prep was not, so the only block with no packer
+  // was the one whose own comment says it "can run well past that estimate".
+  // js/rules.js:683 derives FLOOR_OVERRUN_ALLOWANCE_MIN against a worst case
+  // that assumed "3 min prep at packPrep's 3-drill floor" -- a floor nothing
+  // was enforcing. Wired 2026-09-04. §9.4.
+  //
+  // Trimming from the tail is what makes this safe alongside matching:
+  // buildBlockGroups appends in coverage order, aiming each pick at a pattern
+  // still uncovered, so the last drill is the one that added least and
+  // packPrep's `pop()` costs coverage last.
+  const prepped = packPrep(buildPrep(chosen, library, ctx, rng, env, paired)); // 9a
+  const prep = prepped.blocks;
   const cooled = packCooldown(
-    buildCooldown(chosen, library, ctx, rng, env)                        // 9b
+    buildCooldown(chosen, library, ctx, rng, env, paired)                // 9b
   );
   // groupAdjacent runs OUTSIDE orderSession: the sort is about session zones,
   // adjacency is about one pair. 3.6.4.
@@ -1629,7 +1706,7 @@ export function generate({
   ));
 
   return finalise({
-    chosen, env, architecture, proposal, ordered, packed, cooled,
+    chosen, env, architecture, proposal, ordered, packed, prepped, cooled,
     unfilled, state, seed, now, excludeEquipment, soreness,
     offeredDayTypes: offered
   });
@@ -1637,7 +1714,7 @@ export function generate({
 
 // Denormalise the counters at write time so the next generation never has to
 // recompute them while reading history. spec §3.2.
-function finalise({ chosen, env, architecture, proposal, ordered, packed, cooled, unfilled, state, seed, now, excludeEquipment, soreness, offeredDayTypes = [] }) {
+function finalise({ chosen, env, architecture, proposal, ordered, packed, prepped, cooled, unfilled, state, seed, now, excludeEquipment, soreness, offeredDayTypes = [] }) {
   const patternSets = {};
   let footContacts = 0, sprintMeters = 0, cnsLoad = 0;
   for (const b of ordered) {
@@ -1661,6 +1738,11 @@ function finalise({ chosen, env, architecture, proposal, ordered, packed, cooled
 
   const warnings = [];
   if (packed.overBudget) warnings.push('over the 45 min main-work budget after trimming');
+  // Flagged, never silent -- design §1.2. The cool-down's overrun has always
+  // been announced; the prep's was not, because nothing was measuring it.
+  if (prepped && prepped.overBudget) {
+    warnings.push(`prep over its ${TIME.PREP_MIN} min budget at the 3-drill floor`);
+  }
   if (cooled.overBudget) warnings.push('cool-down over its 12 min budget');
   if (unfilled.length) {
     warnings.push(`no eligible exercise for slot ${unfilled.map(u => u.slot).join(', ')}`);

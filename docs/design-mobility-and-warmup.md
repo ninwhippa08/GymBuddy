@@ -1094,3 +1094,158 @@ clean while two real bugs sat in the code. Both layers are required.
    re-decide it before that work begins — but whoever builds §4.4 should
    re-check its behavior against the real (88%, not 100%) counts once it
    exists, rather than assuming this is fully closed.
+
+---
+
+## 9. Prep and cool-down match the day's work — BUILT 2026-09-04, `sw.js` v38
+
+### 9.1 What was wrong
+
+Reported by the athlete after a max-strength session. Main work was Romanian
+deadlift, close-grip bench press and cable woodchop. The prep block gave him
+inchworm, walking quad pull and squat to stand.
+
+> "I am going to work on the romanian deadlift, I want to warm up my
+> hamstrings. I have bench press, I want to warm up my shoulders and chest.
+> I want the prep work to make sense so that it warms up for the main work."
+
+`PREP_BLOCK.full` named no selection criteria beyond `modality:
+'mobility-dynamic'`, so it drew any 3–4 of the 19 dynamic drills. The
+cool-down's `M1` group had the same shape and the same defect. Neither block
+knew what the session contained, even though both are built at step 9, *after*
+the main work is chosen and packed.
+
+### 9.2 Why joint matching is not the answer
+
+The obvious fix was the mechanism `eligibleFor` already runs for the running
+prep: `slot.joints`, added in `design-running-programming.md` §5.3 to keep a
+shoulder dislocate out of a running warm-up.
+
+The athlete rejected it, correctly, with one counter-example:
+
+> "lets say I have a deadlift day but I have quad pulls as a move. They both
+> are hitting the knee, but actually I don't want to warm up the quad, but the
+> hamstring."
+
+Checked against the library, the collision is exact:
+
+| entry | joints |
+|---|---|
+| `deadlift` | `hip`, `knee`, `lumbar` |
+| `walking-quad-pull` | `knee`, `hip` |
+
+A **perfect** joint overlap, and still the wrong drill — lengthening the quad
+does not prepare a hinge. The same collision exists on the cool-down side
+between `seated-hamstring-stretch` (`hip`, `knee`) and `standing-quad-stretch`
+(`knee`, `hip`): identical joints, opposite tissue.
+
+The library carries no muscle tagging — audited across all 252 entries, the
+anatomy vocabulary is `joints` and nothing else. So joint matching cannot be
+repaired by refinement; it is measuring the wrong thing.
+
+### 9.3 What was built
+
+**A `targets` field on the 38 mobility entries**, naming the movement patterns
+each drill or stretch serves. This is a *classification*, in the same
+epistemic class as the `pattern` and `joints` fields those entries already
+carry — "a bodyweight hip hinge rehearses a hinge" is a description of the
+movement, not a finding that needs a citation. What is sourced is the
+principle it serves: §2.2's dynamic-before-explosive split already places
+these drills *for* the work that follows them.
+
+Joints are **kept, not replaced**. They are what the running prep filters on,
+and they are what soreness reads.
+
+**`sessionTargets(blocks)`** reads the day's patterns off the main work using
+`countsTowardVolume` — the same rule the volume accounting uses, so the answer
+cannot drift from what the session counts as work. That exclusion also keeps
+the prep and cool-down out of their own input: every mobility entry is pattern
+`mobility`, so including them would put `mobility` on the target list and match
+the entire pool, restoring the exact behaviour this section removes.
+
+**Filtering alone was not enough.** A hinge-and-press day that filtered and
+then drew freely could still take three hinge drills and prepare nothing for
+the press. So the draw is coverage-ordered: `buildBlockGroups` tracks which of
+the day's patterns it has covered and aims each next pick at one it has not,
+via a three-rung fallback — an uncovered pattern, then any of the day's, then
+the open pool.
+
+**The last rung is not a fallback to be optimised away.** `MOBILITY_DOSE`'s
+3–4 movements is a sourced dose. A `carry` day has no dynamic drill filed
+against it at all, and must still get a full warm-up. **Matching decides which
+movements, never how many.**
+
+Applied to `PREP_BLOCK.full` and to `COOLDOWN_BLOCK`'s `M1` groups (`full` and
+`short`) via `matchWork: true`. The `M2` core group is deliberately excluded:
+it is training, not tissue care, and matching it to the day's patterns would
+silently narrow the core pool to whatever is tagged `rotate`.
+
+*Measured, `max-strength`, main work RDL / close-grip bench / woodchop:*
+
+| seed | before | after |
+|---|---|---|
+| 1 prep | 90/90 hip switch, bodyweight hip hinge, scapular wall slide, ankle CARs | 90/90 hip switch, bodyweight hip hinge, banded shoulder dislocate, glute bridge |
+| 3 cool | couch stretch, soleus stretch, deep squat hold, dead hang | thoracic foam roll, cross-body shoulder, child's pose, seated hamstring |
+
+Seed 3's old cool-down stretched calves and quads after a deadlift session.
+
+### 9.4 `packPrep` had never been called
+
+Found while measuring this branch against the §7 duration sweep, which failed
+at 70 min on `power`/seed 5522 — a session whose prep drew **four per-side
+drills**, priced at roughly double by the `sides` multiplier.
+
+That is `packPrep`'s own test fixture. `packPrep` was written for ruling A2 —
+"a session that draws several per-side drills can run well past that
+estimate" — shipped with a passing unit test in `tests/mobility.test.mjs`, and
+**was never called from `generateSession`**. The cool-down was packed; the prep
+was not. The only block with no packer was the one whose own comment says it
+overruns.
+
+The gap was invisible because nothing measured it. `js/rules.js`'s
+`MOBILITY_TRANSITION_SEC` comment derives its worst case from "3 min prep at
+packPrep's 3-drill floor and under its own budget" — describing a floor nothing
+was enforcing. This branch surfaced it only because matching narrows the pool
+and made the four-unilateral draw more reachable.
+
+Wired at step 9a. Two properties make it safe alongside matching:
+
+1. `buildBlockGroups` appends in coverage order, so the tail is the drill that
+   added least, and `packPrep`'s `pop()` costs coverage **last**.
+2. Coverage is bounded by drill count, and drill count by `TIME.PREP_MIN`. A
+   four-pattern day that only fits three drills must leave one pattern
+   unprepped — `max-strength`/seed 8 is exactly that. It is now **announced**
+   (`prep over its 3 min budget at the 3-drill floor`) rather than silent,
+   per §1.2's standing rule. The cool-down's overrun always warned; the
+   prep's did not, because nothing was measuring it.
+
+**`FLOOR_OVERRUN_ALLOWANCE_MIN` re-derived 9 → 8.** Same rule as every prior
+move: exactly `worst − GYM_SESSION_TOTAL_MIN`, measured and not rounded up.
+Re-swept the same 70,000-session population (`PHASE_1_DAY_TYPES` × 10,000
+seeds, no `returnDate`, `now: 1e12`): worst case **68 min** on `power`/seed
+2149, five sessions at 68, 43 at 67. The margin against `spec.md` line 36
+widens from one minute to two — which is what fixing an unbounded block is
+supposed to do.
+
+### 9.5 Not changed
+
+- **The doses.** 3–4 drills, 10–12 reps, 3–4 stretches, 20–30 s holds. All
+  sourced in §2.1, none touched.
+- **The running prep.** Its four stages select on `joints` and `effortClass`;
+  a running day's main work is pattern `run`, which no drill targets, so a
+  `targets` filter alone would let a shoulder drill back into the warm-up.
+  `design-running-programming.md` §5.3's guard is asserted directly in
+  `tests/prep-specificity.test.mjs`.
+- **Warm-up ramps.** §4.3 is untouched. The loaded ramp is the specific
+  warm-up; these drills are the general one. They are different mechanisms and
+  both run.
+
+### 9.6 Open
+
+**Unilateral drills cost double, and coverage pays for it.** `max-strength`
+seed 8 has four day patterns, fits three drills, and drops `push-h` because
+two of the three it kept are per-side. Preferring bilateral drills among
+equally-matching candidates would fit a fourth and close the gap — but it
+would also bias the draw against seven of the 19 drills every session, which
+is a variety cost against a coverage gain. **Not built, deliberately.** Raised
+here so the trade is on the record rather than rediscovered.

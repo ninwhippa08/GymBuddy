@@ -749,5 +749,21 @@ export const TIME = Object.freeze({
   // numbers again (69 vs 70) rather than the same number, which is the point:
   // the one minute between them is the margin that lets the next pool grow
   // without breaking spec.md line 36.
-  FLOOR_OVERRUN_ALLOWANCE_MIN: 9
+  //
+  // RE-DERIVED 2026-09-04, from 9 to 8, on wiring packPrep into
+  // generateSession. It had never been called: the cool-down was packed and
+  // the prep was not, so the 3-drill floor and the 3 min budget this same
+  // comment block cites at MOBILITY_TRANSITION_SEC ("3 min prep at packPrep's
+  // 3-drill floor and under its own budget") were describing a packer that
+  // did not run on any generated session. Four per-side drills -- packPrep's
+  // own test fixture, and reachable once the 2026-08-25 pool close took
+  // mobility-dynamic to 19 entries with 7 of them unilateral -- went into the
+  // session unpacked and priced at roughly double.
+  //
+  // Same rule, same direction: re-swept the same 70,000-session population
+  // (PHASE_1_DAY_TYPES x 10,000 seeds, no returnDate, now: 1e12), worst case
+  // 68 min on power/seed 2149, so 68 - 60 = 8. Five sessions reach 68, 43
+  // reach 67. The margin against spec.md line 36 widens from one minute to
+  // two, which is what fixing an unbounded block is supposed to do.
+  FLOOR_OVERRUN_ALLOWANCE_MIN: 8
 });
