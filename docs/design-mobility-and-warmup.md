@@ -70,7 +70,7 @@ spec §4.3, which is this project citing itself.
 |---|---|---|
 | Dynamic drill | ~10–12 reps per drill | `[corroborated]` |
 | Static stretch | 10–30 s hold, 2–4 reps per muscle group | `[corroborated]` — ACSM |
-| Core | sets and reps; isometric holds by time | `[corroborated]` |
+| Core | 2–4 sets, 10–25 reps, 20–60 s holds | `[corroborated]` — §8 q4 |
 
 ACSM's flexibility guidance is 10–30 s per hold for most adults (30–60 s for
 older adults), 2–4 repetitions per muscle group, 2–3 days per week. The total
@@ -847,9 +847,68 @@ clean while two real bugs sat in the code. Both layers are required.
    justify one.
 3. The CSCCa/NSCA transition paper behind basis §3 remains paywalled. Unchanged
    by this work, still worth reading if university library access appears.
-4. Core dosing at 3 sets × 10–15 reps is `[unverified]` as a specific
-   prescription. It is the least-sourced number in this document and the first
-   thing to revisit.
+4. **CLOSED 2026-09-03. The number is inside the sourced envelope, and it is
+   not payable further by reading.** Core dosing at 3 sets × 10–15 reps was
+   this document's least-sourced number. Four things came back.
+
+   **No trial isolates sets or reps.**
+   [Saeterbakken et al. 2022, *Sports Medicine* 52(7):1599–1622](https://pmc.ncbi.nlm.nih.gov/articles/PMC9213339/)
+   pools 31 trials and 693 athletes aged 11–37 and moderates on **frequency,
+   total sessions, session duration and training period** — never on sets or
+   reps. `[verified]` The 2025 core-training meta-analyses repeat the omission.
+   This is the same wall the coefficient register hit: the quantity is not
+   unread, it is *untested*, and re-running the search will not change that.
+
+   **What is sourced is the envelope.** The doses that produced effects across
+   those 31 trials — "6 exercises, 2 sets of 20–60-s hold time or 2 sets 10–25
+   reps", "10–16 dynamic exercise, 4 sets, 10 reps", "5-s hold, 2–5 reps".
+   `[verified]` Our 3 × 10–15 reps and 30–45 s holds both sit inside it. The
+   tag moves `[unverified]` → `[corroborated]`, meaning *inside the range that
+   worked* — never an optimum, and it must not be quoted as one.
+
+   **There is no newer prescription to move the reps to.** ACSM 2009 put local
+   muscular endurance at >15 reps with <90 s rest, which would have made 10–15
+   marginally low. The ACSM 2026 stand — §2.4, already `[verified]` here —
+   declines to carry a local-muscular-endurance prescription forward at all.
+   There is nothing to move to, so the reps stay.
+
+   **The holds are right, and McGill's 10 s scheme is the wrong context.**
+   [Kellis et al. 2025, *J Sport Rehabil* 34(6):625–632](https://doi.org/10.1123/jsr.2024-0054)
+   ran 10 × 5 s, 5 × 10 s and 2 × 25 s floor trunk extensions at equal total
+   time (n = 20, acute): the longer holds with fewer repetitions produced the
+   greater multifidus thickness change and the higher RPE. `[verified]` as one
+   small acute study, and it argues for keeping 30–45 s rather than adopting a
+   short-hold pyramid. McGill's descending 6-4-2 at 10 s per hold is low-back-
+   pain *rehabilitation* guidance and is reachable only through secondary
+   sources — `[corroborated]`, wrong population, not adopted.
+
+   **What the athlete actually receives is not the constant.** Measured
+   2026-09-03 over 1,500 seeds × 7 day types, `now: 1e12`, no profile:
+   **2 sets 77.9 % of the time** and 3 sets 22.1 %, because `packCooldown`
+   trims core sets before anything else. The block costs **6.9 min** and
+   appears on max-strength, power and hypertrophy at **100 %** and on the four
+   conditioning day types at **0 %**. Two consequences.
+
+   (a) The trim lands on 2 sets, which is the *modal* dose across the included
+   trials — the right answer for the wrong reason, since `packCooldown` chose
+   core first precisely because the number was unsourced. That comment in
+   `js/generator.js` has been rewritten; the `sets > 2` guard now has a source
+   behind it instead of an accident.
+
+   (b) **The frequency gap.** At 1–3 irregular sessions per week, with core on
+   lifting days only, the trunk is often trained **once a week or less** —
+   against 2–5 sessions/week (mean 3.1 ± 0.8) in every included trial, against
+   **> 18 total sessions** as the threshold where the power and linear-sprint
+   effects appear (SMD 0.45–0.84, p ≤ 0.003) `[verified]`, and against §2.4's
+   own ACSM 2026 rule that a muscle group is trained at least twice a week.
+
+   **DECIDED 2026-09-03 by the athlete: document the gap, change nothing.**
+   Closing it was costed and offered — a core slot on the `short` cool-down
+   would put trunk work on every gym session, taking conditioning days from
+   ~50–53 min to ~57–60 min (plyometric 39 → 46) with lifting days untouched
+   and his ≤ 70 min limit intact. He declined the session time. Nothing in the
+   app changed; the gap is recorded here so that it is a **known limitation
+   rather than an oversight**, and so nobody re-derives it from scratch.
 5. `WARMUP.START` 0.30, `WARMUP.MAX_JUMP` 0.15 and `WARMUP.FLOOR` 0.50 (this
    document originally called the block `RAMP` before the build renamed it to
    `WARMUP` — see §4.3's "as built" note) are `[unverified]` as exact values.

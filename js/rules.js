@@ -481,9 +481,14 @@ export const MOBILITY_DOSE = Object.freeze({
   STATIC_HOLD_SEC: Object.freeze([20, 30]),
   STATIC_HOLD_SETS: Object.freeze([2, 2]),
 
-  // Core. 3 sets x 10-15 reps is [unverified] as a specific prescription and is
-  // the least-sourced number in the design -- design 8, open question 4. It is
-  // also the first thing packCooldown trims, which is deliberate.
+  // Core. 3 sets x 10-15 reps and 30-45 s holds are [corroborated]: they sit
+  // inside the dose envelope of the 31 trials pooled in Saeterbakken 2022
+  // (2-4 sets, 10-25 reps, 20-60 s holds). That is the strongest claim the
+  // literature supports -- no trial in that pool, and none in the 2025 core
+  // meta-analyses, moderates on sets or reps at all, so there is no optimum to
+  // read. Inside the range that worked, NOT the best value in it. design 8 q4,
+  // closed 2026-09-03. packCooldown still trims these first, but its floor of
+  // two sets is now the modal trial dose rather than an accident.
   CORE_EXERCISES: Object.freeze([2, 2]),
   CORE_SETS: Object.freeze([3, 3]),
   CORE_REPS: Object.freeze([10, 15]),

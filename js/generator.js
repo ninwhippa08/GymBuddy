@@ -1054,7 +1054,10 @@ function prescribeMobility(group, e, rng) {
 
 // Hold the cool-down to its budget so the 60 min session total is a fact
 // rather than an aspiration. Trims in order of how well sourced the number is:
-// core sets are [unverified] (design 8, q4) so they go first; the ACSM hold
+// the third core set is the softest number left (design 8, q4 -- no trial
+// moderates on sets at all), so it goes first. The `sets > 2` floor below is
+// the modal dose across the 31 trials in that entry, not a guess: trimming to
+// two sets lands on a sourced dose, trimming past it would not. The ACSM hold
 // dose is never shortened, and the stretch count never falls below three.
 export function packCooldown(blocks, budgetMin = TIME.COOLDOWN_MIN) {
   const out = blocks.slice();

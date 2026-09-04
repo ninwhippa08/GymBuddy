@@ -322,3 +322,16 @@ and the close-grip bench was 3% low. Entries that were investigated and could
 not be sourced say so, and say why, so the next pass does not repeat the
 search.
 
+
+**Trunk work lands on lifting days only, so its weekly frequency runs low.**
+Core sits in the cool-down of `max-strength`, `power` and `hypertrophy` and on
+no other day type — measured at 100% and 0% respectively over 1,500 seeds per
+day type. Every one of the 31 trials pooled in Saeterbakken et al. 2022 trained
+the trunk 2–5 times a week (mean 3.1), and at 1–3 irregular sessions a week
+that target is missed more often than met. Adding a core slot to the
+conditioning cool-down was costed — those days would run ~57–60 min instead of
+~50–53, with lifting days untouched — and the athlete declined the session time
+in September 2026. The sources, the measurement and the decision are in
+`docs/design-mobility-and-warmup.md` §8, question 4, which also records why the
+3 × 10–15 dose itself cannot be sourced any more precisely than "inside the
+range that worked".
