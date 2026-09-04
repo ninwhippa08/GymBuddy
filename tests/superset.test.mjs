@@ -434,3 +434,23 @@ test('swapping half a superset keeps the pair antagonist', () => {
   }
   assert.ok(checked > 0, 'no superset was ever swapped');
 });
+
+test('the round rest is carried on both blocks and agrees with the pricing', () => {
+  // groupRestSec is a second copy of what pairSeconds computes from the two
+  // blocks' own rests. A sidecar that can drift is asserted, never trusted --
+  // the rule the coefficient register already follows.
+  let checked = 0;
+  for (let seed = 1; seed <= 500; seed++) {
+    const blocks = hyper(seed).blocks.filter(b => b.group);
+    const byGroup = {};
+    for (const b of blocks) (byGroup[b.group] = byGroup[b.group] || []).push(b);
+    for (const pair of Object.values(byGroup)) {
+      const [a, b] = pair;
+      const expected = Math.max(a.restSec || 120, b.restSec || 120);
+      assert.equal(a.groupRestSec, expected, `seed ${seed}: A1 round rest wrong`);
+      assert.equal(b.groupRestSec, expected, `seed ${seed}: A2 round rest wrong`);
+      checked++;
+    }
+  }
+  assert.ok(checked > 0, 'no pair was ever checked');
+});

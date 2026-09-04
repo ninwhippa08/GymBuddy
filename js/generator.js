@@ -876,8 +876,19 @@ export function pairAntagonists(blocks, architecture) {
       // WITHOUT an equal-sets requirement, and this field is what pays for it.
       const group = `S${++n}`;
       const rounds = Math.min(A1.sets, A2.sets);
+      // The rest between rounds, denormalised onto BOTH blocks because the
+      // card renders one block at a time and cannot look up a partner. Without
+      // it the card prints the block's own restSec, which for a paired block
+      // is simply false -- the real schedule is no rest after A1 and this
+      // rest after A2. A card that states a rest he does not take is the
+      // "lying card" failure the time budget already guards against.
+      // It is a second copy of Math.max(restOf(A1), restOf(A2)), which
+      // pairSeconds computes independently, so the two are asserted to agree
+      // rather than trusted -- the same rule the coefficient register follows.
+      const roundRest = Math.max(restOf(A1), restOf(A2));
       A1.group = group; A1.groupRole = 'A1'; A1.groupRounds = rounds;
       A2.group = group; A2.groupRole = 'A2'; A2.groupRounds = rounds;
+      A1.groupRestSec = roundRest; A2.groupRestSec = roundRest;
       taken.add(main[a].i);
       taken.add(main[z].i);
       break;

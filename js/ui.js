@@ -184,6 +184,35 @@ export function workLine(block) {
     .join('  ·  ');
 }
 
+
+// A paired block has to say so, and has to say how many of its sets are
+// actually paired -- a block with 4 sets in a 2-round pair performs 2 of them
+// alongside its partner and 2 alone. Printing only "superset" would instruct
+// four rounds of a pair whose other half has two sets.
+// design-architectures.md 3.6.2.
+export function supersetLine(block) {
+  if (!block.group) return '';
+  const label = block.groupRole === 'A1' ? 'superset A1' : 'superset A2';
+  const left = block.sets - block.groupRounds;
+  return left > 0
+    ? `${label} · ${block.groupRounds} rounds paired, then ${left} alone`
+    : `${label} · ${block.groupRounds} rounds`;
+}
+
+// What the athlete actually rests inside a pair, which is NOT block.restSec.
+// The schedule is: A1, straight into A2, then the round rest. So A1's card
+// must say there is no rest to take, and A2's must carry the rest for the
+// whole round -- printing each block's own drawn rest would state a recovery
+// he does not take, twice per round. The leftover sets of the longer block DO
+// take its own rest, which is why A1's line says "between rounds".
+// design-architectures.md 3.6.3.
+export function supersetRestLine(block) {
+  if (!block.group) return formatRest(block.restSec);
+  return block.groupRole === 'A1'
+    ? 'no rest between rounds -- go straight into the next movement'
+    : formatRest(block.groupRestSec);
+}
+
 // The top-right of the card. Timed work has no set count, and its effort cue
 // is a sentence -- too long for a header slot, so it drops to the meta line.
 export function volumeLine(block) {
@@ -219,6 +248,7 @@ export function blockCard(block, cuesFor, onSwap) {
   const volume = volumeLine(block);
   const warmup = warmupLine(block);
   const work = workLine(block);
+  const superset = supersetLine(block);
 
   // The effort cue is already the headline for contact-less explosive work;
   // don't print it twice.
@@ -233,7 +263,7 @@ export function blockCard(block, cuesFor, onSwap) {
   // between hard efforts is how the next one goes badly.
   const meta = [block.mode === 'interval'
     ? 'walk or jog the recovery -- never stand still'
-    : formatRest(block.restSec)];
+    : supersetRestLine(block)];
   if (block.effort && !heroIsEffort) meta.push(block.effort);
   if (block.optional) meta.push('optional');
 
@@ -266,6 +296,12 @@ export function blockCard(block, cuesFor, onSwap) {
           class: 'block-note',
           text: 'needs equipment you do not have -- this is the closest movement available'
         })
+      : null,
+    // Above everything else it shares the card with: which movement this one
+    // is paired with changes how the whole block is performed, so it is read
+    // before the loads are.
+    superset
+      ? el('p', { class: 'block-meta block-superset', text: superset })
       : null,
     // Above the warm-up line, because it is what he does after it.
     work
@@ -354,7 +390,9 @@ export function blockCard(block, cuesFor, onSwap) {
     ro.observe(back);
   }
 
-  return el('li', { class: 'block has-cues' }, [btn, swap]);
+  return el('li', {
+    class: block.group ? 'block has-cues superset' : 'block has-cues'
+  }, [btn, swap]);
 }
 
 function blockGroup(title, blocks, cuesFor, onSwap) {

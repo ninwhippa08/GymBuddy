@@ -11,7 +11,8 @@ installDom();
 const {
   loadLine, volumeLine, equipmentControl, renderNothingBuildable,
   renderConfirmPrevious, sorenessMap, addMoveControl, warmupLine, workLine,
-  renderSession, blockCard, renderCalendar, renderHome, backupControl
+  renderSession, blockCard, renderCalendar, renderHome, backupControl,
+  supersetLine, supersetRestLine
 } = await import('../js/ui.js');
 const { SORENESS_JOINTS } = await import('../js/rules.js');
 
@@ -991,4 +992,43 @@ test('a straight block gets no working-set line -- the hero already says it', ()
 
 test('the ladder line never prints a warm-up rung as work', () => {
   assert.equal((workLine(LADDERED).match(/0\.30/g) || []).length, 0);
+});
+
+// --------------------------------------------------------------------------
+// Supersets on the card. design-architectures.md §3.6.
+// --------------------------------------------------------------------------
+
+test('an ungrouped block says nothing about supersets', () => {
+  assert.equal(supersetLine({ slot: 'A', sets: 3 }), '');
+});
+
+test('the first half names the pairing and the round count', () => {
+  const line = supersetLine({ group: 'S1', groupRole: 'A1', groupRounds: 3, sets: 3 });
+  assert.match(line, /superset/i);
+  assert.match(line, /A1/);
+  assert.match(line, /3 rounds/);
+});
+
+test('a block with sets left over says so, because the card must not lie', () => {
+  const line = supersetLine({ group: 'S1', groupRole: 'A1', groupRounds: 2, sets: 4 });
+  assert.match(line, /2 rounds/);
+  // 4 sets, 2 of them paired -- the remaining 2 are performed alone and the
+  // card has to say that or he will superset all four.
+  assert.match(line, /then 2 alone/);
+});
+
+test('an ungrouped block still prints its own rest', () => {
+  assert.equal(supersetRestLine({ restSec: 90 }), 'rest 1:30');
+});
+
+test('the first half of a pair is told NOT to rest', () => {
+  const line = supersetRestLine({ group: 'S1', groupRole: 'A1', restSec: 90, groupRestSec: 120 });
+  assert.match(line, /no rest/i);
+  assert.doesNotMatch(line, /1:30/, 'A1 must not print a rest he does not take');
+});
+
+test('the second half carries the rest for the whole round', () => {
+  // Not its own 60 s -- the round rest, which is the longer of the pair.
+  const line = supersetRestLine({ group: 'S1', groupRole: 'A2', restSec: 60, groupRestSec: 120 });
+  assert.equal(line, 'rest 2 min');
 });
