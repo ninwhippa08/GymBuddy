@@ -7,7 +7,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  pairAntagonists, estimateMinutes, groupAdjacent, generate
+  pairAntagonists, estimateMinutes, groupAdjacent, generate,
+  countsTowardVolume, swapBlock, makeRng
 } from '../js/generator.js';
 import { PHASE_1_DAY_TYPES } from '../js/templates.js';
 
@@ -327,4 +328,109 @@ test('no day type other than hypertrophy is ever supersetted', () => {
       assert.ok(!s.blocks.some(b => b.group), `${dayType}/${seed} carried a group`);
     }
   }
+});
+
+// --------------------------------------------------------------------------
+// The guarantees. design-architectures.md §3.6.4.
+// --------------------------------------------------------------------------
+
+// The straight counterpart of a supersetted session: the same blocks with the
+// grouping stripped. If the architecture changed anything but rest and order,
+// it shows up here.
+const unpaired = blocks =>
+  blocks.map(({ group, groupRole, groupRounds, ...rest }) => rest);
+
+test('a superset never pairs more rounds than the block has sets', () => {
+  for (let seed = 1; seed <= 500; seed++) {
+    for (const b of hyper(seed).blocks.filter(x => x.group)) {
+      assert.ok(b.groupRounds > 0 && b.groupRounds <= b.sets,
+        `seed ${seed}: ${b.slot} pairs ${b.groupRounds} rounds of ${b.sets} sets`);
+    }
+  }
+});
+
+test('a supersetted session is never LONGER than the same blocks unpaired', () => {
+  let checked = 0;
+  for (let seed = 1; seed <= 1000; seed++) {
+    const s = hyper(seed);
+    if (!s.blocks.some(b => b.group)) continue;
+    assert.ok(estimateMinutes(s.blocks) <= estimateMinutes(unpaired(s.blocks)),
+      `seed ${seed}: pairing made the session longer`);
+    checked++;
+  }
+  assert.ok(checked > 0, 'no supersetted session was ever compared');
+});
+
+test('a superset actually saves time -- it is not a no-op', () => {
+  // The test above passes if pairing does nothing at all. This one requires
+  // the saving to be real on at least the sessions that carry a pair.
+  let saved = 0, checked = 0;
+  for (let seed = 1; seed <= 1000; seed++) {
+    const s = hyper(seed);
+    if (!s.blocks.some(b => b.group)) continue;
+    const d = estimateMinutes(unpaired(s.blocks)) - estimateMinutes(s.blocks);
+    saved += d;
+    checked++;
+  }
+  assert.ok(saved > 0, 'pairing never saved a single minute across 1000 seeds');
+  assert.ok(saved / checked >= 1,
+    `mean saving ${(saved / checked).toFixed(2)} min is below one minute per session`);
+});
+
+test('patternSets counts a paired block exactly as it counts a straight one', () => {
+  // The claim in §3.6.4 is that finalise() cannot see the pairing. The way to
+  // check it is to recompute patternSets from the blocks WITHOUT the group
+  // fields and require the same answer -- if finalise ever started reading
+  // `group`, these two would part company.
+  let checked = 0;
+  for (let seed = 1; seed <= 300; seed++) {
+    const s = hyper(seed);
+    if (!s.blocks.some(b => b.group)) continue;
+
+    const recomputed = {};
+    for (const b of unpaired(s.blocks)) {
+      if (!countsTowardVolume(b)) continue;
+      recomputed[b.pattern] = (recomputed[b.pattern] || 0) + b.sets;
+    }
+    assert.deepEqual(s.patternSets, recomputed,
+      `seed ${seed}: patternSets disagrees with the unpaired blocks`);
+    checked++;
+  }
+  assert.ok(checked > 0, 'no supersetted session was ever checked');
+});
+
+test('a paired block still counts toward volume at all', () => {
+  // The cheap way to break the test above is for grouped blocks to stop
+  // counting on BOTH sides, which would leave it comparing zero to zero.
+  let checked = 0;
+  for (let seed = 1; seed <= 300; seed++) {
+    for (const b of hyper(seed).blocks.filter(x => x.group)) {
+      assert.ok(countsTowardVolume(b), 'a grouped block stopped counting as volume');
+      checked++;
+    }
+  }
+  assert.ok(checked > 0, 'no grouped block was ever checked');
+});
+
+test('swapping half a superset keeps the pair antagonist', () => {
+  // The design leans on swapBlock's pattern narrowing rather than adding new
+  // machinery, because the athlete's answer to "a superset means holding two
+  // stations" was that he would swap the movement when the gym is busy. That
+  // path has to be asserted, not assumed.
+  let checked = 0;
+  for (let seed = 1; seed <= 400 && checked < 20; seed++) {
+    const s = hyper(seed);
+    const a1 = s.blocks.find(b => b.groupRole === 'A1');
+    if (!a1) continue;
+    const a2 = s.blocks.find(b => b.group === a1.group && b.groupRole === 'A2');
+
+    const { block } = swapBlock(s, a1.slot, LIB, {}, makeRng(seed));
+    if (!block) continue;                       // pool exhausted; not this test
+    assert.equal(block.pattern, a1.pattern,
+      `seed ${seed}: swap changed the pattern, so the pair is no longer antagonist`);
+    assert.equal(ANTAGONIST[block.pattern], a2.pattern,
+      `seed ${seed}: the pair stopped being antagonist after a swap`);
+    checked++;
+  }
+  assert.ok(checked > 0, 'no superset was ever swapped');
 });
