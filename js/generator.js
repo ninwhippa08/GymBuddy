@@ -1598,13 +1598,21 @@ export function generate({
   const shaped = applyArchitecture(blocks, architecture, zoneBySlot);   // 7a
   const packed = packToBudget(shaped, TIME.MAIN_WORK_MAX_MIN,           // 8
                               { dayType: chosen, state });
+  // 8b. AFTER the packer, never before -- design-architectures.md 3.6.3.
+  // Pairing first would shorten the estimate the packer trims against, so a
+  // superset would quietly buy back optional blocks and CHANGE THE WORK,
+  // which design 1's scope rule forbids. It also means there is nothing left
+  // to drop, so a half-pair cannot be orphaned.
+  const paired = pairAntagonists(packed.blocks, architecture);
   const prep = buildPrep(chosen, library, ctx, rng, env);               // 9a
   const cooled = packCooldown(
     buildCooldown(chosen, library, ctx, rng, env)                        // 9b
   );
-  const ordered = orderSession(
-    prep.concat(packed.blocks, cooled.blocks), zoneBySlot                // 10
-  );
+  // groupAdjacent runs OUTSIDE orderSession: the sort is about session zones,
+  // adjacency is about one pair. 3.6.4.
+  const ordered = groupAdjacent(orderSession(                            // 10
+    prep.concat(paired, cooled.blocks), zoneBySlot
+  ));
 
   return finalise({
     chosen, env, architecture, proposal, ordered, packed, cooled,

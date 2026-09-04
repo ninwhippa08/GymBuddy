@@ -5,7 +5,11 @@
 // generator happens to produce is a rule nobody has tested the edges of.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { pairAntagonists, estimateMinutes, groupAdjacent } from '../js/generator.js';
+import { readFileSync } from 'node:fs';
+import {
+  pairAntagonists, estimateMinutes, groupAdjacent, generate
+} from '../js/generator.js';
+import { PHASE_1_DAY_TYPES } from '../js/templates.js';
 
 const blk = (over = {}) => ({
   slot: 'A', role: 'primary compound', mode: 'reps',
@@ -264,4 +268,63 @@ test('a pair is matched by group id, not by finding any A2', () => {
     { slot: 'D', group: 'S1', groupRole: 'A2' }
   ];
   assert.deepEqual(groupAdjacent(crossed).map(b => b.slot), ['A', 'D', 'B', 'C']);
+});
+
+// --------------------------------------------------------------------------
+// The architecture, live. design-architectures.md §3.6.4.
+// --------------------------------------------------------------------------
+
+const LIB = JSON.parse(
+  readFileSync(new URL('../data/exercises.json', import.meta.url), 'utf8')
+).exercises;
+
+const hyper = seed => generate({ library: LIB, dayType: 'hypertrophy', seed, now: 1e12 });
+
+const ANTAGONIST = {
+  'push-h': 'pull-h', 'pull-h': 'push-h', 'push-v': 'pull-v', 'pull-v': 'push-v'
+};
+
+test('supersets actually reach real sessions', () => {
+  let supersetted = 0;
+  for (let seed = 1; seed <= 500; seed++) {
+    if (hyper(seed).blocks.some(b => b.group)) supersetted++;
+  }
+  assert.ok(supersetted > 0, 'no session in 500 carried a superset');
+});
+
+test('every pair in a real session is a legal antagonist pair', () => {
+  for (let seed = 1; seed <= 500; seed++) {
+    const blocks = hyper(seed).blocks.filter(b => b.group);
+    const byGroup = {};
+    for (const b of blocks) (byGroup[b.group] = byGroup[b.group] || []).push(b);
+    for (const [id, pair] of Object.entries(byGroup)) {
+      assert.equal(pair.length, 2, `seed ${seed} group ${id} has ${pair.length} members`);
+      const [a, b] = pair;
+      assert.equal(ANTAGONIST[a.pattern], b.pattern, `seed ${seed}: ${a.pattern} + ${b.pattern}`);
+      assert.equal(a.groupRounds, b.groupRounds, `seed ${seed}: rounds disagree`);
+      assert.equal(a.groupRounds, Math.min(a.sets, b.sets), `seed ${seed}: wrong rounds`);
+    }
+  }
+});
+
+test('A1 sits immediately before A2 in the ordered session', () => {
+  for (let seed = 1; seed <= 500; seed++) {
+    const blocks = hyper(seed).blocks;
+    blocks.forEach((b, i) => {
+      if (b.groupRole !== 'A1') return;
+      const next = blocks[i + 1];
+      assert.ok(next && next.group === b.group && next.groupRole === 'A2',
+        `seed ${seed}: ${b.slot} is not followed by its partner`);
+    });
+  }
+});
+
+test('no day type other than hypertrophy is ever supersetted', () => {
+  for (const dayType of PHASE_1_DAY_TYPES) {
+    if (dayType === 'hypertrophy') continue;
+    for (let seed = 1; seed <= 200; seed++) {
+      const s = generate({ library: LIB, dayType, seed, now: 1e12 });
+      assert.ok(!s.blocks.some(b => b.group), `${dayType}/${seed} carried a group`);
+    }
+  }
 });

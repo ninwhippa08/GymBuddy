@@ -126,7 +126,8 @@ export const PHASE_1_ARCHITECTURE = 'straight';
 // returned 'straight'. This list is the difference: an architecture becomes
 // live by being added here, and until then it is documentation.
 // design-architectures.md 4.
-export const BUILT_ARCHITECTURES = Object.freeze(['straight', 'ladder']);
+export const BUILT_ARCHITECTURES =
+  Object.freeze(['straight', 'ladder', 'antagonist-superset']);
 
 // --------------------------------------------------------------------------
 // Templates
