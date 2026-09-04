@@ -126,7 +126,7 @@ GymBuddy/
 │   └── ui.js             DOM rendering. Pure: data in, detached DOM nodes out.
 │
 ├── data/
-│   └── exercises.json    The exercise library: 252 exercises + 6 PR roots.
+│   └── exercises.json    The exercise library: 258 exercises + 6 PR roots.
 │
 ├── tests/                Node's built-in test runner, zero dependencies.
 │   ├── *.test.mjs        One file per subject (session, ramp, coverage, ui, storage, …).
@@ -135,7 +135,12 @@ GymBuddy/
 │   ├── dom-shim.mjs      A minimal DOM so ui.js can be tested without a browser.
 │   ├── cue-guard.mjs     Shared assertions for the exercise library's coaching cues.
 │   ├── coef-provenance.mjs  Provenance record for every load coefficient in the library.
+│   ├── derivation-guard.mjs Keeps a derived variant in step with the parent it copied.
 │   └── mutate.mjs        Mutation testing. Breaks a rule on purpose to see if a test notices.
+│
+├── tools/
+│   └── derive.mjs        Scaffolds a new exercise from a reviewed parent. Prints a block
+│                         to paste, with the cues left deliberately unwritten.
 │
 ├── docs/                 Written before the code, and kept in step with it.
 │   ├── spec.md              What the product is. Sections are cited from code as "spec §n".
@@ -208,7 +213,7 @@ Two ideas hold the design together:
 node --test tests/*.test.mjs
 ```
 
-543 tests, using only Node's built-in `node:test` and `node:assert/strict`.
+558 tests, using only Node's built-in `node:test` and `node:assert/strict`.
 There is no `package.json` and nothing to install.
 
 They are not only unit tests. Several are **sweeps**: they generate sessions in
@@ -264,6 +269,19 @@ is readable on its own terms, and the deployed app is byte-for-byte the source.
 always. A gym basement with no signal is the design target, not an edge case.
 The cost is that `VERSION` in `sw.js` must be bumped on every deploy, which is
 why that file opens with a large warning comment.
+
+**The library grows by hand, and the suite is the gate.** There is no importer
+and no second validator. Adding a movement means writing an entry and running
+the tests — the cue guard caps a coaching line at 90 characters, the derivation
+guard keeps a variant in step with the parent it was copied from, and the
+coefficient ratchet refuses any *growth* in unsourced load ratios. `tools/
+derive.mjs` does the mechanical half: it copies the nine inherited fields off a
+reviewed parent and hands back a draft that is deliberately **wrong in exactly
+one way** — the cues are still the parent's, which the suite rejects — so a
+draft pasted in and forgotten fails rather than ships. What a video or a list of
+names cannot supply is the rest: which pattern, which joints, how technical, and
+three lines that are true for someone performing it unsupervised.
+`docs/design-library-expansion.md` §13.
 
 **Anti-repetition is counted in sessions, because a calendar window could not
 reach.** The generator downweights a movement used recently. That set was built

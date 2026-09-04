@@ -34,9 +34,22 @@
 // it has not moved one axis -- it has changed what the movement is, and that
 // is authored fresh under design §8 rather than derived. It is absent on
 // rep-based entries, and absent inherits as absent.
+//
+// `targets` joined on 2026-09-05, and it is the same argument as `pattern`.
+// It names the movement patterns a drill or stretch serves, and the prep and
+// cool-down select on it (design-mobility-and-warmup.md §9), so it decides
+// which DAY an entry can ever be drawn for exactly as `pattern` decides which
+// SLOT. It was added to the library in v38 without being added here, which
+// left a variant free to re-aim itself silently -- a lateral leg swing filed
+// under `squat`/`lunge` while its parent prepares a hinge would simply stop
+// appearing on the days its parent appears on, and nothing would say so.
+// Closed before the first derived mobility entry exists (15 derived entries
+// at the time, none of them tier `mobility`, zero mismatches), which is the
+// only moment a guard like this is free. Absent inherits as absent, as with
+// `isometric`: only the 38 mobility entries carry the field at all.
 export const INHERITED = [
   'pattern', 'tier', 'joints',
-  'cnsCost', 'technical', 'unilateral', 'modalities', 'isometric'
+  'cnsCost', 'technical', 'unilateral', 'modalities', 'isometric', 'targets'
 ];
 
 export const VENUES = ['gym', 'either', 'outdoor'];

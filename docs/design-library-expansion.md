@@ -1038,3 +1038,133 @@ gym side that is about **11 entries across five accessory/secondary pools**;
 the remaining ~100 of §4's shortfall is `sprint`, `run` and `jump`, where §11.1's
 conclusion is unchanged — a sixteenth way to sprint is worse than repeating the
 right one.
+
+---
+
+## 13  Growing the library: the tool, and the first batch — BUILT 2026-09-05, `sw.js` v40
+
+### 13.1 The validation script that was not built
+
+The ask was "a way to add movements to all categories", and the obvious
+deliverable was a script that validates a proposed entry before it lands.
+
+**It was not built, because the suite already is one.** What gates a new entry
+today, without any new code:
+
+| guard | what it refuses |
+|---|---|
+| `cue-guard.mjs` | >90 chars, >4 lines, and a blank entry in a `CUED_POOLS` pool |
+| `derivation-guard.mjs` | a variant that drifted from its parent, a chain two deep, an inherited coefficient, a venue that moved without the implement |
+| `coef-provenance.mjs` | a `prCoef` with no provenance record |
+| `coefficients.test.mjs` | any *growth* in unsourced-coefficient debt |
+| `taxonomy.test.mjs` | an entry in the wrong movement family |
+| `library.test.mjs` | a duplicate id, an empty `modalities`, a pool too thin to survive a hurt joint |
+| `coverage.test.mjs` | regenerates `coverage-matrix.md`, so a pool's depth is never a claim |
+| `prep-specificity.test.mjs` | a mobility entry with no `targets` |
+
+Adding an entry and running `node --test tests/*.test.mjs` **is** the
+validation. A second gate would duplicate every rule above and then drift from
+it — two definitions of a valid entry, disagreeing silently, which is the exact
+failure `derivation-guard.mjs` exists to prevent one level down.
+
+### 13.2 `targets` joined the inherited set first
+
+v38 added `targets` to the 38 mobility entries and did not add it to
+`derivation-guard.mjs`'s `INHERITED`. `targets` decides which **day** an entry
+is drawn for, exactly as `pattern` decides which **slot**, so a derived drill
+was free to re-aim itself silently — a lateral leg swing filed under
+`squat`/`lunge` would simply stop appearing on the days its parent appears on,
+and nothing would say so.
+
+Closed before the first derived mobility entry exists: 15 derived entries at
+the time, none of them tier `mobility`, zero mismatches. That is the only
+moment a guard like this is free, and it is why it went first rather than last.
+
+### 13.3 `tools/derive.mjs` — the mechanical part only
+
+Of ~15 fields on an entry, a derived variant copies nine off its parent and
+forces three to a fixed value. **Four need a human**: the id, the name, the
+equipment, and the cue line the moved axis actually changed.
+
+```
+node tools/derive.mjs --parent split-squat --id front-foot-elevated-split-squat \
+                      --name "Front-Foot-Elevated Split Squat" \
+                      --equipment dumbbell,plates --venue gym
+```
+
+**The contract is that the draft is wrong in exactly one way.** Every
+mechanical field is correct; the cues are the parent's *verbatim*, which
+`derivation-guard.mjs` rejects as "has not moved an axis". So a draft that is
+pasted in and forgotten **fails the suite** rather than shipping, and the
+failure names the one thing only a human can do. That is deliberate, and
+`tests/derive-tool.test.mjs` asserts it: `derivationProblems` on a fresh draft
+returns exactly one problem, and it is the cue one.
+
+It refuses an unknown parent, a parent that is itself derived, a duplicate id,
+a non-slug id, and a venue that moved without the implement. It prints; it does
+**not** write to `exercises.json`, because that file is hand-formatted one
+aligned block per entry and a script that reflowed it would produce a diff
+nobody can read.
+
+*It earned its keep on first use.* Asked to scaffold a rear-foot-elevated split
+squat, it refused: the entry already exists — at tier `secondary` with
+`max-strength`, which is why it had not shown up in the `accessory ::
+lunge/rotate :: hypertrophy` pool being counted.
+
+### 13.4 The batch: six entries, eight shortfall points
+
+| entry | parent | axis moved | closes |
+|---|---|---|---|
+| `forward-lunge` | `reverse-lunge` | direction | lunge/rotate, lunge/carry |
+| `lateral-step-up` | `step-up` | stance | lunge/rotate, lunge/carry |
+| `front-foot-elevated-split-squat` | `split-squat` | angle (+ implement) | lunge/rotate, lunge/carry |
+| `meadows-row` | `dumbbell-row` | implement (landmine) | pull-v/pull-h |
+| `seated-leg-curl` | `lying-leg-curl` | angle | squat/hinge |
+| `single-arm-lat-pulldown` | — *(fresh, §8)* | — | pull-v/pull-h |
+
+**Six entries closed eight shortfall points**, because the pools overlap — a
+lunge accessory entry sits in both `lunge/rotate` and `lunge/carry`. Raw
+shortfall 111 → 103; library 252 → 258.
+
+`single-arm-lat-pulldown` is authored fresh rather than derived, and the reason
+is the rule working: a single-arm pulldown moves `unilateral`, which is on the
+inherited list, so it is a **new movement** and not a variant of the two-arm
+version. §11.2's line — "if a variant would load different joints, it is not a
+derived variant" — generalises to every inherited field.
+
+Four of the five short gym pools are now at target. What is left:
+
+### 13.5 `primary :: hinge/pull-h :: power` stays 3 short, and that is correct
+
+This pool is the Olympic-lift and deadlift pool: thirteen loadable barbell
+lifts. Adding to it means adding loadable barbell lifts, and **every one needs
+a sourced `prCoef`.**
+
+`coefficients.test.mjs` holds `UNVERIFIED_BUDGET` as a one-way ratchet — the
+unsourced-coefficient debt may shrink, never grow — so three new entries cannot
+simply arrive tagged `unverified`. And the reason that ratchet exists is
+recorded in `coef-provenance.mjs`: when four coefficients were finally sourced
+properly, **three of the four were wrong**, two of them 9% high. On lifts
+prescribed as a percentage of a college-era PR, to someone returning after
+years off, a 9% error is an overload rather than a wasted set.
+
+So this shortfall is **not closed by authoring**. It is closed by sourcing
+three coefficients, which is reading work with a different shape and pace, and
+it is left open rather than filled with plausible numbers. Plausible is exactly
+what made the original thirty dangerous.
+
+### 13.6 Open: two entries are under-tagged, not missing
+
+`face-pull` and `straight-arm-pulldown` are **already in the library**, tagged
+`modalities: ["isolation"]` only. That is why they did not count toward
+`secondary+accessory :: pull-v/pull-h :: hypertrophy` and why that pool read as
+short. `incline-curl`, `preacher-curl` and `wrist-curl` sit the same way, while
+`barbell-curl`, `dumbbell-curl` and `hammer-curl` all carry
+`["isolation","hypertrophy"]`.
+
+A face pull is a rear-delt hypertrophy movement by any ordinary reading, so the
+tagging looks accidental rather than considered. **Deliberately not changed
+here.** Retagging an entry changes which *days* it can be selected on, for
+movements already in circulation — a different kind of change from adding a new
+entry, and one that should be decided on its own rather than swept in behind a
+batch that was about something else. Raised so it is on the record.

@@ -70,7 +70,12 @@ test('every inherited field is checked, one problem each', () => {
   const drift = {
     pattern: 'squat', tier: 'accessory', joints: ['lumbar'],
     cnsCost: 3, technical: 2, unilateral: true, modalities: ['hypertrophy'],
-    isometric: false
+    isometric: false,
+    // The parent fixture is a core plank and carries no `targets` at all, so
+    // naming any is a difference -- which is the drift worth catching. Only
+    // the 38 mobility entries carry the field, and absent-vs-present is
+    // exactly how a variant would wander into a pool its parent is not in.
+    targets: ['squat']
   };
   assert.deepEqual(Object.keys(drift).sort(), [...INHERITED].sort(),
     'a field was added to INHERITED without a drift case here');
@@ -129,4 +134,71 @@ test('the real library carries no broken derivation', () => {
     for (const p of derivationProblems(e, byId)) problems.push(`${e.id}: ${p}`);
   }
   assert.deepEqual(problems, []);
+});
+
+// --------------------------------------------------------------------------
+// `targets` joined the inherited set 2026-09-05
+// --------------------------------------------------------------------------
+
+// The gap this closes was opened by v38. `targets` names the movement
+// patterns a drill or stretch serves, and it is what the prep and cool-down
+// select on -- so it decides which DAY an entry can ever be drawn for, which
+// is the same job `pattern` does for the main work. `pattern` was on the
+// inherited list from the start; `targets` was added to the library without
+// being added here, so a derived mobility variant could drift silently.
+//
+// There were no derived mobility entries when this landed (checked: 15
+// derived entries, none tier `mobility`, zero targets mismatches), so this is
+// a guard put in place BEFORE the first entry that needs it -- which is the
+// only time it is cheap.
+
+test('targets is inherited, because it decides which day a drill is drawn for', () => {
+  assert.ok(INHERITED.includes('targets'),
+    'a derived drill that changed its targets would be selected on a ' +
+    'different day from its parent and nothing would notice');
+});
+
+test('a derived drill that quietly re-aims itself is caught', () => {
+  const parent = {
+    id: 'leg-swing', pattern: 'mobility', tier: 'mobility',
+    joints: ['hip'], cnsCost: 1, technical: 1, unilateral: true,
+    modalities: ['mobility-dynamic'], targets: ['hinge', 'run', 'sprint', 'lunge'],
+    equipment: ['bodyweight'], venue: 'either'
+  };
+  const drifted = {
+    ...parent, id: 'lateral-leg-swing', derivedFrom: 'leg-swing',
+    targets: ['squat', 'lunge']            // re-aimed: no longer a hinge drill
+  };
+  const byId = { 'leg-swing': parent };
+  const problems = derivationProblems(drifted, byId);
+  assert.ok(problems.some(p => p.startsWith('targets')),
+    `expected a targets problem, got ${JSON.stringify(problems)}`);
+});
+
+test('a derived drill that keeps its parent aim is fine', () => {
+  const parent = {
+    id: 'leg-swing', pattern: 'mobility', tier: 'mobility',
+    joints: ['hip'], cnsCost: 1, technical: 1, unilateral: true,
+    modalities: ['mobility-dynamic'], targets: ['hinge', 'run'],
+    equipment: ['bodyweight'], venue: 'either'
+  };
+  const ok = {
+    ...parent, id: 'wall-supported-leg-swing', derivedFrom: 'leg-swing',
+    targets: ['run', 'hinge']              // same set, different order
+  };
+  const byId = { 'leg-swing': parent };
+  assert.deepEqual(derivationProblems(ok, byId), []);
+});
+
+test('absent targets inherits as absent, like isometric', () => {
+  // Only the 38 mobility entries carry targets. A derived barbell variant has
+  // none, and neither does its parent; that must not read as a difference.
+  const parent = {
+    id: 'hip-thrust', pattern: 'hinge', tier: 'accessory', joints: ['hip'],
+    cnsCost: 2, technical: 1, unilateral: false, modalities: ['hypertrophy'],
+    equipment: ['barbell', 'bench'], venue: 'gym'
+  };
+  const child = { ...parent, id: 'b-stance-hip-thrust', derivedFrom: 'hip-thrust' };
+  const byId = { 'hip-thrust': parent };
+  assert.deepEqual(derivationProblems(child, byId), []);
 });

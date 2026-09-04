@@ -309,6 +309,14 @@
       "cues": ["Step BACK and lower the back knee towards the floor behind you.","The front foot never moves and the weight stays through its heel.","Push off the front leg to stand, without pulling with the back foot.","Kinder to the knees than a forward lunge, so it is the one to start on."],
       "modalities": ["hypertrophy"] },
 
+    { "id": "forward-lunge", "name": "Forward Lunge", "pattern": "lunge", "tier": "accessory",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["knee","hip","ankle"], "equipment": ["dumbbell"], "venue": "either",
+      "cnsCost": 1, "technical": 1, "unilateral": true,
+      "cues": ["Step forward and lower the back knee towards the floor behind you.","Land heel first and keep the front knee tracking over that foot.","Push back off the front leg to return; do not walk out of it.","Harder on the front knee than a reverse lunge, so start lighter."],
+      "derivedFrom": "reverse-lunge",
+      "modalities": ["hypertrophy"] },
+
     { "id": "rear-foot-elevated-split-squat", "name": "Rear-Foot-Elevated Split Squat", "pattern": "lunge", "tier": "secondary",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["knee","hip","ankle"], "equipment": ["dumbbell","bench"], "venue": "gym",
@@ -323,6 +331,14 @@
       "cues": ["Set the feet in a lunge and leave them there for the whole set.","Drop straight down, back knee towards the floor, torso upright.","Push through the front heel; the back leg balances, it does not drive."],
       "modalities": ["hypertrophy"] },
 
+    { "id": "front-foot-elevated-split-squat", "name": "Front-Foot-Elevated Split Squat", "pattern": "lunge", "tier": "accessory",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["knee","hip"], "equipment": ["dumbbell","plates"], "venue": "gym",
+      "cnsCost": 1, "technical": 1, "unilateral": true,
+      "cues": ["Front foot up on a plate, back foot on the floor in a lunge stance.","The raised foot lets you sink deeper, so expect more stretch down low.","Torso upright and the front heel stays glued to the plate throughout.","Go lighter than a flat split squat -- the depth is the point, not load."],
+      "derivedFrom": "split-squat",
+      "modalities": ["hypertrophy"] },
+
     { "id": "front-rack-lunge", "name": "Front-Rack Barbell Lunge", "pattern": "lunge", "tier": "secondary",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["knee","hip","thoracic"], "equipment": ["barbell","rack"], "venue": "gym",
@@ -335,6 +351,14 @@
       "joints": ["knee","hip"], "equipment": ["dumbbell","box"], "venue": "either",
       "cnsCost": 1, "technical": 1, "unilateral": true,
       "cues": ["Box at about knee height, and the whole foot on top before you push.","Drive up through the top foot only -- no push off the trailing toe.","Lower yourself back down under control instead of dropping off.","If you have to hop up, the box is too tall or the bells are too heavy."],
+      "modalities": ["hypertrophy","interval"] },
+
+    { "id": "lateral-step-up", "name": "Lateral Step-Up", "pattern": "lunge", "tier": "accessory",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["knee","hip"], "equipment": ["dumbbell","box"], "venue": "either",
+      "cnsCost": 1, "technical": 1, "unilateral": true,
+      "cues": ["Stand side-on to the box with the near foot flat on top of it.","Drive up through that foot alone; the far leg must not push off.","Stand tall at the top without letting the free-side hip drop.","Lower under control and touch the floor lightly, do not land on it."],
+      "derivedFrom": "step-up",
       "modalities": ["hypertrophy","interval"] },
 
     { "id": "lateral-lunge", "name": "Lateral Lunge", "pattern": "lunge", "tier": "accessory",
@@ -583,6 +607,14 @@
       "cues": ["Hand and knee on the bench, back flat and level like a table top.","Pull the bell to the hip with the elbow tracking close to the body.","Let the shoulder blade travel at the bottom instead of locking the arm.","Hips stay square. Do not roll the torso open to get another inch."],
       "modalities": ["hypertrophy"] },
 
+    { "id": "meadows-row", "name": "Meadows Row", "pattern": "pull-h", "tier": "accessory",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["shoulder","elbow","scapula"], "equipment": ["landmine","plates"], "venue": "gym",
+      "cnsCost": 1, "technical": 1, "unilateral": true,
+      "cues": ["Stand side-on to the end of the bar, feet staggered, free hand on the knee.","Grip the sleeve itself and row it up towards your hip in an arc.","Let the shoulder blade stretch forward at the bottom of every rep.","The arc is the point; do not fight the bar into a straight line."],
+      "derivedFrom": "dumbbell-row",
+      "modalities": ["hypertrophy"] },
+
     { "id": "chest-supported-row", "name": "Chest-Supported Row", "pattern": "pull-h", "tier": "accessory",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["shoulder","elbow","scapula"], "equipment": ["dumbbell","bench"], "venue": "gym",
@@ -665,6 +697,13 @@
       "joints": ["shoulder","elbow","scapula"], "equipment": ["cable"], "venue": "gym",
       "cnsCost": 1, "technical": 1, "unilateral": false,
       "cues": ["Thighs pinned under the pad, hands a little outside the shoulders.","Pull the bar to the collarbone with the chest up and the elbows driving down.","Let it rise all the way back and the shoulder blades reach up between reps."],
+      "modalities": ["hypertrophy","isolation"] },
+
+    { "id": "single-arm-lat-pulldown", "name": "Single-Arm Lat Pulldown", "pattern": "pull-v", "tier": "accessory",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["shoulder","elbow","scapula"], "equipment": ["cable"], "venue": "gym",
+      "cnsCost": 1, "technical": 1, "unilateral": true,
+      "cues": ["One handle on the high pulley, seated or half-kneeling, one arm only.","Pull the elbow down towards your hip and let the shoulder blade follow.","Let the arm travel all the way up at the top without leaning away.","Match the weaker side's reps on the strong side, not the other way round."],
       "modalities": ["hypertrophy","isolation"] },
 
     { "id": "straight-arm-pulldown", "name": "Straight-Arm Pulldown", "pattern": "pull-v", "tier": "accessory",
@@ -1533,6 +1572,14 @@
       "joints": ["knee"], "equipment": ["machine"], "venue": "gym",
       "cnsCost": 1, "technical": 1, "unilateral": false,
       "cues": ["Pad just above the heels with the hips flat on the bench.","Curl the heels towards the backside and squeeze at the top.","Lower slowly and stop just short of the weight touching down."],
+      "modalities": ["isolation","hypertrophy"] },
+
+    { "id": "seated-leg-curl", "name": "Seated Leg Curl", "pattern": "hinge", "tier": "accessory",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["knee"], "equipment": ["machine"], "venue": "gym",
+      "cnsCost": 1, "technical": 1, "unilateral": false,
+      "cues": ["Sit back into the pad with your knees just off the edge of the seat.","Strap the lap pad down firmly so the hips cannot lift as you curl.","Curl the heels under the seat and pause before letting them back out.","This stretches the hamstrings more than lying does, so start light."],
+      "derivedFrom": "lying-leg-curl",
       "modalities": ["isolation","hypertrophy"] },
 
     { "id": "wrist-curl", "name": "Wrist Curl", "pattern": "pull-h", "tier": "accessory",
