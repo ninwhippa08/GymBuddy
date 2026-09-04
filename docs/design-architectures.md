@@ -228,6 +228,10 @@ the block travels with the block for free.
 Not designed further here. The ladder ships first, and the group design is
 written when the superset is built rather than guessed at now.
 
+**Designed 2026-09-04 in §3.6, and the sketch held**: the field-on-the-block
+shape survived contact with `packToBudget` and `swapBlock` unchanged. What the
+sketch did not anticipate is `groupRounds` — see §3.6.2.
+
 ---
 
 ### 3.5 Choosing an architecture must not disturb the seed
@@ -247,15 +251,158 @@ it was.
 
 ---
 
+### 3.6 The antagonist superset
+
+#### 3.6.1 What the source supports, and what it does not
+
+A 2025 systematic review and meta-analysis in *Sports Medicine* (Ferreira et
+al., 26 studies) is the basis. Supersets cut session duration by roughly **37%**
+while preserving training volume, and pooled chronic outcomes are
+indistinguishable from traditional sets — maximal strength **SMD = 0.10,
+p = 0.36**; hypertrophy **SMD = −0.05, p = 0.87**. `[corroborated]` The common
+agonist-antagonist protocol is **no rest between the paired exercises**
+("succession") and **2 min between rounds**.
+
+- Ferreira et al. (2025). Superset Versus Traditional Resistance Training
+  Prescriptions: A Systematic Review and Meta-analysis Exploring Acute and
+  Chronic Effects on Mechanical, Metabolic, and Perceptual Variables.
+  *Sports Medicine*. https://doi.org/10.1007/s40279-025-02176-8 — PMID 39903375
+
+**The weakness is stated here rather than discovered later.** Of those studies
+exactly **one** agonist-antagonist trial examined chronic adaptation (Fink et
+al., n = 23). The 37% is pooled across superset types, not measured for
+agonist-antagonist alone. So the claim this design rests on is the narrow one:
+*restructuring the rest between two opposing lifts does not cost adaptation*.
+It is tagged `[corroborated]` — inside the range that worked, on thin chronic
+evidence — and it is the same licence §2.1 already established for the ladder,
+not a new one.
+
+Agonist-antagonist supersets also produce **higher blood lactate
+(SMD = 1.52)** and higher RPE than traditional sets, with **similar perceived
+recovery**. The CNS account is deliberately **not** changed for a supersetted
+session — see §6 q6.
+
+**2 min needs no new constant.** The hypertrophy slots already draw
+`restSec` in the 45–180 s band, and the round rest this design uses (§3.6.3)
+lands inside the protocol the source describes. A superset introduces no dose
+the zones did not already produce, which is the rule open question 1 settled
+for the ladder.
+
+#### 3.6.2 The pairing rule, and its measured reach
+
+> Two main-work blocks pair when their patterns are direct opposites in the
+> same plane: **`push-h` with `pull-h`**, **`push-v` with `pull-v`**.
+
+Cross-plane pairs and `squat`/`hinge` were considered and **declined**. The
+effect the source describes comes from loading the true opposing muscle, and a
+squat paired with a Romanian deadlift shares more than it opposes — pairing
+them would have been an extrapolation presented as a finding. Measured over
+10,000 hypertrophy seeds, the rules reach:
+
+| rule | sessions with a pair |
+|---|---|
+| strict push/pull, equal sets only | 26.4% |
+| **strict push/pull, any set counts (CHOSEN)** | **47.7%** |
+| + cross-plane and squat/hinge, equal sets | 51.4% |
+| + cross-plane and squat/hinge, any sets | 78.1% |
+
+**Set counts are not required to match — the athlete's call.** The equal-sets
+variant was recommended because it makes the card a clean list of rounds, and
+he took the wider rule instead. The cost is a ragged tail, and `groupRounds`
+is what pays it:
+
+> `groupRounds = min(setsA1, setsA2)`. Those rounds are paired; the longer
+> block's remaining sets run straight, after the pair.
+
+This is the field the §3.4 sketch did not anticipate. It is carried on both
+blocks so neither can be read alone and come out wrong.
+
+**"Main-work block" means exactly what `countsTowardVolume` already means** — a
+block whose `mode` is one of `VOLUME_MODES` (`load`, `contacts`, `reps`) and
+whose `role` is not `prep`, `mobility` or `core`. Reusing the existing predicate
+rather than writing a second definition is the same rule §3.3 applied to the
+ladder: two definitions of "the work" would drift, and the one that drifted
+would be the one nobody was reading.
+
+Pairing is greedy over those blocks **in template slot order**, which is the
+order they are in when grouping runs — after `packToBudget`, before
+`orderSession`. A block joins at most one pair. Two pairs in one session are
+possible and rare (6.9% of sessions).
+
+#### 3.6.3 Where it runs in the pipeline — after packing, not before
+
+`applyArchitecture` shapes the ladder at step 7a, before `packToBudget`. **The
+superset groups AFTER packing instead**, and the reason is §1's scope rule
+rather than convenience.
+
+A supersetted session is shorter. If pairing ran before packing, `packToBudget`
+would measure the shortened session and therefore trim fewer optional blocks —
+so a superset would silently **add work** to the session, which is exactly what
+"structure around the work, not the work itself" forbids. Grouping after packing
+keeps the work identical and spends the saving on the clock, which is the whole
+point of the architecture.
+
+It buys a second property for free: **a group can never be orphaned.**
+`packToBudget` both drops optional blocks and shaves sets, and either would
+leave a half-pair behind if the group already existed. After packing there is
+nothing left to drop.
+
+**Time model.** For a pair, with `R = groupRounds`:
+
+```
+paired   = R x (work(A1) + work(A2) + max(restA1, restA2))
+leftover = (setsA1 - R) x (work(A1) + restA1)      // one of these is zero
+         + (setsA2 - R) x (work(A2) + restA2)
+```
+
+The round rest is the **longer of the two drawn rests**: the more demanding
+lift governs, and taking the shorter one would be inventing a recovery
+saving the source does not describe. Transitions are charged per block exactly
+as now — both stations are set up once, and the walk between them is not worth
+a constant.
+
+Sanity check against the source: a 3 x 3 pair at 90 s rest and ~30 s of work
+per set prices at 450 s supersetted against 720 s straight, a **37.5%** saving.
+The source measured 37%. The model was not fitted to that number.
+
+#### 3.6.4 What the superset must not break
+
+- **Volume, load and CNS cost are identical to the straight session.**
+  `patternSets`, `cnsLoad`, `sets`, `reps` and every prescribed load are
+  untouched. A superset moves rest and order, nothing else.
+- **A supersetted session is never longer than the same seed's straight
+  session.** Asserted, not assumed.
+- **Swap needs no new machinery.** `swapBlock` narrows to
+  `patterns: [entry.pattern]`, so a swapped movement keeps its pattern and the
+  pair stays antagonist by construction. This matters because the athlete's
+  answer to "you must hold two stations" was that he would swap the movement
+  when the gym is busy — so that path has to keep working, and it does.
+- **Ordering places A1 immediately before A2.** This is the first time an
+  architecture touches `orderSession`; the ladder deliberately did not.
+- **Every day type but `hypertrophy` is bit-for-bit unchanged.**
+
+**One thing WILL change, unavoidably: every hypertrophy session.** Adding
+`antagonist-superset` to `BUILT_ARCHITECTURES` gives hypertrophy two built
+options, so `chooseArchitecture` now draws where it previously returned early —
+and a draw consumes the seeded stream, re-rolling every later choice. That is
+§3.5's finding, and it is not a bug here: it is the cost of building an
+architecture, paid once, exactly as the ladder paid it for `max-strength`. It
+requires a full duration re-sweep before the commit, against the one minute of
+ceiling margin bought on 2026-09-04.
+
+---
+
 ## 4. Build order
 
 Each step leaves a working app and gets its own version bump.
 
-1. **`ladder` on `max-strength`.** No block relationships; `setPlan` only. It
-   proves the whole path — `chooseArchitecture` actually choosing, the record
-   carrying the choice, `estimateMinutes` pricing it, the card rendering it.
-2. **`antagonist-superset` on `hypertrophy`.** Introduces `group`. This is where
-   `ui.blockGroup` and `estimateMinutes` change again.
+1. **`ladder` on `max-strength`.** BUILT 2026-09-04 (v32). No block
+   relationships; `setPlan` only. It proves the whole path —
+   `chooseArchitecture` actually choosing, the record carrying the choice,
+   `estimateMinutes` pricing it, the card rendering it.
+2. **`antagonist-superset` on `hypertrophy`.** DESIGNED 2026-09-04, §3.6.
+   Introduces `group`, `groupRole` and `groupRounds`. This is where
+   `ui.blockGroup`, `estimateMinutes` and — newly — `orderSession` change.
 3. **`circuit` on `hypertrophy`.** The same machinery, N blocks instead of two.
 
 ---
@@ -271,6 +418,22 @@ Each step leaves a working app and gets its own version bump.
 - No ladder is ever prescribed while `env.pctCeiling` sits below the band.
 - Straight sets are unchanged: every existing assertion still holds.
 
+For the superset (§3.6):
+
+- A pair is always `push-h`/`pull-h` or `push-v`/`pull-v`, never anything else.
+- Both members carry the same `group` and the same `groupRounds`, and
+  `groupRounds === min(setsA1, setsA2)`.
+- `patternSets` and `cnsLoad` are identical to the straight version of the same
+  seed, and so are every block's `sets`, `reps` and load.
+- A supersetted session is never longer than its straight counterpart.
+- `estimateMinutes` prices a pair once, not twice: the round rest is charged
+  per round, not per block.
+- A1 sits immediately before A2 in the ordered session.
+- A swapped member keeps its pattern, so the pair stays antagonist.
+- No group survives with only one member.
+- Every day type except `hypertrophy` is bit-for-bit unchanged; `hypertrophy`
+  is re-swept against the 70 min limit for the reason in §3.6.4.
+
 ---
 
 ## 6. Open questions
@@ -285,6 +448,20 @@ Each step leaves a working app and gets its own version bump.
    §3.2 specifies. Three waves would need at least six sets to avoid changing
    volume, which only slot A can draw; one wave is not a wave. Recorded so the
    choice is visible, not because it is in doubt.
+6. **Should a supersetted session cost more on the CNS account?** The source
+   reports significantly higher blood lactate (SMD = 1.52) and higher RPE for
+   agonist-antagonist supersets, alongside **similar perceived recovery**.
+   `cnsLoad` is deliberately left unchanged: the two findings point opposite
+   ways, the app's account is a model of recovery draw rather than of lactate,
+   and inventing a superset multiplier would be exactly the unsourced number
+   this project keeps refusing to write. Recorded as open rather than settled,
+   because "the evidence conflicts" is a reason to wait, not a reason to
+   pretend the question was never asked.
+7. **The 37% is pooled across superset types.** Agonist-antagonist alone was
+   never separately quantified for time saving, and only one such study
+   (n = 23) measured chronic adaptation at all. If a larger agonist-antagonist
+   trial appears, the thing to re-check is not the time model — that is
+   arithmetic — but whether "no cost to adaptation" still holds.
 3. **Does a ladder belong on `power`?** `ARCHITECTURES` does not list it there
    and this design does not add it. Power's zone is 0.75–0.85 with 2–5 reps and
    its intent is speed, not grind; a descending-rep wave against a speed intent
