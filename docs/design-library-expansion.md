@@ -824,7 +824,7 @@ is wrong.
 > A **derived variant** takes a reviewed parent and moves **exactly one axis** —
 > implement, stance, or angle. Never a cross-product.
 
-It inherits from the parent, unchanged: `pattern`, `tier`, `joints`, `venue`,
+It inherits from the parent, unchanged: `pattern`, `tier`, `joints`,
 `cnsCost`, `technical`, `unilateral`, `modalities`, `isometric`. It carries a
 new optional field **`derivedFrom: "<parent-id>"`** naming where it came from.
 
@@ -835,8 +835,7 @@ input to something that would break silently if the variant drifted:
   different joints, it is not a derived variant** — it is a new movement, and it
   is authored fresh under §8 with its own review.
 - `cnsCost` and `technical` price the session; `tier` and `pattern` decide which
-  pool and which slot it can ever reach; `venue` decides whether it exists at
-  all today.
+  pool and which slot it can ever reach.
 - `isometric` was **added to the list during the core pilot, before any entry
   was authored**. The agreed list did not carry it; `generator.js:1214` shows it
   is the switch that decides whether the card prescribes a **hold in seconds or
@@ -855,6 +854,25 @@ stop.
 line the moved axis actually changes, keep the rest. A variant whose cues are
 byte-identical to its parent's has not moved an axis worth an entry.
 
+**`venue` came off the inherited list during the pilot, on a measurement.** The
+agreed list carried it. In this library venue is a *function of the implement* —
+`barbell`, `cable`, `machine`, `plates`, `landmine` and `bench` are `gym` in
+every one of their entries; `bodyweight`, `kettlebell`, `bands` and `wall` are
+`either` in all but one. Inheriting venue across a moved implement is therefore
+the same axis under another name, and it forbids exactly the variants worth
+having: a band Pallof press is `either` precisely *because* it is the one he can
+do away from the gym, and the rule would have rejected it for saying so.
+
+The rule that replaces it is narrower and catches the same drift:
+
+> **VENUE_FOLLOWS_IMPLEMENT** — a variant that did not move the implement may
+> not move the venue. One that did move the implement declares its own, and it
+> must be a venue the library uses.
+
+So a stance or angle variant is available exactly where its parent is, and the
+only way to change venue is to change the kit, which is a visible edit a
+reviewer can see.
+
 Depth is one. **A parent may not itself be derived**, so every variant is one
 edit away from a line a human reviewed. Chains would let three small drifts add
 up to an entry nobody has ever checked.
@@ -867,8 +885,8 @@ suite would notice, and the divergence is invisible because both entries still
 look well-formed on their own.
 
 `tests/derivation-guard.mjs` therefore asserts, for every entry carrying
-`derivedFrom`, that **the parent exists** and that **every inherited field still
-equals the parent's**. It is test-side rather than app-side for the same reason
+`derivedFrom`, that **the parent exists**, that **every inherited field still
+equals the parent's**, and that venue moved only if the implement did. It is test-side rather than app-side for the same reason
 as the cue guard and `coef-provenance.mjs`: the library is authored in this repo
 and gated by this suite, so a malformed entry can never reach a user, and §2's
 "no schema change" holds.

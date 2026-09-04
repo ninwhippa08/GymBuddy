@@ -15,8 +15,17 @@
 // The inherited set is the definition of a derived variant, not a convenience.
 // Each field is an input to something that breaks silently if a variant drifts:
 // `joints` is the soreness filter's only input; `cnsCost` and `technical` price
-// the session; `tier` and `pattern` decide which slot the entry can ever reach;
-// `venue` decides whether it exists at all today.
+// the session; `tier` and `pattern` decide which slot the entry can ever reach.
+//
+// `venue` is NOT on the list, and that was measured rather than assumed. In
+// this library venue is a FUNCTION of the implement -- barbell, cable, machine,
+// plates, landmine and bench are `gym` in every one of their entries;
+// bodyweight, kettlebell, bands and wall are `either` in all but one. So
+// inheriting venue across a moved implement axis is self-contradictory: it is
+// the same axis under another name, and it would forbid exactly the variants
+// worth having (a band Pallof press is the one you can do away from the gym).
+// The rule that survives is VENUE_FOLLOWS_IMPLEMENT below: a variant that did
+// not move the implement may not move the venue either.
 //
 // `isometric` joined the list on 2026-09-04, during the core pilot and before
 // any entry was authored. It is the switch at generator.js:1214 that decides
@@ -26,9 +35,11 @@
 // is authored fresh under design §8 rather than derived. It is absent on
 // rep-based entries, and absent inherits as absent.
 export const INHERITED = [
-  'pattern', 'tier', 'joints', 'venue',
+  'pattern', 'tier', 'joints',
   'cnsCost', 'technical', 'unilateral', 'modalities', 'isometric'
 ];
+
+export const VENUES = ['gym', 'either', 'outdoor'];
 
 // Order in a joints or modalities list carries no meaning, so it is not a
 // difference. Everything else compares by value.
@@ -74,6 +85,18 @@ export function derivationProblems(entry, byId) {
       problems.push(
         `${field} is ${show(entry[field])} but parent "${ref}" has ${show(parent[field])}`);
     }
+  }
+
+  // VENUE_FOLLOWS_IMPLEMENT. A stance or angle variant uses the parent's kit,
+  // so it is available exactly where the parent is; drift there is the silent
+  // kind and is caught. A variant that moved the implement declares its own
+  // venue, because that is the consequence the implement axis exists to have.
+  if (!VENUES.includes(entry.venue)) {
+    problems.push(`venue ${show(entry.venue)} is not one of ${VENUES.join(', ')}`);
+  } else if (same(entry.equipment, parent.equipment) && entry.venue !== parent.venue) {
+    problems.push(
+      `venue is ${show(entry.venue)} but parent "${ref}" has ${show(parent.venue)}, ` +
+      'and the implement did not move');
   }
 
   // A variant whose cues are byte-identical to its parent's has not moved an

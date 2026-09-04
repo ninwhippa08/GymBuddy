@@ -68,7 +68,7 @@ test('derivation is one deep -- a derived entry cannot be a parent', () => {
 // children silently keep the old value. One case per inherited field.
 test('every inherited field is checked, one problem each', () => {
   const drift = {
-    pattern: 'squat', tier: 'accessory', joints: ['lumbar'], venue: 'gym',
+    pattern: 'squat', tier: 'accessory', joints: ['lumbar'],
     cnsCost: 3, technical: 2, unilateral: true, modalities: ['hypertrophy'],
     isometric: false
   };
@@ -79,6 +79,29 @@ test('every inherited field is checked, one problem each', () => {
     assert.equal(p.length, 1, `${field} produced ${p.length} problems: ${p}`);
     assert.match(p[0], new RegExp(field));
   }
+});
+
+// VENUE_FOLLOWS_IMPLEMENT: venue is a function of the implement in this
+// library, so it is inherited only when the implement did not move.
+test('a stance variant may not quietly change venue', () => {
+  const p = derivationProblems(child({ venue: 'gym' }), pair());
+  assert.equal(p.length, 1);
+  assert.match(p[0], /venue/);
+});
+
+test('an implement variant declares its own venue', () => {
+  assert.deepEqual(
+    derivationProblems(child({ equipment: ['cable'], venue: 'gym' }), pair()), []);
+});
+
+// Checked on a variant that DID move the implement, so the drift branch cannot
+// answer for the vocabulary check -- the first version of this test passed
+// against a guard that had no vocabulary check at all.
+test('a venue the library does not use is rejected', () => {
+  const p = derivationProblems(
+    child({ equipment: ['cable'], venue: 'garage' }), pair());
+  assert.equal(p.length, 1);
+  assert.match(p[0], /garage/);
 });
 
 test('joints and modalities compare as sets -- order is not a claim', () => {
