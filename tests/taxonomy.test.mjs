@@ -35,7 +35,7 @@ test('multidirectional prep is its own family', () => {
     'backpedal', 'backward-hurdle-walk', 'carioca', 'carioca-short-long',
     'crossover-run', 'forward-hurdle-walk', 'lateral-cross-behind-skip',
     'lateral-crossover-skip', 'lateral-shuffle', 'lateral-skip', 'low-shuffle',
-    'mini-band-forward-walk', 'mini-band-lateral-walk', 'mini-band-skater-walk', 'open-up-run-to-stick',
+    'mini-band-forward-walk', 'mini-band-lateral-walk', 'mini-band-skater-walk', 'open-up-run-to-stick', 'pro-agility-shuttle',
     'shuffle-with-arm-swing'
   ]);
 });
@@ -50,7 +50,8 @@ test('the run bucket holds only unloaded running on feet', () => {
 test('ergometers and marches are not runs', () => {
   assert.deepEqual(idsWithPattern('erg'), ['assault-bike', 'rower']);
   assert.deepEqual(idsWithPattern('march'), [
-    'backward-walk', 'incline-walk', 'ruck-march', 'sled-drag', 'sled-march'
+    'backward-walk', 'incline-walk', 'lateral-sled-drag', 'ruck-march',
+    'sled-drag', 'sled-march'
   ]);
 });
 

@@ -96,9 +96,17 @@ test('a single hurt joint leaves at least 3 static stretches at the gym', () => 
 // mobility block, and `side-plank-reach-through` is a plank name for a dynamic
 // movement. There is no fact in the data that says which core movements are
 // held; that is a human claim, so the human claim is what is written down.
+// `tall-kneeling-pallof-hold` joined 2026-09-05, on the second playlist
+// expansion. It is the first genuinely new held movement authored since this
+// list replaced the enumeration, and it is here rather than derived because no
+// existing hold is its parent: `pallof-press` is the same set-up but is dosed
+// by reps, and a hold is not a variant of a press. The human claim being
+// written down is that pressing out and resisting rotation for TIME is what
+// the movement is -- counting reps of standing still would be the wrong
+// instruction in exactly the way "3 x 12" is wrong for a plank.
 const REVIEWED_HOLDS = [
   'plank', 'side-plank', 'copenhagen-plank',
-  'hollow-hold', 'l-sit', 'suitcase-hold'
+  'hollow-hold', 'l-sit', 'suitcase-hold', 'tall-kneeling-pallof-hold'
 ];
 
 test('the isometric flag is only ever set where it is read', () => {

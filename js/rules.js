@@ -826,10 +826,25 @@ export const TIME = Object.freeze({
   // somewhere -- packing the cool-down the way packPrep packs the prep is the
   // obvious candidate -- rather than spending a margin that is now gone.
   //
-  // Measured twice on the way, which is why it is 9 and not 10: at 318 entries
+  // Measured twice on the way, which is why it was 9 and not 10: at 318 entries
   // (the soft-tissue rolls alone) the worst was 69, at 398 it fell back to 68
-  // as more variety diluted the expensive combinations, and at 405 it is 69
+  // as more variety diluted the expensive combinations, and at 405 it was 69
   // again. A per-batch derivation would have recorded 9, then 8, then 9. The
   // number is taken once, from the finished library.
-  FLOOR_OVERRUN_ALLOWANCE_MIN: 9
+  //
+  // RE-DERIVED 2026-09-05 (same day), from 9 back to 8, on the SECOND playlist
+  // expansion taking the library 405 -> 458. Worst 68 min on max-strength/seed
+  // 720, so 68 - 60 = 8, and the margin against spec.md line 36 goes back from
+  // one minute to two. The minute borrowed a few hours earlier is returned.
+  //
+  // WHY IT FELL WHILE THE LIBRARY GREW, because that is the counter-intuitive
+  // part and it is now observed twice. This batch is gym work -- carries,
+  // chops, planks, throws, cuff work -- and added almost nothing to the prep
+  // and cool-down pools that drive the long tail. The mobility pool it did not
+  // grow is the one that had made 69 reachable, and every non-mobility entry
+  // added since dilutes the draw further. The rule the two observations
+  // support: THIS NUMBER TRACKS THE MOBILITY POOL'S COMPOSITION, NOT THE
+  // LIBRARY'S SIZE. Growing the gym half is close to free in session time;
+  // growing the prep half is what costs, and what to sweep before shipping.
+  FLOOR_OVERRUN_ALLOWANCE_MIN: 8
 });

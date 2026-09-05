@@ -1378,3 +1378,105 @@ kettlebell swings, split squats and `weighted-dip` are already
 
 New equipment: `mini-band` (implies `bands`, on the trap-bar/barbell reading),
 `suspension`, `slideboard`, `lacrosse-ball` (none imply anything).
+
+
+## 15  The second playlist: filling holes rather than padding pools — BUILT 2026-09-05, `sw.js` v47
+
+A second 263-video playlist from the same source, and a different animal from
+§14's. That one was a warm-up library and mostly padded pools already at
+target. This one is gym work, and it fills gaps the library genuinely had:
+
+- **No rotator cuff work at all**, in 405 entries. `cable-external-rotation`,
+  `ninety-ninety-external-rotation`, `mini-band-external-rotation`, the W and X
+  pulldowns and the two wall slides close it. For a returning college athlete
+  with a football shoulder that is not a nice-to-have.
+- **`rotate` held five entries, every one a chop or a twist** — the *lift*, the
+  low-to-high direction, did not exist, and neither did the push-pull. Six
+  entries added across the stances the library already distinguishes.
+- **No get-up progressions**, no dynamic plank work (plank row, body saw,
+  compass plank), no goblet or bottoms-up carry.
+
+53 authored, library 405 → 458.
+
+### 15.1  The method-on-a-lift category is bigger here
+
+45 of 262 unique titles are a *method* written onto a lift: `Tempo Push Up`,
+`Eccentric Chin Up`, `Isometric Goblet Squat`, `1 and a Half Bench`, and the
+landing progressions `with Stick` / `with mini bounce` / `Continuous` on every
+bound and hop. Same category as §14.2's tempo labels and distances, and the
+same answer: this app prescribes tempo and dose separately, so a method is not
+a library row. That the same facility films 5 methods x 9 lifts is a fact about
+teaching, not about movement.
+
+A further ~30 are implement-position variants — `Goblet Split Squat` against
+`2 DB Split Squat`, `1 KB Rack Pos Squat` against `2 KB` — where the library
+already carries the movement and the hold position is the only difference.
+Declined on the §14.2 rule.
+
+### 15.2  Stance IS an axis here, and the library said so first
+
+The chop entries were not declined as position variants, and the reason is
+precedent rather than preference: `cable-woodchop` (standing) and
+`half-kneeling-cable-chop` already existed as separate entries. The library had
+already ruled that stance changes a chop enough to be its own row, so the tall-
+kneeling and lift variants follow that ruling rather than re-opening it. **Check
+what the library already distinguishes before deciding a variant is noise.**
+
+### 15.3  A new held movement, and the list that is supposed to grow
+
+`tall-kneeling-pallof-hold` is the first entry added to `REVIEWED_HOLDS` since
+that list replaced the old enumeration. It is there rather than derived because
+no existing hold is its parent — `pallof-press` is the same set-up dosed by
+reps, and a hold is not a variant of a press. The list's own comment says it
+"grows only when a genuinely new held movement is authored, which is exactly
+the moment a human should be looking at the flag", so this is that moment
+working as designed rather than a list being bumped to get green.
+
+### 15.4  THE RAMP HOLE, found by accident and left open on purpose
+
+The most valuable thing this batch produced is not an entry.
+
+`tests/swap.test.mjs` asserted that a swap during the return ramp comes back
+capped. It went red. The cause is not the test: `rampLimited` is set only
+inside the load-pricing path (`generator.js:726`), because that is the only
+place a percentage exists to cap. **A swap that returns a `reps`-mode movement
+therefore carries no ramp cap and no "held down by the return ramp" note** —
+which is precisely what basis §3 says a swap must never be, an exit from the
+ramp.
+
+The hole is not new. It was simply unreachable from that fixture: at 435
+entries the week-1 swap of `bench-press` returned `incline-bench-press` (load
+mode, capped); at 458 the extra push-h entries changed which candidate wins and
+it returns `weighted-dip` — primary push-h, dosed by reps, silently uncapped.
+Growing the library did not create the hole. It exposed one that had been
+sitting behind a fixture.
+
+**Not fixed, and the fix is not a test edit.** Either the swap prefers a
+load-mode replacement for a load-mode block during the ramp, or a reps-mode
+block gets its own ramp treatment — fewer reps, or at minimum the note. Both
+are design decisions about a safety feature for a returning athlete, so both
+are the athlete's call. The assertion is split to state the honest invariant (a
+loaded swap IS capped) and the test comment names the gap, so the next reader
+meets the hole rather than a green tick.
+
+### 15.5  The allowance came back down, and now the rule is legible
+
+`FLOOR_OVERRUN_ALLOWANCE_MIN` went 9 → 8 on this batch, restoring the two-minute
+margin §14.3 had spent. Worst 68 min at 458 entries, against 69 at 405.
+
+Observed twice now, so it is worth stating as a rule: **this number tracks the
+MOBILITY POOL'S COMPOSITION, not the library's size.** §14 grew the prep and
+cool-down pools by 89 and the worst case rose; §15 grew the library by 53 with
+only three mobility entries and it fell, because every non-mobility addition
+dilutes a draw it cannot join. Growing the gym half is close to free in session
+time. Growing the prep half is what costs, and is what to sweep before shipping.
+
+### 15.6  One readability bound moved
+
+`tests/equipment.test.mjs`'s "short enough to read on a phone" cap went 10 → 12.
+Worst measured is 11 — a session drawing soft-tissue work that needs both a
+roller and a ball. `lacrosse-ball` cannot be folded into `foam-roller`: its
+entries are point-pressure releases a roller cannot perform. Unlike the
+allowance above this is a READABILITY bound and not a measurement, so it keeps
+headroom rather than tracking the worst case. At 12 the answer is to group the
+control, not to raise it again.
