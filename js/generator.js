@@ -955,7 +955,8 @@ function blockSeconds(b) {
   const sides = b.perSide ? 2 : 1;
 
   if (b.mode === 'drill') {
-    return b.sets * b.reps * TIME.SECONDS_PER_REP * sides + transitionSec(b);
+    // A mobility rep is not a barbell rep. rules.js MOBILITY_SECONDS_PER_REP.
+    return b.sets * b.reps * TIME.MOBILITY_SECONDS_PER_REP * sides + transitionSec(b);
   }
   if (b.mode === 'hold') {
     return b.sets * b.holdSec * sides
@@ -1496,11 +1497,28 @@ export function packPrep(blocks, budgetMin = TIME.PREP_MIN) {
   const out = blocks.slice();
   let guard = 0;
 
-  while (estimateMinutes(out) > budgetMin && out.length > 3 && guard++ < 20) {
+  // PREP_MIN is the DRILL dose budget -- rules.js says so at the constant
+  // ("Prep is capped by the drill dose rather than by this figure"). A
+  // `time`-mode block in the prep is not drills overrunning: on interval days
+  // the template prescribes a four-minute warm-up jog, deliberately, and
+  // charging it against a three-minute drill budget made the overrun warning
+  // fire on 100% OF INTERVAL SESSIONS -- every one, since the ramp was built.
+  // A warning that is always on is not a warning, and trimming mobility drills
+  // to make room for a jog would be the wrong answer to it besides.
+  //
+  // The jog is still real time and still counts in the session duration:
+  // estimateMinutes() over the whole session prices it like anything else.
+  // It is only this budget, the one about how many drills fit, that it is
+  // exempt from. Found 2026-09-05 while correcting MOBILITY_SECONDS_PER_REP;
+  // separate bug, same family -- a budget compared against content it was
+  // never written to cover.
+  const drillMinutes = bs => estimateMinutes(bs.filter(b => b.mode !== 'time'));
+
+  while (drillMinutes(out) > budgetMin && out.length > 3 && guard++ < 20) {
     out.pop();
   }
 
-  return { blocks: out, overBudget: estimateMinutes(out) > budgetMin };
+  return { blocks: out, overBudget: drillMinutes(out) > budgetMin };
 }
 
 // --------------------------------------------------------------------------

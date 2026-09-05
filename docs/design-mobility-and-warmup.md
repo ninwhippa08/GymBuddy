@@ -1249,3 +1249,73 @@ equally-matching candidates would fit a fourth and close the gap — but it
 would also bias the draw against seven of the 19 drills every session, which
 is a variety cost against a coverage gain. **Not built, deliberately.** Raised
 here so the trade is on the record rather than rediscovered.
+
+## 10  A mobility rep is not a barbell rep — FIXED 2026-09-05, `sw.js` v49
+
+The athlete asked for the 70-minute session limit to be given a tolerance,
+because the time budget kept getting in the way. His reason was one sentence:
+*"the mobility work does not take long anyway."*
+
+He was right, and that made the tolerance the wrong fix. The app was
+over-charging mobility, and loosening his own stated limit would have buried a
+measurement error underneath it.
+
+### 10.1  The error
+
+`TIME.SECONDS_PER_REP` is 3. That is a **barbell** rep — an eccentric, a
+concentric, and a moment under load. It was applied to prep drills too, so 12
+side-lying thoracic rotations per side were billed at 72 seconds, and a 3-drill
+prep came out at 4.4 minutes against a 3-minute budget. The sourced floor could
+therefore *never* fit its own budget, and "prep over its 3 min budget" fired on
+**71% of sessions**.
+
+**This exact error had already been found and fixed once in this file, one line
+above, for transitions:**
+
+> "Mobility work has no plates to change. Using the 90 s barbell figure put the
+> 3 min prep block at 8 min." — `MOBILITY_TRANSITION_SEC`
+
+Transitions were given a mobility-specific constant. Reps were not. `TIME` now
+carries `MOBILITY_SECONDS_PER_REP: 2`, applied only to `mode: 'drill'`, which
+`templates.js` sets on mobility-dynamic slots and nothing else. Lifting keeps
+its 3 s. It is `[unverified]` as an exact value, for the same reason the
+transition figure is: nobody has held a stopwatch to it.
+
+### 10.2  A second, unrelated bug the first one uncovered
+
+With gym days fixed, the prep warning still fired on **100% of interval
+sessions** — every one, since the block was built. The interval template puts a
+**four-minute warm-up jog** in the prep. `PREP_MIN` budgets the DRILL dose —
+rules.js says exactly that at the constant — so a deliberate jog was being
+charged against a budget for how many drills fit, and the overrun was
+guaranteed by construction.
+
+`packPrep` now measures only non-`time` blocks against the budget. The jog
+still costs its four minutes in the session duration; it is exempt from *this*
+budget, not from the clock. Trimming mobility drills to make room for a jog
+would have been the wrong answer to the wrong question.
+
+### 10.3  Result
+
+| | before | after |
+|---|---|---|
+| prep over budget | 71% of sessions | **0%** |
+| cool-down over budget | 16.7% | 16.7% (unchanged) |
+| worst session | 68 min | **67 min** |
+| margin against spec.md:36 | 2 min | **3 min** |
+
+`FLOOR_OVERRUN_ALLOWANCE_MIN` falls 8 → 7. The minute was not bought by
+trimming work: it is a minute the sessions never actually cost him.
+
+The cool-down is deliberately unchanged. Its cost is *holds* — a 30-second
+stretch takes 30 seconds, per side if it is per side — and those estimates are
+honest. Its 16.7% is a real trade-off from a 131-entry mobility pool with many
+per-side stretches, not a mispricing, and it is left for a decision rather than
+silently tuned away.
+
+### 10.4  The lesson worth keeping
+
+**When the athlete's experience disagrees with a number, check the number
+before widening the limit around it.** He is the only instrument this project
+has for how long a session takes him, and the figure he was arguing with turned
+out never to have been about mobility at all.

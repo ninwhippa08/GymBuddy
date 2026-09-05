@@ -712,6 +712,26 @@ export const TIME = Object.freeze({
   // Mobility work has no plates to change. Using the 90 s barbell figure put
   // the 3 min prep block at 8 min. [unverified] as an exact value.
   MOBILITY_TRANSITION_SEC: 15,
+  // THE SAME ERROR AS THE LINE ABOVE, FOUND 2026-09-05 AND FIXED THE SAME WAY.
+  // SECONDS_PER_REP is 3, which is a BARBELL rep: an eccentric, a concentric
+  // and a moment under load. A leg swing is not that. Charging the barbell
+  // figure billed 12 thoracic rotations per side at 72 seconds and put a 3 min
+  // prep block at 4-5 min, which is why "prep over its 3 min budget" fired on
+  // 71% of sessions -- a warning that frequent is decoration, not a warning.
+  //
+  // The athlete raised it unprompted -- "the mobility work does not take long
+  // anyway" -- while asking for the session limit to be loosened instead. He
+  // is the one doing the drills and the only instrument this project has for
+  // how long they take him, and the number he was disagreeing with turned out
+  // never to have been about mobility at all. Loosening a limit to fit a
+  // wrong estimate would have hidden the error behind his own stated 70 min.
+  //
+  // [unverified] as an exact value, exactly like MOBILITY_TRANSITION_SEC above,
+  // and for the same reason: nobody has timed it with a stopwatch. It is a
+  // controlled rep, not a rushed one, so it is deliberately not lower than 2.
+  // Applies ONLY to `mode: 'drill'`, which templates.js sets on
+  // mobility-dynamic slots and nothing else -- lifting reps keep the 3 s.
+  MOBILITY_SECONDS_PER_REP: 2,
   // [measured] -- not designed, not sourced from literature. design §5's
   // arithmetic (3 + 45 + 12 = 60) assumed COOLDOWN_MIN as an achievable
   // estimate, but packCooldown's own sourced floor (3 stretches, 2 core sets)
@@ -846,5 +866,18 @@ export const TIME = Object.freeze({
   // support: THIS NUMBER TRACKS THE MOBILITY POOL'S COMPOSITION, NOT THE
   // LIBRARY'S SIZE. Growing the gym half is close to free in session time;
   // growing the prep half is what costs, and what to sweep before shipping.
-  FLOOR_OVERRUN_ALLOWANCE_MIN: 8
+  // RE-DERIVED 2026-09-05, from 8 to 7, on correcting MOBILITY_SECONDS_PER_REP.
+  // Worst 67 min on max-strength/seed 720 over the same 70,000-session
+  // population, so 67 - 60 = 7, and the margin against the athlete's stated
+  // <=70 min (spec.md:36) is THREE minutes -- the widest it has been since the
+  // ramp was built.
+  //
+  // The minute did not come from trimming work. It came from no longer
+  // charging a barbell's 3 s/rep for a leg swing, so it is a minute the
+  // sessions never actually cost him. He is the one who said so, while asking
+  // for the 70 to be loosened instead: "the mobility work does not take long
+  // anyway". Widening the limit would have buried a measurement error under
+  // his own requirement and made every future sweep read a session as longer
+  // than it is. The estimate was wrong, the limit was not.
+  FLOOR_OVERRUN_ALLOWANCE_MIN: 7
 });

@@ -255,18 +255,43 @@ test('a generated session has its prep block packed, not merely built', () => {
   assert.ok(checked > 1000, `only checked ${checked} sessions`);
 });
 
-test('a prep trimmed to its floor and still long says so', () => {
-  // The athlete's standing rule: the app says when it changed something.
-  // packCooldown's overrun already warns; the prep's said nothing.
-  const raw = [
-    { role: 'prep', mode: 'drill', sets: 1, reps: 12, restSec: 0, perSide: true },
-    { role: 'prep', mode: 'drill', sets: 1, reps: 12, restSec: 0, perSide: true },
-    { role: 'prep', mode: 'drill', sets: 1, reps: 12, restSec: 0, perSide: true },
-    { role: 'prep', mode: 'drill', sets: 1, reps: 12, restSec: 0, perSide: true }
-  ];
-  const packed = packPrep(raw);
+const maxDrill = () =>
+  ({ role: 'prep', mode: 'drill', sets: 1, reps: 12, restSec: 0, perSide: true });
+
+// This test used to assert that the sourced floor was STILL over budget, and
+// it was right at the time: at 3 s/rep -- the barbell figure -- three per-side
+// drills cost 4.4 min against a 3 min budget, so the floor could never fit.
+// MOBILITY_SECONDS_PER_REP (2026-09-05) prices a mobility rep as a mobility
+// rep, and the floor now fits with a little room. The budget and the sourced
+// dose stopped contradicting each other, which is the outcome the constant was
+// wrong about, not a weakening of this test.
+test('the sourced floor now fits the prep budget', () => {
+  const packed = packPrep([maxDrill(), maxDrill(), maxDrill(), maxDrill()]);
+  assert.equal(packed.blocks.length, 3, 'trims to the sourced floor');
+  assert.equal(packed.overBudget, false,
+    'three per-side drills at the max dose should fit 3 min');
+});
+
+test('a prep that is genuinely too long still says so', () => {
+  // The mechanism must stay alive even though the real dose no longer reaches
+  // it: a dose above MOBILITY_DOSE's range is the only way there now, which is
+  // exactly why it is asserted here rather than left to a live session.
+  const long = { role: 'prep', mode: 'drill', sets: 1, reps: 40, restSec: 0, perSide: true };
+  const packed = packPrep([long, long, long, long]);
   assert.equal(packed.blocks.length, 3, 'trims to the sourced floor');
   assert.equal(packed.overBudget, true, 'and reports that it is still long');
+});
+
+test('a prescribed warm-up jog is not counted as drills overrunning', () => {
+  // Interval days put a four-minute jog in the prep. PREP_MIN budgets the
+  // DRILL dose, so charging the jog against it fired the overrun warning on
+  // every interval session ever generated. The jog still costs its four
+  // minutes in the session duration; it is only this budget it is exempt from.
+  const jog = { role: 'prep', mode: 'time', durationMin: 4 };
+  const packed = packPrep([jog, maxDrill(), maxDrill()]);
+  assert.equal(packed.overBudget, false,
+    'the jog was charged against the drill budget again');
+  assert.ok(packed.blocks.includes(jog), 'and it must not be trimmed away');
 });
 
 test('packing never wastes a pick -- no drill doubles up while a pattern goes bare', () => {
