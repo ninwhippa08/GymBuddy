@@ -126,7 +126,7 @@ GymBuddy/
 │   └── ui.js             DOM rendering. Pure: data in, detached DOM nodes out.
 │
 ├── data/
-│   └── exercises.json    The exercise library: 485 exercises + 6 PR roots.
+│   └── exercises.json    The exercise library: 493 exercises + 6 PR roots.
 │
 ├── tests/                Node's built-in test runner, zero dependencies.
 │   ├── *.test.mjs        One file per subject (session, ramp, coverage, ui, storage, …).
@@ -488,6 +488,21 @@ playlist expansions on 2026-09-05 took the library 258 → 485 and closed part
 of it, but they could not close these: the library holds 11 sprint entries
 because those are the sprints that exist — inventing a sixteenth way to sprint
 is worse than repeating the right one.
+
+**A fourth expansion, and the measurement that should precede the next one.**
+Before mining a new channel the library was measured for where repetition is
+actually *felt* — 150 simulated 12-week blocks, history fed forward — rather
+than by pool size. The gym half is finished: squat, hinge, push, pull and lunge
+all come back fewer than 0.4 times per block, which is to say never. All the
+repetition lives in two pools: `run` (8 entries, `warmup-jog` on 21 of 36
+sessions) and `sprint` (11 entries, 7 of them ever drawn). That playlist —
+Depth Training's "Exercise Videos", 170 titles — contained no running or sprint
+work at all, and yielded **8 entries, a 4.7% hit rate**, taking the library to
+493. Its useful lesson is about the tool: the matcher missed **57 duplicates**,
+because this channel renames the thing rather than the words —
+`Hex Bar Deadlift` → `trap-bar-deadlift`, `Row Machine` → `rower`,
+`Cat and Camel Stretch` → `cat-cow`. The diff sorts; it does not decide.
+`docs/design-library-expansion.md` §17.
 `docs/design-running-programming.md` §11.0 recommends exempting those pools
 instead, on the precedent already set for `aerobic-steady`. The recommendation
 is recorded and deliberately not taken: it widens a rule governing every pool

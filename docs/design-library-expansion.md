@@ -1660,3 +1660,139 @@ Two tests were added in `tests/mobility.test.mjs`: one that the fixture which
 bottoms out both original levers now trims reps rather than a stretch and never
 goes below `CORE_REPS[0]`, and one that a cool-down already inside its budget
 keeps its full dose.
+
+---
+
+## 17  A different channel, and the first playlist that mostly wasn't there — BUILT 2026-09-05, `sw.js` v53
+
+*Depth Training, "Exercise Videos" — 170 titles, 8 entries. The lowest yield of
+any playlist mined so far, and the section is worth keeping mainly for why.*
+
+### 17.1  The gap analysis came first, and it should have changed the target
+
+Before the playlist was diffed, the library was measured for where it actually
+feels thin — not pool size, but how often a movement comes back. 150 independent
+36-session blocks (12 weeks at 3x/week), each session's history fed forward the
+way the app does it:
+
+| pattern | pool | draws / block | mean repeats | worst |
+|---|---|---|---|---|
+| **run** | 8 | 38.4 | **4.80** | `warmup-jog` 21 of 36 sessions |
+| **sprint** | 11 (7 ever drawn) | 18.1 | **2.59** | `build-up-run` ×5.7 |
+| mobility | 134 | 218.9 | 1.63 | `straight-knee-ankle-mobilization` ×3.3 |
+| jump | 28 | 15.0 | 0.63 | |
+| core | 52 | 29.4 | 0.57 | |
+| *everything else* | | | **≤ 0.36** | |
+
+**The gym half of this library is finished.** Squat, hinge, push, pull and lunge
+all sit between 0.16 and 0.36 mean repeats — a movement essentially never comes
+back inside a training block. Adding to those pools cannot be felt. The run and
+sprint pools are where repetition lives, and `warmup-jog` is not template-pinned
+— it is drawn from the 8-entry `run` pool, so entries there would dilute it.
+
+**This playlist contains no running and no sprint work at all.** It was mined
+anyway, with that stated up front, because the athlete chose it knowing the
+yield would land in pools that are already saturated.
+
+### 17.2  The buckets: 170 titles, 8 entries
+
+| bucket | count |
+|---|---|
+| already in the library — 19 the matcher caught, **57 it did not** | 76 |
+| DECLINE: implement / position / grip variant | 41 |
+| DECLINE: chained combo | 33 |
+| DECLINE: method on a lift | 6 |
+| identified by contact sheet, then resolved | 5 |
+| **authored** | **8** |
+
+A 4.7% yield, against 25% for the coach's second playlist and 25% for the seven
+pattern playlists. The declines are the standing categories, not fresh
+judgments: `Clean Grip Barbell Front Squat` and `Arms Crossed Barbell Front
+Squat` are one grip apart from `front-squat`; `Hex Bar Deadlift 1.5 Bottom Peak
+Double Contraction` is a 1-and-a-half rep; `Push Up Plank + T-Rotation +
+Shoulder Tap` is three movements in a title.
+
+**The 57 the matcher missed is the number worth remembering.** Its fuzzy score
+is built for renamings of the same words, and this channel renames the *thing*:
+`Foam Rolling Hip Flexor` → `hip-flexor-roll`, `Hex Bar Deadlift` →
+`trap-bar-deadlift`, `Bretzel Stretch` → `brettzel`, `Row Machine` → `rower`,
+`Cat and Camel Stretch` → `cat-cow`. Nearest-name scoring cannot see any of
+those. **The tool sorts; it does not decide.** Every candidate still has to be
+read against the library by hand, and 38% of this playlist's "candidates" were
+already sitting in the library under a different word.
+
+### 17.3  The five that needed watching
+
+The clips are silent, so `contact-sheet.mjs` (six frames, one image) is the only
+way. Two were real:
+
+- **3-Point Straight Leg Sit-Up** — supine, legs straight and wide, full sit-up.
+  Authored. The library had four crunch variants and **no sit-up at all**.
+- **Alternating Cross-Behind Toe Touch** — leg crosses behind, hinge to the
+  opposite toe. Authored, `mobility-dynamic`.
+
+Three were not:
+
+- **Diagonal Sprinkler Stretch** — quadruped, hand behind head, elbow driving
+  down then opening to the ceiling. That is `quadruped-thoracic-rotation`.
+- **Iron Cross Squat** — bodyweight squat, arms sweeping to a T. Declined:
+  `mini-band-reaching-squat`, `rotational-squat` and `squat-to-stand` already
+  cover squat-plus-an-arm-action three ways.
+- **Elbow to Knees Bodyweight Squats** — deep squat, elbows inside the knees.
+  Declined as a position variant of `deep-squat-hold` / `squat-to-stand`.
+
+### 17.4  A duplicate caught by the pre-flight, not by the author
+
+`Foam Rolling Hamstring` was classified NEW on the strength of a listing of the
+roll pool that had been **truncated in the terminal** — `hamstring-roll` was
+already there, off the top of the output. The authoring script's own duplicate
+check caught it before a line was written.
+
+The lesson is not "be careful". It is that **the pre-flight check belongs in the
+script that writes, not in the eye that reads**: a batch author should re-derive
+the id set from the file it is about to modify and refuse on collision, because
+by then the reasoning is hours old and the listing that informed it has scrolled
+away. 9 planned → 8 authored.
+
+### 17.5  The eight, and what they cost
+
+| id | pattern | why it is not a variant |
+|---|---|---|
+| `fire-hydrant` | mobility-dynamic | quadruped hip **abduction**; the pool had extension and adduction, not this plane |
+| `band-assisted-hamstring-stretch` | mobility-static | supine and band-held, not `seated-hamstring-stretch` |
+| `side-lying-quad-stretch` | mobility-static | a fifth quad position; the pool already distinguishes four |
+| `cross-behind-toe-touch` | mobility-dynamic | crossed-leg dynamic hamstring/ITB, nothing equivalent |
+| `kneeling-side-plank` | core | short-lever `side-plank`, derived — the same axis as `long-lever-plank` and `short-lever-copenhagen-plank` |
+| `straight-leg-sit-up` | core | the library had no sit-up |
+| `kettlebell-windmill` | rotate | no windmill existed |
+| `prone-wti-raise` | pull-h | prone scap raise, distinct from `face-pull` and `rear-delt-fly` |
+
+Library 485 → **493**. Suite 570/570, green on the first run — no guard fired,
+which is itself unusual and is recorded rather than assumed to be normal.
+
+**The batch was free.** Four of the eight are per-side mobility entries, the
+half that costs session time, so the constant was re-derived rather than
+trusted: the same 70,000-session canonical sweep puts the worst case at **67 min
+(max-strength/seed 4)**, unchanged, so `FLOOR_OVERRUN_ALLOWANCE_MIN` stays at 7
+and the cool-down warning stays at 0.000%. The worst seed moved (39 → 4) and the
+count of 67-min sessions fell 234 → 204, which is §16.5's rule doing exactly what
+it says: a bigger pool re-rolls which seeds land in the tail.
+
+**All eight are reachable**, checked rather than assumed — 5,400 simulated
+sessions draw every one of them, from `band-assisted-hamstring-stretch` at 2.21
+per block down to `kettlebell-windmill` at 0.18. That check exists because 22
+entries in the library are drawn by **nothing** (§17.6).
+
+### 17.6  Open, found while measuring: 22 entries that are never drawn
+
+Across 5,400 simulated sessions, 22 of 485 never appeared. Most are explained —
+the sweep declares no equipment, so `ruck-march`, `incline-walk`, `sled-march`,
+the two ergs and the measured-ground sprints cannot be selected. But
+`dumbbell-snatch`, `kettlebell-clean`, `single-leg-forward-pogo-hop`,
+`falling-start`, `half-kneeling-start` and `backward-walk` are bodyweight or
+common kit and still never surface.
+
+**Not chased, and deliberately not fixed here.** It is recorded because it bears
+directly on library growth: there is no point authoring into a pool that cannot
+be reached, and the reachability check in §17.5 exists only because this was
+found first.

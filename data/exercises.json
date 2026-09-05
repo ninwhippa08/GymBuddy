@@ -3579,7 +3579,69 @@
       "joints": ["ankle","knee","hip"], "equipment": ["agility-ladder"], "venue": "either",
       "cnsCost": 2, "technical": 3, "unilateral": true, "nominalMeters": 10,
       "cues": ["One-two through a rung, then land on one leg outside it and freeze.","Stick it dead still for a beat before the next -- no hop, no stumble.","Land soft with the knee over the toes and the hip taking the force.","Alternate which leg sticks as you work down the ladder."],
-      "modalities": ["sprint"] }
+      "modalities": ["sprint"] },
+
+    { "id": "fire-hydrant", "name": "Fire Hydrant", "pattern": "mobility", "tier": "mobility",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["hip"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 1, "technical": 1, "unilateral": true,
+      "cues": ["On hands and knees, back flat, weight even between both hands.","Lift one knee out to the side, keeping it bent at ninety degrees.","Move only at the hip -- do not let the trunk roll away to make room."],
+      "targets": ["squat","lunge","sprint","run"],
+      "modalities": ["mobility-dynamic"] },
+
+    { "id": "band-assisted-hamstring-stretch", "name": "Band-Assisted Hamstring Stretch", "pattern": "mobility", "tier": "mobility",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["knee","hip"], "equipment": ["bands"], "venue": "either",
+      "cnsCost": 1, "technical": 1, "unilateral": true,
+      "cues": ["On your back, a band looped around the arch of one foot.","Straighten that knee and draw the leg up until the hamstring pulls.","Keep the other leg flat on the floor and let the band do the holding."],
+      "targets": ["hinge","run","sprint"],
+      "modalities": ["mobility-static"] },
+
+    { "id": "side-lying-quad-stretch", "name": "Side-Lying Quad Stretch", "pattern": "mobility", "tier": "mobility",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["knee","hip"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 1, "technical": 1, "unilateral": true,
+      "cues": ["Lie on one side, bottom leg tucked up so the low back cannot arch.","Catch the top ankle behind you and squeeze that glute.","Draw the knee back, not up. Stop when the front of the thigh pulls."],
+      "targets": ["squat","lunge","sprint","run"],
+      "modalities": ["mobility-static"] },
+
+    { "id": "cross-behind-toe-touch", "name": "Cross-Behind Toe Touch", "pattern": "mobility", "tier": "mobility",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["hip","knee"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 1, "technical": 2, "unilateral": true,
+      "cues": ["Standing tall, step one foot behind and across the other.","Hinge and reach for the outside of the front foot, legs close to straight.","You should feel it up the outside of the back leg. Alternate sides."],
+      "targets": ["hinge","run","sprint"],
+      "modalities": ["mobility-dynamic"] },
+
+    { "id": "kneeling-side-plank", "name": "Kneeling Side Plank", "pattern": "core", "tier": "core",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["lumbar","shoulder","hip"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 1, "technical": 1, "unilateral": true,
+      "isometric": true,
+      "derivedFrom": "side-plank",
+      "cues": ["Elbow under the shoulder, knees bent behind you and stacked.","Push the hip up until shoulder, hip and knee make one line.","The short lever is the point -- live here until the full side plank is easy."],
+      "modalities": ["isolation"] },
+
+    { "id": "straight-leg-sit-up", "name": "Straight-Leg Sit-Up", "pattern": "core", "tier": "core",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["lumbar","hip"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 1, "technical": 1, "unilateral": false,
+      "cues": ["On your back, legs straight and spread wide, hands at the temples.","Sit all the way up between your legs, curling the spine as you go.","Lower under control. Do not hook the feet or throw the elbows forward."],
+      "modalities": ["isolation"] },
+
+    { "id": "kettlebell-windmill", "name": "Kettlebell Windmill", "pattern": "rotate", "tier": "accessory",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["thoracic","lumbar","hip","shoulder"], "equipment": ["kettlebell"], "venue": "either",
+      "cnsCost": 1, "technical": 3, "unilateral": true,
+      "cues": ["One bell locked out overhead, eyes on it for the whole set.","Push the hip out to that side and slide the free hand down the front leg.","The overhead arm stays vertical. Stop where you lose it, not where you bend."],
+      "modalities": ["isolation","hypertrophy"] },
+
+    { "id": "prone-wti-raise", "name": "Prone W-T-I Raise", "pattern": "pull-h", "tier": "accessory",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["shoulder","scapula"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 1, "technical": 2, "unilateral": false,
+      "cues": ["Face down, forehead resting, arms bent into a W beside your ribs.","Lift into the W, then a T out to the sides, then an I overhead.","Squeeze the shoulder blades each time. Thumbs up, and keep it light."],
+      "modalities": ["isolation","hypertrophy"] }
 
   ]
 }
