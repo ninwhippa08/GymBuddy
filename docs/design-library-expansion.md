@@ -1479,3 +1479,184 @@ entries are point-pressure releases a roller cannot perform. Unlike the
 allowance above this is a READABILITY bound and not a measurement, so it keeps
 headroom rather than tracking the worst case. At 12 the answer is to group the
 control, not to raise it again.
+
+## 16  The channel's remaining playlists: a teaching shelf, not a catalogue — BUILT 2026-09-05, `sw.js` v51
+
+§14 and §15 mined two playlists from the same coach. The channel has nine. The
+other seven — Anti-Core, Pull, Push, Knee Dominant, Hip Dominant, Power, Speed
+— are 107 titles, and running `tools/playlist-diff.mjs` over them surfaced a
+difference the first two never showed.
+
+**The first two playlists were a movement catalogue. These seven are a teaching
+shelf.** They are organised by pattern for a coach explaining the pattern, so a
+large fraction of each is a lesson *about* a lift rather than the lift itself.
+That is a decline category the tool had no rule for, because playlists 1 and 2
+contained none of it.
+
+Buckets, after the rules in 16.1–16.3 were added:
+
+| | count | share |
+|---|---|---|
+| not a movement | 28 | 27.7% |
+| already in the library | 30 | 29.7% |
+| candidates | 43 | 42.6% |
+
+Of the 43 candidates, 16 were duplicates caught by eye, 27 were authored.
+Library 458 → 485.
+
+### 16.1  Coaching content
+
+Roughly a fifth of the 107 titles teach rather than prescribe:
+
+- `Progressing the Push Up`, `Progressing the Chin Up`, `Progressing the Front Plank` — a walk through regressions.
+- `Bad Push Up` — a demonstration of the error, on purpose.
+- `Chop Series`, `Lift Series`, `Turkish Get Up Series`, `Carry Options` — an overview of entries already listed individually.
+- `Implements: Squat`, `Load Positioning: Split Squat` — a topic label with a colon.
+- `Hang Clean Progression`, `Jump Progression`, `Side Toss Progression` — the same, in the power family.
+- `Sample Power Circuit` — a piece of programming, not a movement.
+- `Sprinting Patterning`, `Upright Running Patterning` — a mechanics lesson.
+
+The `COACHING` regex matches these shapes. `Bad Push Up` is the one worth
+keeping in mind: a title that names a real movement, matches the library
+strongly, and must still be declined — which is why the rules run *after* the
+library gets first refusal and can still reject what it recognised.
+
+### 16.2  Athlete highlights, and the half a regex cannot reach
+
+A named lifter hitting a number is a record of a set. The movement is already
+in the list under its plain name.
+
+The mechanical tells are matched — `Johnny 455 lb Farmer Carry` (a weight),
+`Matt Cleans 245 for 5` (a `for N`), `Ben doing Ball Drops` (a `doing`),
+`Copy of 2 DB SLDL` (an explicit copy).
+
+**A bare first name is not reachable and an attempt was reverted.** A heuristic
+flagging a capitalised non-library word at either end of a title was written,
+run, and deleted the same hour: on these seven playlists it fired five times
+and was right once (`Dave Shuffle Side Toss`), wrong on `Valslide Hip Flexion`,
+`Sideways Sled Push`, `Lean Fall Run` and `Wall Drills for Sprint Mechanics`.
+Four false marks to catch one name is worse than no marks, because a reader who
+learns to ignore the flag also ignores the true one. The report now prints a
+standing one-line reminder instead, and `Kasey TrapBar Deadlift` and
+`RFE Split Squat Kyle` are caught the way they always were — by eye.
+
+### 16.3  Two matcher bugs the new playlists exposed
+
+**A hyphen was not a separator.** `X-Pulldown` stayed a single token, matched
+nothing in `x-pulldown`, and was reported as a candidate at **0.00** — the most
+confident possible way of being wrong, on an entry the library already held.
+The same bug hid `TrapBar Deadlift` behind `snatch-grip-deadlift`. Splitting on
+`-` fixes it; `t-spine` is expanded before the split, being the one key that
+needed the hyphen to survive.
+
+That fix broke two things on the way, both caught by re-running the diff rather
+than by reading the patch:
+
+- Short tokens were dropped wholesale (`w.length > 2`), which was harmless only
+  while a hyphen glued them to a neighbour. Once split, `X-Pulldown` lost its
+  `x` and matched `w-pulldown` — the wrong entry, reported confidently. And
+  `5-10-5`, previously matched to `pro-agility-shuttle`, became three tokens of
+  length ≤ 2, scored 0.00, and reappeared as a candidate. Replaced by a
+  stoplist: the letter *is* the movement in `x-pulldown`, `w-pulldown`,
+  `t-bar-row` and `a-march`.
+- Light plural stemming was added so `Sled Crossovers` reaches `crossover-run`,
+  guarded so `press` does not become `pres`.
+
+`trapbar` was added to `ABBREV` as one word. **`valslide` was considered and
+rejected**: a slide disc is not a slideboard, and mapping one to the other
+would manufacture exactly the false "already have it" the matcher's own comment
+calls the worse of the two errors.
+
+### 16.4  Two declined, and why
+
+- **`Ball Drop`.** A contact sheet settled it: a coach stands holding a ball,
+  drops it, and the athlete reacts and sprints to catch it. It needs a second
+  person, and none of the other 485 entries do. A solo generator prescribing a
+  partner drill is a card the athlete cannot use.
+- **`Ladder`.** The title says nothing and the clip will not download. §14.1's
+  rule applies unchanged: a movement nobody can describe accurately does not get
+  invented cues. The two ladder drills that *could* be seen were authored —
+  `ladder-quick-through` and `ladder-quick-stick`, both read off contact sheets,
+  the clips being silent as always.
+
+The full **Turkish get-up** went the other way. `Turkish Get Up Series` is
+coaching content and was declined as such, but the movement it teaches was a
+real hole: the library held `get-up-to-elbow`, `get-up-to-hand` and
+`get-up-to-hip-lift` and stopped there, so the sequence had three rungs and no
+top. `1/4 Get Up` and `1/2 Get Up` are those existing rungs under other names.
+
+### 16.5  The allowance FELL, after first rising — and §15.5's rule was wrong
+
+`FLOOR_OVERRUN_ALLOWANCE_MIN` went **7 → 6**. Worst 66 min on max-strength/seed
+775 over the usual 70,000-session sweep, so 66 − 60 = 6. The margin against the
+athlete's stated ≤ 70 min (`spec.md:36`) is **four minutes, the widest it has
+ever been.**
+
+It did not start there. The 27 new entries alone took the worst case to **68**
+(power/seed 5522), which by the standing rule would have made this **8** and
+left two minutes of his margin. That number was derived, written down, and then
+not shipped: §14.3 had already named the remedy — "packing the cool-down the way
+`packPrep` packs the prep" — and the athlete chose it over spending the margin.
+§16.6 is that work. It is worth 2 min on the worst case, which more than pays
+for the batch.
+
+**§15.5's rule does not hold.** It concluded that this number *tracks the
+mobility pool's composition, not the library's size*. This batch added **zero**
+mobility-pattern entries and moved it anyway. Ablation against the pre-fix 68,
+run before the conclusion was written rather than reasoned about:
+
+- Remove the four new prep-pool entries (P3 draws `sprint-drill` + `agility` at
+  accessory: `lean-fall-run`, `band-resisted-lateral-shuffle`, and the two
+  ladder drills) → still 68, same seed. Not the prep half.
+- Remove the two expensive new core entries (`turkish-get-up`,
+  `resisted-bear-crawl`) → still 68, on power/seed 6581 instead. Not those.
+
+No single entry was responsible: drop any one and the worst case relocated to
+another seed at the same 68. The honest rule is weaker than §15.5's and is what
+replaces it: **a bigger library costs session time wherever it grows, and the
+only way to know the number is the sweep.** §15.5 had two observations and drew
+a mechanism from them; the third observation contradicted it.
+
+### 16.6  packCooldown gains a third lever
+
+`packCooldown` had two levers and, on the draw that produces the worst case,
+**both bottomed out well above the budget**. A cool-down at its own floor —
+three static stretches, two core blocks — prices at **16 min against
+`COOLDOWN_MIN`'s 12** whenever the core draw is per-side and rep-based, because
+2 sets × 15 reps × 2 sides is 60 reps charged at the barbell `SECONDS_PER_REP`.
+
+That is not a tight budget. It is a budget its own floors cannot reach, and it
+had been sitting there being reported as an overrun nothing could fix.
+
+The third lever is **the core dose inside its own sourced range**, applied
+before any movement is dropped:
+
+| order | lever | floor | why that floor |
+|---|---|---|---|
+| 1 | third core set | `CORE_SETS` → 2 | modal dose of the 31 pooled trials |
+| 2 | **core reps / hold seconds** | `CORE_REPS[0]` = 10, `CORE_HOLD_SEC[0]` = 30 | **new** — the bottom of the project's own sourced range |
+| 3 | stretch count | 3 | ACSM floor |
+
+**This widens nothing.** `CORE_REPS` is `[10, 15]` and `CORE_HOLD_SEC` is
+`[30, 45]`; both ends already sit inside the dose envelope of the 31 trials
+pooled in Saeterbakken 2022 (10–25 reps, 20–60 s holds), and `rules.js` states
+plainly that no trial in that pool moderates on reps — so there is no optimum
+being given up. Trimming from the top of the project's range to the bottom of it
+lands on a dose the project already calls sourced. It cannot go below the floor,
+and a cool-down already inside its budget is not touched at all.
+
+**Ordering it before the stretch drop changes what an over-budget session
+loses.** Previously it lost a whole movement while two core blocks sat at the
+top of their range. Now it does fewer reps of everything prescribed. That is the
+better trade here specifically because M1 is `matchWork`: the stretch that would
+have gone is one chosen for what the day actually trained.
+
+The `guard` went 20 → 60, because lever 2 moves one rep or five seconds per
+iteration and two core blocks walking 15 down to 10 is ten iterations on its
+own. A guard that stopped short would have left the block over budget while
+reporting it packed.
+
+Two tests were added in `tests/mobility.test.mjs`: one that the fixture which
+bottoms out both original levers now trims reps rather than a stretch and never
+goes below `CORE_REPS[0]`, and one that a cool-down already inside its budget
+keeps its full dose.

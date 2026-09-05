@@ -879,5 +879,37 @@ export const TIME = Object.freeze({
   // anyway". Widening the limit would have buried a measurement error under
   // his own requirement and made every future sweep read a session as longer
   // than it is. The estimate was wrong, the limit was not.
-  FLOOR_OVERRUN_ALLOWANCE_MIN: 7
+  //
+  // RE-DERIVED 2026-09-05, from 7 to 6, on the third playlist expansion --
+  // seven pattern playlists from the same coach, library 458 -> 485. Same rule
+  // as every derivation before it: exactly worst - GYM_SESSION_TOTAL_MIN, over
+  // the same 70,000-session population (PHASE_1_DAY_TYPES x 10,000 seeds, no
+  // returnDate, now: 1e12), not rounded up. Worst 66 min on
+  // max-strength/seed 775, so 66 - 60 = 6. The margin against the athlete's
+  // stated <=70 min (spec.md:36) is FOUR minutes, the widest it has been.
+  //
+  // IT ROSE FIRST, AND THE TIME WAS BOUGHT BACK RATHER THAN SPENT. The library
+  // growth alone took the worst case to 68 (power/seed 5522), which would have
+  // made this 8 and left two minutes of his margin. §14.3 had already named
+  // the remedy -- "packing the cool-down the way packPrep packs the prep" --
+  // and the athlete chose it over spending the margin. packCooldown gained a
+  // third lever (generator.js, §16.6): the core dose trimmed inside its own
+  // sourced CORE_REPS / CORE_HOLD_SEC range before any movement is dropped.
+  // That is worth 2 min on the worst case and more than pays for the batch.
+  //
+  // THE RULE RECORDED ABOVE DID NOT HOLD, so it is corrected here rather than
+  // left to mislead. The v46 comment concluded "THIS NUMBER TRACKS THE MOBILITY
+  // POOL'S COMPOSITION, NOT THE LIBRARY'S SIZE", and this batch added ZERO
+  // mobility-pattern entries and still moved it. Ablation, run before writing
+  // this rather than reasoned about, against the pre-fix 68:
+  //   - the four new prep-pool entries (P3 draws sprint-drill + agility at
+  //     accessory: lean-fall-run, band-resisted-lateral-shuffle and the two
+  //     ladder drills) removed -> still 68, same seed. Not the prep half.
+  //   - the two expensive new core entries (turkish-get-up, resisted-bear-crawl)
+  //     removed -> still 68, on power/seed 6581 instead. Not those either.
+  // No single entry was responsible: drop any one and the worst case moved to
+  // another seed at the same 68. The honest rule is weaker than the old one:
+  // A BIGGER LIBRARY COSTS SESSION TIME WHEREVER IT GROWS, and the only way to
+  // know the number is the sweep.
+  FLOOR_OVERRUN_ALLOWANCE_MIN: 6
 });

@@ -26,7 +26,7 @@ import {
   HIGH_CNS_DAY_TYPES, PLYO_CONTACTS_PER_SESSION, PLYO_TRANSITION_WEEKLY_CAP,
   PLYO_TRANSITION_LAST_WEEK, PLYO_RECOVERY_HOURS, SPRINT, SESSION_ORDER, TIME,
   CHRONIC, CHRONIC_BOOSTABLE,
-  ALL_TIERS, NON_NEGOTIABLE_EQUIPMENT, EQUIPMENT_IMPLIES
+  ALL_TIERS, NON_NEGOTIABLE_EQUIPMENT, EQUIPMENT_IMPLIES, MOBILITY_DOSE
 } from './rules.js';
 
 import {
@@ -1466,15 +1466,54 @@ function prescribeMobility(group, e, rng) {
 // the modal dose across the 31 trials in that entry, not a guess: trimming to
 // two sets lands on a sourced dose, trimming past it would not. The ACSM hold
 // dose is never shortened, and the stretch count never falls below three.
+// The guard is 60 rather than 20 because lever 2 below moves ONE rep or five
+// seconds at a time: two core blocks walking 15 reps down to 10 is ten
+// iterations on its own, and a guard that stopped short would silently leave
+// the block over budget while reporting it packed.
 export function packCooldown(blocks, budgetMin = TIME.COOLDOWN_MIN) {
   const out = blocks.slice();
   let guard = 0;
 
-  while (estimateMinutes(out) > budgetMin && guard++ < 20) {
+  while (estimateMinutes(out) > budgetMin && guard++ < 60) {
     const core = out
       .filter(b => b.role === 'core' && b.sets > 2)
       .sort((a, b) => b.sets - a.sets)[0];
     if (core) { core.sets -= 1; continue; }
+
+    // LEVER 2, added v51 -- the core dose inside its own sourced range, before
+    // any movement is dropped. §16.6.
+    //
+    // Until now this function had two levers and both bottomed out well above
+    // the budget: a cool-down at its floor -- three static stretches and two
+    // core blocks -- prices at 16 min against COOLDOWN_MIN's 12 whenever the
+    // core draw is per-side and rep-based, because 2 sets x 15 reps x 2 sides
+    // is 60 reps. The budget was unreachable by its own floors, which is not a
+    // tight budget, it is a broken one.
+    //
+    // WHY THIS IS NOT WIDENING ANYTHING. CORE_REPS is [10, 15] and
+    // CORE_HOLD_SEC is [30, 45]; both ends are already inside the dose envelope
+    // of the 31 trials pooled in Saeterbakken 2022 (10-25 reps, 20-60 s), and
+    // rules.js says plainly that no trial in that pool moderates on reps, so
+    // there is no optimum being given up. Trimming from the top of the
+    // project's own range to the bottom of it lands on a dose the project
+    // already calls sourced. It cannot go below MOBILITY_DOSE's floor.
+    //
+    // ORDERED BEFORE DROPPING A STRETCH on purpose, which changes what a
+    // session over budget loses: previously it lost a whole movement while two
+    // core blocks stayed at the top of their range. Fewer reps of everything
+    // prescribed beats losing a stretch the day's work earned -- M1 is
+    // matchWork, so the stretch that goes is one chosen for what he trained.
+    const dosed = out
+      .filter(b => b.role === 'core' &&
+        (b.mode === 'reps' ? b.reps > MOBILITY_DOSE.CORE_REPS[0]
+                           : b.mode === 'hold' && b.holdSec > MOBILITY_DOSE.CORE_HOLD_SEC[0]))
+      .sort((a, z) => (z.mode === 'reps' ? z.reps : z.holdSec)
+                    - (a.mode === 'reps' ? a.reps : a.holdSec))[0];
+    if (dosed) {
+      if (dosed.mode === 'reps') dosed.reps -= 1;
+      else dosed.holdSec -= 5;               // holds are prescribed on a 5 s grid
+      continue;
+    }
 
     const statics = out.filter(b => b.role === 'mobility');
     if (statics.length > 3) {

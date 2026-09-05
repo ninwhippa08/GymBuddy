@@ -47,6 +47,7 @@ test('prep, static and core contribute nothing to volume accounting', () => {
 
 import { readFileSync } from 'node:fs';
 import { buildPrep, buildCooldown, packCooldown, packPrep, makeRng } from '../js/generator.js';
+import { MOBILITY_DOSE, TIME } from '../js/rules.js';
 
 const LIB = JSON.parse(
   readFileSync(new URL('../data/exercises.json', import.meta.url), 'utf8')
@@ -159,6 +160,53 @@ test('packCooldown holds the 12 min budget without gutting the dose', () => {
   for (const b of packed.blocks.filter(b => b.role === 'core')) {
     assert.ok(b.sets >= 2, 'never trims core below 2 sets');
   }
+});
+
+// packCooldown lever 2, added v51. design-library-expansion.md §16.6.
+//
+// The fixture is the shape that made the budget unreachable: two per-side
+// rep-based core blocks at the TOP of CORE_REPS, which is 2 x 15 x 2 sides =
+// 60 reps of barbell-priced work, plus the three-stretch floor. Both of the
+// original levers bottom out on it -- core is already at 2 sets, statics
+// already at 3 -- so before lever 2 this returned overBudget with nothing left
+// to trim.
+test('packCooldown trims the core dose inside its sourced range before dropping a stretch', () => {
+  const stretch = () => ({
+    role: 'mobility', mode: 'hold', sets: 2, holdSec: 30, reps: 1, perSide: true, restSec: 0
+  });
+  const coreBlock = () => ({
+    role: 'core', mode: 'reps', sets: 2, reps: MOBILITY_DOSE.CORE_REPS[1],
+    perSide: true, restSec: 45
+  });
+  const raw = [stretch(), stretch(), stretch(), coreBlock(), coreBlock()];
+  assert.ok(estimateMinutes(raw) > TIME.COOLDOWN_MIN,
+    'fixture must actually overrun the budget');
+
+  const packed = packCooldown(raw);
+
+  assert.equal(packed.blocks.filter(b => b.role === 'mobility').length, 3,
+    'reps come off before a stretch does');
+  for (const b of packed.blocks.filter(b => b.role === 'core')) {
+    assert.ok(b.reps >= MOBILITY_DOSE.CORE_REPS[0],
+      `trimmed to ${b.reps} reps, below the sourced floor of ${MOBILITY_DOSE.CORE_REPS[0]}`);
+    assert.ok(b.sets >= 2, 'still never trims core below 2 sets');
+  }
+  assert.ok(packed.blocks.some(b => b.role === 'core' && b.reps < MOBILITY_DOSE.CORE_REPS[1]),
+    'lever 2 did not fire at all');
+});
+
+test('packCooldown leaves a cool-down that already fits completely alone', () => {
+  const raw = [
+    { role: 'mobility', mode: 'hold', sets: 2, holdSec: 20, reps: 1, perSide: false, restSec: 0 },
+    { role: 'mobility', mode: 'hold', sets: 2, holdSec: 20, reps: 1, perSide: false, restSec: 0 },
+    { role: 'mobility', mode: 'hold', sets: 2, holdSec: 20, reps: 1, perSide: false, restSec: 0 },
+    { role: 'core', mode: 'reps', sets: 2, reps: MOBILITY_DOSE.CORE_REPS[1], perSide: false, restSec: 30 }
+  ];
+  assert.ok(estimateMinutes(raw) <= TIME.COOLDOWN_MIN, 'fixture must fit');
+  const packed = packCooldown(raw);
+  assert.equal(packed.overBudget, false);
+  assert.equal(packed.blocks.find(b => b.role === 'core').reps, MOBILITY_DOSE.CORE_REPS[1],
+    'a session inside its budget keeps the full dose');
 });
 
 test('packPrep holds the 3 min budget without gutting the dose', () => {

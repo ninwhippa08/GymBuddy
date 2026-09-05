@@ -35,20 +35,40 @@ const LIB = JSON.parse(
 // instruction attached -- one row, not two. The landing progressions
 // (with Stick / mini bounce / Continuous) are the same claim about a jump.
 // 45 of playlist 2's 262 titles were this. §15.1.
-const METHOD = /^(tempo|eccentric|isometric|continuous)\b|1 and a half|one and a half|with stick|with mini ?bounce|with minibounce|\b\d-\d-\d\b|\btempo\b/i;
+// "w/ stick" and "with stick" are the same claim; so is a coaching prop
+// squeezed between the knees or held against the ribs for a rep.
+const METHOD = /^(tempo|eccentric|isometric|continuous)\b|1 and a half|one and a half|w\/ ?stick|with stick|with mini ?bounce|with minibounce|\b\d-\d-\d\b|\btempo\b|w\/ tennis ball|with tennis ball/i;
 
 // A DISTANCE or a TIME is a prescription too: "10 Yd Sprint" is a sprint.
 const DISTANCE = /\b\d+\s*(yd|yard|yards|m|metre|meter)\b|^timed\b/i;
 
 // A trailing "2" is the facility filming a second camera angle or a
 // progression of a clip already in the list. 13 of playlist 1's titles. §14.2.
-const SECOND_ANGLE = /\s\(?2\)?$/;
+// A named angle -- "Lean Fall Run (side view)" -- is the same clip again too.
+const SECOND_ANGLE = /\s\(?2\)?$|\((?:side|front|rear|back|behind)[ -]?view\)/i;
 
 // Two drills chained. The generator draws single movements; a combo would have
 // to be two rows, and then it is just the two rows.
 const COMBO = /\binto\b|x\s?[23]\s*-|-\s*sprint$|w\/ pass|\b\d command/i;
 
+// COACHING CONTENT. Playlists 1 and 2 were a movement catalogue. The seven
+// pattern playlists are a coach's teaching shelf, and roughly a fifth of their
+// titles are a lesson ABOUT a lift rather than the lift: "Progressing the Push
+// Up" walks through regressions, "Bad Push Up" demonstrates the error on
+// purpose, "Chop Series" is an overview of chops already listed one by one,
+// "Implements: Squat" is a topic label with a colon. None is prescribable. §16.1
+const COACHING = /^progressing\b|\bprogressions?$|\bseries$|\boptions$|\bpatterning$|^bad\b|^sample\b|^[A-Za-z][A-Za-z ]{2,}:\s/i;
+
+// AN ATHLETE HIGHLIGHT is a record of a set, not an entry -- the movement is
+// already in the list under its plain name. Only the mechanical tells are
+// matched: a weight, a "for 5", "doing", a "Copy of". A bare first name
+// ("Kasey TrapBar Deadlift") carries nothing a regex can read, so those are
+// flagged for the reader instead -- see the candidate report. §16.2
+const HIGHLIGHT = /\b\d+\s*(lb|lbs|kg|kgs)\b|\bfor \d+$|\bdoing\b|^copy of\b/i;
+
 const NOT_A_MOVEMENT = [
+  ['coaching-content', COACHING],
+  ['athlete-highlight', HIGHLIGHT],
   ['method-on-a-lift', METHOD],
   ['distance-or-time', DISTANCE],
   ['second-camera-angle', SECOND_ANGLE],
@@ -66,6 +86,7 @@ const ABBREV = {
   db: 'dumbbell', kb: 'kettlebell', mb: 'med ball', bb: 'barbell',
   oh: 'overhead', tk: 'tall kneeling', rfe: 'rear foot elevated',
   sldl: 'single leg deadlift', rdl: 'romanian deadlift',
+  trapbar: 'trap bar',
   er: 'external rotation', ir: 'internal rotation', pnf: 'pnf',
   ml: 'lateral', lat: 'lateral', ant: 'anterior', post: 'posterior',
   quad: 'quadruped', add: 'adductor', abd: 'abduction',
@@ -75,13 +96,23 @@ const ABBREV = {
   't-spine': 'thoracic', tspine: 'thoracic', '1': 'single', '2': 'double'
 };
 
+// A HYPHEN IS A SEPARATOR. It was not, and that alone hid real duplicates:
+// "X-Pulldown" stayed a single token, matched nothing in `x-pulldown`, and was
+// reported as a candidate at 0.00 -- the most confident possible way of being
+// wrong. t-spine is expanded before the split because it is the one key that
+// needed the hyphen to survive. §16.3
 const norm = s => s
   .toLowerCase()
-  .replace(/[().:,\/&+]/g, ' ')
+  .replace(/\bt-spine\b/g, 'thoracic')
+  .replace(/[().:,\/&+-]/g, ' ')
   .replace(/\s+/g, ' ')
   .trim()
   .split(' ')
-  .map(w => ABBREV[w.replace(/\.$/, '')] || w.replace(/\.$/, ''))
+  .map(w => w.replace(/\.$/, ''))
+  .map(w => ABBREV[w] || w)
+  // Light stemming, so "Sled Crossovers" can reach `crossover-run` and
+  // "Wall Drills" reach `wall-drill`. Guarded: "press" must not become "pres".
+  .map(w => (w.length > 3 && w.endsWith('s') && !w.endsWith('ss') ? w.slice(0, -1) : w))
   .join(' ');
 
 const INDEX = LIB.map(e => ({
@@ -94,8 +125,14 @@ const INDEX = LIB.map(e => ({
 // entry being written is worse than a false "new" that gets checked and
 // dropped. The 0.7 threshold was the one that surfaced real duplicates
 // (Linear March = a-march) without burying genuine gaps.
+// Short tokens used to be dropped wholesale, which was fine while a hyphen
+// glued them to their neighbours and wrong the moment one stopped. The letter
+// IS the movement in `x-pulldown`, `w-pulldown`, `t-bar-row` and `a-march`, and
+// "5-10-5" is nothing but short tokens. So drop a stoplist, not a length. §16.3
+const STOP = new Set(['the', 'a', 'an', 'of', 'for', 'to', 'and', 'with', 'w', 'on', 'in']);
+
 function bestMatch(title) {
-  const tokens = norm(title).split(' ').filter(w => w.length > 2);
+  const tokens = norm(title).split(' ').filter(w => w && !STOP.has(w));
   if (!tokens.length) return { id: null, score: 0 };
   let best = { id: null, score: 0 };
   for (const entry of INDEX) {
@@ -192,5 +229,11 @@ console.log('  caught by eye. Low score does not mean new -- CHECK EACH ONE.\n')
 for (const [t, id, s] of candidates) {
   console.log(`  ${t.padEnd(46)} nearest: ${String(id).padEnd(32)} ${s.toFixed(2)}`);
 }
+// Said here rather than guessed at by a regex: a capitalised word that is not
+// a movement word is usually the athlete in the clip, and no rule can tell
+// "Dave Shuffle Side Toss" from "Sideways Sled Push" without knowing which of
+// the two is a person. Both rows above look identical to a matcher. §16.2
+console.log('\nWatch for a lifter\'s first name at either end of a title --');
+console.log('"Kasey TrapBar Deadlift" is a trap bar deadlift, not a new entry.');
 
 console.log('\nNext: for any name you cannot classify, tools/contact-sheet.mjs.');

@@ -17,7 +17,7 @@ test('the sprint bucket holds only maximal-effort running', () => {
   assert.deepEqual(idsWithPattern('sprint'), [
     'acceleration-sprint', 'build-up-run', 'falling-start', 'flying-run',
     'half-kneeling-start', 'hill-sprint', 'lateral-half-kneeling-start',
-    'resisted-sprint', 'sled-push', 'three-point-start'
+    'resisted-sprint', 'sideways-sled-push', 'sled-push', 'three-point-start'
   ]);
 });
 
@@ -25,15 +25,17 @@ test('technique drills are their own family', () => {
   assert.deepEqual(idsWithPattern('sprint-drill'), [
     'a-march', 'a-skip', 'a-skip-with-overhead-reach', 'ankling', 'b-skip',
     'butt-kicks', 'fast-leg-drill', 'high-knee-switches', 'high-knees',
-    'power-skip', 'power-skip-for-distance', 'standing-knee-drive',
+    'lean-fall-run', 'power-skip', 'power-skip-for-distance', 'standing-knee-drive',
     'straight-leg-bound', 'straight-leg-skip', 'straight-leg-walk', 'wall-drill'
   ]);
 });
 
 test('multidirectional prep is its own family', () => {
   assert.deepEqual(idsWithPattern('agility'), [
-    'backpedal', 'backward-hurdle-walk', 'carioca', 'carioca-short-long',
-    'crossover-run', 'forward-hurdle-walk', 'lateral-cross-behind-skip',
+    'backpedal', 'backward-hurdle-walk', 'band-resisted-lateral-shuffle',
+    'carioca', 'carioca-short-long',
+    'crossover-run', 'forward-hurdle-walk', 'ladder-quick-stick',
+    'ladder-quick-through', 'lateral-cross-behind-skip',
     'lateral-crossover-skip', 'lateral-shuffle', 'lateral-skip', 'low-shuffle',
     'mini-band-forward-walk', 'mini-band-lateral-walk', 'mini-band-skater-walk', 'open-up-run-to-stick', 'pro-agility-shuttle',
     'shuffle-with-arm-swing'
@@ -51,7 +53,7 @@ test('ergometers and marches are not runs', () => {
   assert.deepEqual(idsWithPattern('erg'), ['assault-bike', 'rower']);
   assert.deepEqual(idsWithPattern('march'), [
     'backward-walk', 'incline-walk', 'lateral-sled-drag', 'ruck-march',
-    'sled-drag', 'sled-march'
+    'sled-crossover', 'sled-drag', 'sled-march'
   ]);
 });
 
