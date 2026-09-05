@@ -803,5 +803,33 @@ export const TIME = Object.freeze({
   // 68 min on power/seed 2149, so 68 - 60 = 8. Five sessions reach 68, 43
   // reach 67. The margin against spec.md line 36 widens from one minute to
   // two, which is what fixing an unbounded block is supposed to do.
-  FLOOR_OVERRUN_ALLOWANCE_MIN: 8
+  // RE-DERIVED 2026-09-05, from 8 to 9, on the playlist expansion that took the
+  // library 258 -> 405 and the mobility pool 38 -> 134. THIS IS THE FIRST TIME
+  // THIS NUMBER HAS RISEN. It has only ever fallen before (10 -> 9 -> 8), and
+  // the comments above are right that falling is the direction that matters.
+  // So the reason it rises is recorded here rather than left to be inferred.
+  //
+  // Same rule as every previous derivation, applied unchanged: the allowance is
+  // exactly worst - GYM_SESSION_TOTAL_MIN, measured over the same
+  // 70,000-session population (PHASE_1_DAY_TYPES x 10,000 seeds, no
+  // returnDate, now: 1e12), not rounded up. Worst case 69 min on power/seed
+  // 5522, so 69 - 60 = 9. It is a measurement of a library that got bigger, NOT
+  // room made for one -- nothing was widened to let an entry in, and no entry
+  // was authored to a length the budget then had to accommodate.
+  //
+  // WHAT IT COSTS, stated plainly because it is the athlete's own constraint:
+  // the margin against spec.md line 36 (<=70 min, his number) falls from two
+  // minutes to one. The v38 comment above called that one minute "the margin
+  // that lets the next pool grow without breaking spec.md line 36", and this is
+  // the pool growth it was being kept for. There is no second minute behind it.
+  // The next expansion that moves this number has to buy the time back
+  // somewhere -- packing the cool-down the way packPrep packs the prep is the
+  // obvious candidate -- rather than spending a margin that is now gone.
+  //
+  // Measured twice on the way, which is why it is 9 and not 10: at 318 entries
+  // (the soft-tissue rolls alone) the worst was 69, at 398 it fell back to 68
+  // as more variety diluted the expensive combinations, and at 405 it is 69
+  // again. A per-batch derivation would have recorded 9, then 8, then 9. The
+  // number is taken once, from the finished library.
+  FLOOR_OVERRUN_ALLOWANCE_MIN: 9
 });

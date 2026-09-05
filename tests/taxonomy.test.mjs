@@ -35,7 +35,7 @@ test('multidirectional prep is its own family', () => {
     'backpedal', 'backward-hurdle-walk', 'carioca', 'carioca-short-long',
     'crossover-run', 'forward-hurdle-walk', 'lateral-cross-behind-skip',
     'lateral-crossover-skip', 'lateral-shuffle', 'lateral-skip', 'low-shuffle',
-    'mini-band-lateral-walk', 'mini-band-skater-walk', 'open-up-run-to-stick',
+    'mini-band-forward-walk', 'mini-band-lateral-walk', 'mini-band-skater-walk', 'open-up-run-to-stick',
     'shuffle-with-arm-swing'
   ]);
 });

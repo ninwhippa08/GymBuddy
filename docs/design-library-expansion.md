@@ -1255,3 +1255,126 @@ would be a new unsourced weight, of exactly the kind §12 has just finished
 removing from the recency model. Recorded here so the next person to widen a
 pool that shares a pattern with isolation work measures the session, not the
 slot.
+
+
+## 14  Mining a coach's playlist: 258 → 405 — BUILT 2026-09-05, `sw.js` v43–v46
+
+The athlete asked, for the fourth time, to grow the library from YouTube
+channels that post one movement per video. §13's warning still holds — every
+gym pool is already at target, so this is *because he wants it*, not because
+the matrix demands it — and it was not repeated to him a fourth time. He gave a
+259-video sports-performance playlist and chose "everything genuinely new".
+
+### 14.1  Reading a playlist is cheap; watching it is not
+
+`yt-dlp --flat-playlist --print "%(title)s"` prints every title without
+downloading a byte of video. That is the whole discovery step, and it is what
+made a 259-item diff affordable. §13's note that `/watch` is the wrong tool for
+discovery stands, and is now specific: `/watch` is for the movements a *name*
+cannot classify, and there were about fifteen of those.
+
+The clips carry no captions — they are silent demonstrations, so the transcript
+path gives nothing. What works instead: download at the lowest resolution, then
+`ffmpeg -vf "fps=…,scale=320:-1,tile=3x2"` to put six frames in ONE image. One
+picture per movement, and enough to settle `joints`, `unilateral`, `pattern`
+and `technical`. It resolved, among others:
+
+- **Power Skip (Distance)** is genuinely distinct from `power-skip`, whose own
+  cue reads "skip for height rather than distance". Both are now in.
+- **Linear March** IS `a-march`. **Toe Touch Squat** IS `squat-to-stand`.
+  Neither was added.
+- **"Ab."** in "3 Way Ab." is *abduction*, not abdominals — and six frames
+  still were not enough to tell the three positions apart, so it was declined
+  rather than guessed at. A drill nobody can describe accurately does not get
+  invented cues.
+
+### 14.2  What a playlist actually contains
+
+Of 259 titles: 5 exact duplicates, then **33 that are not movements at all** —
+7 tempo labels ("Front Squat 5-0-0 Tempo"), 6 distances ("10 Yd Sprint"), 13
+second camera angles (a trailing "2"), 7 chained combos ("Split Squat Hold into
+Lateral Bound"), and one titled "NA". A tempo and a distance are *prescriptions*
+this app already makes; a combo is two entries the generator would have to draw
+separately. None of them are library rows.
+
+That left 221 candidates, of which about 15 were already here under our own
+names and **147 were authored**. The rest were declined, and §14.4 says why.
+
+### 14.3  The mobility half is the dangerous half
+
+122 of the 221 were prep and mobility work. That is the shape of a
+sports-performance library: a coach films seven variations of a quadruped hip
+extension because a coach *chooses* between them for the athlete in front of
+them. A generator drawing at random from seven near-identical drills has no
+such judgement, and the athlete was told so before he chose. He chose all of
+it.
+
+The consequence was not variety. It was **time**, and it is recorded at
+`FLOOR_OVERRUN_ALLOWANCE_MIN` in `js/rules.js`: the worst session over 70,000
+went 68 → 69 min, and that allowance had never risen before.
+
+**The method that mattered: simulate the batch before writing it.** With the
+eleven soft-tissue rolls in and the ceiling test failing, 110 *synthetic*
+mobility entries — weighted unilateral the way the playlist is — were pushed
+through the same sweep. Worst case came back **68**, below the 69. More variety
+DILUTES an unlucky expensive combination rather than compounding it; a small
+pool makes a bad draw reachable within 10,000 seeds, a large one buries it.
+That said the batch was safe to write, and it was written.
+
+Measured on the finished library the number is 69 again (405 entries), so the
+allowance is 9. Had it been derived per batch it would have gone 9, then 8,
+then 9 — three edits recording a library that never shipped. **Derive a
+measured constant once, from the finished state.**
+
+### 14.4  Three declines that were the library's decision, not taste
+
+Worth keeping because each one is a rule catching an author, which is what the
+rules are for.
+
+1. **The arm actions.** "Seated Arm Action" and "Tall Kneeling Arm Action" are
+   sprint drills loading `shoulder` and `scapula` only — correctly, since you
+   do them sitting or kneeling. But every other entry in `accessory ::
+   sprint-drill/agility` is on its feet, which is *why* that pool sits in
+   `FLOOR_EXEMPT`: it is meant to vanish when an ankle is hurt. Two upper-body
+   drills break the property, and a hurt ankle would then draw the same two arm
+   drills as its agility work every session forever. The joints could not be
+   corrected — shoulder-only is the truth — so the entries came out. **A pool
+   can have an invariant that no single entry violates and a pair does.**
+
+2. **The isometric holds.** "Split Squat Hold" and "Elevated Push Up Hold" are
+   holds, and `isometric` is read only on `core` entries — the generator's
+   seconds-versus-reps branch. Outside `core` the flag is a claim nothing
+   honours; by reps they merely duplicate `split-squat` and `push-up`. They
+   stay out until holds are dosable outside the core tier.
+
+3. **"Foam Roll: Low Back".** Declined on internal consistency, which is a
+   ground the other two are not. `thoracic-foam-roll`'s own cue says "never
+   roll the lower back". Shipping an entry that contradicts advice the app
+   already gives him is worse than shipping neither, and if the entry is right
+   then the existing cue must change first.
+
+### 14.5  What the guards caught while authoring
+
+- `butt-kicks` and `mini-band-lateral-walk` went in without `ankle`. Every
+  other entry in that pool carries it, so the two became the sole survivors of
+  a hurt ankle, the pool left `FLOOR_EXEMPT`, and its floor jumped to 62. **The
+  data was wrong, not the test** — butt kicks are performed on the balls of the
+  feet. §13.8's "audit what a pool CONTAINS" has a mirror image: audit what
+  your own new entry claims to load.
+- `single-arm-incline-dumbbell-press` was drafted as a derivation. `unilateral`
+  is INHERITED, so a single-arm variant has by definition not moved one axis.
+  Authored fresh. This is the second time that exact rule has caught a
+  single-arm entry — `single-arm-lat-pulldown` in §13 was the first — which is
+  enough repetition to name it: **single-arm is never a derivation.**
+
+### 14.6  What this did not cost
+
+No new load coefficients, and `UNVERIFIED_BUDGET` does not move. The worry was
+misplaced and is recorded here so it is not raised again: `loadable` does not
+mean "weight can be added", it means the generator computes load from a PR
+coefficient, and it is true of 36 entries, all barbell. Dumbbell rows,
+kettlebell swings, split squats and `weighted-dip` are already
+`loadable: false`. Everything in this expansion is accessory work of that kind.
+
+New equipment: `mini-band` (implies `bands`, on the trap-bar/barbell reading),
+`suspension`, `slideboard`, `lacrosse-ball` (none imply anything).
