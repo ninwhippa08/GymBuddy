@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { generate, swapBlock, makeRng } from '../js/generator.js';
+import { RAMP_WEEKS } from '../js/rules.js';
 
 const LIB = JSON.parse(
   readFileSync(new URL('../data/exercises.json', import.meta.url), 'utf8')
@@ -95,44 +96,66 @@ test('a swap is priced by the session it joins, not by the caller ctx', () => {
   assert.equal(bare.block.rampLimited, rich.block.rampLimited);
 });
 
-// A KNOWN HOLE, WIDENED BY THE 2026-09-05 EXPANSION AND DELIBERATELY LEFT OPEN
-// -- read this before "fixing" the assertion below.
+// THE RAMP MUST SURVIVE A SWAP. basis §3 -- the ramp is not skippable, and a
+// swap is not an exit from it.
 //
-// `rampLimited` is set only inside the load-pricing path (generator.js:726),
-// because that is the only place a percentage exists to cap. A swap that comes
-// back in `reps` mode therefore carries NO ramp cap and NO "held down by the
-// return ramp" note, which is exactly what basis §3 says a swap must not be:
-// an exit from the ramp.
-//
-// This was unreachable from this fixture until the library grew. At 435 entries
-// the week-1 swap of `bench-press` returned `incline-bench-press` (load mode,
-// capped, test green); at 458 the extra push-h entries changed which candidate
-// wins and it returns `weighted-dip` -- primary push-h, dosed by reps, and so
-// silently uncapped. The library growth did not create the hole, it exposed it.
-//
-// NOT FIXED HERE, because the fix is a design decision and not a test edit:
-// either the swap prefers a load-mode replacement for a load-mode block during
-// the ramp, or a reps-mode block gets its own ramp treatment (fewer reps, or at
-// minimum the note). That is the athlete's call. The assertion below is
-// therefore split to state the honest invariant -- a loaded swap IS capped --
-// and to name the gap out loud when the swap comes back in reps mode, so the
-// next reader meets the hole rather than a green tick.
+// The hole these tests close, found 2026-09-05: `rampLimited` is set only
+// inside the load-pricing path (generator.js), because that is the only place a
+// percentage exists to cap. A swap that came back in `reps` mode therefore
+// carried NO ramp cap and NO note. It was unreachable from this fixture until
+// the library grew -- at 435 entries the week-1 swap of `bench-press` returned
+// `incline-bench-press` (load mode, capped); at 458 the extra push-h entries
+// changed which candidate won and it returned `weighted-dip`, dosed by reps and
+// silently uncapped. The growth did not create the hole, it exposed it.
 test('a swap during the ramp is capped and says so', () => {
   assert.equal(rampSession.rampWeek, 1, 'fixture should sit in week 1');
   const { block } = swapBlock(rampSession, rampTarget.slot, LIB, ctx, makeRng(3));
+  assert.equal(block.mode, 'load',
+    `ramp swap returned ${block.exerciseId} in ${block.mode} mode, which the ` +
+    'ramp ceiling cannot reach');
+  assert.ok(block.rampLimited, 'a week-1 load swap came back uncapped');
+});
 
-  if (block.mode === 'load') {
-    assert.ok(block.rampLimited, 'a week-1 load swap came back uncapped');
-    return;
+test('every ramp swap of a load block stays loadable, across seeds', () => {
+  // Not one seed: the preference must hold however the ranking falls out.
+  for (let s = 1; s <= 20; s++) {
+    const { block } = swapBlock(rampSession, rampTarget.slot, LIB, ctx, makeRng(s));
+    if (!block) continue;
+    assert.ok(byId.get(block.exerciseId).loadable,
+      `seed ${s} handed back ${block.exerciseId}, which has no load to cap`);
+    assert.ok(block.rampLimited, `seed ${s}: ${block.exerciseId} came back uncapped`);
   }
-  // Reps mode: there is no percentage to cap, so `rampLimited` is absent by
-  // construction. Assert what IS true today -- the swap is a real block of the
-  // same pattern -- and leave the gap named above visible rather than green.
-  assert.equal(block.mode, 'reps',
-    `unexpected swap mode ${block.mode}; the ramp hole note above assumes load or reps`);
-  assert.equal(byId.get(block.exerciseId).pattern,
-               byId.get(rampTarget.exerciseId).pattern,
-    'a ramp swap left the pattern as well as the ramp');
+});
+
+test('the ramp preference does not leak outside the ramp', () => {
+  // Off the ramp there is no ceiling to escape, so an unloaded alternative is a
+  // legitimate answer and must stay reachable -- otherwise this fix quietly
+  // narrows every swap in the app to the 36 barbell entries.
+  // "Off the ramp" is the LAST ramp row, not an absent one: a profile with no
+  // returnDate starts fully ramped at week 5, which is where this fixture sits.
+  assert.equal(session.rampWeek, RAMP_WEEKS,
+    'the plain fixture should be fully ramped');
+  const seen = new Set();
+  for (let s = 1; s <= 20; s++) {
+    const { block } = swapBlock(session, target.slot, LIB, ctx, makeRng(s));
+    if (block) seen.add(byId.get(block.exerciseId).loadable === true);
+  }
+  assert.ok(seen.has(false),
+    'no unloaded movement was offered off-ramp; the ramp preference leaked');
+});
+
+test('a ramp swap with nothing loadable left still answers, and says why', () => {
+  // The preference is a preference. Banning every loadable movement of the
+  // pattern must not turn a swap into a refusal -- it falls back to the best
+  // unloaded answer and flags it, in the manner of `tierRelaxed`.
+  const pattern = byId.get(rampTarget.exerciseId).pattern;
+  const banned = LIB.filter(e => e.pattern === pattern && e.loadable).map(e => e.id);
+  const { block, reason } = swapBlock(rampSession, rampTarget.slot, LIB,
+                                      { ...ctx, banned }, makeRng(3));
+  assert.ok(block, `swap refused instead of falling back: ${reason}`);
+  assert.equal(byId.get(block.exerciseId).loadable, false);
+  assert.ok(block.rampUncapped,
+    'an unloaded ramp swap must say the ceiling does not reach it');
 });
 
 // --------------------------------------------------------------------------

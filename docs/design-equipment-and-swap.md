@@ -516,3 +516,76 @@ Nothing in this design. The two items below are its neighbours, both older:
   exemption recommended, his call, untouched by this work.
 - **`tests/coef-provenance.mjs`** — 23 of 31 `prCoef` values `[unverified]`.
   §5.2 notes the swap makes them easier to reach without making them worse.
+
+
+## 12  The swap could leave the return ramp — FIXED 2026-09-05, `sw.js` v48
+
+`basis §3`: the ramp is not skippable, and a swap is not an exit from it. For
+reps-mode replacements it was exactly that, for as long as the swap has
+existed.
+
+### 12.1  The mechanism
+
+`rampLimited` is set inside `prescribe()`'s load-pricing path, which is the
+only place a percentage exists to clamp. When `slot.mode === 'load'` but the
+chosen exercise has `loadable: false`, `prescribe()` returns early with
+`mode: 'reps'` and `effort: "leave 2-3 reps in reserve"` — no ceiling, no
+`rampLimited`, and therefore no "held down by the return ramp" note on the
+card. A returning athlete in week 1, whose whole session is capped at 65%, taps
+swap on his bench press and is handed weighted dips at 2-3 RIR.
+
+**Measured before the fix, week 1, 266 load-slot swaps across three day types
+and sixty seeds: 67 of them — one in four — came back uncapped with nothing on
+the card saying so.**
+
+### 12.2  Why it surfaced now, and what that says about test fixtures
+
+It was not a regression. `swap.test.mjs` had asserted the ramp cap since the
+ramp was built, and passed the whole time, because at 435 library entries the
+week-1 swap of `bench-press` happened to return `incline-bench-press` — loaded,
+capped, green. The v47 expansion added push-h entries, the ranking moved, the
+same swap returned `weighted-dip`, and the test went red.
+
+The library growth did not create the hole. It moved a fixture off the one
+path that concealed it. **A test that passes because of which candidate the
+data happens to rank first is not testing the invariant it names** — which is
+why the replacement tests sweep twenty seeds and assert the property, not the
+identity of the winner.
+
+### 12.3  The fix: a preference, not a filter
+
+While `session.rampWeek < RAMP.length`, a `load` slot looks for a `loadable`
+replacement first. Only loadable entries reach the ceiling at all, so this is
+the difference between a cap that holds and one that quietly does not.
+
+It is a preference because refusing the swap outright would be a worse answer
+than an unloaded movement, and because only 36 of 458 entries are loadable — a
+filter would gut the menu.
+
+**It widens tier to stay loadable, and that was measured rather than assumed.**
+Slots A and B both draw loadable primaries, so by the time A is swapped the
+other primary of that pattern is usually already on the card and excluded. A
+preference that refused to widen missed in the ORDINARY case, not a rare one.
+Widening reaches `close-grip-bench-press` and `floor-press`, which are capped.
+
+### 12.4  Three flags, because they are three different sentences
+
+The widening gets its own flag rather than reusing `tierRelaxed`. That note
+tells the athlete something is missing from his gym; here nothing is missing,
+and the app has traded a more central lift for a ceiling that works. Folding
+them together would print a false sentence next to a true one.
+
+| flag | card says |
+|---|---|
+| `rampLimited` | held down by the return ramp |
+| `rampTierWidened` | a less central lift, chosen so the return ramp can still cap it |
+| `rampUncapped` | no load to cap here — the return ramp does not reach this one, so hold back |
+
+### 12.5  After
+
+Week 1, same 266 swaps: **98% loadable, and zero silently uncapped.** The 2%
+that cannot be met carry `rampUncapped`. Tier widening fires 8 times in 266.
+Off the ramp (week 5) the preference does not apply at all — 0 widened, 0
+uncapped, and unloaded alternatives stay reachable at 76%, which is the
+regression that would otherwise have narrowed every swap in the app to 36
+barbell lifts.

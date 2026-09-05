@@ -1451,13 +1451,12 @@ it returns `weighted-dip` — primary push-h, dosed by reps, silently uncapped.
 Growing the library did not create the hole. It exposed one that had been
 sitting behind a fixture.
 
-**Not fixed, and the fix is not a test edit.** Either the swap prefers a
-load-mode replacement for a load-mode block during the ramp, or a reps-mode
-block gets its own ramp treatment — fewer reps, or at minimum the note. Both
-are design decisions about a safety feature for a returning athlete, so both
-are the athlete's call. The assertion is split to state the honest invariant (a
-loaded swap IS capped) and the test comment names the gap, so the next reader
-meets the hole rather than a green tick.
+**FIXED 2026-09-05 (`sw.js` v48), after the athlete chose the first option:
+the swap now prefers a loaded replacement during the ramp.** Full write-up in
+`design-equipment-and-swap.md` §12 — including the measurement that made the
+scale clear (one week-1 swap in four came back silently uncapped) and the
+finding that the preference must widen tier to be any use, because the other
+loadable primary of the pattern is usually already on the card.
 
 ### 15.5  The allowance came back down, and now the rule is legible
 

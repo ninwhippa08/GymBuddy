@@ -183,6 +183,49 @@ test('an ordinary block carries no substitution note', () => {
   assert.ok(!notes.some(t => t.includes('closest movement available')));
 });
 
+// The two ramp-swap notes, added 2026-09-05. A swap during the return ramp
+// used to be able to leave the ramp silently -- only `loadable` movements
+// reach the ceiling, so a reps-mode replacement was uncapped and the card said
+// nothing. Both notes exist so the card cannot go quiet about it again.
+
+const RAMP_WIDENED_BLOCK = {
+  slot: 'A', role: 'main lift', exerciseId: 'close-grip-bench-press',
+  name: 'Close-Grip Bench Press', mode: 'load', sets: 4, reps: 5, restSec: 180,
+  pct: 0.65, prRef: 'bench-press', prCoef: 0.93, displayMultiplier: 0.6,
+  rampLimited: true, rampTierWidened: true
+};
+
+const RAMP_UNCAPPED_BLOCK = {
+  slot: 'A', role: 'main lift', exerciseId: 'weighted-dip', name: 'Weighted Dip',
+  mode: 'reps', sets: 4, reps: 5, restSec: 180, rampUncapped: true,
+  effort: 'leave 2-3 reps in reserve'
+};
+
+test('a ramp swap that widened tier says why, without blaming equipment', () => {
+  const notes = blockCard(RAMP_WIDENED_BLOCK, () => null)
+    .querySelectorAll('.block-note').map(n => n.textContent);
+  const note = notes.find(t => t.includes('return ramp can still cap it'));
+  assert.ok(note, `no widening note, got ${JSON.stringify(notes)}`);
+  // Nothing is missing from the gym here, so the equipment sentence would be a
+  // false statement sitting right next to a true one.
+  assert.ok(!notes.some(t => t.includes('closest movement available')),
+    'the ramp widening was reported as missing equipment');
+});
+
+test('an uncapped ramp swap warns that the ceiling does not reach it', () => {
+  const notes = blockCard(RAMP_UNCAPPED_BLOCK, () => null)
+    .querySelectorAll('.block-note').map(n => n.textContent);
+  assert.ok(notes.some(t => t.includes('does not reach this one')),
+    `no uncapped-swap warning, got ${JSON.stringify(notes)}`);
+});
+
+test('an ordinary block carries neither ramp-swap note', () => {
+  const notes = blockCard(BLOCK, () => null)
+    .querySelectorAll('.block-note').map(n => n.textContent);
+  assert.ok(!notes.some(t => t.includes('return ramp can still cap it')));
+  assert.ok(!notes.some(t => t.includes('does not reach this one')));
+});
+
 // tierRelaxed fires for whatever equipment is absent -- a machine, a
 // kettlebell, a rack. The note must not name a specific item it cannot know
 // was the one missing.

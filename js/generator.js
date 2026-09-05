@@ -1074,7 +1074,54 @@ export function swapBlock(session, slotId, library, ctx, rng) {
   const rejected = (session.rejected && session.rejected[slotId]) || [];
   const excludeIds = new Set([...session.blocks.map(b => b.exerciseId), ...rejected]);
   const narrowed = { ...slot, patterns: [entry.pattern] };
-  let exercise = fillSlot(narrowed, library, { ...ctx, state, excludeIds }, rng);
+
+  // THE RAMP MUST SURVIVE A SWAP, and until 2026-09-05 it did not. basis §3
+  // says the ramp is not skippable and a swap is not an exit from it -- but
+  // `rampLimited` is set only inside the load-pricing path in prescribe(),
+  // which is the only place a percentage exists to cap. A swap that came back
+  // in `reps` mode therefore escaped the ceiling completely and said nothing
+  // about it: on a week-1 card, bench-press swapped to weighted-dip and was
+  // prescribed "leave 2-3 reps in reserve" with no ramp anywhere in sight.
+  //
+  // So while the ramp is still climbing, a LOAD slot looks for a LOADABLE
+  // replacement first. Only `loadable` entries reach the ceiling at all, so
+  // this is the difference between a cap that holds and one that quietly does
+  // not. Weeks past the table are fully ramped and need no preference.
+  //
+  // A PREFERENCE, NOT A FILTER. Refusing the swap because nothing loadable was
+  // left would be a worse answer than an unloaded movement, and only 36 of 458
+  // entries are loadable -- a filter would gut the menu.
+  //
+  // IT DOES WIDEN TIER TO STAY LOADABLE, and that is not the same widening the
+  // equipment path does. Measured while building this: slots A and B both draw
+  // loadable primaries, so by the time A is swapped the other primary of that
+  // pattern is usually ALREADY IN THE SESSION and excluded. A preference that
+  // refused to widen therefore missed in the ordinary case -- week 1,
+  // bench-press swapped, incline-bench-press already on the card, and the
+  // answer fell through to weighted-dip uncapped. Widening reaches
+  // close-grip-bench-press and floor-press, which are capped.
+  //
+  // It gets its OWN flag rather than reusing `tierRelaxed`, because that note
+  // tells the athlete the cause was equipment he does not have. Here nothing is
+  // missing: the app chose a less central lift to keep a safety ceiling that
+  // works, and saying so is a different sentence.
+  const stillRamping = session.rampWeek != null && session.rampWeek < RAMP.length;
+  const preferLoadable = stillRamping && slot.mode === 'load';
+
+  let exercise = null;
+  let rampTierWidened = false;
+  if (preferLoadable) {
+    const loadable = library.filter(e => e.loadable);
+    exercise = fillSlot(narrowed, loadable, { ...ctx, state, excludeIds }, rng);
+    if (!exercise) {
+      exercise = fillSlot({ ...narrowed, tier: ALL_TIERS }, loadable,
+                          { ...ctx, state, excludeIds }, rng);
+      rampTierWidened = Boolean(exercise);
+    }
+  }
+  if (!exercise) {
+    exercise = fillSlot(narrowed, library, { ...ctx, state, excludeIds }, rng);
+  }
 
   // Only once the slot's own tier is spent. Every primary hinge in the library
   // is a barbell movement, so a clean's seven alternatives are seven bars and
@@ -1097,6 +1144,13 @@ export function swapBlock(session, slotId, library, ctx, rng) {
   const block = prescribe(slot, exercise, env, rng, state);
   // Flagged, never silent -- the card already knows how to say this. design §1.2.
   if (tierRelaxed) block.tierRelaxed = true;
+  // Widened to keep the ramp's ceiling reachable. Distinct from tierRelaxed
+  // above: nothing is missing from the gym, the app traded centrality for a cap.
+  if (rampTierWidened) block.rampTierWidened = true;
+  // The preference could not be met at all: he is on the ramp and the movement
+  // he is being handed has no load for the ceiling to act on. Say what the app
+  // did, rather than let a returning athlete read an uncapped block as capped.
+  if (preferLoadable && !exercise.loadable) block.rampUncapped = true;
   return { block, reason: null };
 }
 

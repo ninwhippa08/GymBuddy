@@ -297,6 +297,29 @@ export function blockCard(block, cuesFor, onSwap) {
           text: 'needs equipment you do not have -- this is the closest movement available'
         })
       : null,
+    // The two ramp-swap notes, added 2026-09-05 with the swap's loadable
+    // preference. A swap used to be able to leave the ramp silently: only
+    // `loadable` movements reach the ceiling, so a reps-mode replacement was
+    // uncapped and said nothing. generator.js swapBlock().
+    //
+    // Deliberately NOT folded into the tierRelaxed sentence above. That one
+    // tells him something is missing from the gym; this one tells him the app
+    // traded a more central lift for a cap that actually works. Different
+    // facts, different sentences.
+    block.rampTierWidened
+      ? el('p', {
+          class: 'block-note',
+          text: 'a less central lift, chosen so the return ramp can still cap it'
+        })
+      : null,
+    // The preference could not be met. Says the ceiling does not reach this
+    // block, which is the one thing a returning athlete must not assume.
+    block.rampUncapped
+      ? el('p', {
+          class: 'block-note',
+          text: 'no load to cap here -- the return ramp does not reach this one, so hold back'
+        })
+      : null,
     // Above everything else it shares the card with: which movement this one
     // is paired with changes how the whole block is performed, so it is read
     // before the loads are.
