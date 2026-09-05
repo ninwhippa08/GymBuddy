@@ -139,8 +139,13 @@ GymBuddy/
 │   └── mutate.mjs        Mutation testing. Breaks a rule on purpose to see if a test notices.
 │
 ├── tools/
-│   └── derive.mjs        Scaffolds a new exercise from a reviewed parent. Prints a block
-│                         to paste, with the cues left deliberately unwritten.
+│   ├── derive.mjs        Scaffolds a new exercise from a reviewed parent. Prints a block
+│   │                     to paste, with the cues left deliberately unwritten.
+│   ├── playlist-diff.mjs Diffs a coach's YouTube playlist against the library: what is
+│   │                     not a movement, what we already have, what is worth a look.
+│   └── contact-sheet.mjs Six frames of one movement demo tiled into a single image,
+│                         for the clips whose name is not enough. They are silent,
+│                         so captions give nothing.
 │
 ├── docs/                 Written before the code, and kept in step with it.
 │   ├── spec.md              What the product is. Sections are cited from code as "spec §n".
