@@ -6,7 +6,7 @@ running the suite.
 
 - `SESSIONS_BEFORE_REPEAT` = 16 (athlete's preference)
 - `OPTIONS_PER_JOINT` = 3 ([unverified] design floor)
-- library holds 258 entries
+- library holds 279 entries
 - closed pools: mobility :: mobility :: mobility-static, mobility :: mobility :: mobility-dynamic, core :: core/rotate :: (any), primary+secondary :: jump/throw :: power, primary :: squat/hinge/push-h/push-v/pull-v :: max-strength, accessory :: lunge/carry/rotate :: hypertrophy, primary+secondary :: squat/push-h/push-v :: power, primary :: squat/hinge/push-h/push-v/pull-v :: hypertrophy, mobility :: mobility :: mobility-dynamic :: hip/knee/ankle, accessory :: run :: aerobic-steady, accessory :: sprint-drill/agility :: (any), secondary :: sprint :: sprint :: submaximal, primary+secondary+accessory :: run/erg :: aerobic-steady
 
 | pool | draw | have | survival | floor | variety | need | short |
@@ -39,7 +39,7 @@ running the suite.
 | `mobility :: mobility :: mobility-dynamic` | 4 | 19 | 42% (hip) | 8 | coverage | 8 | 0 |
 | `accessory :: run :: aerobic-steady` | 1 | 1 | 0% (hip) | exempt | coverage | 0 | 0 |
 | `mobility :: mobility :: mobility-dynamic :: hip/knee/ankle` | 4 | 14 | 21% (hip) | 14 | coverage | 14 | 0 |
-| `accessory :: sprint-drill/agility :: (any)` | 3 | 12 | 0% (ankle) | exempt | coverage | 0 | 0 |
+| `accessory :: sprint-drill/agility :: (any)` | 3 | 31 | 0% (ankle) | exempt | coverage | 0 | 0 |
 | `secondary :: sprint :: sprint :: submaximal` | 4 | 1 | 0% (hip) | exempt | coverage | 0 | 0 |
 | `mobility :: mobility :: mobility-static` | 4 | 19 | 58% (hip) | 6 | coverage | 6 | 0 |
 | `core :: core/rotate :: (any)` | 2 | 34 | 0% (lumbar) | exempt | coverage | 0 | 0 |

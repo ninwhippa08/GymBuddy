@@ -82,7 +82,11 @@ export const SORENESS_LEVELS = Object.freeze(['sore', 'hurt']);
 export const EQUIPMENT_IMPLIES = Object.freeze({
   'trap-bar': Object.freeze(['barbell']),
   'safety-bar': Object.freeze(['barbell']),
-  'landmine': Object.freeze(['barbell'])
+  'landmine': Object.freeze(['barbell']),
+  // A mini-band is a band, by the same reading: a gym that owns no bands owns
+  // no mini-band either, while owning bands does not guarantee the small loop
+  // the banded walks need. Added 2026-09-05 with the first mini-band entries.
+  'mini-band': Object.freeze(['bands'])
 });
 
 // The three main-work tiers. Used only to widen a slot that came back EMPTY

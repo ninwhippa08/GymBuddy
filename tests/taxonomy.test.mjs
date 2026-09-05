@@ -16,20 +16,28 @@ const idsWithPattern = p => LIB.filter(e => e.pattern === p).map(e => e.id).sort
 test('the sprint bucket holds only maximal-effort running', () => {
   assert.deepEqual(idsWithPattern('sprint'), [
     'acceleration-sprint', 'build-up-run', 'falling-start', 'flying-run',
-    'hill-sprint', 'resisted-sprint', 'sled-push', 'three-point-start'
+    'half-kneeling-start', 'hill-sprint', 'lateral-half-kneeling-start',
+    'resisted-sprint', 'sled-push', 'three-point-start'
   ]);
 });
 
 test('technique drills are their own family', () => {
   assert.deepEqual(idsWithPattern('sprint-drill'), [
-    'a-march', 'a-skip', 'ankling', 'b-skip', 'fast-leg-drill',
-    'high-knees', 'power-skip', 'straight-leg-bound', 'wall-drill'
+    'a-march', 'a-skip', 'a-skip-with-overhead-reach', 'ankling', 'b-skip',
+    'butt-kicks', 'fast-leg-drill', 'high-knee-switches', 'high-knees',
+    'power-skip', 'power-skip-for-distance', 'standing-knee-drive',
+    'straight-leg-bound', 'straight-leg-skip', 'straight-leg-walk', 'wall-drill'
   ]);
 });
 
 test('multidirectional prep is its own family', () => {
-  assert.deepEqual(idsWithPattern('agility'),
-    ['backpedal', 'carioca', 'lateral-shuffle']);
+  assert.deepEqual(idsWithPattern('agility'), [
+    'backpedal', 'backward-hurdle-walk', 'carioca', 'carioca-short-long',
+    'crossover-run', 'forward-hurdle-walk', 'lateral-cross-behind-skip',
+    'lateral-crossover-skip', 'lateral-shuffle', 'lateral-skip', 'low-shuffle',
+    'mini-band-lateral-walk', 'mini-band-skater-walk', 'open-up-run-to-stick',
+    'shuffle-with-arm-swing'
+  ]);
 });
 
 test('the run bucket holds only unloaded running on feet', () => {
