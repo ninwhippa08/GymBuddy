@@ -510,6 +510,14 @@ packed inside 12 min. It cannot. `packCooldown` has a sourced floor of three
 static stretches and two core sets; once it has trimmed everything trimmable,
 that floor can still cost up to 14 min. **[measured]**
 
+> **Resolved 2026-09-05, in the opposite direction to the resolution below.**
+> This discrepancy measured the right thing and concluded the wrong thing. The
+> floor costing "up to 14 min" against a 12 min budget was read as an overrun
+> to absorb into `FLOOR_OVERRUN_ALLOWANCE_MIN`; it was in fact the sourced dose
+> telling the budget what it costs. `COOLDOWN_MIN` is now 14, that same
+> measured figure, and the overrun it was absorbing is gone — 2.04% → 0.000%
+> across 70,000 sessions. See `design-mobility-and-warmup.md` §11.
+
 Two independent sweeps agreed: 80,000 sampled sessions, and a separate
 4,000-session deterministic sweep, both put the worst case at **63 min** — on
 max-strength, with power tying it. That case is 45 min of main work at the cap,

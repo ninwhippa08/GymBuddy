@@ -35,7 +35,11 @@ test('the time budget matches design 5, main work raised past it 2026-08-31', ()
   // every pool this project grows re-rolls which seeds land in the tail.
   assert.equal(TIME.MAIN_WORK_MAX_MIN, 49);
   assert.equal(TIME.PREP_MIN, 3);
-  assert.equal(TIME.COOLDOWN_MIN, 12);
+  // 12 -> 14, 2026-09-05: re-derived bottom-up from MOBILITY_DOSE after the
+  // old value's "[corroborated]" label turned out to describe design 5's
+  // top-down table instead. The three budgets now sum to 66, still inside the
+  // measured allowance asserted below.
+  assert.equal(TIME.COOLDOWN_MIN, 14);
   assert.ok(
     TIME.PREP_MIN + TIME.MAIN_WORK_MAX_MIN + TIME.COOLDOWN_MIN <=
       TIME.GYM_SESSION_TOTAL_MIN + TIME.FLOOR_OVERRUN_ALLOWANCE_MIN,

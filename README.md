@@ -378,6 +378,20 @@ widened: both ends of that range already sit inside the trial envelope the
 constant cites, so the trim lands on a dose the project already calls sourced.
 `docs/design-library-expansion.md` §16.6.
 
+**Then one minute went back out again, deliberately — because the budget it was
+defending could not fit its own doses.** The 12-minute cool-down budget was
+labelled as derived from the per-movement doses in `MOBILITY_DOSE`; it was
+not, and summed properly those doses cost a mean of 14. The gap was not being
+paid in overrun warnings, which had already fallen to 2%. It was being paid in
+core work: `packCooldown` answers a cool-down it cannot afford by cutting the
+dose, and at 12 min it was **deleting the third prescribed core set on 86% of
+gym sessions** while reporting the block packed. Repricing the core rep first
+(the third instance of the barbell-price error above, and the weakest — it is
+tagged `[unverified]`) paid for most of the fix; `COOLDOWN_MIN` 12 → 14 spent
+one measured minute for the rest. The third set now survives on 75% of
+sessions, the warning fires on **0 of 70,000**, and the worst session is 67 min
+against the athlete's stated 70. `docs/design-mobility-and-warmup.md` §11.
+
 **Sources are tagged, including the weak ones.** `docs/programming-basis.md`
 marks each number `[verified]`, `[corroborated]`, `[unverified]`, or
 `[measured]`, and documents three discrepancies found when the secondary sources

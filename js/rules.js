@@ -692,9 +692,33 @@ export const TIME = Object.freeze({
   // Mandatory, never randomised out. Prep is capped by the drill dose rather
   // than by this figure; it is here so the three budgets can be seen to sum.
   PREP_MIN: 3,
-  // Static stretches plus core. design 5 table: 25 -> 12, the whole session
-  // saving. [corroborated] from the per-movement doses in MOBILITY_DOSE.
-  COOLDOWN_MIN: 12,
+  // Static stretches plus core.
+  //
+  // 12 -> 14 [measured], 2026-09-05, RE-DERIVED BOTTOM-UP BECAUSE THE OLD
+  // NUMBER'S OWN LABEL WAS FALSE. It read "[corroborated] from the
+  // per-movement doses in MOBILITY_DOSE", and it was not: it came from design
+  // 5's top-down table (25 -> 12, the whole session saving), a share of the
+  // hour rather than a sum of the doses. Summed properly -- 3-4 ACSM stretches
+  // at STATIC_HOLD_SEC x STATIC_HOLD_SETS, plus CORE_EXERCISES x CORE_SETS at
+  // CORE_REPS -- the prescribed cool-down costs a mean of 14 min across 7,500
+  // gym draws, and only 19% of draws fit inside 12. A budget its own sourced
+  // doses cannot reach is the same broken shape as the one §16.6 found, one
+  // level up: that fix gave packCooldown a lever to reach 12 with, this one
+  // asks whether 12 was ever the right target.
+  //
+  // WHAT IT BOUGHT. The overrun warning was never the real cost -- it had
+  // already fallen to 2.2% and never exceeded 2 min. The cost was that
+  // packCooldown pays for an unaffordable cool-down in CORE WORK: at 12 the
+  // third prescribed set was deleted on 86% of gym sessions and reps sat on
+  // the 10-rep floor on 42%. At 14, with CORE_SECONDS_PER_REP below, the
+  // third set survives on 75% and the warning stops firing entirely.
+  //
+  // WHAT IT COST. One minute of worst-case margin (66 -> 67), which is why
+  // the rep price was fixed FIRST and this raised second: priced at the
+  // barbell 3 s, reaching the same core dose needs 16 min and three of the
+  // four minutes of margin. Buy the time back before spending it --
+  // FLOOR_OVERRUN_ALLOWANCE_MIN below is re-derived to match.
+  COOLDOWN_MIN: 14,
   // The withdrawn MOBILITY_CORE_MIN: 25 lived here. It had no source -- every
   // other number in this file carries one. design discrepancy 5.
   // Running/cardio is uncapped -- prescribed by time, effort, or interval
@@ -732,6 +756,26 @@ export const TIME = Object.freeze({
   // Applies ONLY to `mode: 'drill'`, which templates.js sets on
   // mobility-dynamic slots and nothing else -- lifting reps keep the 3 s.
   MOBILITY_SECONDS_PER_REP: 2,
+  // THE THIRD INSTANCE OF THE SAME ERROR, FOUND 2026-09-05. The two above gave
+  // mobility its own transition and its own rep; core kept the barbell rep,
+  // and nobody had asked whether it should. A hollow rock, a dead bug, a
+  // Pallof press: no plate, no bar, no moment under load.
+  //
+  // HONESTLY WEAKER THAN THE TWO ABOVE, and recorded as such rather than
+  // dressed up to match them. A leg swing at 3 s was plainly wrong. Core reps
+  // genuinely spread: a hollow rock is nearer 1.5 s, an ab-wheel rollout
+  // nearer 3. 2 s is a defensible average across the pool, not a correction to
+  // an obvious mistake, and like both constants above it is [unverified] --
+  // nobody has held a stopwatch to it. It is deliberately not lower than 2:
+  // these are working sets, not drills, even when they share the number.
+  //
+  // What it is worth is not minutes on the clock but REPS ON THE CARD.
+  // packCooldown answers an unaffordable cool-down by deleting core work, so
+  // the barbell price was cutting the third prescribed set on 86% of gym
+  // sessions. See COOLDOWN_MIN above -- the two changes are one decision.
+  // Applied by role, not by mode: core is the only trained work in the
+  // cool-down. Lifting keeps the 3 s.
+  CORE_SECONDS_PER_REP: 2,
   // [measured] -- not designed, not sourced from literature. design §5's
   // arithmetic (3 + 45 + 12 = 60) assumed COOLDOWN_MIN as an achievable
   // estimate, but packCooldown's own sourced floor (3 stretches, 2 core sets)
@@ -911,5 +955,25 @@ export const TIME = Object.freeze({
   // another seed at the same 68. The honest rule is weaker than the old one:
   // A BIGGER LIBRARY COSTS SESSION TIME WHEREVER IT GROWS, and the only way to
   // know the number is the sweep.
-  FLOOR_OVERRUN_ALLOWANCE_MIN: 6
+  // RE-DERIVED 2026-09-05, from 6 to 7, and THIS ONE WAS SPENT ON PURPOSE --
+  // the first rise in this constant's history that is not a cost to absorb but
+  // a purchase. COOLDOWN_MIN went 12 -> 14 because 12 was a top-down share of
+  // the hour that its own sourced doses could not fit in, and the price of
+  // pretending otherwise was paid in core work: packCooldown deleted the third
+  // prescribed set on 86% of gym sessions. Same population as every derivation
+  // above (PHASE_1_DAY_TYPES x 10,000 seeds, no returnDate, now: 1e12), same
+  // rule, not rounded up: worst 67 min on max-strength/seed 39, so 67 - 60 = 7.
+  //
+  // Before / after on that identical sweep:
+  //   cool-down over budget  2.036%  ->  0.000%
+  //   worst session          66 min  ->  67 min  (15 sessions -> 234)
+  //   third core set kept    14%     ->  75%
+  // Margin against the athlete's stated <=70 min (spec.md:36) is THREE
+  // minutes, back where v49 left it.
+  //
+  // THE MINUTE WAS BOUGHT BEFORE IT WAS SPENT, which is the only reason one
+  // minute buys this much. Reaching the same core dose at the barbell rep
+  // price needs COOLDOWN_MIN 16 and costs three of the four minutes; giving
+  // core reps their own CORE_SECONDS_PER_REP first got it for one.
+  FLOOR_OVERRUN_ALLOWANCE_MIN: 7
 });

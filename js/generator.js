@@ -972,14 +972,18 @@ function blockSeconds(b) {
   const workReps = planned.length
     ? planned.reduce((a, s) => a + s.reps, 0)
     : b.sets * b.reps;
-  sec += workReps * TIME.SECONDS_PER_REP * sides;
+  // A core rep is not a barbell rep either. Third instance of the transition/
+  // drill error; rules.js CORE_SECONDS_PER_REP carries the reasoning and the
+  // caveat that this one is the weakest of the three.
+  const secPerRep = b.role === 'core' ? TIME.CORE_SECONDS_PER_REP : TIME.SECONDS_PER_REP;
+  sec += workReps * secPerRep * sides;
   sec += b.sets * restOf(b);
   // The ramp is real time on the clock. Its sets are short and its rests
   // shorter, but four warm-up sets before a heavy squat is minutes, and the
   // budget has to see them or packToBudget trims the wrong thing.
   for (const s of (b.setPlan || [])) {
     if (s.kind !== 'warmup') continue;
-    sec += s.reps * TIME.SECONDS_PER_REP * sides;
+    sec += s.reps * secPerRep * sides;
     sec += TIME.WARMUP_REST_SEC;
   }
   sec += transitionSec(b);
@@ -1868,7 +1872,13 @@ function finalise({ chosen, env, architecture, proposal, ordered, packed, preppe
   if (prepped && prepped.overBudget) {
     warnings.push(`prep over its ${TIME.PREP_MIN} min budget at the 3-drill floor`);
   }
-  if (cooled.overBudget) warnings.push('cool-down over its 12 min budget');
+  // Read off the constant, not written into the string: the budget moved
+  // 12 -> 14 on 2026-09-05 and a hardcoded 12 would have told him the card
+  // was over a budget that no longer exists. The prep warning above already
+  // does this.
+  if (cooled.overBudget) {
+    warnings.push(`cool-down over its ${TIME.COOLDOWN_MIN} min budget`);
+  }
   if (unfilled.length) {
     warnings.push(`no eligible exercise for slot ${unfilled.map(u => u.slot).join(', ')}`);
   }

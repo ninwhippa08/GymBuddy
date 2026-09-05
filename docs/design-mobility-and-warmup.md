@@ -756,7 +756,7 @@ Per-movement estimates use the existing `SECONDS_PER_REP: 3` and
 |---|---|---|
 | Prep block | — | 3 min |
 | Main work | 45 min | 45 min |
-| Cool-down (static + core) | 25 min | 12 min |
+| Cool-down (static + core) | 25 min | 12 min *(14 since 2026-09-05, §11)* |
 | **Session total** | **70 min** | **60 min** |
 
 The main-work budget is unchanged. The saving comes entirely from dosing the
@@ -1319,3 +1319,139 @@ silently tuned away.
 before widening the limit around it.** He is the only instrument this project
 has for how long a session takes him, and the figure he was arguing with turned
 out never to have been about mobility at all.
+
+---
+
+## 11  Settling the cool-down budget
+
+*2026-09-05. The athlete asked for the open cool-down question to be closed. It
+closed differently than expected: the number it was about had gone stale, and
+the thing underneath it was not the trade-off §10.3 described.*
+
+### 11.1  The figure being decided about no longer existed
+
+§10.3 left "cool-down over budget: 16.7%" as a live decision — widen the
+budget, trim the pool, or leave it. That measurement was taken at v49. **v51
+then added `packCooldown`'s third lever and never re-measured this line.**
+
+On today's code, over the project's canonical population (`PHASE_1_DAY_TYPES`
+× 10,000 seeds, no `returnDate`, `now: 1e12` — 70,000 sessions):
+
+| | v49 doc | measured 2026-09-05 |
+|---|---|---|
+| cool-down over budget | 16.7% | **2.04%** |
+| worst overshoot | — | **2 min**, and only on gym days |
+
+Ablation confirms the cause rather than assuming it: removing lever 2 from a
+copy of the generator puts the rate back to 9.7%. The decision was being asked
+about a number four commits out of date.
+
+### 11.2  The warning was never the cost. The cost was core work.
+
+Chasing the warning rate would have missed the actual problem. **When a
+cool-down does not fit, `packCooldown` does not run long — it deletes core
+work.** Measured across 7,500 gym draws at the shipped budget:
+
+| | at `COOLDOWN_MIN: 12` |
+|---|---|
+| third prescribed core set deleted | **86.3% of gym sessions** |
+| core reps sitting on the 10-rep floor | **42.4%** |
+| mean core sets prescribed | **2.14** of a sourced 3 |
+
+`CORE_SETS` is `[3, 3]`. The budget was quietly overriding it five sessions in
+six, and reporting success while doing it — `overBudget: false` is true of a
+cool-down that fits *because its dose was cut*.
+
+### 11.3  The budget's own label was false
+
+`COOLDOWN_MIN` read:
+
+> "Static stretches plus core. design 5 table: 25 → 12, the whole session
+> saving. **[corroborated] from the per-movement doses in MOBILITY_DOSE.**"
+
+It is not corroborated by those doses. It comes from design 5's **top-down**
+table — a share of the hour — and the doses were never summed against it.
+Summed properly (3–4 stretches at `STATIC_HOLD_SEC` × `STATIC_HOLD_SETS`, plus
+`CORE_EXERCISES` × `CORE_SETS` at `CORE_REPS`), the prescribed cool-down costs
+a **mean of 14 min**, and **only 19% of draws fit inside 12**.
+
+`programming-basis.md` discrepancy 7 had already measured the same floor at "up
+to 14 min" and drew the opposite conclusion — that the overrun was the honest
+ceiling to absorb. It is the budget that was wrong, not the dose.
+
+### 11.4  The third instance of the barbell-price error
+
+Before spending any margin, the same audit §10 ran twice was run once more.
+`TIME.SECONDS_PER_REP` is 3 — a barbell rep. Transitions got
+`MOBILITY_TRANSITION_SEC`; drill reps got `MOBILITY_SECONDS_PER_REP`. **Core
+reps still had the barbell price**, and nobody had asked whether they should.
+
+`CORE_SECONDS_PER_REP: 2` applies by *role*, so only the cool-down's core work
+is repriced; lifting keeps its 3 s.
+
+**This one is recorded as weaker than the two before it.** A leg swing at 3 s
+was plainly wrong. Core reps genuinely spread — a hollow rock is nearer 1.5 s,
+an ab-wheel rollout nearer 3 — so 2 s is a defensible average across the pool,
+not the correction of an obvious mistake. It is `[unverified]`, like both
+constants it follows, and the constant's comment says so.
+
+### 11.5  What was decided, and what it cost
+
+The athlete's own precedent decided the order: **buy the time back before
+spending it.** Priced at the barbell rate, funding the same core dose needs
+`COOLDOWN_MIN: 16` and three of the four minutes of margin. Repricing the rep
+first gets it for one.
+
+| | before | after |
+|---|---|---|
+| `COOLDOWN_MIN` | 12 | **14** |
+| core rep priced at | 3 s (barbell) | **2 s** |
+| cool-down over budget | 2.04% | **0.000%** |
+| third core set kept | 14% | **75%** |
+| reps on the floor | 42% | **16%** |
+| worst session | 66 min | **67 min** |
+| margin vs the stated ≤70 (spec.md:36) | 4 min | **3 min** |
+
+`FLOOR_OVERRUN_ALLOWANCE_MIN` 6 → 7, re-derived by the same rule as every
+derivation before it — exactly `worst − GYM_SESSION_TOTAL_MIN`, over the same
+70,000-session population, not rounded up. Worst is 67 min on
+max-strength/seed 39.
+
+**This is the first rise in that constant that is a purchase rather than a
+cost.** Every previous one absorbed a worst case that had drifted upward. This
+one spends a measured minute to stop the packer deleting a prescribed set on
+86% of sessions, and the athlete was shown the full cost curve (13/14/15/16 min,
+with what each keeps and what each spends) before choosing.
+
+### 11.6  The test had to be re-sized, not relaxed
+
+The v51 lever-2 fixture — three stretches and two per-side rep-based core
+blocks — prices at exactly 14 min under the new budget and **fits**, which
+would have left the test asserting nothing while still passing. It is re-sized
+to four per-side stretches (`STATIC_STRETCHES` tops out at 4, so this is a draw
+the library really produces), which overruns at 17 min.
+
+The re-sized fixture is also **strictly better than the one it replaces**,
+because it proves the lever *ordering* rather than illustrating it: both levers
+can reach this cool-down, and the two orders end at the same stretch count but
+different rep counts — 10 if the dose is trimmed first, 15 if a stretch is
+dropped first. Verified by mutation: reordering `packCooldown`'s levers in a
+scratch copy fails the test with "ended at 15 reps", exactly as the comment
+predicts.
+
+A second test was added for the hold half of lever 2 — core is dosed by time or
+by reps depending on the movement, and a per-side side plank at
+`CORE_HOLD_SEC`'s top is the more expensive of the two. Suite 569 → **570, all
+passing**.
+
+### 11.7  The lesson
+
+§10.4's lesson was *check the number before widening the limit around it*. This
+section adds the other half:
+
+**A budget that cannot fit its own sourced doses is not a tight budget, and the
+warning it produces is not the cost.** Ask what the code does when the budget
+binds. `packCooldown` answered by deleting prescribed work and reporting
+success, so the real damage never appeared in the warning rate that was being
+argued about — and a stale figure kept the argument pointed at the wrong thing
+for two commits.

@@ -147,7 +147,9 @@ test('an outdoor day gets prep and stretches but no core', () => {
   assert.ok(!cool.some(b => b.role === 'core'));
 });
 
-test('packCooldown holds the 12 min budget without gutting the dose', () => {
+// Named off the constant rather than the number: the budget moved 12 -> 14
+// on 2026-09-05, and the test reads TIME.COOLDOWN_MIN either way.
+test('packCooldown holds the cool-down budget without gutting the dose', () => {
   const ctx = freshCtx();
   const raw = buildCooldown('max-strength', LIB, ctx, makeRng(11));
   const packed = packCooldown(raw);
@@ -162,14 +164,26 @@ test('packCooldown holds the 12 min budget without gutting the dose', () => {
   }
 });
 
-// packCooldown lever 2, added v51. design-library-expansion.md §16.6.
+// packCooldown lever 2, added v51. design-library-expansion.md 16.6.
 //
-// The fixture is the shape that made the budget unreachable: two per-side
-// rep-based core blocks at the TOP of CORE_REPS, which is 2 x 15 x 2 sides =
-// 60 reps of barbell-priced work, plus the three-stretch floor. Both of the
-// original levers bottom out on it -- core is already at 2 sets, statics
-// already at 3 -- so before lever 2 this returned overBudget with nothing left
-// to trim.
+// RE-SIZED 2026-09-05, when COOLDOWN_MIN went 12 -> 14 and core reps stopped
+// being charged the barbell rep. The old fixture -- three stretches and two
+// per-side rep-based core blocks -- now prices at exactly 14 min and FITS,
+// which would have left this test asserting nothing at all. Re-sized rather
+// than relaxed, and toward a draw the library actually produces: STATIC_
+// STRETCHES tops out at FOUR, and four per-side stretches beside two per-side
+// core blocks is 17 min against the 14 min budget.
+//
+// WHY THIS FIXTURE PROVES THE ORDERING and the old one only illustrated it.
+// Both levers can reach this cool-down, so the end state says which ran first:
+//
+//   lever 2 first (correct) -- reps walk 15 -> 10 on both blocks, still over
+//     at 15 min, THEN one stretch goes: ends at 3 stretches, 10 reps.
+//   lever 3 first (wrong)   -- one stretch goes, 17 -> 14, already inside
+//     budget, loop exits: ends at 3 stretches, 15 reps.
+//
+// Same stretch count either way. The reps are the discriminator, which is why
+// the assertion below is on the exact floor value and not merely on "trimmed".
 test('packCooldown trims the core dose inside its sourced range before dropping a stretch', () => {
   const stretch = () => ({
     role: 'mobility', mode: 'hold', sets: 2, holdSec: 30, reps: 1, perSide: true, restSec: 0
@@ -178,21 +192,51 @@ test('packCooldown trims the core dose inside its sourced range before dropping 
     role: 'core', mode: 'reps', sets: 2, reps: MOBILITY_DOSE.CORE_REPS[1],
     perSide: true, restSec: 45
   });
-  const raw = [stretch(), stretch(), stretch(), coreBlock(), coreBlock()];
+  const raw = [stretch(), stretch(), stretch(), stretch(), coreBlock(), coreBlock()];
   assert.ok(estimateMinutes(raw) > TIME.COOLDOWN_MIN,
     'fixture must actually overrun the budget');
 
   const packed = packCooldown(raw);
 
+  assert.equal(packed.overBudget, false, 'the three levers must get it inside the budget');
   assert.equal(packed.blocks.filter(b => b.role === 'mobility').length, 3,
-    'reps come off before a stretch does');
+    'never trims the stretch count below the ACSM floor of 3');
   for (const b of packed.blocks.filter(b => b.role === 'core')) {
-    assert.ok(b.reps >= MOBILITY_DOSE.CORE_REPS[0],
-      `trimmed to ${b.reps} reps, below the sourced floor of ${MOBILITY_DOSE.CORE_REPS[0]}`);
+    assert.equal(b.reps, MOBILITY_DOSE.CORE_REPS[0],
+      `ended at ${b.reps} reps -- lever 2 must exhaust the sourced range ` +
+      `(down to ${MOBILITY_DOSE.CORE_REPS[0]}, never below) before a stretch goes`);
     assert.ok(b.sets >= 2, 'still never trims core below 2 sets');
   }
-  assert.ok(packed.blocks.some(b => b.role === 'core' && b.reps < MOBILITY_DOSE.CORE_REPS[1]),
-    'lever 2 did not fire at all');
+});
+
+// The hold half of lever 2. Core is dosed by time or by reps depending on the
+// movement, and holds are the more expensive mode -- a per-side side plank at
+// CORE_HOLD_SEC's top costs more than a per-side Pallof press at CORE_REPS'.
+// This fixture needs no stretch drop at all: lever 2 alone gets it home.
+test('lever 2 trims a hold-dosed core block down its own sourced range', () => {
+  const stretch = () => ({
+    role: 'mobility', mode: 'hold', sets: 2, holdSec: 30, reps: 1, perSide: true, restSec: 0
+  });
+  const raw = [
+    stretch(), stretch(), stretch(),
+    { role: 'core', mode: 'hold', sets: 2, holdSec: MOBILITY_DOSE.CORE_HOLD_SEC[1],
+      reps: 1, perSide: true, restSec: 45 },
+    { role: 'core', mode: 'reps', sets: 2, reps: MOBILITY_DOSE.CORE_REPS[1],
+      perSide: true, restSec: 45 }
+  ];
+  assert.ok(estimateMinutes(raw) > TIME.COOLDOWN_MIN,
+    'fixture must actually overrun the budget');
+
+  const packed = packCooldown(raw);
+  const held = packed.blocks.find(b => b.role === 'core' && b.mode === 'hold');
+
+  assert.equal(packed.overBudget, false);
+  assert.equal(packed.blocks.filter(b => b.role === 'mobility').length, 3,
+    'no stretch is dropped -- the hold dose alone covers the overrun');
+  assert.ok(held.holdSec < MOBILITY_DOSE.CORE_HOLD_SEC[1], 'lever 2 never reached the hold');
+  assert.ok(held.holdSec >= MOBILITY_DOSE.CORE_HOLD_SEC[0],
+    `trimmed to ${held.holdSec} s, below the sourced floor of ${MOBILITY_DOSE.CORE_HOLD_SEC[0]}`);
+  assert.equal(held.holdSec % 5, 0, 'holds are prescribed on a 5 s grid');
 });
 
 test('packCooldown leaves a cool-down that already fits completely alone', () => {
