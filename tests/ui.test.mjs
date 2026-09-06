@@ -1032,3 +1032,51 @@ test('the second half carries the rest for the whole round', () => {
   const line = supersetRestLine({ group: 'S1', groupRole: 'A2', restSec: 60, groupRestSec: 120 });
   assert.equal(line, 'rest 2 min');
 });
+
+// ---------------------------------------------------------------------------
+// The core block gets a swap button; the stretches do not -- design 13
+// ---------------------------------------------------------------------------
+
+// A cool-down card with both roles on it. Two core blocks, because that is what
+// MOBILITY_DOSE.CORE_EXERCISES ([2, 2]) always produces, and both carry M2 --
+// which is why the handler has to be told WHICH one was tapped.
+const cooldownCard = () => card({
+  blocks: [
+    { role: 'main', slot: 'A', exerciseId: 'back-squat', name: 'Back Squat',
+      mode: 'load', reps: 5, sets: 3, pct: 0.8, displayMultiplier: 0.8,
+      prRef: 'squat' },
+    { role: 'mobility', slot: 'M1', exerciseId: 'couch-stretch',
+      name: 'Couch Stretch', mode: 'hold', sets: 2, holdSec: 30, reps: 1 },
+    { role: 'core', slot: 'M2', exerciseId: 'ab-wheel-rollout',
+      name: 'Ab Wheel Rollout', mode: 'reps', sets: 3, reps: 12 },
+    { role: 'core', slot: 'M2', exerciseId: 'hollow-hold',
+      name: 'Hollow Hold', mode: 'hold', sets: 3, holdSec: 40, reps: 1 }
+  ]
+});
+
+const swapLabels = node =>
+  node.querySelectorAll('.block-swap').map(b => b.getAttribute('aria-label'));
+
+test('the core blocks offer a swap and the static stretch does not', () => {
+  const labels = swapLabels(renderSession(cooldownCard(), { onSwap() {} }));
+  assert.ok(labels.some(l => /Ab Wheel Rollout/.test(l)),
+    `no swap on the core block; got ${JSON.stringify(labels)}`);
+  assert.ok(labels.some(l => /Hollow Hold/.test(l)),
+    'the second core block has no swap of its own');
+  assert.ok(!labels.some(l => /Couch Stretch/.test(l)),
+    'a static stretch was given a swap button');
+});
+
+test('a core swap says WHICH block was tapped, not just the slot', () => {
+  // Both core blocks are slot M2. Without the exerciseId the handler cannot
+  // tell them apart and rewrites the first one whichever card is tapped.
+  const seen = [];
+  const node = renderSession(cooldownCard(), {
+    onSwap: (slot, exerciseId) => seen.push([slot, exerciseId])
+  });
+  const second = node.querySelectorAll('.block-swap')
+    .find(b => /Hollow Hold/.test(b.getAttribute('aria-label')));
+  assert.ok(second, 'the second core block rendered no swap button');
+  second.dispatch('click');
+  assert.deepEqual(seen, [['M2', 'hollow-hold']]);
+});

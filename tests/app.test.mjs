@@ -247,3 +247,63 @@ test('a backup taken from a booted app can be read back by the app', async () =>
   assert.deepEqual(storage.loadHistory().map(s => s.date), trained.map(s => s.date));
   assert.equal(storage.loadProfile().returnDate, '2026-01-05');
 });
+
+// --------------------------------------------------------------------------
+// design-equipment-and-swap.md 13: the core swap, end to end
+// --------------------------------------------------------------------------
+
+// This file's header calls app.js the untested seam, and the core swap is
+// exactly the kind of change that seam hides: both core blocks are slot M2, so
+// `findIndex(b => b.slot === slotId)` silently rewrote the FIRST one whichever
+// card was tapped. The generator and the UI both have their own tests for the
+// discriminator; only app.js can prove the two are wired to each other.
+const coreCards = root =>
+  root.querySelectorAll('.block-swap')
+    .filter(b => /Swap /.test(b.getAttribute('aria-label') || ''));
+
+const coreOf = store => {
+  const s = readState(store).history.find(x => x.blocks);
+  return s.blocks.filter(b => b.role === 'core');
+};
+
+test('tapping the second core card swaps the SECOND core block', async () => {
+  const { root, store } = installBrowser();
+  seedProfile(store);
+  await boot();
+  root.querySelector('.home-generate').dispatch('click');
+
+  const before = coreOf(store);
+  assert.equal(before.length, 2, 'precondition: two core blocks on the card');
+
+  // The button whose label names the second core movement.
+  const btn = coreCards(root).find(
+    b => b.getAttribute('aria-label').includes(before[1].name));
+  assert.ok(btn, `no swap button for ${before[1].name}`);
+
+  btn.dispatch('click');
+
+  const after = coreOf(store);
+  assert.equal(after.length, 2, 'the swap changed how many core blocks there are');
+  assert.equal(after[0].exerciseId, before[0].exerciseId,
+    'tapping the SECOND core card rewrote the first one');
+  assert.notEqual(after[1].exerciseId, before[1].exerciseId,
+    'the second core block did not actually change');
+});
+
+test('a core swap leaves the main work untouched', async () => {
+  const { root, store } = installBrowser();
+  seedProfile(store);
+  await boot();
+  root.querySelector('.home-generate').dispatch('click');
+
+  const mainBefore = readState(store).history[0].blocks
+    .filter(b => b.role !== 'core').map(b => b.exerciseId);
+  const core = coreOf(store);
+  coreCards(root)
+    .find(b => b.getAttribute('aria-label').includes(core[0].name))
+    .dispatch('click');
+
+  const mainAfter = readState(store).history[0].blocks
+    .filter(b => b.role !== 'core').map(b => b.exerciseId);
+  assert.deepEqual(mainAfter, mainBefore, 'a core swap changed the main work');
+});

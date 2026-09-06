@@ -169,7 +169,10 @@ function showSession({
           : [...constraint, item]
       })
     },
-    onSwap: slotId => {
+    // exerciseId names WHICH block: the two core blocks are both slot M2, so
+    // the slot alone would always resolve to the first one.
+    // design-equipment-and-swap.md 13.
+    onSwap: (slotId, exerciseId) => {
       const { block, reason } = swapBlock(session, slotId, library, {
         venue: session.venue,
         soreness,
@@ -177,11 +180,12 @@ function showSession({
         excludeEquipment: constraint,
         profile,
         history: loadHistory()
-      }, makeRng(Date.now()));
+      }, makeRng(Date.now()), exerciseId);
       // A dead control that silently does nothing is the failure mode this
       // design exists to avoid. design §5.3.
       if (!block) return mount(root, renderSession(session, { ...opts, swapNote: reason }));
-      const i = session.blocks.findIndex(b => b.slot === slotId);
+      const i = session.blocks.findIndex(
+        b => b.slot === slotId && (!exerciseId || b.exerciseId === exerciseId));
       // Remember what he turned down, so tapping swap again moves on instead
       // of reshuffling the same few. It rides on the session record, so it is
       // scoped to today exactly like the equipment constraint. spec §4.2.

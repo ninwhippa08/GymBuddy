@@ -280,3 +280,82 @@ test('a swap that had to widen tier says so on the block', () => {
   }
   assert.ok(relaxedSeen, 'the tier never widened, so the flag was never tested');
 });
+
+// ---------------------------------------------------------------------------
+// The core block is swappable too -- design-equipment-and-swap.md §13
+// ---------------------------------------------------------------------------
+
+// Asked for by the athlete 2026-09-06: "I would like to add a swap button for
+// the core exercisez since sometimes I don't have an ab wheel and I might have
+// done something similar two days ago."
+//
+// The trap is that SLOT IS NOT A UNIQUE ADDRESS here. MOBILITY_DOSE
+// CORE_EXERCISES is [2, 2], so every cool-down carries exactly two core blocks
+// and BOTH are slot M2. swapBlock found its target with `find(b => b.slot ===
+// slotId)` and app.js spliced with the matching `findIndex`, so without a
+// discriminator a tap on the second core card silently rewrites the first.
+const coreBlocks = s => s.blocks.filter(b => b.role === 'core');
+
+test('a cool-down really does carry two core blocks on one slot', () => {
+  // If this ever stops being true the discriminator below is testing nothing.
+  const core = coreBlocks(session);
+  assert.equal(core.length, 2, 'expected exactly two core blocks');
+  assert.equal(new Set(core.map(b => b.slot)).size, 1,
+    'the two core blocks no longer share a slot -- re-read §13 before trusting the rest');
+});
+
+test('a core block can be swapped for another core movement', () => {
+  const [first] = coreBlocks(session);
+  const { block, reason } = swapBlock(session, first.slot, LIB, ctx,
+                                      makeRng(1), first.exerciseId);
+  assert.ok(block, `core swap refused: ${reason}`);
+  assert.notEqual(block.exerciseId, first.exerciseId);
+  assert.equal(byId.get(block.exerciseId).tier, 'core');
+});
+
+test('swapping the second core block leaves the first one alone', () => {
+  const [first, second] = coreBlocks(session);
+  const { block } = swapBlock(session, second.slot, LIB, ctx,
+                              makeRng(3), second.exerciseId);
+  assert.ok(block, 'the second core block could not be swapped');
+  assert.notEqual(block.exerciseId, second.exerciseId);
+  assert.notEqual(block.exerciseId, first.exerciseId,
+    'the swap returned the OTHER core block -- it would duplicate it');
+});
+
+test('a swapped core block keeps the core dose and carries no load', () => {
+  const [first] = coreBlocks(session);
+  for (let s = 1; s <= 15; s++) {
+    const { block } = swapBlock(session, first.slot, LIB, ctx,
+                                makeRng(s), first.exerciseId);
+    if (!block) continue;
+    assert.equal(block.role, 'core', 'a core swap must stay core');
+    assert.equal(block.pct, undefined,
+      `${block.exerciseId} came back priced as a lift -- core is not a load slot`);
+    assert.ok(block.sets >= 1, 'a core block needs a set count');
+    assert.ok(block.reps || block.holdSec,
+      'a core block is dosed in reps or in seconds held');
+  }
+});
+
+test('a core swap never returns something already in the session', () => {
+  const [first] = coreBlocks(session);
+  const present = new Set(session.blocks.map(b => b.exerciseId));
+  present.delete(first.exerciseId);
+  for (let s = 1; s <= 25; s++) {
+    const { block } = swapBlock(session, first.slot, LIB, ctx,
+                                makeRng(s), first.exerciseId);
+    if (block) assert.ok(!present.has(block.exerciseId),
+      `${block.exerciseId} is already in this session`);
+  }
+});
+
+test('the static stretches are still not swappable', () => {
+  // He asked for core only. A stretch is matched to the patterns the day
+  // actually trained, so swapping one drifts it away from the work. §8.
+  const stretch = session.blocks.find(b => b.role === 'mobility');
+  assert.ok(stretch, 'no static stretch in this session');
+  const { block } = swapBlock(session, stretch.slot, LIB, ctx,
+                              makeRng(1), stretch.exerciseId);
+  assert.equal(block, null, 'a static stretch was swapped, and should not be');
+});

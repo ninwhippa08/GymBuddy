@@ -589,3 +589,101 @@ Off the ramp (week 5) the preference does not apply at all — 0 widened, 0
 uncapped, and unloaded alternatives stay reachable at 76%, which is the
 regression that would otherwise have narrowed every swap in the app to 36
 barbell lifts.
+
+---
+
+## 13  The core block is swappable — BUILT 2026-09-06, `sw.js` v56
+
+**Asked for by the athlete**, same session as the other two reports: *"I would
+like to add a swap button for the core exercisez since sometimes I don't have an
+ab wheel and I might have done something similar two days ago."*
+
+Both reasons already had machinery behind them — the equipment control covers
+"I don't have this", and recency weighting covers "I did that recently" — but
+neither acts on ONE block on the card in front of him. That is what swap is for,
+and core was the one trained block that did not offer it.
+
+### 13.1 Why it was not swappable
+
+Two blockers, both narrow:
+
+- `swapBlock` resolved its slot with `TEMPLATES[session.dayType].find(...)`.
+  Core is slot `M2` and comes from `COOLDOWN_BLOCK`, not the day template, so
+  every core swap returned `'no such slot in this session'`.
+- `ui.js` passed `onSwap` only to the Main work group, under the comment *"Prep
+  and cool-down are fixed blocks with no template slot, so only the main work is
+  swappable."*
+
+### 13.2 The trap: slot is not a unique address in the cool-down
+
+`MOBILITY_DOSE.CORE_EXERCISES` is `[2, 2]`, so **every cool-down carries exactly
+two core blocks and both are slot `M2`**. Three places assumed one block per
+slot: `swapBlock`'s `find`, `app.js`'s matching `findIndex`, and
+`session.rejected[slotId]`.
+
+Left alone, a tap on the second core card would have silently rewritten the
+first — the control appearing to work while editing the wrong movement. So the
+swap addresses a block by **slot + exerciseId**. The discriminator is optional,
+so main work, which really does have one block per slot, is unchanged and every
+existing caller still compiles.
+
+`session.rejected` stays keyed on `M2` alone, shared by both core blocks **on
+purpose**: a movement turned down today should stay turned down for both, and
+keying it per block would reset the memory on every tap, since the exerciseId
+changes with each swap.
+
+### 13.3 Core only
+
+The static stretches keep no swap. They are `matchWork: true` — matched to the
+patterns the day actually trained — so swapping one drifts it away from the work
+it exists to release. Enforced in the generator, not just hidden in the UI:
+`swapBlock` only accepts a cool-down group whose `role` is `core`, so a stretch
+slot is refused even if something calls it directly.
+
+Core is also prescribed through `prescribeMobility` rather than `prescribe`. The
+core dose resolves per exercise — a plank by time, an ab wheel by reps — and
+`prescribe` would hand back a load percentage a core movement must never carry.
+
+The ramp's loadable preference is skipped: it is load-slot logic, and nothing in
+the 54-entry core pool is loadable. Only **one** of those 54 uses an ab wheel,
+so the pool he is swapping into is deep.
+
+### 13.4 Not taken
+
+- **No equipment memory.** Swapping away the ab-wheel movement does not untick
+  ab-wheel in the equipment control. The athlete chose this: a swap that
+  silently rewrote other blocks in the session is a bigger action than the
+  button implies, and the equipment control already does that job properly.
+- **No swap on the stretches**, per 13.3.
+- **No change to `packCooldown`.** A swapped block is packed exactly like the
+  one it replaced.
+
+### 13.5 Testing
+
+`tests/swap.test.mjs` asserts the premise first — that a cool-down really does
+carry two core blocks on one slot — so the discriminator tests cannot pass
+vacuously if that ever changes. Then: a core block swaps to another core
+movement; **swapping the second leaves the first alone**; the replacement keeps
+the core dose shape and carries no percentage; it never returns something
+already in the session; and a static stretch is still refused.
+
+`tests/ui.test.mjs` asserts both core blocks render their own button, the
+stretch renders none, and that a tap reports `['M2', 'hollow-hold']` rather than
+the slot alone.
+
+**`app.js` is covered for this change**, which is new. That file has been the
+untested seam since plan-08 -- it needs a root element, localStorage, fetch and
+a working `replaceChildren` -- and the compensating control was a manual browser
+check. But app.js is the ONLY place that can prove the generator's discriminator
+and the UI's are wired to each other, and the failure it hides is silent: the
+wrong card changes and the app looks like it worked.
+
+So the swap is tested end to end on the harness `tests/app.test.mjs` already
+builds: boot, tap generate, tap the swap on the SECOND core card, then assert
+against the committed record that the second block changed and the first did
+not. Red-green verified -- with the `findIndex` fix reverted the test fails with
+*"tapping the SECOND core card rewrote the first one"*, which is the bug itself.
+A second test asserts a core swap leaves the main work untouched.
+
+Not verified in a live browser for this commit (the extension was not
+connected), but the seam it used to leave open is now closed by test.

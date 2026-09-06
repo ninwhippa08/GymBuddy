@@ -348,7 +348,9 @@ export function blockCard(block, cuesFor, onSwap) {
         class: 'block-swap',
         type: 'button',
         'aria-label': `Swap ${block.name} for another movement`,
-        onclick: () => onSwap(block.slot)
+        // Slot AND movement. Both core blocks are M2, so the slot alone
+        // cannot say which card was tapped. design-equipment-and-swap.md 13.
+        onclick: () => onSwap(block.slot, block.exerciseId)
       }, 'swap')
     : null;
 
@@ -418,14 +420,19 @@ export function blockCard(block, cuesFor, onSwap) {
   }, [btn, swap]);
 }
 
-function blockGroup(title, blocks, cuesFor, onSwap) {
+// `swappable` lets a group offer the control on SOME of its blocks. The
+// cool-down needs it: core is swappable and the static stretches are not, and
+// they render in one group. Absent, every block in the group gets it, which is
+// what main work wants. design-equipment-and-swap.md 13.
+function blockGroup(title, blocks, cuesFor, onSwap, swappable = null) {
   if (!blocks.length) return null;
   return el('section', { class: 'group' }, [
     el('h2', { class: 'group-title', text: title }),
     // NOT blocks.map(blockCard) -- map passes the index as the second argument,
     // which would arrive where cuesFor belongs.
     el('ul', { class: 'block-list' },
-      blocks.map(b => blockCard(b, cuesFor, onSwap)))
+      blocks.map(b => blockCard(b, cuesFor,
+        !swappable || swappable(b) ? onSwap : null)))
   ]);
 }
 
@@ -716,11 +723,14 @@ export function renderSession(
                        addMove.open)
       : null,
 
-    // Prep and cool-down are fixed blocks with no template slot, so only the
-    // main work is swappable.
+    // Prep has no template slot and is not swappable. The cool-down is mixed:
+    // the CORE blocks are swappable (he asked for it -- no ab wheel, or the
+    // same movement two days ago), the static stretches are not, because they
+    // are matched to the patterns the day trained and swapping one drifts it
+    // away from that work. design-equipment-and-swap.md 13.
     blockGroup('Prep', prep, cuesFor),
     blockGroup('Main work', main, cuesFor, onSwap),
-    blockGroup('Cool-down', cooldown, cuesFor),
+    blockGroup('Cool-down', cooldown, cuesFor, onSwap, b => b.role === 'core'),
 
     // Confirming is the end of the day's decisions: it says the session on the
     // record is training he actually did, so there is nothing left to reroll.

@@ -1052,10 +1052,35 @@ export function requiredUnfilled(session) {
 // answer "this machine is broken" with a farmers carry. The athlete's words:
 // "another move like one with dumbbell that hits the same area."
 // design-equipment-and-swap.md §5.1.
-export function swapBlock(session, slotId, library, ctx, rng) {
+export function swapBlock(session, slotId, library, ctx, rng, exerciseId = null) {
   const template = TEMPLATES[session.dayType];
-  const slot = template && template.find(s => s.slot === slotId);
-  const current = session.blocks.find(b => b.slot === slotId);
+  let slot = template && template.find(s => s.slot === slotId);
+
+  // THE CORE BLOCK IS SWAPPABLE TOO, and it does not live in the day template
+  // -- it is COOLDOWN_BLOCK's M2. Asked for by the athlete 2026-09-06: "I don't
+  // have an ab wheel and I might have done something similar two days ago."
+  // Read off the same groupsFor() the builder uses, so the refill gets the
+  // slot's REAL spec (tier core, patterns core/rotate, mode core, its own dose
+  // ranges) rather than a copy that can drift from it.
+  //
+  // Core only, on purpose. The static stretches are matched to the patterns the
+  // day actually trained, so swapping one drifts it away from the work it is
+  // there to release. design-equipment-and-swap.md 13.
+  let isCore = false;
+  if (!slot) {
+    const group = groupsFor(COOLDOWN_BLOCK, session.dayType)
+      .find(g => g.slot === slotId && g.role === 'core');
+    if (group) { slot = group; isCore = true; }
+  }
+
+  // SLOT IS NOT A UNIQUE ADDRESS HERE. MOBILITY_DOSE.CORE_EXERCISES is [2, 2],
+  // so every cool-down carries two core blocks and BOTH are slot M2. Finding
+  // the target by slot alone meant a tap on the second card rewrote the first.
+  // Main work is unaffected -- one block per slot -- so the discriminator is
+  // optional and the existing callers are unchanged.
+  const current = exerciseId
+    ? session.blocks.find(b => b.slot === slotId && b.exerciseId === exerciseId)
+    : session.blocks.find(b => b.slot === slotId);
   if (!slot || !current) return { block: null, reason: 'no such slot in this session' };
 
   const entry = library.find(e => e.id === current.exerciseId);
@@ -1150,7 +1175,12 @@ export function swapBlock(session, slotId, library, ctx, rng) {
     return { block: null, reason: `no other ${entry.pattern} movement is available` };
   }
 
-  const block = prescribe(slot, exercise, env, rng, state);
+  // Core is dosed per exercise -- a plank by time, an ab wheel by reps -- and
+  // prescribe() would hand back a percentage a core movement must never carry.
+  // Same branch the builder takes. 13.
+  const block = isCore
+    ? prescribeMobility(slot, exercise, rng)
+    : prescribe(slot, exercise, env, rng, state);
   // Flagged, never silent -- the card already knows how to say this. design §1.2.
   if (tierRelaxed) block.tierRelaxed = true;
   // Widened to keep the ramp's ceiling reachable. Distinct from tierRelaxed
