@@ -88,7 +88,9 @@ Expected result: **every test passing, 0 failing.** The current count is in
    cool-down, with sets, reps, rest, and a load written as a multiplier of a
    named lift — `0.85 × Back Squat PR`, never a number in kilograms.
 6. Any exercise you cannot do today (equipment busy, machine missing) can be
-   **swapped** for an equivalent one.
+   **swapped** for an equivalent one. That includes the two **core** movements
+   in the cool-down — the static stretches deliberately have no swap, because
+   they are matched to the patterns the session actually trained.
 7. Tapping **"I did this workout"** marks the day trained. Only then does it
    appear on the calendar — if you didn't tap it, you didn't do it. Tapping a
    past day on the calendar reopens that session, read-only.
