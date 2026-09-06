@@ -3166,6 +3166,7 @@
       "cnsCost": 1, "technical": 2, "unilateral": true,
       "cues": ["Stand tall, one arm straight, and trace the largest circle you can.","Keep the ribs down and the opposite shoulder still.","Slow and deliberate; a single circle should take several seconds."],
       "targets": ["push-v","push-h","pull-v","pull-h"],
+      "dose": { "reps": [3, 3], "secPerRep": 10 },
       "modalities": ["mobility-dynamic"] },
 
     { "id": "hip-cars", "name": "Hip CARs", "pattern": "mobility", "tier": "mobility",
@@ -3174,6 +3175,7 @@
       "cnsCost": 1, "technical": 2, "unilateral": true,
       "cues": ["Stand tall, hold something for balance, lift one knee to hip height.","Trace the biggest circle you can with that knee, out and around.","Keep the pelvis square; only the hip moves."],
       "targets": ["squat","lunge","hinge"],
+      "dose": { "reps": [3, 3], "secPerRep": 10 },
       "modalities": ["mobility-dynamic"] },
 
     { "id": "ankle-dorsiflexion-rock", "name": "Ankle Dorsiflexion Rock", "pattern": "mobility", "tier": "mobility",
@@ -3342,6 +3344,7 @@
       "cnsCost": 1, "technical": 2, "unilateral": true,
       "cues": ["Seated or standing on one leg, hold the thigh still with both hands.","Trace the largest slow circle you can with the heel.","Only the knee moves; if the hip joins in, shrink the circle."],
       "targets": ["squat","lunge"],
+      "dose": { "reps": [3, 3], "secPerRep": 10 },
       "modalities": ["mobility-dynamic"] },
 
     { "id": "ankle-cars", "name": "Ankle CARs", "pattern": "mobility", "tier": "mobility",
@@ -3350,6 +3353,7 @@
       "cnsCost": 1, "technical": 2, "unilateral": true,
       "cues": ["Seated, lift one foot clear of the floor and hold the shin still.","Trace the biggest circle you can with the toes, both directions.","Keep the knee quiet; the movement is all ankle."],
       "targets": ["squat","lunge","jump","run","sprint"],
+      "dose": { "reps": [3, 3], "secPerRep": 10 },
       "modalities": ["mobility-dynamic"] },
 
     { "id": "squat-to-stand", "name": "Squat to Stand", "pattern": "mobility", "tier": "mobility",

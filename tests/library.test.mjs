@@ -268,3 +268,42 @@ test('every aka is a usable alternate name, and no two entries claim one', () =>
     }
   }
 });
+
+// `dose` -- a movement that is dosed unlike the rest of its modality. It exists
+// because CARs share `mobility-dynamic` with the swing and lunge drills and are
+// prescribed nothing like them: the sourced dose is 3 slow reps per side at
+// 10 s each, against 10-12 reps at 2 s. One range over both was charging 3-4x
+// the sourced CARs dose on 21.2% of sessions, and pricing it at a tempo that
+// was never theirs. Like `aka` and the cues, it is a fact about the MOVEMENT,
+// so it lives on the entry rather than in a special case in the generator.
+// design-mobility-and-warmup.md §12.
+//
+// The guard that matters is the last one: a dose the generator silently
+// ignores is worse than no dose, because the entry then LOOKS corrected.
+test('every dose is a usable override, and only where the generator reads one', () => {
+  for (const e of EX) {
+    if (!('dose' in e)) continue;
+
+    assert.equal(typeof e.dose, 'object',
+      `${e.id}: dose must be an object, or absent altogether`);
+
+    const { reps, secPerRep } = e.dose;
+    assert.ok(Array.isArray(reps) && reps.length === 2,
+      `${e.id}: dose.reps must be an inclusive [lo, hi] pair`);
+    for (const n of reps) {
+      assert.ok(Number.isInteger(n) && n > 0,
+        `${e.id}: dose.reps must be positive integers, got ${JSON.stringify(reps)}`);
+    }
+    assert.ok(reps[0] <= reps[1],
+      `${e.id}: dose.reps is descending: ${JSON.stringify(reps)}`);
+
+    assert.ok(Number.isFinite(secPerRep) && secPerRep > 0,
+      `${e.id}: dose.secPerRep must be a positive number of seconds`);
+
+    // Only `mode: 'drill'` reads a dose, and templates.js sets that mode on
+    // mobility-dynamic slots and nothing else. A dose on any other entry is a
+    // correction that never reaches the athlete.
+    assert.ok((e.modalities || []).includes('mobility-dynamic'),
+      `${e.id} carries a dose but is not mobility-dynamic, so nothing reads it`);
+  }
+});

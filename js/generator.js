@@ -956,7 +956,11 @@ function blockSeconds(b) {
 
   if (b.mode === 'drill') {
     // A mobility rep is not a barbell rep. rules.js MOBILITY_SECONDS_PER_REP.
-    return b.sets * b.reps * TIME.MOBILITY_SECONDS_PER_REP * sides + transitionSec(b);
+    // A block may carry its own seconds-per-rep. Without this the CARs dose
+    // correction would have made the prep look CHEAPER -- fewer reps at a
+    // tempo that was never theirs. §12.
+    const secPerRep = b.secPerRep || TIME.MOBILITY_SECONDS_PER_REP;
+    return b.sets * b.reps * secPerRep * sides + transitionSec(b);
   }
   if (b.mode === 'hold') {
     return b.sets * b.holdSec * sides
@@ -1426,9 +1430,19 @@ function prescribeMobility(group, e, rng) {
   };
 
   if (group.mode === 'drill') {
+    // A movement may carry its OWN dose, and one class of drill has to. CARs
+    // share the `mobility-dynamic` modality with the swing and lunge drills --
+    // correctly, they are dynamic and they belong in the prep draw -- but they
+    // are prescribed nothing like them: 3-5 slow reps per side at 10-30 s each,
+    // against 10-12 reps at 2 s. One range over both was 3-4x the sourced CARs
+    // dose on 21.2% of sessions. The dose is a fact about the movement, so it
+    // lives on the entry, for the same reason `cues` does.
+    // design-mobility-and-warmup.md §12.
+    const dose = e.dose || null;
     return {
       ...base, mode: 'drill',
-      sets: 1, reps: intBetween(rng, group.reps),
+      sets: 1, reps: intBetween(rng, (dose && dose.reps) || group.reps),
+      ...(dose && dose.secPerRep ? { secPerRep: dose.secPerRep } : {}),
       restSec: 0, effort: group.effort
     };
   }
@@ -1531,7 +1545,7 @@ export function packCooldown(blocks, budgetMin = TIME.COOLDOWN_MIN) {
 }
 
 // Ruling A2: the design-5 prep estimate (3 min) assumed bilateral drills, but
-// 5 of the 12 mobility-dynamic movements are unilateral and the `sides`
+// 54 of the 71 mobility-dynamic movements are unilateral and the `sides`
 // multiplier in estimateMinutes doubles their cost -- so a session that draws
 // several per-side drills can run well past that estimate. Mirrors
 // packCooldown's shape and its one lever: this trims drill COUNT, never the

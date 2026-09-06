@@ -1455,3 +1455,111 @@ binds. `packCooldown` answered by deleting prescribed work and reporting
 success, so the real damage never appeared in the warning rate that was being
 argued about — and a stale figure kept the argument pointed at the wrong thing
 for two commits.
+
+---
+
+## 12  CARs are not swing drills — FIXED 2026-09-06, `sw.js` v54
+
+**Reported by the athlete, from a power day.** *"I think the 11 reps don't seem
+logical to me. I think that is too much. at max 10 should be enough from my
+intuition. where does the 11 reps come from?"* His prep was a bodyweight hip
+hinge, **Hip CARs at 11**, a scapular wall slide at 11 and a walking quad pull
+at 10.
+
+### 12.1 The first read was wrong, and the measurement corrected it
+
+The obvious suspect was the per-side multiplier. `prescribeMobility` sets
+`perSide` from `unilateral` and `ui.js` renders "11 reps per side", so Hip CARs
+was 22 circles, not 11 — and §2.1 records the dose as "~10–12 reps **per
+drill**". Every mention of unilateral prep work in this document (lines 234–236,
+1245, 1267, 1311) discusses per-side as a *time cost* and none of them asks
+whether the DOSE was per drill or per side.
+
+**That suspicion did not survive sourcing.** For swing- and lunge-type drills
+the practitioner convention is 10–15 reps *per leg*
+([EōS Fitness](https://www.eosfitness.com/blog/dynamic-warm-up-exercises),
+[Marathon Handbook](https://marathonhandbook.com/dynamic-warm-up-exercises/),
+[Elite Performance Institute](https://elite-performance-institute.com/exercise-library/running-drills-performance/leg-swings-for-running-warm-up/)).
+`[corroborated]` The app's per-side handling is **correct for 67 of the 71**
+`mobility-dynamic` entries, the athlete's own walking quad pull included.
+
+### 12.2 The real defect: one dose range over two unlike protocols
+
+CARs are a distinct protocol — slow, maximal-effort circles where the point is
+control at end range, not repetitions. The sourced prescription:
+
+| Source | Reps | Tempo |
+|---|---|---|
+| [Marathon Handbook](https://marathonhandbook.com/controlled-articular-rotations/) | 3–5 per direction, per leg | 10–15 s per circle |
+| [Prehab Guys / FRC summaries](https://theprehabguys.com/intro-to-frc/) | 2–3 per joint | — |
+| [Symmetry PT](https://symmetryptmiami.com/controlled-articular-rotations-cars-to-improve-mobility/) | — | 20–30 s minimum per rotation |
+
+`[corroborated]` — consistent across independent secondary sources.
+**3 reps is the value both rep sources support; 10 s is the floor both tempo
+sources permit.** Taking the bottom of a sourced range and saying so is the same
+move §11 made on the core dose.
+
+`prescribeMobility` drew every `mobility-dynamic` movement's reps from the
+single `MOBILITY_DOSE.DYNAMIC_REPS` range, so all four CARs entries got
+**3–4× the sourced dose**. Measured over 28,000 sessions across all seven day
+types: **21.2% contain a CARs drill, every one of them at 10–12 reps per side.**
+
+The time model had the same error pointing the other way. `MOBILITY_SECONDS_PER_REP`
+is 2 s, so the app priced 11 Hip CARs per side at 44 s when the sourced dose
+honestly costs 60 s. **Over-prescribing the reps while under-pricing the
+minutes** — the two errors had been hiding each other.
+
+### 12.3 The fix: the dose is a fact about the movement
+
+A new optional `dose` field on the entry (`{ reps, secPerRep }`), read by
+`prescribeMobility` and `estimateMinutes`. **Not a new modality:**
+`mobility-dynamic` is load-bearing for the coverage matrix, the `PREP_BLOCK`
+slot filter and the `cnsCost` assertions, and splitting it would drop CARs out
+of the prep draw entirely — which is not the finding. The dose belongs on the
+entry for the same reason `aka` and the cues do: it is a fact about the
+movement, not a special case in the generator.
+
+Set on four entries: `hip-cars`, `shoulder-cars`, `knee-cars`, `ankle-cars`.
+
+### 12.4 It bound against the athlete's 70 minutes, and the margin was not spent
+
+Honest CARs pricing pushed the worst session **67 → 70 min** against his stated
+≤ 70 (`spec.md:36`), failing both duration assertions. The instinct to widen
+`FLOOR_OVERRUN_ALLOWANCE_MIN` was wrong, and the measurement said why: **all 208
+sessions over the 67 min ceiling contained a CARs drill**, and `packPrep` could
+not rescue any of them because it never trims below three drills, while one
+CARs drill at 15 s/rep was two-thirds of the entire 3 min prep budget.
+
+The mispriced number was the tempo — 15 s was the *top* of the sourced range,
+chosen before it was checked against the ceiling:
+
+| Dose | Worst session | Sessions over 67 min |
+|---|---|---|
+| 3–5 reps @ 15 s | 70 min | 208 (0.693%) |
+| 3–5 reps @ 10 s | 68 min | 15 (0.050%) |
+| 3–4 reps @ 10 s | 68 min | 4 (0.013%) |
+| **3 reps @ 10 s** | **67 min** | **0** |
+
+30,000 sessions across the three gym day types. The sourced floor is also the
+setting that costs nothing: `FLOOR_OVERRUN_ALLOWANCE_MIN` stays at 7 and the
+margin against 70 stays at three minutes.
+
+### 12.5 Left open — a warm-up of nothing but joint circles
+
+Capping the dose fixed the minutes; it did not fix the draw. Hip, knee and ankle
+CARs all target `squat`/`lunge`, so on a squat day the prep can match all three:
+**244 of 21,000 prep blocks drew 2+ CARs drills, 5 of them drew 3.** At the
+corrected dose those now fit the budget, so nothing warns — but a warm-up that
+is three slow joint rituals out of four drills prepares very little. FRC
+prescribes CARs as a standalone daily practice, not as movement prep.
+
+The fix would be a cap of one CARs drill per prep block, which is a training
+judgement rather than a measured overrun. **Not taken — flagged for the
+athlete.** Recording it here because at the corrected dose this is now silent.
+
+### 12.6 A stale count found on the way
+
+`generator.js` carried *"5 of the 12 mobility-dynamic movements are
+unilateral"*. The real figures are **54 of 71** — the comment was written when
+the pool was a fifth of its size and nothing re-read it. Corrected. Fourth
+instance of the same lesson: check when a number in this repo was measured.

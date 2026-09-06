@@ -64,7 +64,13 @@ test('prep is 3-4 dynamic drills, dosed in reps', () => {
     for (const b of blocks) {
       assert.equal(b.mode, 'drill');
       assert.equal(b.role, 'prep');
-      assert.ok(b.reps >= 10 && b.reps <= 12, `${b.name} got ${b.reps} reps`);
+      // Against the dose that GOVERNS this drill, not one range over all of
+      // them: an entry may carry its own (CARs do). Asserting 10-12 on every
+      // drill is what hid the CARs overdose. §12.
+      const e0 = LIB.find(x => x.id === b.exerciseId);
+      const [lo, hi] = (e0.dose && e0.dose.reps) || [10, 12];
+      assert.ok(b.reps >= lo && b.reps <= hi,
+        `${b.name} got ${b.reps} reps, outside its ${lo}-${hi} dose`);
       assert.equal(b.optional, false);
       const e = LIB.find(x => x.id === b.exerciseId);
       assert.ok(e.modalities.includes('mobility-dynamic'),
@@ -268,4 +274,36 @@ test('packPrep holds the 3 min budget without gutting the dose', () => {
   for (const b of packed.blocks) {
     assert.equal(b.reps, 12, 'never shortens the sourced 10-12 rep dose');
   }
+});
+
+// ---------------------------------------------------------------------------
+// CARs are not swing drills -- design-mobility-and-warmup.md §12
+// ---------------------------------------------------------------------------
+
+// The four Controlled Articular Rotations entries. They share the
+// `mobility-dynamic` modality with the swing and lunge drills and are dosed
+// nothing like them: the sourced prescription is 3-5 slow reps per side at
+// 10-30 s each, against the 10-12 reps at 2 s that range-of-motion drills get.
+const CARS_IDS = new Set(['hip-cars', 'shoulder-cars', 'knee-cars', 'ankle-cars']);
+
+test('a CARs drill is dosed at its own sourced 3-5 reps, not the swing-drill 10-12', () => {
+  let seen = 0;
+  for (const dayType of ['max-strength', 'power', 'hypertrophy']) {
+    for (let seed = 1; seed <= 300; seed++) {
+      for (const b of buildPrep(dayType, LIB, freshCtx(), makeRng(seed))) {
+        if (!CARS_IDS.has(b.exerciseId)) continue;
+        seen++;
+        assert.ok(b.reps >= 3 && b.reps <= 5,
+          `${b.name} on ${dayType}/${seed} was prescribed ${b.reps} reps per side; sourced dose is 3-5`);
+      }
+    }
+  }
+  assert.ok(seen > 0, 'the sweep drew no CARs drill at all -- the assertion proved nothing');
+});
+
+test('a CARs rep is priced at its own tempo, not the 2 s swing-drill rep', () => {
+  const carsRep = drill({ reps: 4, perSide: true, secPerRep: 15 });
+  const swingRep = drill({ reps: 4, perSide: true });
+  assert.ok(estimateMinutes([carsRep]) > estimateMinutes([swingRep]),
+    'a 15 s CARs rep must cost more than a 2 s swing rep at the same rep count');
 });
