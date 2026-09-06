@@ -115,9 +115,16 @@ const norm = s => s
   .map(w => (w.length > 3 && w.endsWith('s') && !w.endsWith('ss') ? w.slice(0, -1) : w))
   .join(' ');
 
-const INDEX = LIB.map(e => ({
+// EVERY NAME AN ENTRY ANSWERS TO, each kept as its own token set rather than
+// merged into one bag. An alias is a complete alternate name, so "row machine"
+// should be compared against `rower`'s alias AS A NAME -- merging it into the
+// entry's other words instead dilutes it, and a five-token bag can never score
+// a two-token title highly however right the alias is. §18.
+const SURFACES = LIB.map(e => ({
   id: e.id,
-  tokens: new Set(norm(e.name).split(' ').concat(e.id.split('-')))
+  surfaces: [norm(e.name), e.id.split('-').join(' '), ...(e.aka || []).map(norm)]
+    .map(t => new Set(t.split(' ').filter(Boolean)))
+    .filter(set => set.size)
 }));
 
 // Token overlap against the library. Deliberately generous: this is a triage
@@ -131,14 +138,36 @@ const INDEX = LIB.map(e => ({
 // "5-10-5" is nothing but short tokens. So drop a stoplist, not a length. §16.3
 const STOP = new Set(['the', 'a', 'an', 'of', 'for', 'to', 'and', 'with', 'w', 'on', 'in']);
 
+// SCORE BOTH DIRECTIONS. The old score asked only how much of the TITLE was
+// matched, never how much of the ENTRY was, so one word out of two scored 0.50
+// against a three-word entry: "Row Machine" pointed confidently at
+// `hack-squat`, whose name is "Hack Squat (Machine)". Requiring the entry to be
+// covered too drops that to 0.40 and lets the real answer outrank it.
+//
+// Weighting rare words above common ones was tried first and is NOT here. It
+// fails on this exact case: "machine" is rare in the library, so rare-word
+// weighting makes the wrong pointer stronger. The asymmetry was the defect,
+// not the flat weights. §18.
+function f1(query, surface) {
+  let hits = 0;
+  for (const w of query) if (surface.has(w)) hits++;
+  if (!hits) return 0;
+  const precision = hits / query.length;
+  const recall = hits / surface.size;
+  return (2 * precision * recall) / (precision + recall);
+}
+
 function bestMatch(title) {
   const tokens = norm(title).split(' ').filter(w => w && !STOP.has(w));
-  if (!tokens.length) return { id: null, score: 0 };
-  let best = { id: null, score: 0 };
-  for (const entry of INDEX) {
-    const hits = tokens.filter(w => entry.tokens.has(w)).length;
-    const score = hits / tokens.length;
-    if (score > best.score) best = { id: entry.id, score };
+  if (!tokens.length) return { id: null, score: 0, matched: [] };
+  let best = { id: null, score: 0, matched: [] };
+  for (const entry of SURFACES) {
+    for (const surface of entry.surfaces) {
+      const score = f1(tokens, surface);
+      if (score > best.score) {
+        best = { id: entry.id, score, matched: tokens.filter(w => surface.has(w)) };
+      }
+    }
   }
   return best;
 }
@@ -209,7 +238,7 @@ for (const t of titles) {
   if (m.score >= 0.7) { present.push([t, m.id]); continue; }
   const rule = NOT_A_MOVEMENT.find(([, re]) => re.test(t));
   if (rule || t === 'NA') { notMovements.push([t, rule ? rule[0] : 'junk-title']); continue; }
-  candidates.push([t, m.id, m.score]);
+  candidates.push([t, m.id, m.score, m.matched]);
 }
 
 const pct = n => `${((100 * n) / titles.length).toFixed(1)}%`;
@@ -226,8 +255,11 @@ for (const [t, id] of present) console.log(`  ${t}  ->  ${id}`);
 console.log(`\n=== CANDIDATES (${candidates.length}, ${pct(candidates.length)}) ===`);
 console.log('  Nearest library entry shown so a duplicate under another name is');
 console.log('  caught by eye. Low score does not mean new -- CHECK EACH ONE.\n');
-for (const [t, id, s] of candidates) {
-  console.log(`  ${t.padEnd(46)} nearest: ${String(id).padEnd(32)} ${s.toFixed(2)}`);
+for (const [t, id, s, matched] of candidates) {
+  // The matched words are printed because a score alone cannot show that a
+  // pointer rests entirely on "stretch" or "machine". §18.
+  const on = matched && matched.length ? `  on: ${matched.join(' ')}` : '';
+  console.log(`  ${t.padEnd(46)} nearest: ${String(id).padEnd(32)} ${s.toFixed(2)}${on}`);
 }
 // Said here rather than guessed at by a regex: a capitalised word that is not
 // a movement word is usually the athlete in the clip, and no rule can tell

@@ -117,7 +117,7 @@
       "cues": ["Bar over mid-foot, shins almost touching it before you take your grip.","Chest up, lats tight, and pull the slack out of the bar before you pull.","Push the floor away rather than yanking the bar up.","Finish standing tall -- do not lean back at the top."],
       "modalities": ["max-strength","power","hypertrophy"] },
 
-    { "id": "trap-bar-deadlift", "name": "Trap Bar Deadlift", "pattern": "hinge", "tier": "primary",
+    { "id": "trap-bar-deadlift", "name": "Trap Bar Deadlift", "aka": ["hex bar deadlift"], "pattern": "hinge", "tier": "primary",
       "loadable": true, "prRef": "deadlift", "prCoef": 1.05,
       "joints": ["hip","knee","lumbar"], "equipment": ["trap-bar","plates"], "venue": "gym",
       "cnsCost": 3, "technical": 2, "unilateral": false,
@@ -1888,7 +1888,7 @@
       "cues": ["Set the seat so the knee stays slightly bent at the bottom of the stroke.","Push and pull with the arms as well as the legs from the first second.","The resistance is made by your own effort, so the pace is entirely yours.","It is harder than it looks. Go slower than you think on the first interval."],
       "modalities": ["interval","tempo","aerobic-steady"] },
 
-    { "id": "rower", "name": "Rowing Erg", "pattern": "erg", "tier": "secondary",
+    { "id": "rower", "name": "Rowing Erg", "aka": ["row machine","rowing machine","rowing ergometer"], "pattern": "erg", "tier": "secondary",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["knee","hip","lumbar","shoulder"], "equipment": ["machine"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": false,
@@ -3128,7 +3128,7 @@
 
 
 
-    { "id": "cat-cow", "name": "Cat-Cow", "pattern": "mobility", "tier": "mobility",
+    { "id": "cat-cow", "name": "Cat-Cow", "aka": ["cat and camel","cat camel"], "pattern": "mobility", "tier": "mobility",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["lumbar","thoracic"], "equipment": ["bodyweight"], "venue": "either",
       "cnsCost": 1, "technical": 1, "unilateral": false,

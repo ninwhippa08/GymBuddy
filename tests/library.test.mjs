@@ -226,3 +226,45 @@ test('the isolation pulls are hypertrophy work as well', () => {
       'can ever select it');
   }
 });
+// `aka` -- the other names a movement is filmed under. It exists so
+// tools/playlist-diff.mjs can recognise a duplicate a channel has renamed: the
+// Depth Training playlist called `trap-bar-deadlift` a "Hex Bar Deadlift" and
+// `rower` a "Row Machine", and the matcher reported both as new. The alternate
+// name belongs on the ENTRY and not in the tool, for the same reason the cues
+// do -- it is a fact about the movement, and the next channel that renames it
+// should find the answer already written down.
+// design-library-expansion.md §18.
+//
+// The collision rule is the one that matters. Two entries claiming the same
+// alias, or an alias that is another entry's real name, would make the matcher
+// point confidently at the WRONG movement -- worse than the miss it was added
+// to fix.
+test('every aka is a usable alternate name, and no two entries claim one', () => {
+  const claimed = new Map();
+  const realNames = new Map(EX.map(e => [e.name.toLowerCase().trim(), e.id]));
+
+  for (const e of EX) {
+    if (!('aka' in e)) continue;
+    assert.ok(Array.isArray(e.aka) && e.aka.length,
+      `${e.id}: aka must be a non-empty array, or absent altogether`);
+
+    for (const a of e.aka) {
+      assert.equal(typeof a, 'string', `${e.id}: aka entries must be strings`);
+      assert.ok(a.length, `${e.id}: an empty alias matches everything`);
+      assert.equal(a, a.toLowerCase().trim(),
+        `${e.id}: aka "${a}" must be lower case with no padding -- the matcher ` +
+        'normalises, so an unnormalised alias silently never matches');
+      assert.notEqual(a, e.name.toLowerCase().trim(),
+        `${e.id}: aka "${a}" only repeats the entry's own name`);
+
+      const owner = realNames.get(a);
+      assert.ok(!owner || owner === e.id,
+        `${e.id}: aka "${a}" is ${owner}'s actual name`);
+
+      const prev = claimed.get(a);
+      assert.ok(prev === undefined || prev === e.id,
+        `aka "${a}" is claimed by both ${prev} and ${e.id}`);
+      claimed.set(a, e.id);
+    }
+  }
+});
