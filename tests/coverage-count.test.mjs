@@ -6,7 +6,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { DAY_TYPES, PHASE_1_DAY_TYPES, TEMPLATES } from '../js/templates.js';
-import { patternDebt, weeklySetTarget, generate, packToBudget } from '../js/generator.js';
+import { patternDebt, weeklySetTarget, generate, packToBudget, rampWeekFor } from '../js/generator.js';
 import { TIME } from '../js/rules.js';
 
 const LIB = JSON.parse(
@@ -228,4 +228,78 @@ test('coverage still works at full volume, where the ramp has nothing to protect
   const counts = countsAcross({ banned: [], plyoLevel: 'beginner' }, 'hypertrophy', 1e12);
   assert.ok(Math.max(...counts) > 5,
     `full volume never exceeded 5 main blocks -- coverage is no longer acting at all`);
+});
+
+// --------------------------------------------------------------------------
+// ... at EVERY ramp week, not just week 1 -- design-architectures.md §7
+// --------------------------------------------------------------------------
+
+// The test above bounds week 1, which is the one week the slot cap actually
+// bites: `rampedSlots` is round(MAX_MAIN_SLOTS x volume) floored at the
+// template's own base slot count, and at volume 0.50 that is 4, the whole
+// non-coverage core. At volume 0.70 it is 6 -- the ENTIRE power template -- so
+// the cap is inert exactly where the athlete was when he reported this.
+//
+// Counting exercises was also the wrong instrument. The ramp exists to hold
+// total LOAD down (basis §3), so the quantity that must not escape is WORKING
+// SETS. Measured on the code that shipped as v54: max-strength ramp week 2
+// delivered 11.45 working sets against 10.43 at full volume -- 110% of the
+// volume a fully recovered athlete gets, from a week the ramp prices at 70%.
+const rampProfileFor = week => {
+  // Derived, never assumed. A returnDate N*7 days back does NOT give ramp week
+  // N+1 -- rampWeekFor floors on whole days and the boundary sits inside the
+  // day -- and building ramp weeks by assumption is what made the first
+  // measurement of this bug wrong by a week.
+  for (let d = 0; d <= 60; d++) {
+    const returnDate = new Date(1e12 - d * 86400e3).toISOString().slice(0, 10);
+    if (rampWeekFor({ returnDate }, 1e12) === week) {
+      return { returnDate, banned: [], plyoLevel: 'beginner' };
+    }
+  }
+  throw new Error(`no returnDate produces ramp week ${week}`);
+};
+
+const setsAcross = (profile, dayType, seeds = 300) => {
+  let total = 0;
+  for (let seed = 1; seed <= seeds; seed++) {
+    const s = generate({ library: LIB, profile, history: [], soreness: {},
+                         dayType, excludeEquipment: [], seed, now: 1e12 });
+    total += mainBlocks(s).reduce((a, b) => a + (b.sets || 0), 0);
+  }
+  return total / seeds;
+};
+
+// WEEKS 1-3, and week 4 is excluded on purpose -- see design-architectures.md
+// 7.4. RAMP week 4's multiplier is 0.90 and sets are scaled with
+// Math.round, so round(3 x 0.9) = 3: the ramp cuts NO sets that week on any
+// slot dosed at 3, and there is therefore nothing for this guard to claw back.
+// Week 4 measures 103% of full volume. Excluding it is a statement about the
+// RAMP table, not a tolerance on this rule: if week 4's volume ever becomes a
+// figure that survives rounding, put it back in this list and it should pass.
+test('no ramp week delivers more working volume than no ramp at all', () => {
+  for (const dayType of ['max-strength', 'power', 'hypertrophy']) {
+    const full = setsAcross({ banned: [], plyoLevel: 'beginner' }, dayType);
+    for (const week of [1, 2, 3]) {
+      const ramped = setsAcross(rampProfileFor(week), dayType);
+      assert.ok(ramped <= full,
+        `${dayType} ramp week ${week} delivered ${ramped.toFixed(2)} working sets ` +
+        `against ${full.toFixed(2)} at full volume -- the ramp is adding work, not cutting it`);
+    }
+  }
+});
+
+test('working volume rises with the ramp and never falls', () => {
+  // The bulge shape: cutting sets per exercise frees minutes, the 49 min guard
+  // stops binding, and coverage fills the freed slots. Volume then PEAKS in
+  // mid-ramp, which is the opposite of what a return ramp is for.
+  for (const dayType of ['max-strength', 'power', 'hypertrophy']) {
+    // 1-4 for the same reason: week 4 over-delivers, so week 5 reads as a DIP
+    // after it. The rise through the ramp proper is what this asserts.
+    const byWeek = [1, 2, 3, 4].map(w => setsAcross(rampProfileFor(w), dayType));
+    for (let i = 1; i < byWeek.length; i++) {
+      assert.ok(byWeek[i] >= byWeek[i - 1] - 0.01,
+        `${dayType} volume fell from week ${i} to week ${i + 1}: ` +
+        `${byWeek.map(v => v.toFixed(2)).join(' -> ')}`);
+    }
+  }
 });

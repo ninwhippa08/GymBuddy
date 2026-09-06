@@ -1786,7 +1786,22 @@ export function generate({
         Math.round(TIME.MAX_MAIN_SLOTS * rampRow(state.rampWeek).volume)
       );
       if (blocks.length >= rampedSlots) break;
-      if (estimateMinutes(blocks) >= TIME.MAIN_WORK_MAX_MIN) break;
+      // AND THE MINUTES ARE RAMPED TOO. This is the guard that actually
+      // decides, and until 2026-09-06 it was the one nobody scaled. The ramp
+      // cuts sets per exercise, so every block costs FEWER minutes, so a fixed
+      // 49 min ceiling stops binding exactly when the ramp is working hardest
+      // -- and coverage spends the freed time on more movements until the debt
+      // is paid. Measured on v54: max-strength ramp week 2 delivered 11.39
+      // working sets against 10.36 at full volume, 110% of the volume a fully
+      // recovered athlete gets, from a week the ramp prices at 70%.
+      //
+      // Scaling the time budget was tried once before and overshot (see the
+      // note above: return-week-1 max-strength fell to 3.02 exercises). That
+      // attempt scaled the budget GLOBALLY, so packToBudget trimmed required
+      // work with it. This one is inside the optional-slot branch and touches
+      // nothing a session is obliged to deliver. design-architectures.md 7.
+      const rampedMinutes = TIME.MAIN_WORK_MAX_MIN * rampRow(state.rampWeek).volume;
+      if (estimateMinutes(blocks) >= rampedMinutes) break;
     }
     let exercise = fillSlot(slot, library, ctx, rng);
 

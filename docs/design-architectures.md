@@ -579,3 +579,115 @@ For the superset (§3.6):
    and this design does not add it. Power's zone is 0.75–0.85 with 2–5 reps and
    its intent is speed, not grind; a descending-rep wave against a speed intent
    is a claim no source here supports. Left alone deliberately.
+
+---
+
+## 7. The return ramp was making sessions bigger — FIXED 2026-09-06, `sw.js` v55
+
+**Reported by the athlete, same power day as §12 of the mobility doc.** *"after a
+back squat I would expect something functional such as split squat jumps... why
+did you give me 2 heavy squats. where does this come from"*
+
+His session was a med ball slam at 2×3, a snatch-grip deadlift at 4×2, a back
+squat at 6×3 and a box squat. Those set counts identify the state exactly: at
+`RAMP` volume 0.70, slot A's `[3,3]` scales to 2 and slot B's `[5,6]` to 4. **He
+was in return-ramp week 2**, and the session he was complaining about was the
+worst point of a bulge nobody had measured.
+
+### 7.1 Neither squat was what he thought, and the second one was still wrong
+
+The back squat filled slot C, `role: 'dynamic effort'`, zone `dynamicEffort` at
+**40–60% of 1RM** — speed work, not a heavy squat. The box squat filled slot F,
+`'coverage: squat or hinge'`, at the hypertrophy zone. Nothing in the fill loop
+forbids drawing the same pattern twice, so squat can be served by C and F in one
+session. Measured on v54: **9.4% of ramp-week-2 power sessions carried two
+squat-pattern movements, against 0.1% at full volume.**
+
+The movement he expected exists: slot E, `'coverage: second explosive
+expression'`, whose own comment says it *outranks* slot F on a power day. He did
+not get it because optional slots fire on pattern debt and the med ball slam had
+already paid the jump/throw debt.
+
+### 7.2 The measurement underneath: the ramp was adding work, not cutting it
+
+Working sets delivered, as a share of what the same day type delivers with no
+ramp at all. 2,000 seeds per cell, ramp weeks derived from `rampWeekFor` rather
+than assumed:
+
+| day type | wk 1 | wk 2 | wk 3 | wk 4 |
+|---|---|---|---|---|
+| **ramp intends** | 50% | 70% | 80% | 90% |
+| max-strength | 78% | **110%** | 107% | 103% |
+| power | 65% | 95% | 95% | 97% |
+| hypertrophy | 62% | 79% | 89% | 100% |
+
+**Max-strength ramp week 2 delivered 110% of full volume** — more total work
+than a fully recovered athlete gets, from a week the ramp prices at 70%. The
+70-minute limit still held, so nothing in the suite caught it, exactly as in the
+v51 case this repeats.
+
+### 7.3 Root cause: a feedback loop between the ramp and coverage
+
+Traced through the fill loop with instrumentation rather than reasoning, after
+a first hypothesis failed:
+
+1. The ramp cuts sets per exercise (`Math.round(sets × volumeMultiplier)`).
+2. Every block therefore costs **fewer minutes**.
+3. The coverage guard `estimateMinutes(blocks) >= TIME.MAIN_WORK_MAX_MIN` — a
+   fixed 49 — **stops binding** precisely when the ramp is working hardest.
+4. Coverage spends the freed minutes on more movements until the debt is paid.
+
+**The first fix attempt was wrong and is recorded here because the reason is
+instructive.** Making `weeklySetTarget` ramp-aware — so a returning athlete owes
+proportionally less — changed nothing at all: the coverage guard tests
+`patternDebt(...) > 0` as a **boolean**, so scaling the target moves the
+magnitude and never the decision. Reverted rather than kept as a plausible-
+looking no-op.
+
+`rampedSlots` was written to prevent this and cannot: it is
+`round(MAX_MAIN_SLOTS × volume)` floored at the template's base slot count, and
+at volume 0.70 that is 6 — the entire power template. **It is inert from ramp
+week 2 onward**, which is where the bulge lives.
+
+### 7.4 The fix, and the 3% deliberately left
+
+The coverage time guard is scaled by the ramp's own multiplier, **inside the
+optional-slot branch only**. Scaling the time budget was tried once before
+(§3.6) and overshot because it was scaled globally, so `packToBudget` trimmed
+required work with it. This touches nothing a session is obliged to deliver.
+
+| max-strength | wk 1 | wk 2 | wk 3 | wk 4 |
+|---|---|---|---|---|
+| before | 78% | 110% | 107% | 103% |
+| **after** | **64%** | **83%** | **92%** | 103% |
+
+On his own day — power, ramp week 2 — exercises fall 5.28 → 3.78, two
+squat-pattern sessions **9.4% → 1.3%**, and slot F **91.3% → 0%**.
+
+**Week 4 still measures 103%, and that is a statement about the `RAMP` table,
+not a tolerance.** Its multiplier is 0.90 and sets are scaled with `Math.round`,
+so `round(3 × 0.9) = 3`: week 4 cuts no sets at all on any slot dosed at 3.
+There is nothing for the guard to claw back. The test excludes week 4 by name;
+if that multiplier ever becomes a figure that survives rounding, week 4 goes
+back in the list and should pass unchanged.
+
+**`Math.floor` was measured and rejected.** It cuts sets harder, which frees
+more minutes, which coverage spends on more movements: max-strength week 4 went
+to 4.36 exercises for the same 10.44 sets. The volume does not fall, it
+fragments. **This is the loop, and damping it is not the same as breaking it** —
+breaking it means bounding coverage on delivered working sets rather than on
+minutes, which is a change to §4.4's decision rule and was not taken here.
+Decided with the athlete 2026-09-06.
+
+### 7.5 Left open
+
+- **Same pattern twice in one session.** Down to 1.3% on a ramped power day and
+  0.1% at full volume, but nothing forbids it — slot F's patterns are
+  `['squat', 'hinge']` with no check against what C already drew.
+- **Slot E is now rare while ramping** (5.9%, from 96.1%). That is the ramp
+  doing its job, but it means the second explosive expression the athlete asked
+  for is mostly a full-volume movement.
+- **Slot B can draw a movement it cannot price.** `snatch-grip-deadlift` is
+  `loadable: false, prRef: null`, and slot B exists to prescribe 75–85% of the
+  lift's own max. He got 4×2 with no load guidance and asked whether the
+  movement was invented. Not addressed here.
