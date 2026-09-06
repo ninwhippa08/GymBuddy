@@ -3,8 +3,10 @@
 **Date:** 2026-08-26
 **Status:** built, from `plan-03-running-programming.md`. `aerobic-steady`,
 `interval`, `sprint` and `plyometric` are live day types. §11.0's
-recommendation to exempt the short pools from the variety target is recorded
-and deliberately NOT taken: it is the athlete's call.
+recommendation to exempt the short pools from the variety target was the
+athlete's call to make, and he took it on 2026-09-06 — for seven pools rather
+than the eight §11.0 listed, because settling it turned up a measurement error
+in the matrix. §11.0 records what changed.
 **Supersedes:** the `aerobic-steady` template in `js/templates.js:174`
 
 ---
@@ -493,7 +495,7 @@ sourcing; only the counts and percentages above did.
 
 ## 11. Known limitations
 
-### 11.0 The running main-work pools do not meet VARIETY — open decision
+### 11.0 The running main-work pools do not meet VARIETY — settled 2026-09-06
 
 Measured after task 9 (`docs/coverage-matrix.md`). No pool fails its FLOOR;
 every running pool is FLOOR_EXEMPT and correctly so. What they miss is
@@ -534,16 +536,72 @@ Two ways out, and they are not equivalent:
    sixteenth way to sprint. Repeating the acceleration sprint every third
    sprint session is what sprint training is.
 
-Option 2 is the recommendation, and it matches the precedent already in the
-codebase. It is recorded rather than taken because it widens a rule that
-governs every pool in the app, not only these seven, and because
-`VARIETY_EXEMPT_MODALITIES` is keyed on `slot.modality` — the jump pools carry
-`modality: null`, so the exemption mechanism needs a small redesign before it
-can express them. Neither belongs inside the running-programming change.
+Option 2 was the recommendation, and it matches the precedent already in the
+codebase. It was recorded rather than taken because it widens a rule that
+governs every pool in the app, not only these eight, and because
+`VARIETY_EXEMPT_MODALITIES` was keyed on `slot.modality` — the jump pools carry
+`modality: null`, so the exemption mechanism needed a small redesign before it
+could express them. Neither belonged inside the running-programming change.
 
-Until it is settled, the seven pools stay out of `CLOSED_POOLS`: they are
-measured and visible in the matrix, and nothing asserts them green.
+#### Settled 2026-09-06
 
+The athlete took option 2. Taking it turned up a measurement error that changed
+which pools it applies to, so the answer is seven pools, not eight.
+
+**The measurement error.** `tests/coverage.test.mjs`'s `poolSize` passed the day
+type's `venue` straight into `eligibleFor`. For the seven day types whose venue
+is `gym` or `outdoor` that is correct. `plyometric` declares `venue: 'either'`,
+and `js/generator.js:541` reads a venue argument as a *requirement* — so
+`'either'` kept only exercises whose own venue was also `'either'`, dropping
+every gym-only and outdoor-only jump. The generator never had this problem:
+`js/generator.js:332` translates `'either'` to `undefined` and drops the filter
+entirely. The app has been drawing from pools the matrix was describing at
+roughly two-thirds size:
+
+| pool | matrix said | app drew from |
+|---|---|---|
+| `primary :: jump :: (any)` | 8 | 14 |
+| `primary+secondary :: jump :: (any)` | 12 | 21 |
+| `secondary+accessory :: jump :: (any)` | 5 | 6 |
+
+Fixed by giving `poolSize` the same translation. No app file changed, because
+no app file was wrong. The three pools still collapse to zero on a hurt hip or
+ankle, so `FLOOR_EXEMPT` is unaffected.
+
+**What that did to the decision.** Two of the eight pools stopped needing an
+exemption. `primary+secondary :: jump :: (any)` holds 21 against a target of 16
+and went into `CLOSED_POOLS`. `primary :: jump :: (any)` is short 2 rather than
+8 — close enough to author — so it stays measured and short. An exemption is
+for a target that cannot be met, never for one that merely has not been.
+
+**The seven that are exempt**, now listed in `VARIETY_EXEMPT_POOLS`: the three
+`run/erg` energy systems (`aerobic-steady`, `interval`, `tempo`), the three
+sprint pools, and the low-intensity plyo finisher
+`secondary+accessory :: jump :: (any)` — where the ten missing entries would be
+pogo-hop and line-hop variants, which is the padding option 1 above declines by
+name.
+
+**The mechanism is keyed on the pool, not the modality.** `VARIETY_EXEMPT_POOLS`
+holds pool keys, which is what `FLOOR_EXEMPT` and `CLOSED_POOLS` already hold,
+for the reason `FLOOR_EXEMPT` states: so a fifteenth cannot appear silently.
+That answers the objection above — naming seven pools does not widen a rule
+governing thirty-two — and it can express the jump pools, which a modality key
+could not. A key that no longer matches a pool fails the suite loudly instead
+of quietly un-exempting it; confirmed by mutating one and reading the failure.
+
+**What is left is real work, not an unclosable counter.** Raw shortfall across
+all pools fell from 94 to 5:
+
+| pool | have | need | short |
+|---|---|---|---|
+| `primary :: hinge/pull-h :: power` | 13 | 16 | 3 |
+| `primary :: jump :: (any)` | 14 | 16 | 2 |
+
+Both are closeable by authoring or by tagging — the `power` pool was closeable
+by tagging once before, §3.2 of `design-library-expansion.md` — which is
+exactly why neither is exempt.
+
+### 11.1 Other limitations
 
 1. **Chronic load counts proposals, not performance.** This inherits spec §6
    limitation 1: history records what was generated, not what was completed, so

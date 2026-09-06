@@ -28,10 +28,45 @@ const SESSIONS_BEFORE_REPEAT = 16;
 // [unverified] -- a design floor, open question 1.
 const OPTIONS_PER_JOINT = 3;
 
-// Pools drawn by a TEMPLATE slot normally carry VARIETY. aerobic-steady does
-// not, and the reason is that VARIETY's premise fails there rather than that
-// variety would do harm. See design-library-expansion.md §3.2.
-const VARIETY_EXEMPT_MODALITIES = new Set(['aerobic-steady']);
+// Pools drawn by a TEMPLATE slot normally carry VARIETY. These seven do not,
+// and in every case the reason is that VARIETY's premise -- that novelty is
+// what drives the adaptation -- fails, not that variety would do harm.
+//
+// Keyed on the POOL and not, as until 2026-09-06, on the modality. Three
+// reasons. The jump pools carry `modality: null`, so a modality-keyed set
+// cannot name them at all. A modality key silently covers every pool that ever
+// gains that modality, which is how a rule governing thirty-two pools gets
+// widened by a line that reads like it names one. And naming pools
+// individually is what FLOOR_EXEMPT and CLOSED_POOLS already do in this file,
+// for the reason FLOOR_EXEMPT states: so a fifteenth cannot appear silently.
+//
+// Settled 2026-09-06 by the athlete, on design-running-programming.md §11.0's
+// recommendation. Not every pool §11.0 listed is here: after the venue fix
+// in poolSize below, `primary+secondary :: jump :: (any)` holds 21 and closed
+// on its own, and `primary :: jump :: (any)` is short 2 -- closeable by
+// authoring, so it stays measured. An exemption is for a target that cannot be met, never for
+// one that has not been.
+const VARIETY_EXEMPT_POOLS = new Set([
+  // Aerobic adaptation is accumulated time at intensity, which one movement
+  // delivers as well as sixteen. Amended 2026-08-25, sourced in §3.2.
+  'primary+secondary+accessory :: run/erg :: aerobic-steady',
+  // The same pool at two other energy systems, split out on 2026-08-27. The
+  // argument does not change with the work interval.
+  'primary+secondary+accessory :: run/erg :: interval',
+  'primary+secondary+accessory :: run/erg :: tempo',
+  // Sprinting. Variety on a sprint day comes from distance, rest and effort.
+  // The library holds 11 sprint entries because those are the sprints that
+  // exist; a sixteenth invented to satisfy a counter is worse than the repeat
+  // it replaces. Repeating the acceleration sprint IS sprint training.
+  'primary :: sprint :: sprint :: maximal',
+  'secondary :: sprint :: sprint :: maximal',
+  'secondary+accessory :: sprint :: sprint :: submaximal',
+  // The low-intensity plyo finisher. Six exist; the ten more would be pogo-hop
+  // and line-hop variants, which is the padding §11.0 declined by name. The
+  // two moderate/high jump pools are NOT here -- they are close enough to
+  // author, and one of them already passes.
+  'secondary+accessory :: jump :: (any)'
+]);
 
 const JOINTS = [
   'hip', 'knee', 'ankle', 'lumbar', 'thoracic', 'shoulder', 'scapula',
@@ -106,7 +141,12 @@ const CLOSED_POOLS = [
   'accessory :: run :: aerobic-steady',
   'accessory :: sprint-drill/agility :: (any)',
   'secondary :: sprint :: sprint :: submaximal',
-  'primary+secondary+accessory :: run/erg :: aerobic-steady'
+  'primary+secondary+accessory :: run/erg :: aerobic-steady',
+  // Closed 2026-09-06 without authoring anything. §11.0 listed this pool among
+  // the eight to exempt on the strength of a measured 12; correcting poolSize's
+  // venue handling showed the app had been drawing from 21 all along. Locked
+  // here so the fix cannot quietly regress.
+  'primary+secondary :: jump :: (any)'
 ];
 
 // ---------------------------------------------------------------------------
@@ -135,9 +175,17 @@ function poolKey(slot) {
   ].filter(Boolean).join(' :: ');
 }
 
+// `venue: 'either'` is a statement about the DAY, not about the exercise: a
+// plyometric session runs indoors or out, so the generator drops the filter
+// rather than applying it (js/generator.js:332). Passing 'either' straight
+// through kept only exercises whose OWN venue was 'either', and measured the
+// three jump pools at 8/12/5 when the app was drawing from 14/21/6. The app
+// was never wrong; this file was. Fixed 2026-09-06,
+// design-running-programming.md §11.0.
 function poolSize(slot, venue, soreness = {}) {
   return eligibleFor(slot, LIB, {
-    venue, soreness, banned: [], excludeIds: new Set()
+    venue: venue === 'either' ? undefined : venue,
+    soreness, banned: [], excludeIds: new Set()
   }).length;
 }
 
@@ -179,10 +227,9 @@ function buildPools() {
     // "Main-work pool" means a pool a TEMPLATE slot draws -- the work between
     // the prep and the cool-down. Derived from where the slot came from, not
     // from a list this file keeps. §3.2. The prep and cool-down pools adapt by
-    // repetition, and so does aerobic-steady, which is the one main-work pool
-    // the rule's premise does not fit.
-    const byRepetition = !r.fromTemplate ||
-                         VARIETY_EXEMPT_MODALITIES.has(r.slot.modality);
+    // repetition, and so do the seven main-work pools named above, which are
+    // the ones the rule's premise does not fit.
+    const byRepetition = !r.fromTemplate || VARIETY_EXEMPT_POOLS.has(key);
 
     const floor = survival > 0 ? Math.ceil(r.drawMin / survival) : null;
     const variety = byRepetition ? null : SESSIONS_BEFORE_REPEAT * r.drawMax;
@@ -259,9 +306,9 @@ test('a closed mobility pool covers every joint in its scope', () => {
 test('VARIETY applies to every main-work pool except the named exemptions', () => {
   const exempt = POOLS
     .filter(p => p.fromTemplate && p.variety === null)
-    .map(p => p.modality)
+    .map(p => p.key)
     .sort();
-  assert.deepEqual(exempt, [...VARIETY_EXEMPT_MODALITIES].sort(),
+  assert.deepEqual(exempt, [...VARIETY_EXEMPT_POOLS].sort(),
     'a main-work pool gained or lost its VARIETY target -- design §3.2 needs revisiting');
 
   for (const p of POOLS) {
@@ -286,6 +333,9 @@ test('the derived matrix is written to docs/coverage-matrix.md', () => {
     `- \`OPTIONS_PER_JOINT\` = ${OPTIONS_PER_JOINT} ([unverified] design floor)`,
     `- library holds ${LIB.length} entries`,
     `- closed pools: ${CLOSED_POOLS.length ? CLOSED_POOLS.join(', ') : 'none yet'}`,
+    `- variety-exempt pools: ${[...VARIETY_EXEMPT_POOLS].join(', ')}` +
+      ' -- pools where VARIETY’s premise fails, settled 2026-09-06;' +
+      ' see design-running-programming.md §11.0',
     '',
     '| pool | draw | have | survival | floor | variety | need | short |',
     '|---|---|---|---|---|---|---|---|'

@@ -129,6 +129,25 @@ not moves, the same finding as `8ce9c70`. `floor-press` and `incline-bench-press
 were considered and **not** tagged: they are range-of-motion variants, which is
 not one of the three rotations the source names.
 
+**Amended 2026-09-06: the exemption is keyed on the pool, not the modality, and
+six more pools joined it.** `VARIETY_EXEMPT_MODALITIES` — a set holding the one
+string `'aerobic-steady'` — became `VARIETY_EXEMPT_POOLS`, a set of pool keys,
+which is the form `FLOOR_EXEMPT` and `CLOSED_POOLS` already use. The reason is
+the one `FLOOR_EXEMPT`'s own comment gives: entries are named individually so a
+fifteenth cannot appear silently. A modality key silently covers every pool that
+ever acquires that modality, which is how a rule governing thirty-two pools gets
+widened by a line that reads as though it names one. It also could not express
+the jump pools at all, which carry `modality: null`.
+
+The six that joined, on the athlete's decision of 2026-09-06: the `interval` and
+`tempo` halves of the `run/erg` pool, split out of `aerobic-steady` on
+2026-08-27 and carrying the same argument at a different work interval; the three
+sprint pools, where variety comes from distance, rest and effort rather than from
+a sixteenth way to sprint; and the low-intensity plyometric finisher, where the
+ten missing entries would be pogo-hop and line-hop variants. The reasoning — and
+the measurement error that kept two jump pools *out* of the exemption — is in
+`design-running-programming.md` §11.0.
+
 ### 3.3 COVERAGE — mobility and core
 
 > Every joint **in the pool's declared scope** carries at least 3 options.
@@ -1038,6 +1057,13 @@ gym side that is about **11 entries across five accessory/secondary pools**;
 the remaining ~100 of §4's shortfall is `sprint`, `run` and `jump`, where §11.1's
 conclusion is unchanged — a sixteenth way to sprint is worse than repeating the
 right one.
+
+*Updated 2026-09-06:* that ~100 is now 5. Seven of those pools were exempted
+from VARIETY (§3.2's amendment), and correcting a venue bug in the coverage
+test showed the jump pools were larger than the matrix had been reporting. The
+gym side is untouched by both: the ~11 entries across five accessory/secondary
+pools is still where growth pays, and `primary :: hinge/pull-h :: power`
+(short 3) is the largest single item left.
 
 ---
 

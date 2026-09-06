@@ -7,19 +7,13 @@ running the suite.
 - `SESSIONS_BEFORE_REPEAT` = 16 (athlete's preference)
 - `OPTIONS_PER_JOINT` = 3 ([unverified] design floor)
 - library holds 493 entries
-- closed pools: mobility :: mobility :: mobility-static, mobility :: mobility :: mobility-dynamic, core :: core/rotate :: (any), primary+secondary :: jump/throw :: power, primary :: squat/hinge/push-h/push-v/pull-v :: max-strength, accessory :: lunge/carry/rotate :: hypertrophy, primary+secondary :: squat/push-h/push-v :: power, primary :: squat/hinge/push-h/push-v/pull-v :: hypertrophy, mobility :: mobility :: mobility-dynamic :: hip/knee/ankle, accessory :: run :: aerobic-steady, accessory :: sprint-drill/agility :: (any), secondary :: sprint :: sprint :: submaximal, primary+secondary+accessory :: run/erg :: aerobic-steady
+- closed pools: mobility :: mobility :: mobility-static, mobility :: mobility :: mobility-dynamic, core :: core/rotate :: (any), primary+secondary :: jump/throw :: power, primary :: squat/hinge/push-h/push-v/pull-v :: max-strength, accessory :: lunge/carry/rotate :: hypertrophy, primary+secondary :: squat/push-h/push-v :: power, primary :: squat/hinge/push-h/push-v/pull-v :: hypertrophy, mobility :: mobility :: mobility-dynamic :: hip/knee/ankle, accessory :: run :: aerobic-steady, accessory :: sprint-drill/agility :: (any), secondary :: sprint :: sprint :: submaximal, primary+secondary+accessory :: run/erg :: aerobic-steady, primary+secondary :: jump :: (any)
+- variety-exempt pools: primary+secondary+accessory :: run/erg :: aerobic-steady, primary+secondary+accessory :: run/erg :: interval, primary+secondary+accessory :: run/erg :: tempo, primary :: sprint :: sprint :: maximal, secondary :: sprint :: sprint :: maximal, secondary+accessory :: sprint :: sprint :: submaximal, secondary+accessory :: jump :: (any) -- pools where VARIETY’s premise fails, settled 2026-09-06; see design-running-programming.md §11.0
 
 | pool | draw | have | survival | floor | variety | need | short |
 |---|---|---|---|---|---|---|---|
-| `secondary+accessory :: sprint :: sprint :: submaximal` | 1 | 1 | 0% (hip) | exempt | 16 | 16 | 15 |
-| `primary+secondary+accessory :: run/erg :: interval` | 1 | 2 | 0% (hip) | exempt | 16 | 16 | 14 |
-| `primary+secondary+accessory :: run/erg :: tempo` | 1 | 3 | 0% (hip) | exempt | 16 | 16 | 13 |
-| `primary :: sprint :: sprint :: maximal` | 1 | 3 | 0% (hip) | exempt | 16 | 16 | 13 |
-| `secondary :: sprint :: sprint :: maximal` | 1 | 3 | 0% (hip) | exempt | 16 | 16 | 13 |
-| `secondary+accessory :: jump :: (any)` | 1 | 5 | 0% (ankle) | exempt | 16 | 16 | 11 |
-| `primary :: jump :: (any)` | 1 | 8 | 0% (hip) | exempt | 16 | 16 | 8 |
-| `primary+secondary :: jump :: (any)` | 1 | 12 | 0% (hip) | exempt | 16 | 16 | 4 |
 | `primary :: hinge/pull-h :: power` | 1 | 13 | 0% (hip) | exempt | 16 | 16 | 3 |
+| `primary :: jump :: (any)` | 1 | 14 | 0% (hip) | exempt | 16 | 16 | 2 |
 | `primary :: squat/hinge/push-h/push-v/pull-v :: max-strength` | 1 | 21 | 29% (hip) | 4 | 16 | 16 | 0 |
 | `primary+secondary :: (any) :: max-strength` | 1 | 44 | 39% (hip) | 3 | 16 | 16 | 0 |
 | `secondary+accessory :: (any) :: hypertrophy` | 1 | 141 | 48% (hip) | 3 | 16 | 16 | 0 |
@@ -36,6 +30,13 @@ running the suite.
 | `accessory :: (any) :: isolation` | 1 | 53 | 51% (shoulder) | 2 | 16 | 16 | 0 |
 | `accessory :: lunge/rotate :: hypertrophy` | 1 | 35 | 6% (hip) | 18 | 16 | 18 | 0 |
 | `primary+secondary+accessory :: run/erg :: aerobic-steady` | 1 | 3 | 0% (hip) | exempt | repetition | 0 | 0 |
+| `secondary+accessory :: sprint :: sprint :: submaximal` | 1 | 1 | 0% (hip) | exempt | repetition | 0 | 0 |
+| `primary+secondary+accessory :: run/erg :: interval` | 1 | 2 | 0% (hip) | exempt | repetition | 0 | 0 |
+| `primary+secondary+accessory :: run/erg :: tempo` | 1 | 3 | 0% (hip) | exempt | repetition | 0 | 0 |
+| `primary :: sprint :: sprint :: maximal` | 1 | 3 | 0% (hip) | exempt | repetition | 0 | 0 |
+| `secondary :: sprint :: sprint :: maximal` | 1 | 3 | 0% (hip) | exempt | repetition | 0 | 0 |
+| `primary+secondary :: jump :: (any)` | 1 | 21 | 0% (hip) | exempt | 16 | 16 | 0 |
+| `secondary+accessory :: jump :: (any)` | 1 | 6 | 0% (ankle) | exempt | repetition | 0 | 0 |
 | `mobility :: mobility :: mobility-dynamic` | 4 | 71 | 30% (hip) | 11 | coverage | 11 | 0 |
 | `accessory :: run :: aerobic-steady` | 1 | 1 | 0% (hip) | exempt | coverage | 0 | 0 |
 | `mobility :: mobility :: mobility-dynamic :: hip/knee/ankle` | 4 | 54 | 11% (hip) | 27 | coverage | 27 | 0 |
@@ -54,6 +55,6 @@ running the suite.
 
 `**n**` is below target. `n·` is outside that pool's scope.
 
-Raw shortfall across all pools: **94** (pools overlap, so an
+Raw shortfall across all pools: **5** (pools overlap, so an
 entry can close more than one).
 
