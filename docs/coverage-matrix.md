@@ -6,7 +6,7 @@ running the suite.
 
 - `SESSIONS_BEFORE_REPEAT` = 16 (athlete's preference)
 - `OPTIONS_PER_JOINT` = 3 ([unverified] design floor)
-- library holds 517 entries
+- library holds 524 entries
 - closed pools: mobility :: mobility :: mobility-static, mobility :: mobility :: mobility-dynamic, core :: core/rotate :: (any), primary+secondary :: jump/throw :: power, primary :: squat/hinge/push-h/push-v/pull-v :: max-strength, accessory :: lunge/carry/rotate :: hypertrophy, primary+secondary :: squat/push-h/push-v :: power, primary :: squat/hinge/push-h/push-v/pull-v :: hypertrophy, mobility :: mobility :: mobility-dynamic :: hip/knee/ankle, accessory :: run :: aerobic-steady, accessory :: sprint-drill/agility :: (any), secondary :: sprint :: sprint :: submaximal, primary+secondary+accessory :: run/erg :: aerobic-steady, primary+secondary :: jump :: (any)
 - variety-exempt pools: primary+secondary+accessory :: run/erg :: aerobic-steady, primary+secondary+accessory :: run/erg :: interval, primary+secondary+accessory :: run/erg :: tempo, primary :: sprint :: sprint :: maximal, secondary :: sprint :: sprint :: maximal, secondary+accessory :: sprint :: sprint :: submaximal, secondary+accessory :: jump :: (any) -- pools where VARIETY’s premise fails, settled 2026-09-06; see design-running-programming.md §11.0
 
@@ -37,20 +37,20 @@ running the suite.
 | `secondary :: sprint :: sprint :: maximal` | 1 | 3 | 0% (hip) | exempt | repetition | 0 | 0 |
 | `primary+secondary :: jump :: (any)` | 1 | 21 | 0% (hip) | exempt | 16 | 16 | 0 |
 | `secondary+accessory :: jump :: (any)` | 1 | 6 | 0% (ankle) | exempt | repetition | 0 | 0 |
-| `mobility :: mobility :: mobility-dynamic` | 4 | 71 | 30% (hip) | 11 | coverage | 11 | 0 |
+| `mobility :: mobility :: mobility-dynamic` | 4 | 77 | 32% (hip) | 10 | coverage | 10 | 0 |
 | `accessory :: run :: aerobic-steady` | 1 | 1 | 0% (hip) | exempt | coverage | 0 | 0 |
-| `mobility :: mobility :: mobility-dynamic :: hip/knee/ankle` | 4 | 54 | 11% (hip) | 27 | coverage | 27 | 0 |
+| `mobility :: mobility :: mobility-dynamic :: hip/knee/ankle` | 4 | 56 | 11% (hip) | 28 | coverage | 28 | 0 |
 | `accessory :: sprint-drill/agility :: (any)` | 3 | 38 | 0% (ankle) | exempt | coverage | 0 | 0 |
 | `secondary :: sprint :: sprint :: submaximal` | 4 | 1 | 0% (hip) | exempt | coverage | 0 | 0 |
-| `mobility :: mobility :: mobility-static` | 4 | 67 | 42% (hip) | 8 | coverage | 8 | 0 |
+| `mobility :: mobility :: mobility-static` | 4 | 68 | 43% (hip) | 8 | coverage | 8 | 0 |
 | `core :: core/rotate :: (any)` | 2 | 66 | 0% (lumbar) | exempt | coverage | 0 | 0 |
 
 ## Joint coverage
 
 | pool | hip | knee | ankle | lumbar | thoracic | shoulder | scapula | elbow | wrist |
 |---|---|---|---|---|---|---|---|---|---|
-| `mobility-static` (67) | 39 | 15 | 11 | 10 | 14 | 14 | 12 | 2· | 1· |
-| `mobility-dynamic` (71) | 50 | 18 | 16 | 14 | 27 | 23 | 12 | 0· | 0· |
+| `mobility-static` (68) | 39 | 15 | 11 | 11 | 15 | 14 | 12 | 2· | 1· |
+| `mobility-dynamic` (77) | 52 | 18 | 16 | 15 | 29 | 28 | 15 | 0· | 0· |
 | `core` (66) | 38 | 1· | 0· | 66 | 10 | 47· | 13· | 2· | 0· |
 
 `**n**` is below target. `n·` is outside that pool's scope.
