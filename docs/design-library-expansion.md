@@ -1822,3 +1822,98 @@ common kit and still never surface.
 directly on library growth: there is no point authoring into a pool that cannot
 be reached, and the reachability check in §17.5 exists only because this was
 found first.
+
+---
+
+## 18  Alternate names, and a channel that was mostly already here — BUILT 2026-09-06, `sw.js` v54–v59
+
+Four code comments have cited this section since `22b31b8` and it did not exist.
+It does now, and it covers one story in two halves: the matcher was rebuilt to
+catch movements filmed under another name, and Movement As Medicine is where
+that got proven.
+
+### 18.1 `aka` — the alternate name lives on the ENTRY
+
+A channel calls `trap-bar-deadlift` a "Hex Bar Deadlift" and `rower` a "Row
+Machine", and the old scorer reported both as new. The fix is an optional
+`aka` array of the other names a movement is filmed under.
+
+It belongs on the entry for the same reason the cues do: **it is a fact about
+the movement**, and the next channel that renames it should find the answer
+already written down rather than in a lookup table inside the tool. The tool
+must not accumulate exercise facts.
+
+`derive.mjs` builds variants from an explicit field list, so `aka` is **not**
+inherited — checked and correct: "hex bar deadlift" must not propagate to a
+deficit variant. If anyone adds it to `INHERITED`, the collision guard fires.
+
+**The guard that matters is collision.** An alias must be lower case, non-empty,
+not the entry's own name, not ANOTHER entry's real name, and not claimed by two
+entries. Two entries claiming one alias would make the matcher point
+confidently at the WRONG movement — worse than the miss it was added to fix.
+
+### 18.2 The measured hit rate
+
+Against the 107-title Movement As Medicine fixture at library 524, with the
+`aka` values stripped and then restored — the same scorer, the same titles, the
+only variable being the aliases:
+
+| | matched | candidates |
+|---|---|---|
+| without `aka` | 48 (44.9%) | 54 (50.5%) |
+| **with `aka`** | **62 (57.9%)** | **40 (37.4%)** |
+
+**23 aliases on 19 entries move 14 titles and buy 13 points of hit rate.** Each
+of those 14 was a confident duplicate waiting to be authored under a new id.
+
+### 18.3 The channel: 218 videos, 107 movements, 31 entries
+
+The athlete's brief was that the playlists are polluted. Two layers, and only
+the first is visible from playlist names — the pull, the filtering and the
+duration evidence are recorded in `tests/fixtures/README.md`.
+
+Of the 83 candidates the diff produced, **31 became entries and 16 became
+aliases**. The rest were declined, and the declines are the project's own rules
+working:
+
+- **§3.2, one movement at several doses.** Five reverse slider lunges at
+  different loads collapse to one slider variant. This is the same refusal §3.2
+  made of "Long Run", "Recovery Jog" and "Progression Run".
+- **Methods on a lift.** "Front Squat With ISO Hold", "Dumbbell Bench with ISO
+  Hold" — the diff tool already has a bucket for these.
+- **Already present under another name**, which is what §18.1 exists to catch.
+
+Yield by batch, and the shape is worth noting: **core 12 of 30, gym lifts 12 of
+31, mobility 7 of 24.** Mobility was lowest because the library was already
+finished there — it holds thirteen foam roll entries covering every region, and
+six foam-rolling candidates collapsed onto four of them.
+
+### 18.4 Two movements the library cannot express — the most useful finding here
+
+Both were real additions, both were written, and both were removed because a
+guard was right:
+
+- **Single-leg calf raise.** `taxonomy.test.mjs` requires `pattern: squat` to be
+  bilateral and `pattern: lunge` to be unilateral. There is no unilateral ankle
+  pattern, and filing a calf raise under `lunge` would let a lunge slot draw it.
+- **Wall sit.** The `isometric` flag is only read for `pattern: core`
+  (`generator.js` resolves `mode: 'core'` per exercise), so a squat-pattern hold
+  has no way to be dosed in seconds. A wall sit prescribed as "3 x 12" is the
+  same wrongness as "3 x 12" for a plank.
+
+A third, smaller: the PVC shoulder external-rotation stretch needs a dowel, and
+the equipment vocabulary has neither dowel nor PVC. Adding one for a single
+entry is a vocabulary change, not an authoring one.
+
+**These are library limits, not authoring gaps**, and they are worth more than
+the entries that did land: they name exactly what would have to change before
+those movements could exist. Nothing here is a reason to change it yet.
+
+### 18.5 The cost, re-derived rather than assumed
+
+The mobility batch grew the prep and cool-down pools, so the allowance was
+re-derived on the canonical sweep — 70,000 sessions, 7 day types x 10,000
+seeds, no `returnDate`. Worst session **67 min** on `max-strength`/seed 10,
+**zero** sessions over 67, re-derived allowance `worst - 60` = **7,
+unchanged**. The seven mobility entries cost nothing and the margin against the
+athlete's stated 70 min stays at three minutes.
