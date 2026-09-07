@@ -104,9 +104,20 @@ test('a single hurt joint leaves at least 3 static stretches at the gym', () => 
 // written down is that pressing out and resisting rotation for TIME is what
 // the movement is -- counting reps of standing still would be the wrong
 // instruction in exactly the way "3 x 12" is wrong for a plank.
+// Two joined 2026-09-06, on the Movement As Medicine expansion, and NEITHER
+// could be derived -- which is the test the rule above actually applies.
+// `one-arm-one-leg-plank-hold` looks like a plank variant and is not one:
+// lifting a hand and the opposite foot loads the HIP, and 11.2 is explicit
+// that a variant loading different joints is a new movement authored fresh.
+// `lying-hip-flexion-hold-mini-band` has no hold in the library to parent it
+// at all -- holding one hip flexed against a band is not a variant of anything
+// here. The human claim in both cases is the same one made for
+// `tall-kneeling-pallof-hold`: the movement IS the holding, so counting reps
+// of it would be the wrong instruction.
 const REVIEWED_HOLDS = [
   'plank', 'side-plank', 'copenhagen-plank',
-  'hollow-hold', 'l-sit', 'suitcase-hold', 'tall-kneeling-pallof-hold'
+  'hollow-hold', 'l-sit', 'suitcase-hold', 'tall-kneeling-pallof-hold',
+  'one-arm-one-leg-plank-hold', 'lying-hip-flexion-hold-mini-band'
 ];
 
 test('the isometric flag is only ever set where it is read', () => {
