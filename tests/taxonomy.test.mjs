@@ -34,9 +34,11 @@ test('multidirectional prep is its own family', () => {
   assert.deepEqual(idsWithPattern('agility'), [
     'backpedal', 'backward-hurdle-walk', 'band-resisted-lateral-shuffle',
     'carioca', 'carioca-short-long',
-    'crossover-run', 'forward-hurdle-walk', 'ladder-quick-stick',
+    'crossover-run', 'forward-hurdle-walk', 'ladder-crossover-stick',
+    'ladder-quick-stick',
     'ladder-quick-through', 'lateral-cross-behind-skip',
-    'lateral-crossover-skip', 'lateral-shuffle', 'lateral-skip', 'low-shuffle',
+    'lateral-crossover-skip', 'lateral-shuffle', 'lateral-shuffle-stick',
+    'lateral-skip', 'low-shuffle',
     'mini-band-forward-walk', 'mini-band-lateral-walk', 'mini-band-skater-walk', 'open-up-run-to-stick', 'pro-agility-shuttle',
     'shuffle-with-arm-swing'
   ]);
