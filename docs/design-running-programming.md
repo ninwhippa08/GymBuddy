@@ -553,10 +553,17 @@ type's `venue` straight into `eligibleFor`. For the seven day types whose venue
 is `gym` or `outdoor` that is correct. `plyometric` declares `venue: 'either'`,
 and `js/generator.js:541` reads a venue argument as a *requirement* — so
 `'either'` kept only exercises whose own venue was also `'either'`, dropping
-every gym-only and outdoor-only jump. The generator never had this problem:
-`js/generator.js:332` translates `'either'` to `undefined` and drops the filter
-entirely. The app has been drawing from pools the matrix was describing at
-roughly two-thirds size:
+every gym-only and outdoor-only jump.
+
+> **CORRECTED 2026-09-07 — the paragraph that stood here was wrong, and it is
+> the reason §11.2 exists.** It read: "The generator never had this problem:
+> `js/generator.js:332` translates `'either'` to `undefined` and drops the
+> filter entirely." Line 332 is `unfillableSlots`, which is not the path that
+> fills a slot. The path that does passed `'either'` through unchanged, so the
+> app had the SAME defect the test did. The table below therefore describes
+> what the app *would* have drawn from, not what it drew from. §11.2.
+
+The pools the matrix was describing at roughly two-thirds size:
 
 | pool | matrix said | app drew from |
 |---|---|---|
@@ -564,8 +571,9 @@ roughly two-thirds size:
 | `primary+secondary :: jump :: (any)` | 12 | 21 |
 | `secondary+accessory :: jump :: (any)` | 5 | 6 |
 
-Fixed by giving `poolSize` the same translation. No app file changed, because
-no app file was wrong. The three pools still collapse to zero on a hurt hip or
+Fixed by giving `poolSize` the same translation. No app file changed — which
+was the mistake, not the fix: `js/generator.js` needed the same translation and
+did not get it until 2026-09-07. §11.2. The three pools still collapse to zero on a hurt hip or
 ankle, so `FLOOR_EXEMPT` is unaffected.
 
 **What that did to the decision.** Two of the eight pools stopped needing an
@@ -601,6 +609,13 @@ Both are closeable by authoring or by tagging — the `power` pool was closeable
 by tagging once before, §3.2 of `design-library-expansion.md` — which is
 exactly why neither is exempt.
 
+**Both were worked on 2026-09-07 and only one closed.** The jump pool took two
+entries and is now in `CLOSED_POOLS`; the `power` pool took one and stopped at
+14 of 16. `design-library-expansion.md` §19 has the batch, and §19.3 has the
+reason the last two cannot be authored honestly. Closing the jump pool also
+required the app fix in §11.2 — without it the entries would have counted in
+the matrix and not in the athlete's session.
+
 ### 11.1 Other limitations
 
 1. **Chronic load counts proposals, not performance.** This inherits spec §6
@@ -610,6 +625,76 @@ exactly why neither is exempt.
 2. **`warmup-jog` duration is not verifiable on unmeasured ground**, consistent
    with spec 9.1 — it is prescribed as time and effort, which is the point.
 3. **No equipment filtering** until §9 lands.
+
+### 11.2 The venue filter — the app was the one that was wrong, FIXED 2026-09-07
+
+Found while authoring the two jump entries §11.0 asked for. The entries went in,
+the matrix moved 14 → 16, and a smoke test of 1,500 generated plyometric
+sessions drew **one of them and never the other**. The pool the matrix had just
+declared closed was not the pool the app was drawing from.
+
+**What the app was doing.** `eligibleFor` read a venue argument as a
+requirement: `venue && e.venue !== 'either' && e.venue !== venue`. Seven day
+types declare `gym` or `outdoor`, and for them that is correct. Two —
+`plyometric` and `mobility` — declare `venue: 'either'`, and against that
+argument the clause kept only entries whose OWN venue was `either`. A day type
+that can run anywhere was being served exclusively movements that need nothing.
+
+Measured across both affected day types, before the fix:
+
+| pool | matrix said | app actually drew from |
+|---|---|---|
+| `primary :: jump :: (any)` | 16 | 9 |
+| `primary+secondary :: jump :: (any)` | 23 | 13 |
+| `secondary+accessory :: jump :: (any)` | 6 | 5 |
+| `core :: core/rotate :: (any)` (cool-down) | 66 | 46 |
+| `mobility-static` (cool-down) | 68 | 63 |
+| `mobility-dynamic` (prep) | 77 | 75 |
+
+**The cost was not the count.** `box-jump` and `depth-jump` — the two most
+standard plyometrics there are, and the ones §6.4's contact budget is written
+around — could never be prescribed on the plyometric day. Neither could
+`alternate-bound` or `single-leg-bound`, which are outdoor. The day type built
+to use jumps was drawing from the subset of jumps that need no box and no field.
+
+**Two things settle that this was a bug and not a policy.**
+
+1. `unfillableSlots` (`js/generator.js:332`) already translates `'either'` to
+   `undefined` before asking the same question of the same function, under a
+   comment promising the two "can never disagree about what is possible today".
+   They disagreed: the proposer judged a slot fillable from 16 candidates that
+   the filler then drew from 9.
+2. `spec.md` §10 settled that **venue is an output** — generate first, swap
+   second, no equipment checklist. Excluding a box jump in advance because he
+   might not be near a box is that checklist, arrived at by accident rather
+   than by decision.
+
+**The fix is one clause**, placed in `eligibleFor` rather than at each call
+site, so the meaning of `'either'` is stated once:
+
+```js
+if (venue && venue !== 'either' && e.venue !== 'either' && e.venue !== venue) return false;
+```
+
+**After, measured the same way:** 23 distinct jumps drawn across slots A and B
+over 1,500 sessions, against 13 before. Worst plyometric session **42.0 min**,
+worst foot-contact count **92** — inside `PLYO_CONTACTS_PER_SESSION.beginner`
+[50, 100], and unchanged in kind from the 96 §6.4 predicted. Full suite 586/586.
+
+`poolSize` in `tests/coverage.test.mjs` keeps its own translation. It is now
+redundant, and it stays: a test that leans on the app being right about the
+very thing it is measuring has stopped being an independent check.
+
+**What this says about §11.0's September finding.** The measurement error was
+real and the direction of the correction was right. What was wrong was the
+sentence attributing the defect to the test alone — both halves had it, so the
+"app drew from" column in §11.0 describes a pool nothing was drawing from. The
+lesson is narrow and worth keeping: *reading a function that answers the same
+question is not the same as reading the path that runs.* §11.0 read
+`unfillableSlots`, which translates, and concluded the app translated. The
+smoke test that caught it was four lines and ran in a second.
+
+---
 
 ## 12. Migration and test impact
 

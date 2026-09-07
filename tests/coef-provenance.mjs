@@ -443,8 +443,48 @@ export const COEF_PROVENANCE = {
   // of a full snatch, which is where coaching guidance puts them. They stay
   // unverified -- coherence is not a source -- but they no longer look odd.
   "power-snatch"              : { coef: 1    , of: "snatch"          , tag: 'verified' },
-  "hang-power-snatch"         : { coef: 0.9  , of: "snatch"          , tag: 'unverified' },
+  // SOURCED 2026-09-07, UNCHANGED, FROM A PAPER THIS REGISTER WAS ALREADY
+  // CITING. PMC6890263 reports three ratios in one sentence and the register
+  // had been using only the first of them: "The overall mean values of the
+  // PS/S, HS/S, and HPS/S ratios were 0.88 +/- 0.07, 0.95 +/- 0.06, and
+  // 0.79 +/- 0.07, respectively." 16 young weightlifters, seven tests at
+  // three-month intervals over two years, PLoS One 2019.
+  //   https://pmc.ncbi.nlm.nih.gov/articles/PMC6890263/
+  //
+  // Both of this library's snatch coefficients hang off the SAME root, which
+  // is his power snatch (§5.5), so the hang power snatch relative to the power
+  // snatch is HPS/S divided by PS/S: 0.79 / 0.88 = 0.898. The inherited 0.90
+  // is inside a standard deviation of it and does not move. Corroborated
+  // rather than verified for the reason front-squat is: the measurement is
+  // real and the population is not his -- competitive junior weightlifters,
+  // where a deep receiving position is the daily skill.
+  //
+  // The lesson worth keeping is about the search, not the number: a source
+  // already in the register can hold answers to questions nobody asked it.
+  "hang-power-snatch"         : { coef: 0.9  , of: "snatch"          , tag: 'corroborated' },
   "muscle-snatch"             : { coef: 0.65 , of: "snatch"          , tag: 'unverified' },
+  // AUTHORED 2026-09-07 WITH ITS COEFFICIENT ALREADY SOURCED, which is what
+  // the ratchet below asks of a new loadable movement. PS/S = 0.88 inverts to
+  // a full snatch at 1/0.88 = 1.136 of his power snatch root; 1.14.
+  //   https://pmc.ncbi.nlm.nih.gov/articles/PMC6890263/
+  //
+  // It is the snatch-side twin of squat-clean, and it lands LOWER: 1.14
+  // against 1.18, from a primary study rather than two coaching sources. That
+  // the two families disagree by four points is the expected direction -- the
+  // gap between a power lift and its full version is a receiving-position gap,
+  // and the snatch is caught in a position the clean is not.
+  //
+  // Corroborated, not verified, and the caveat is the one that matters for
+  // HIM. Above 1.00 means the card prescribes more weight than the PR he
+  // entered, and this ratio was measured on lifters whose overhead squat is
+  // their daily work. A returning athlete with stale technique may not have a
+  // full snatch above his power snatch at all. Two things bound the risk: the
+  // ramp's second clamp holds the displayed multiplier down while he is
+  // returning (see the tests below), and overhead-squat's note already flags
+  // the receiving position as the thing most likely to have decayed. If he
+  // ever reports the full snatch feeling heavier than the number suggests,
+  // this coefficient is the first place to look and 1.00 is the honest floor.
+  "squat-snatch"              : { coef: 1.14 , of: "snatch"          , tag: 'corroborated' },
 };
 
 // The count of unsourced coefficients on the day the register was created.
@@ -482,4 +522,9 @@ export const COEF_PROVENANCE = {
 // under 1.00 wastes a set where an error above it is an overload. That does
 // not make these free -- front-squat was 9% high against the only
 // within-subject measurement there is.
-export const UNVERIFIED_BUDGET = 19;
+// Lowered 19 -> 18 on 2026-09-07 for hang-power-snatch, sourced from a paper
+// the register was ALREADY citing for a different ratio in the same sentence.
+// No new reading was needed and the value did not move. Recorded because it
+// is a cheaper kind of win than the searches above and worth looking for
+// first: before hunting a new source, check what the existing ones also say.
+export const UNVERIFIED_BUDGET = 18;

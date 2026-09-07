@@ -538,7 +538,28 @@ export function eligibleFor(slot, library, ctx) {
     if (slot.plyoIntensity && !slot.plyoIntensity.includes(e.plyoIntensity)) {
       return false;
     }
-    if (venue && e.venue !== 'either' && e.venue !== venue) return false;
+    // A day type's venue of `either` is a statement about the DAY -- a
+    // plyometric or mobility session runs indoors or out -- so it is NOT a
+    // requirement and must not be matched against the entry's own venue.
+    // Read as a requirement it kept only movements that are THEMSELVES
+    // `either`, which silently made every gym-only and outdoor-only jump
+    // unreachable on the one day type built to use them: depth jump and box
+    // jump, the two canonical plyometrics, could never be prescribed.
+    // Measured 2026-09-07 over 1,500 plyometric sessions -- 13 distinct jumps
+    // drawn across slots A and B, against 23 once this line was fixed.
+    //
+    // TWO THINGS SAID THIS WAS A BUG RATHER THAN A POLICY. unfillableSlots
+    // above already translates `either` to undefined before asking the same
+    // question, under a comment promising the two "can never disagree about
+    // what is possible today" -- they did. And spec §10 settled that venue is
+    // an OUTPUT: generate first, swap second, no equipment checklist. Refusing
+    // a box jump in advance because he might not be at a gym is that
+    // checklist, arrived at by accident.
+    //
+    // design-running-programming.md §11.0 read this line the other way on
+    // 2026-09-06 and fixed the coverage test to match the app. It was the
+    // app that was wrong; §11.2 records the correction.
+    if (venue && venue !== 'either' && e.venue !== 'either' && e.venue !== venue) return false;
     if (e.requiresMeasuredGround) return false; // opt-in only, spec 9.1
     if ((e.joints || []).some(j => soreness[j] === 'hurt')) return false;
     return true;

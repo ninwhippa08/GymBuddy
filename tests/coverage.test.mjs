@@ -146,7 +146,13 @@ const CLOSED_POOLS = [
   // the eight to exempt on the strength of a measured 12; correcting poolSize's
   // venue handling showed the app had been drawing from 21 all along. Locked
   // here so the fix cannot quietly regress.
-  'primary+secondary :: jump :: (any)'
+  'primary+secondary :: jump :: (any)',
+  // Closed 2026-09-07 by AUTHORING, which is what §11.0 said this pool was
+  // short of and its sibling above was not. The library had no unilateral
+  // VERTICAL jump at all -- every one-legged jump in it travelled forward or
+  // sideways -- and nothing taking off from an approach. Both are gaps in the
+  // movement rather than gaps in a counter. design-library-expansion.md §19.
+  'primary :: jump :: (any)'
 ];
 
 // ---------------------------------------------------------------------------

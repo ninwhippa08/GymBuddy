@@ -365,7 +365,15 @@ the same day already is — would take the pool to **about 15**, still short.
 So widening helps and does not finish the job.
 
 **Left open, and the pool is NOT in `CLOSED_POOLS`.** The matrix keeps
-reporting `short 3` every run, which is the honest state. The three plausible
+reporting `short 3` every run, which is the honest state.
+
+> **UPDATED 2026-09-07: 13 became 14, and the wall got a second brick.**
+> `squat-snatch` was the one honest addition left — catch depth, not bar
+> position, on the precedent `squat-clean` already set — and it arrived with a
+> sourced coefficient. The other two are now blocked twice over: by §3.2 as
+> before, and by the coefficient ratchet, which the two movements with the best
+> training case behind them (jump shrug, mid-thigh pull) cannot satisfy because
+> a pulling derivative has no 1RM of its own to take a ratio of. §19.3. The three plausible
 resolutions each need deciding rather than guessing: widen the slot's tier (a
 template change, which §2 puts outside this project); accept a lower repeat
 horizon for this one pool; or accept 13 and record why. See open question 5.
@@ -795,7 +803,9 @@ executable form of this document.
    plausible shapes are a mode-coverage rule (≥1 option per locomotion mode the
    athlete can access) or simply a non-shrink ratchet; both need deciding, not
    guessing.
-5. **`primary :: hinge/pull-h :: power` stopped at 13 of 16 and stays open.**
+5. **`primary :: hinge/pull-h :: power` reached 14 of 16 on 2026-09-07 and
+   stays open.** (§19.3 has the working; the paragraph below is as written at
+   13 and its argument is unchanged by the extra entry.)
    §5.4 has the working. Unlike question 4 this is not a missing rule — the rule
    is right and sourced, and the movements do not exist at primary tier. Three
    resolutions, all needing a decision: widen the slot to `['primary',
@@ -1917,3 +1927,131 @@ seeds, no `returnDate`. Worst session **67 min** on `max-strength`/seed 10,
 **zero** sessions over 67, re-derived allowance `worst - 60` = **7,
 unchanged**. The seven mobility entries cost nothing and the margin against the
 athlete's stated 70 min stays at three minutes.
+
+## 19  Closing the last two pools — 2026-09-07
+
+The brief was the one §11.0 of `design-running-programming.md` left: raw
+shortfall 5, in two pools, "closeable by authoring or by tagging, which is
+exactly why neither is exempt." **One closed. One moved by one and stopped, and
+the reason it stopped is worth more than the entry that landed.**
+
+| pool | was | now | need |
+|---|---|---|---|
+| `primary :: jump :: (any)` | 14 | **16** | 16 |
+| `primary :: hinge/pull-h :: power` | 13 | **14** | 16 |
+
+### 19.1  The jump pool: two gaps in the movement, not in the counter
+
+The rule this project keeps is §3.2's: an entry has to be a movement, not a
+dose. So the question was never "which two jumps would make sixteen", it was
+"what can this athlete's legs be asked to do that the library has no way to
+ask". Two answers, both found by tabulating the 14 by direction and takeoff
+rather than by reading the names:
+
+1. **No unilateral vertical jump existed.** The library held four one-legged
+   jumps and every one of them travelled — `single-leg-bound` and
+   `single-leg-forward-pogo-hop` forward, `lateral-bound` and
+   `single-leg-lateral-hurdle-hop` sideways. Nothing asked for a vertical
+   takeoff from one leg, which is how a footballer actually leaves the ground
+   most of the time. `single-leg-box-jump` is the version that lands ON the
+   box, so the eccentric cost stays where a returning athlete can afford it.
+   The transfer argument is sourced rather than assumed: a 2025 meta-analysis
+   finds unilateral plyometric work improves single-leg jump, acceleration and
+   change-of-direction while **bilateral work does not transfer to unilateral
+   tasks** — the two are not substitutes, which is precisely the claim needed
+   to justify an entry rather than a repetition.
+   https://link.springer.com/article/10.1186/s13102-025-01113-6
+
+2. **No jump began from an approach.** All 14 started from standing. The
+   approach jump converts horizontal speed into vertical, which is a different
+   skill from a countermovement jump and is measured as a different quantity —
+   an athlete can be good at one and poor at the other, and the run-up version
+   is the one that resembles the sport.
+   https://www.sportsmith.co/articles/using-the-approach-vertical-jump-for-athlete-monitoring-and-training/
+
+Both are `plyoIntensity: high`, both `tier: primary`, neither is loadable, so
+neither owes the coefficient register anything. `primary :: jump :: (any)` is
+now in `CLOSED_POOLS`.
+
+**A third candidate was declined and is recorded so it is not re-proposed.**
+The canonical low-to-high progression ends "squat jump, double-leg tuck jump,
+alternate-leg bound, single-leg hop" and the library holds all four already —
+`tuck-jump` at `secondary`. Re-tiering it to `primary` would have closed the
+pool in one line, and it is exactly the move §5.4 refused: the tier becoming a
+knob instead of a claim.
+
+### 19.2  The smoke test that caught the app, not the data
+
+Written to check the two entries could actually be drawn, which took four
+lines. It drew one of them 167 times in 1,500 plyometric sessions and the
+other **zero**. The pool the matrix had just declared closed was not the pool
+the app drew from: `venue: 'either'` was being read as a requirement, so on the
+two day types that declare it the app saw 9 primary jumps where the matrix saw
+16, and `box-jump` and `depth-jump` could not be prescribed at all.
+
+Full account, measurements and the one-clause fix in
+`design-running-programming.md` §11.2. It is recorded there because it corrects
+that document's own September finding, but the lesson belongs here too: **an
+entry that passes the coverage test has been counted, not delivered.** Every
+authoring batch from here checks the movement comes out of the generator, not
+just out of the matrix.
+
+### 19.3  The power pool: one entry, and why the last two are not there
+
+`squat-snatch` was authored, and it is the entry §5.4 missed rather than one
+§5.4 refused. §5.4 declined "a fourth clean height or a third snatch height" —
+hang-snatch, high-hang-snatch, block-clean — because bar position is a dose.
+Catch depth is not: the library already carries `squat-clean` on exactly that
+argument, and the full snatch is the same move on the snatch side. It arrived
+with its coefficient sourced, which is what the ratchet demands of a new
+loadable movement, and the source is one this register was already citing.
+
+**The remaining two cannot be authored honestly, and there are now two
+independent reasons rather than one.**
+
+- **§3.2, unchanged.** What is left in the catalogue is bar position — hang
+  high pull, mid-thigh pull, block work. Same movement, different start.
+- **The coefficient ratchet, which did not exist when §5.4 was written.** The
+  best training case for this pool is Suchomel, Comfort and Stone's five
+  weightlifting pulling derivatives, of which this library lacks two: the
+  **jump shrug** and the **mid-thigh pull**. Both are recommended specifically
+  for athletes who are not competitive weightlifters, which is this athlete
+  exactly. https://doi.org/10.1007/s40279-015-0314-y
+
+  Neither can be entered. A pulling derivative has no 1RM of its own — nobody
+  tests a jump shrug to failure — and the literature prescribes it as a
+  percentage of the 1RM *hang clean*: about 30% for the jump shrug, about 45%
+  for the high pull. `prCoef` cannot express that. It claims a ratio between
+  two maxes, and picking a value that happens to land the zone on the right
+  percentage would make the number the athlete reads correct and the claim
+  behind it false. Entering them `loadable: false` is worse — `prescribe()`
+  drops to reps and prints "leave 2-3 reps in reserve" on a movement whose
+  entire point is the load and the intent.
+
+  **This is the same class of finding as §18.4's wall sit**: the movement is
+  real, it is sourced, it is wanted, and the model has no way to say it. What
+  would have to change is a per-exercise dose reference — a percentage of a
+  DIFFERENT lift's max — which is a schema question, not an authoring one.
+
+So `primary :: hinge/pull-h :: power` stands at **14 of 16**, still outside
+`CLOSED_POOLS`, and the matrix will keep printing `short 2`. Open question 5
+was written for exactly this state and its three resolutions still stand,
+better informed: widen the slot's tier, accept a shorter repeat horizon for
+this one pool, or accept 14 and record why. **Doing nothing remains a valid
+choice**, and it is a smaller one than when the number was 13.
+
+### 19.4  A source already in the register held an answer nobody had asked it
+
+`hang-power-snatch` sat at 0.90 `[unverified]` since August. The paper the
+register cites for `snatch-pull` — PLoS One 2019, 16 weightlifters, seven tests
+over two years — reports **three** ratios in one sentence, and the register was
+using the first: PS/S 0.88, HS/S 0.95, HPS/S **0.79**. Both of this library's
+snatch coefficients hang off the same root, so 0.79 / 0.88 = 0.898. The
+inherited 0.90 is inside one standard deviation of that and does not move.
+https://pmc.ncbi.nlm.nih.gov/articles/PMC6890263/
+
+`UNVERIFIED_BUDGET` falls **19 to 18** for a number that gained a source
+without changing, the third time that has happened here after
+`trap-bar-deadlift` and `safety-bar-squat`. It cost no reading at all. Before
+hunting a new source, re-read the ones already cited: they were mined for one
+number and asked nothing else.
