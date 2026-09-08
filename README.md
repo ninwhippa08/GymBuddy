@@ -598,3 +598,18 @@ full of front squats, cleans and carries. Four entries close that: Wrist and
 Elbow CARs, and the two wrist stretches. 1657 candidates, four authored, a 0.24%
 hit rate — the lowest ever, arrived at on purpose.
 `docs/design-library-expansion.md` §20.
+
+**The most pressured joint in the library turned out to need nothing.** The
+ankle is drawn 2.04 times per option per twelve-week block and the knee 1.69,
+the two highest in the library, so the next batch was going to be authored
+into them. Two checks stopped it. The draws are spread evenly across all 27
+ankle options rather than piling onto a few, and the 16-session variety target
+does not govern mobility at all — `coverage.test.mjs` sizes the prep and
+cool-down pools by joint coverage instead, and the ankle passes that nine
+times over. Then every single ankle video on the channel turned out to already
+be in the library: E3 names a drill by the wall it is done against, this
+library names it by the joint action, and `Half Kneeling Knee to Wall` is
+`ankle-dorsiflexion-rock`. So six `aka` aliases were added instead of six
+exercises, which moved nine titles out of the candidate list. A joint under
+pressure is not the same as a joint with a gap — the wrist in §20 was a
+*zero*, and this was a distribution. `docs/design-library-expansion.md` §21.

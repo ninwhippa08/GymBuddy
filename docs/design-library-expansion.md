@@ -2198,3 +2198,117 @@ static and 1 dynamic, the elbow 2 static and 1 dynamic, so `>= 3` is reachable
 for the wrist and one entry away at the elbow. Both joints are still marked
 `·` — outside the coverage scope — in the matrix, and putting them inside it is
 still his call.
+
+## 21  The ankle and knee: nothing to author, six aliases, one thing that cannot exist — 2026-09-07, `sw.js` v62
+
+*The batch that was asked for and did not happen. §20 measured the ankle at 2.04
+draws per option and the knee at 1.69, the two most pressured joints in the
+library, and the obvious next move was to author into them. They turned out to
+be fully stocked already, and the diff had been lying about it in a way §17.2
+predicted exactly.*
+
+### 21.1  Pressure is not the same as a gap, and the 16 does not apply here
+
+Two numbers were checked before authoring, because §20's own lesson was that the
+measurement decides the batch.
+
+**The distribution is flat.** Across 5,400 sessions the 27 ankle options take
+8,134 draws and the top five hold 29% of them, against 18.5% for a perfectly
+even split; the bottom five hold 11%. Every one of the 27 is drawn between 105
+and 487 times. Nothing is starved, and there is no repeat of the venue filter
+hiding half a pool.
+
+**The 16-session target does not govern this pool.** `coverage.test.mjs` sets
+`variety = null` wherever `byRepetition` is true, and its comment says why: "the
+prep and cool-down pools adapt by repetition". Mobility is sized by COVERAGE —
+`OPTIONS_PER_JOINT = 3` — and the ankle passes that at 27 and the knee at 33.
+`mobility-dynamic :: hip/knee/ankle` is already in `CLOSED_POOLS`.
+
+Measured gaps between repeats of the same entry put the pressure in proportion:
+
+| joint | repeats observed | median gap |
+|---|---|---|
+| ankle | 4448 | 11 sessions |
+| knee | 3914 | 11 |
+| hip | 9051 | 12 |
+| shoulder | 2910 | 13 |
+| wrist (after §20) | 454 | 14 |
+
+The ankle and knee come back one to three sessions sooner than other joints.
+That is tighter, not broken, and it is nothing like the wrist's state before
+§20 — which was not a thin pool but a **zero**, a joint the prep block could
+never reach. **A zero is a defect. Eleven against twelve is a distribution.**
+
+### 21.2  The whole knee-to-wall family was already here
+
+Every one of the nine Ankle Dorsiflexion videos and all three Ankle Plantar
+Flexion videos is already in the library. The diff reported eight of the twelve
+as candidates, because this channel names a drill by the **wall** while the
+library names it by the **joint action** — §17.2's finding on a different
+channel, reproduced exactly:
+
+| E3 title | library entry | the matching cue |
+|---|---|---|
+| Half Kneeling Knee to Wall | `ankle-dorsiflexion-rock` | "half-kneeling, drive the knee forward over the toes" |
+| …(3 Way) | `three-way-ankle-mobilization` | "over the toes, the inside edge, the outside edge" |
+| …(Overpressure) | `half-kneeling-ankle-pnf` | "press the toes down hard for five seconds" |
+| …(Weighted) | `ankle-dorsiflexion-rock` | a load on a mobilisation is a dose, §3.2 |
+| Standing Knee to Wall | `standing-ankle-mobilization` | "stand with one foot ahead and rock that knee forward" |
+| Standing Calf Stretch (Knee Straight) | `calf-stretch` | "back leg straight" |
+| Standing Calf Stretch (Knee Bent) | `soleus-stretch` | "set up like a calf stretch, then bend the back knee" |
+| Rock Back (Plantar Flexion Focus) ×3 stances | `anterior-ankle-stretch` | "top of one foot flat behind you, sit back" |
+
+The knee is the same story: `couch-stretch`, `standing-quad-stretch`,
+`side-lying-quad-stretch`, `half-kneeling-quad-pnf`, `seated-hamstring-stretch`
+and `knee-cars` cover the ROM playlist, and `nordic-curl`, `glute-ham-raise`,
+`slideboard-leg-curl`, `lying-leg-curl` and `seated-leg-curl` cover the curls.
+
+**Six `aka` entries were added rather than six exercises**, and this is the
+first time the field has been used on a duplicate found by reading rather than
+by watching. The confidence bar §20.4 refused to clear for "Wrist Extension
+Mobilization" is cleared here: each alias is confirmed against the existing
+entry's own cues, which describe the same mechanics in different words.
+
+Measured after: already-in-the-library **480 → 489**, candidates **1657 →
+1648**. Nine titles resolved by six aliases, and the next channel that calls it
+a knee-to-wall will not generate a phantom candidate.
+
+### 21.3  Two declines, and the one real finding
+
+- **Heel Slide and Assisted Heel Slide** are genuinely absent and are declined
+  on **population**, which is a new reason for this project. They restore knee
+  flexion range to someone who has lost it. This athlete has not; for him a
+  supine heel slide is a lunge with the load removed and the range already
+  available. The library serves a training athlete, and a rehab channel will
+  keep offering movements whose indication is an injury he does not have.
+- **Plantar Fascia Stretch** and **Toe Yoga** hit §20.4's wall again: there is
+  no `foot` or `toe` in the joint vocabulary, and `toe-sitting` already reaches
+  the plantar surface. Recorded, not built.
+
+**Balance and proprioception cannot be expressed at all, and this is the entry
+worth keeping from the batch.** The Single Leg Balance playlist is 16 videos.
+Twelve are one movement at different reach counts — anterior, medial,
+posteromedial, posterolateral and combinations — which §3.2 collapses, and three
+are `single-leg-rdl`, which the library holds four ways. What is left is
+**single-leg balance with a reach**, the Star Excursion / Y-Balance family, and
+it has no home:
+
+- It is not `mobility-static`. That modality is stretching, and this is a hold
+  against a base of support.
+- It is not `mobility-dynamic`. That is range-of-motion work, and the reach is
+  not seeking range.
+- It is not strength at any tier. There is no load, and `prescribe()` would
+  print sets and reps for a task measured in reach distance and control.
+
+The eleven modalities in the library — `max-strength`, `power`, `hypertrophy`,
+`isolation`, `plyometric`, `interval`, `aerobic-steady`, `tempo`, `sprint`,
+`mobility-static`, `mobility-dynamic` — have no slot for a proprioceptive task,
+and the `joints` field has no way to say "the whole limb, under control".
+
+This is the same class as §18.4's wall sit and §20.4's grip work: **the movement
+is real, it is wanted, and the model has no way to say it.** It is a larger
+version of that finding than either, because balance and reach work is not a
+nice-to-have for a returning field-sport athlete — it is the one thing a rehab
+library is *for*, and a twelfth modality is a schema change, not an authoring
+one. Nothing here is a reason to make that change today. It is a reason to know
+what it would cost before the next channel is mined.

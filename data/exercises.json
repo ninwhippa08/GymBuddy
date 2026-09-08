@@ -2467,7 +2467,7 @@
       "cues": ["Face down with the ball just inside the front of the hip bone.","Rest your weight on it and bend that knee slowly to floss the tissue.","Come off it if you feel a pulse under the ball; that is not muscle."],
       "targets": ["squat","lunge","sprint","run"],
       "modalities": ["mobility-static"] },
-    { "id": "half-kneeling-ankle-pnf", "name": "Half-Kneeling Ankle PNF", "pattern": "mobility", "tier": "mobility",
+    { "id": "half-kneeling-ankle-pnf", "name": "Half-Kneeling Ankle PNF", "aka": ["half kneeling knee to wall (overpressure)"], "pattern": "mobility", "tier": "mobility",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["ankle"], "equipment": ["bodyweight"], "venue": "either",
       "cnsCost": 1, "technical": 2, "unilateral": true,
@@ -2475,7 +2475,7 @@
       "targets": ["squat","lunge","jump","run"],
       "modalities": ["mobility-static"] },
 
-    { "id": "three-way-ankle-mobilization", "name": "Three-Way Ankle Mobilization", "pattern": "mobility", "tier": "mobility",
+    { "id": "three-way-ankle-mobilization", "name": "Three-Way Ankle Mobilization", "aka": ["half kneeling knee to wall (3 way)","3 way knee to wall"], "pattern": "mobility", "tier": "mobility",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["ankle"], "equipment": ["bodyweight"], "venue": "either",
       "cnsCost": 1, "technical": 1, "unilateral": true,
@@ -2491,7 +2491,7 @@
       "targets": ["run","sprint","jump","squat"],
       "modalities": ["mobility-static"] },
 
-    { "id": "standing-ankle-mobilization", "name": "Standing Ankle Mobilization", "pattern": "mobility", "tier": "mobility",
+    { "id": "standing-ankle-mobilization", "name": "Standing Ankle Mobilization", "aka": ["standing knee to wall"], "pattern": "mobility", "tier": "mobility",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["ankle"], "equipment": ["bodyweight"], "venue": "either",
       "cnsCost": 1, "technical": 1, "unilateral": true,
@@ -3231,7 +3231,7 @@
       "dose": { "reps": [3, 3], "secPerRep": 10 },
       "modalities": ["mobility-dynamic"] },
 
-    { "id": "ankle-dorsiflexion-rock", "name": "Ankle Dorsiflexion Rock", "pattern": "mobility", "tier": "mobility",
+    { "id": "ankle-dorsiflexion-rock", "name": "Ankle Dorsiflexion Rock", "aka": ["half kneeling knee to wall"], "pattern": "mobility", "tier": "mobility",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["ankle"], "equipment": ["wall"], "venue": "either",
       "cnsCost": 1, "technical": 1, "unilateral": true,
@@ -3279,7 +3279,7 @@
       "targets": ["hinge","run","sprint","lunge"],
       "modalities": ["mobility-dynamic"] },
 
-    { "id": "calf-stretch", "name": "Standing Calf Stretch", "pattern": "mobility", "tier": "mobility",
+    { "id": "calf-stretch", "name": "Standing Calf Stretch", "aka": ["standing calf stretch (knee straight)"], "pattern": "mobility", "tier": "mobility",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["ankle"], "equipment": ["wall"], "venue": "either",
       "cnsCost": 1, "technical": 1, "unilateral": true,
@@ -3343,7 +3343,7 @@
       "targets": ["push-h","push-v"],
       "modalities": ["mobility-static"] },
 
-    { "id": "soleus-stretch", "name": "Soleus Stretch", "pattern": "mobility", "tier": "mobility",
+    { "id": "soleus-stretch", "name": "Soleus Stretch", "aka": ["standing calf stretch (knee bent)"], "pattern": "mobility", "tier": "mobility",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["ankle","knee"], "equipment": ["wall"], "venue": "either",
       "cnsCost": 1, "technical": 1, "unilateral": true,
