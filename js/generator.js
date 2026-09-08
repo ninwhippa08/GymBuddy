@@ -1620,10 +1620,35 @@ export function packPrep(blocks, budgetMin = TIME.PREP_MIN) {
   // exempt from. Found 2026-09-05 while correcting MOBILITY_SECONDS_PER_REP;
   // separate bug, same family -- a budget compared against content it was
   // never written to cover.
+  //
+  // THE SAME BUG AGAIN, ONE LEVEL UP -- found 2026-09-07 by a smoke test asking
+  // whether the new balance stage was ever actually drawn. It was not, and
+  // neither was anything else after the drills: `out.pop()` against a floor of
+  // three BLOCKS is the right shape for the gym prep, which is one group of
+  // interchangeable drills where popping means "one drill fewer". The running
+  // prep is five ORDERED STAGES, so popping meant "delete the potentiation
+  // stage, then the drills stage, then balance".
+  //
+  // Measured on the code as it stood: aerobic-steady built 9 prep blocks
+  // (P1, P2x4, P3x3, P4) and shipped 5 (P1, P2x4); plyometric built 10 and
+  // shipped 5. Stage 3 (a-skip, carioca, high knees) and stage 4 (build-up
+  // runs, low plyos) had NEVER reached a generated session, against
+  // design-running-programming.md §5's "every running session runs all four
+  // stages" -- which the template builds, three tests assert, and this
+  // function then threw away.
+  //
+  // So the budget is applied to what its own constant describes: PREP_MIN is
+  // the DRILL dose budget. Trim drills, never below the sourced
+  // DYNAMIC_DRILLS floor of 3, and never remove a block that is not a drill --
+  // a warm-up stage is not spare change. design-library-expansion.md §22.1.
   const drillMinutes = bs => estimateMinutes(bs.filter(b => b.mode !== 'time'));
+  const drillsIn = bs => bs.filter(b => b.mode === 'drill');
 
-  while (drillMinutes(out) > budgetMin && out.length > 3 && guard++ < 20) {
-    out.pop();
+  while (drillMinutes(out) > budgetMin
+         && drillsIn(out).length > MOBILITY_DOSE.DYNAMIC_DRILLS[0]
+         && guard++ < 20) {
+    const drills = drillsIn(out);
+    out.splice(out.indexOf(drills[drills.length - 1]), 1);
   }
 
   return { blocks: out, overBudget: drillMinutes(out) > budgetMin };

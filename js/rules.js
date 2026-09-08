@@ -29,10 +29,19 @@
 // in rounds of seconds while tempo work is dosed in continuous minutes. One
 // value carrying both let the tempo slot prescribe "Running Intervals, 8 min"
 // and the interval slot prescribe a stair run as 7 x 60 s. design §6.2.
+//
+// `balance` split off on 2026-09-07 for the same reason as every split above:
+// dosing follows from the modality. A balance task is dosed in seconds of
+// stance per leg and cannot be expressed by any of the eleven -- it is not
+// stretching (`mobility-static`), it is not seeking range
+// (`mobility-dynamic`), and it carries no load, so a strength tag would have
+// `prescribe()` print sets and reps for a task measured in control. The
+// library could not say it at all until this existed.
+// design-library-expansion.md §21.3, §22.
 export const MODALITIES = Object.freeze([
   'max-strength', 'power', 'hypertrophy', 'isolation',
   'plyometric', 'sprint', 'interval', 'tempo', 'aerobic-steady',
-  'mobility-dynamic', 'mobility-static'
+  'mobility-dynamic', 'mobility-static', 'balance'
 ]);
 
 // Equipment you cannot turn up without. Offering these in the "what's missing
@@ -560,6 +569,40 @@ export const MOBILITY_DOSE = Object.freeze({
 });
 
 // --------------------------------------------------------------------------
+// Balance -- design-library-expansion.md §22
+// --------------------------------------------------------------------------
+
+// WHY THE SLOT EXISTS, which is the better-sourced half. Proprioceptive
+// training reduces ankle sprain incidence: RR 0.65 (95% CI 0.55-0.77) across
+// seven moderate-to-high quality RCTs and 3,726 participants, NNT 17.
+// [verified] For primary prevention -- no prior sprain, which is this athlete
+// -- RR 0.57 (0.34-0.97), NNT 33, and the interval is wide enough to say so.
+// https://pmc.ncbi.nlm.nih.gov/articles/PMC5737043/
+//
+// THE DOSE IS THE SAME WALL THE CORE DOSE HIT: the quantity is untested, not
+// unread. That review states outright that the programmes "lacked
+// standardization" -- 5-30 min, 1-5x/week, 4 weeks to a season. The 2024
+// dosage meta-analysis (20 studies, 682 participants) lands on 20-30 min, 3x
+// a week for 4-6 weeks, but it studies CHRONIC ANKLE INSTABILITY rehab rather
+// than prevention in a healthy athlete, and it explicitly did not identify
+// set numbers, hold durations or repetition counts because the protocols
+// varied. Wrong population, and no per-exercise number in it either.
+// https://doi.org/10.1186/s12891-024-07800-8
+//
+// So the numbers below come from the only per-exercise prescription that
+// exists: the FIFA 11+ single-leg stance, 2 sets of ~30 s per leg, one
+// balance exercise per warm-up. [corroborated] -- several independent
+// secondary sources state it identically, and the primary manual is a PDF
+// this project could not open (403, and the text streams would not extract).
+// It is NOT [verified] and must not be quoted as an optimum. It is the dose a
+// deployed, trial-backed warm-up programme actually uses.
+export const BALANCE_DOSE = Object.freeze({
+  EXERCISES: Object.freeze([1, 1]),
+  SETS: Object.freeze([2, 2]),
+  HOLD_SEC: Object.freeze([30, 30])
+});
+
+// --------------------------------------------------------------------------
 // §9  Time budget
 // --------------------------------------------------------------------------
 
@@ -975,5 +1018,28 @@ export const TIME = Object.freeze({
   // minute buys this much. Reaching the same core dose at the barbell rep
   // price needs COOLDOWN_MIN 16 and costs three of the four minutes; giving
   // core reps their own CORE_SECONDS_PER_REP first got it for one.
-  FLOOR_OVERRUN_ALLOWANCE_MIN: 7
+  //
+  // 7 -> 10 [measured], 2026-09-07, and this one was SPENT rather than bought.
+  // Two changes landed together (design-library-expansion.md §22):
+  //
+  //   packPrep stopped deleting whole warm-up stages. FREE -- on the same
+  //   10,000-seed sweep with the balance entries removed, the worst outdoor
+  //   session is 67, exactly the old allowance. Restoring stages 3-5, which
+  //   had never reached a session, cost nothing against this budget.
+  //
+  //   The balance stage itself cost the three minutes. 2 sets x 30 s per leg
+  //   on four outdoor day types: interval 67 -> 70 (30 sessions over the old
+  //   allowance), aerobic-steady 68, sprint 68.
+  //
+  // Same population and rule as every derivation above (PHASE_1_DAY_TYPES x
+  // 10,000 seeds, no returnDate, now: 1e12), not rounded up: worst 70 min on
+  // interval/seed 2047, so 70 - 60 = 10.
+  //
+  // MARGIN AGAINST THE ATHLETE'S STATED <=70 min (spec.md:36) IS NOW ZERO,
+  // where §18.5 and v49 both left it at three minutes. The athlete was shown
+  // the measured trade on 2026-09-07 -- balance on the two high-risk days for
+  // 67 and no change here, against all four days for 70 -- and chose all four.
+  // The limit is met and not exceeded. It has no room left in it, so the next
+  // thing that adds session time has to buy its minutes before it spends them.
+  FLOOR_OVERRUN_ALLOWANCE_MIN: 10
 });

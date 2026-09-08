@@ -20,7 +20,7 @@
 //   restSec   inclusive [min, max] range
 //   optional  the PACK step drops these first when trimming to 45 min
 
-import { ZONES, MODALITIES, MOBILITY_DOSE } from './rules.js';
+import { ZONES, MODALITIES, MOBILITY_DOSE, BALANCE_DOSE } from './rules.js';
 
 // --------------------------------------------------------------------------
 // Day types -- spec §5
@@ -478,8 +478,29 @@ const RUN_MOBILISE = Object.freeze({
   effort: 'controlled, full range -- not a stretch', optional: false
 });
 
+// RAMP's A, separated back out. design §10 records the four-stage structure as
+// the RAMP protocol -- "Raise, Activate/mobilise, Potentiate" (Jeffreys) -- so
+// this project had ACTIVATE merged into mobilise from the start. Balance work
+// is what that stage is: neuromuscular control, not range. Splitting it out is
+// the cited structure rather than a departure from it.
+//
+// Outdoor day types only, and the reason is BOTH the evidence and the clock.
+// The sprain this prevents happens running, cutting and landing, which is what
+// these four days do; and the gym days have 3 minutes of headroom against the
+// 70-minute ceiling (worst session 67), where the outdoor days have 7 to 28.
+// Excluded from the gym prep on the CLOCK, not on the evidence.
+// design-library-expansion.md §22.
+const RUN_BALANCE = Object.freeze({
+  slot: 'P3', role: 'prep', tier: ['mobility'], patterns: ['balance'],
+  modality: 'balance', zone: null, mode: 'hold',
+  count: BALANCE_DOSE.EXERCISES,
+  sets: BALANCE_DOSE.SETS,
+  holdSec: BALANCE_DOSE.HOLD_SEC,
+  effort: 'still and quiet -- reset rather than wobble it out', optional: false
+});
+
 const RUN_INTEGRATE = Object.freeze({
-  slot: 'P3', role: 'prep', tier: ['accessory'],
+  slot: 'P4', role: 'prep', tier: ['accessory'],
   patterns: ['sprint-drill', 'agility'],
   modality: null, zone: null, mode: 'contacts',
   // PREP_INTEGRATE_COUNT: 2 on easy-run and interval days, 3 on sprint and
@@ -494,7 +515,7 @@ const RUN_INTEGRATE = Object.freeze({
 
 // Stage 4, endpoint one: the running days.
 const RUN_POTENTIATE_SPRINT = Object.freeze({
-  slot: 'P4', role: 'prep', tier: ['secondary'], patterns: ['sprint'],
+  slot: 'P5', role: 'prep', tier: ['secondary'], patterns: ['sprint'],
   // The one field standing between a warm-up and a maximal effort.
   effortClass: 'submaximal',
   modality: 'sprint', zone: null, mode: 'contacts',
@@ -520,7 +541,7 @@ const RUN_POTENTIATE_SPRINT = Object.freeze({
 // this is the one running day that can happen in a gym.
 // PREP_POTENTIATE_COUNT: 2-3 low plyos. [unverified], design §5.1.
 const RUN_POTENTIATE_PLYO = Object.freeze({
-  slot: 'P4', role: 'prep', tier: ['secondary', 'accessory'], patterns: ['jump'],
+  slot: 'P5', role: 'prep', tier: ['secondary', 'accessory'], patterns: ['jump'],
   plyoIntensity: Object.freeze(['low']),
   modality: null, zone: null, mode: 'contacts',
   count: Object.freeze([2, 3]),
@@ -559,10 +580,10 @@ export const PREP_BLOCK = Object.freeze({
   // generator jitters within it -- the same mechanism MOBILITY_DOSE already
   // uses. Writing four near-identical blocks would give the day types no
   // more resolution than this and four places to drift.
-  running: Object.freeze([RUN_RAISE, RUN_MOBILISE, RUN_INTEGRATE, RUN_POTENTIATE_SPRINT]),
+  running: Object.freeze([RUN_RAISE, RUN_MOBILISE, RUN_BALANCE, RUN_INTEGRATE, RUN_POTENTIATE_SPRINT]),
   // Same first three stages; stage 4 potentiates with low plyos instead of
   // build-ups, which is design §5's second stage-4 endpoint.
-  'running-plyo': Object.freeze([RUN_RAISE, RUN_MOBILISE, RUN_INTEGRATE, RUN_POTENTIATE_PLYO])
+  'running-plyo': Object.freeze([RUN_RAISE, RUN_MOBILISE, RUN_BALANCE, RUN_INTEGRATE, RUN_POTENTIATE_PLYO])
 });
 
 export const COOLDOWN_BLOCK = Object.freeze({

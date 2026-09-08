@@ -2312,3 +2312,144 @@ nice-to-have for a returning field-sport athlete — it is the one thing a rehab
 library is *for*, and a twelfth modality is a schema change, not an authoring
 one. Nothing here is a reason to make that change today. It is a reason to know
 what it would cost before the next channel is mined.
+
+## 22  The balance modality, and the warm-up stages nobody was getting — 2026-09-07, `sw.js` v63
+
+*§21.3 said balance work could not be expressed, and that a twelfth modality was
+a schema change rather than an authoring one. The athlete asked for the schema
+change. It cost four files, three entries and one re-derived constant — and it
+found a bug worth more than the feature.*
+
+### 22.1  The bug the feature found
+
+The first thing built was the smoke test §19.2 demands, and it read **0.0% on
+every day type**: the balance stage was never drawn. The suite was green, the
+coverage matrix counted the pool, and nothing was being delivered.
+
+`packPrep` was the cause, and it was not new. It trimmed with `out.pop()`
+against a floor of three BLOCKS, which is the right shape for the gym prep — a
+single group of interchangeable drills, where popping means *one drill fewer*.
+The running prep is five ORDERED STAGES, so popping meant *delete the
+potentiation stage, then the drills stage, then balance*.
+
+Measured on `HEAD`, before any of this work:
+
+| day type | buildPrep produced | packPrep shipped |
+|---|---|---|
+| aerobic-steady | 9 blocks — P1, P2×4, **P3×3, P4** | 5 — P1, P2×4 |
+| sprint | 9 blocks — same | 5 — P1, P2×4 |
+| plyometric | 10 blocks — P1, P2×4, **P3×3, P4×2** | 5 — P1, P2×4 |
+
+**Stage 3 (a-skip, carioca, high knees) and stage 4 (build-up runs, low plyos)
+had never once reached a generated session**, against
+`design-running-programming.md` §5's "every running session runs all four
+stages" — which the template builds and which `mobility.test.mjs`,
+`running.test.mjs` and `templates.test.mjs` all assert. Every one of those tests
+calls `buildPrep` or reads `PREP_BLOCK` directly. None asked what `generate()`
+returns, which is the same gap §19.2 found in the coverage test.
+
+This is the third member of one family, and the code comment two lines above the
+bug already names it: "a budget compared against content it was never written to
+cover" (the jog, 2026-09-05). `PREP_MIN` is the **drill** dose budget — the
+constant says so — and it was being charged against an entire five-stage
+warm-up. The fix applies it to what it describes: trim drills, never below the
+sourced `DYNAMIC_DRILLS` floor of 3, never remove a block that is not a drill.
+
+**The fix is free.** On the canonical sweep with the balance entries removed,
+the worst outdoor session is 67 — exactly the old allowance. Three stages that
+had never been delivered cost nothing to deliver.
+
+### 22.2  What `balance` is, and why it could not be one of the eleven
+
+A balance task is dosed in **seconds of stance per leg**. It is not
+`mobility-static`, which is stretching; not `mobility-dynamic`, which is seeking
+range; and not strength at any tier, because there is no load and `prescribe()`
+would print sets and reps for a task measured in control. §21.3 established
+that; this section only acts on it.
+
+The mechanism turned out to be small, which argues for the split rather than
+against it: `eligibleFor` filters one line on `slot.modality`, and
+`mode: 'hold'` already prices `sets × holdSec × sides`, with `sides` taken from
+`unilateral`. The FIFA dose is expressible with no new prescription shape.
+
+A new **pattern** was needed as well as a new modality. `library.test.mjs`
+requires every `pattern: mobility` entry to carry exactly one of dynamic/static,
+and forbids anything outside that pattern from carrying one — so balance work
+had to become its own family, the way `erg`, `march`, `agility` and
+`sprint-drill` already are.
+
+Three entries, `pattern: balance`, `tier: mobility`, bodyweight, `either`:
+`single-leg-balance`, `single-leg-balance-reach` (the Star Excursion / Y-Balance
+family) and `single-leg-balance-eyes-closed`. All three are
+`joints: ['ankle','knee','hip']`, so the pool empties on a hurt ankle. It is
+`FLOOR_EXEMPT` for the most literal version of the reason the other fourteen
+are: standing on one leg is the last thing a sore ankle should be asked to do.
+
+### 22.3  The evidence, and the dose that does not exist
+
+**The effect is the well-sourced half.** Proprioceptive training reduces ankle
+sprain incidence: RR 0.65 (95% CI 0.55–0.77) across seven moderate-to-high
+quality RCTs and 3,726 participants, NNT 17. For primary prevention — no prior
+sprain, which is this athlete — RR 0.57 (0.34–0.97), NNT 33, on an interval wide
+enough to say so. `[verified]`
+https://pmc.ncbi.nlm.nih.gov/articles/PMC5737043/
+
+**The dose is the core-dose wall again: the quantity is untested, not unread.**
+That review states the programmes "lacked standardization" — 5–30 min, 1–5× a
+week, four weeks to a season. The 2024 dosage meta-analysis (20 studies, 682
+participants) lands on 20–30 min, 3× weekly for 4–6 weeks, but it studies
+**chronic ankle instability rehabilitation**, not prevention in a healthy
+athlete, and it explicitly did not identify set numbers, hold durations or
+repetition counts. Wrong population, and no per-exercise number in it either.
+https://doi.org/10.1186/s12891-024-07800-8
+
+So the dose comes from the only per-exercise prescription that exists anywhere:
+the **FIFA 11+ single-leg stance, 2 sets of ~30 s per leg, one balance exercise
+per warm-up**. `[corroborated]` — several independent secondary sources state it
+identically, and the primary manual is a PDF this project could not open (403,
+and the text streams would not extract). It is **not** `[verified]` and must not
+be quoted as an optimum. It is the dose a deployed, trial-backed warm-up
+programme actually uses.
+
+### 22.4  Where it goes: RAMP's A, put back
+
+`design-running-programming.md` §10 records the four-stage prep as the RAMP
+protocol — "Raise, **Activate**/mobilise, Potentiate" (Jeffreys) — so this
+project has had RAMP's Activate merged into mobilise since it was built. Balance
+work is what that stage is. Splitting it back out at **P3** is the cited
+structure rather than a departure from it, and the stages renumber accordingly:
+integrate P3 → P4, potentiate P4 → P5.
+
+**Outdoor day types only, and the exclusion is on the CLOCK, not the evidence.**
+The gym days have three minutes of headroom against the ceiling; the outdoor
+days had seven to twenty-eight. Recorded plainly so nobody later reads it as a
+claim that a lifter's ankle does not need this.
+
+### 22.5  Counted, then delivered — and the minutes that were spent
+
+Delivered on **100% of sessions across all four outdoor day types**, at
+`2 × 30 s per side` exactly, with the three entries drawn evenly (about 500 each
+per 1,500 sessions per day type).
+
+The canonical sweep, 10,000 seeds × 7 day types, `now: 1e12`, no `returnDate`:
+
+| day type | mean | worst | over 67 |
+|---|---|---|---|
+| max-strength | 63.6 | 67 | 0 |
+| power | 61.7 | 67 | 0 |
+| hypertrophy | 61.6 | 67 | 0 |
+| aerobic-steady | 54.0 | 68 | 13 |
+| interval | 53.2 | **70** | 30 |
+| sprint | 51.5 | 68 | 1 |
+| plyometric | 41.0 | 51 | 0 |
+
+`FLOOR_OVERRUN_ALLOWANCE_MIN` is re-derived 7 → 10 by the same rule as every
+value above it: worst 70 on interval/seed 2047, so 70 − 60 = 10.
+
+**This one was spent, not bought.** §18.5 and v49 both left three minutes of
+margin against the athlete's stated ≤ 70; there is now none. The athlete was
+shown the measured trade — balance on the two highest-risk days for a worst of
+67 with no constant touched, against all four days for 70 — and chose all four
+on 2026-09-07. The limit is met and never exceeded. It has no room left in it,
+so the next change that adds session time has to buy its minutes before it
+spends them, the way `CORE_SECONDS_PER_REP` bought §18's.

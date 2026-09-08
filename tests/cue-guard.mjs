@@ -16,7 +16,7 @@ export const MAX_CUES = 4;
 // becomes permanent -- an entry added to a cued pool later cannot arrive blank.
 export const CUED_POOLS = [
   'mobility-static', 'mobility-dynamic', 'core', 'sprint',
-  'primary', 'secondary', 'accessory'
+  'primary', 'secondary', 'accessory', 'balance'
 ];
 
 export function cueProblems(entry) {

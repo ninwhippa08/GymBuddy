@@ -69,11 +69,19 @@ test('no drill is ever dosed in minutes and no stretch in reps', () => {
   for (const s of sessions) {
     for (const b of s.blocks) {
       if (b.role === 'prep') {
-        assert.ok(['drill', 'time', 'contacts'].includes(b.mode),
+        // 'hold' joined the list on 2026-09-07 with the balance stage. A
+        // balance task IS a hold -- seconds of stance per leg -- and that is
+        // the whole reason it needed a modality of its own rather than being
+        // filed as a drill and dosed in reps. §22.
+        assert.ok(['drill', 'time', 'contacts', 'hold'].includes(b.mode),
           `${s.dayType}: prep block ${b.slot} is mode ${b.mode}`);
         if (b.mode === 'drill') {
           assert.ok(b.reps > 0, 'a drill is dosed in reps');
           assert.equal(b.durationMin, undefined, 'a drill is not dosed in minutes');
+        }
+        if (b.mode === 'hold') {
+          assert.ok(b.holdSec > 0, 'a balance hold is dosed in seconds');
+          assert.equal(b.durationMin, undefined, 'a hold is not dosed in minutes');
         }
       }
       if (b.role === 'mobility') assert.equal(b.mode, 'hold');

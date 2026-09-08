@@ -144,12 +144,13 @@ test('an outdoor day gets prep and stretches but no core', () => {
   const rng = makeRng(3);
   const prep = buildPrep('aerobic-steady', LIB, ctx, rng);
   const cool = buildCooldown('aerobic-steady', LIB, ctx, rng);
-  // An outdoor day now draws the four-stage running prep rather than the two
+  // An outdoor day now draws the five-stage running prep rather than the two
   // or three generic drills it used to get. Stage sizes are ranges, so the
-  // assertion is that all four stages are represented and in order, not a
-  // block count. design-running-programming.md §5.1.
+  // assertion is that all five stages are represented and in order, not a
+  // block count. P3 is balance, split out of mobilise on 2026-09-07 --
+  // design-running-programming.md §5.1, design-library-expansion.md §22.
   const stages = [...new Set(prep.map(b => b.slot))];
-  assert.deepEqual(stages, ['P1', 'P2', 'P3', 'P4']);
+  assert.deepEqual(stages, ['P1', 'P2', 'P3', 'P4', 'P5']);
   assert.ok(!cool.some(b => b.role === 'core'));
 });
 

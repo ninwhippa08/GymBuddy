@@ -111,7 +111,13 @@ const FLOOR_EXEMPT = new Set([
   'secondary :: sprint :: sprint :: maximal',
   // Plyometric day.
   'primary :: jump :: (any)',
-  'primary+secondary :: jump :: (any)'
+  'primary+secondary :: jump :: (any)',
+  // Balance, added 2026-09-07 with the modality. Same fact as every line
+  // above, and the most literal instance of it: all three entries are
+  // joints ['ankle','knee','hip'], so a hurt ankle empties the pool. That is
+  // the correct behaviour -- standing on one leg is the last thing a sore
+  // ankle should be asked to do -- rather than a pool that needs more entries.
+  'mobility :: balance :: balance'
 ]);
 
 // Pools whose targets are met and must stay met. Adding a line here is how an

@@ -3941,7 +3941,28 @@
       "joints": ["shoulder","scapula"], "equipment": ["bodyweight"], "venue": "either",
       "cnsCost": 1, "technical": 2, "unilateral": false,
       "cues": ["Face down, forehead resting, arms bent into a W beside your ribs.","Lift into the W, then a T out to the sides, then an I overhead.","Squeeze the shoulder blades each time. Thumbs up, and keep it light."],
-      "modalities": ["isolation","hypertrophy"] }
+      "modalities": ["isolation","hypertrophy"] },
+
+    { "id": "single-leg-balance", "name": "Single-Leg Balance", "aka": ["single leg stance","one leg balance"], "pattern": "balance", "tier": "mobility",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["ankle","knee","hip"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 1, "technical": 1, "unilateral": true,
+      "cues": ["Stand on one leg with the knee soft and the other foot off the floor.","Fix your eyes on one spot and let the foot and ankle do the correcting.","Small wobbles are the work, not a failure. Reset if you have to put it down."],
+      "modalities": ["balance"] },
+
+    { "id": "single-leg-balance-reach", "name": "Single-Leg Balance with Reach", "aka": ["star excursion balance","y balance"], "pattern": "balance", "tier": "mobility",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["ankle","knee","hip"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 1, "technical": 2, "unilateral": true,
+      "cues": ["Balance on one leg, then reach the free foot out in front and across.","Reach as far as you can control, touching down light without weighting it.","The standing knee bends to let you reach. Keep the hips level throughout."],
+      "modalities": ["balance"] },
+
+    { "id": "single-leg-balance-eyes-closed", "name": "Single-Leg Balance, Eyes Closed", "pattern": "balance", "tier": "mobility",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["ankle","knee","hip"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 1, "technical": 2, "unilateral": true,
+      "cues": ["Settle into the single-leg stance first, then close your eyes.","Expect it to be far harder -- your vision was doing most of the work.","Stand within reach of a wall you can touch if you need to."],
+      "modalities": ["balance"] }
 
   ]
 }

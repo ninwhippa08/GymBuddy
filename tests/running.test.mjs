@@ -13,9 +13,23 @@ const LIB = JSON.parse(
 
 const pool = slot => eligibleFor(slot, LIB, { venue: 'outdoor' }).map(e => e.id);
 
-test('the running prep has four stages in order', () => {
+test('the running prep has five stages in order', () => {
   const stages = PREP_BLOCK.running.map(s => s.slot);
-  assert.deepEqual(stages, ['P1', 'P2', 'P3', 'P4']);
+  assert.deepEqual(stages, ['P1', 'P2', 'P3', 'P4', 'P5']);
+});
+
+// P3 is RAMP's Activate, separated back out of mobilise on 2026-09-07. The
+// stage exists to carry balance work and must draw nothing else -- a drill or
+// a stretch reaching it would mean the modality filter is not biting.
+// design-library-expansion.md §22.
+test('stage 3 draws balance work and only balance work', () => {
+  const ids = pool(PREP_BLOCK.running[2]);
+  assert.ok(ids.length > 0, 'the balance stage can draw nothing');
+  assert.ok(ids.includes('single-leg-balance'));
+  for (const id of ids) {
+    assert.equal(LIB.find(e => e.id === id).pattern, 'balance',
+      `${id} reached the balance stage without being balance work`);
+  }
 });
 
 test('stage 2 reaches only hip, knee and ankle drills', () => {
@@ -27,16 +41,16 @@ test('stage 2 reaches only hip, knee and ankle drills', () => {
   }
 });
 
-test('stage 3 draws drills and agility, never a maximal sprint', () => {
-  const ids = pool(PREP_BLOCK.running[2]);
+test('stage 4 draws drills and agility, never a maximal sprint', () => {
+  const ids = pool(PREP_BLOCK.running[3]);
   assert.ok(ids.includes('a-skip'));
   assert.ok(ids.includes('carioca'));
   assert.ok(!ids.includes('acceleration-sprint'),
     'a maximal sprint is not warm-up work');
 });
 
-test('stage 4 potentiates submaximally only', () => {
-  const ids = pool(PREP_BLOCK.running[3]);
+test('stage 5 potentiates submaximally only', () => {
+  const ids = pool(PREP_BLOCK.running[4]);
   assert.deepEqual(ids, ['build-up-run'],
     'only the build-up run is submaximal');
 });

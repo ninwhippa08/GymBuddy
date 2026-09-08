@@ -613,3 +613,22 @@ library names it by the joint action, and `Half Kneeling Knee to Wall` is
 exercises, which moved nine titles out of the candidate list. A joint under
 pressure is not the same as a joint with a gap — the wrist in §20 was a
 *zero*, and this was a distribution. `docs/design-library-expansion.md` §21.
+
+**A twelfth modality, and the warm-up stages nobody was getting.** Balance work
+— standing on one leg, reaching, eyes closed — could not be expressed at all: it
+is not stretching, not range-of-motion work, and carries no load, so every one
+of the eleven modalities would have dosed it wrongly. Adding `balance` took a
+new modality, a new movement pattern and three entries. The first thing built
+was a smoke test asking whether the generator actually drew them, and it read
+**0.0%** — which is how a much older bug surfaced. `packPrep` trimmed the
+warm-up by deleting blocks off the end against a three-minute *drill* budget:
+correct for the gym warm-up, which is one group of interchangeable drills, and
+catastrophic for the five-stage running warm-up, where it meant deleting whole
+stages. The sprint drills and build-up runs that
+`docs/design-running-programming.md` §5 specifies had **never appeared in a
+generated session** — built by the template, asserted by three tests, and thrown
+away before reaching the screen. Every one of those tests called the builder
+directly; none asked what the app returns. Restoring them cost nothing. The
+balance stage cost three minutes, and the athlete spent them knowingly: the
+worst session is now 70, which is the stated limit exactly and leaves no margin.
+`docs/design-library-expansion.md` §22.

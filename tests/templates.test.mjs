@@ -34,14 +34,15 @@ test('no block is optional -- it is never randomised out', () => {
   // prep's potentiation stage. design-running-programming.md §5.1 gives the
   // easy run no stage 4, because build-ups before a conversational-pace run
   // make it something other than an easy run.
-  // Both running variants end in a P4; they are the same stage with the two
-  // endpoints design §5 allows, a submaximal sprint or a low plyo.
+  // Both running variants end in a P5; they are the same stage with the two
+  // endpoints design §5 allows, a submaximal sprint or a low plyo. It was P4
+  // until the balance stage was inserted at P3 on 2026-09-07 (§22).
   const potentiation = new Set([
-    PREP_BLOCK.running[3], PREP_BLOCK['running-plyo'][3]
+    PREP_BLOCK.running[4], PREP_BLOCK['running-plyo'][4]
   ]);
   const optional = groups.filter(g => g.optional);
   assert.deepEqual(new Set(optional), potentiation);
-  for (const g of optional) assert.equal(g.slot, 'P4');
+  for (const g of optional) assert.equal(g.slot, 'P5');
   for (const g of groups) {
     if (potentiation.has(g)) continue;
     assert.equal(g.optional, false, `slot ${g.slot} is optional`);
