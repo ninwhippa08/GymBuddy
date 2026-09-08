@@ -2055,3 +2055,146 @@ without changing, the third time that has happened here after
 `trap-bar-deadlift` and `safety-bar-squat`. It cost no reading at all. Before
 hunting a new source, re-read the ones already cited: they were mined for one
 number and asked nothing else.
+
+## 20  E3 Rehab: 2196 titles, four entries — 2026-09-07, `sw.js` v61
+
+*The largest pull the project has made and the smallest batch it has authored.
+§17.1 said the gap analysis should have changed the target and did not. This
+time it did, and the section is worth keeping for that rather than for the four
+entries.*
+
+The channel, the pull and the assessment exclusion are in
+`tests/fixtures/README.md`. The short version: 80 playlists, 2224 unique videos,
+all of them short silent clips with no podcast half to strip, and a playlist
+index organised by joint and action rather than by plane and laterality. 2196
+titles reached the diff. 480 were already in the library, 59 fell to the tool's
+standing decline rules, and **1657 came out as candidates — the largest
+candidate list by a factor of twenty, against four authored entries.**
+
+### 20.1  The measurement ran first, and it removed most of the channel
+
+Before diffing anything, the library was measured the way §17.1 measures it —
+150 independent 36-session blocks, history fed forward — and the answer had not
+moved since 2026-09-05 despite 34 entries arriving in between:
+
+| pattern | pool | mean repeats / entry |
+|---|---|---|
+| `run` | 8 | 3.75 |
+| `sprint` | 11 (7 ever drawn) | 1.72 |
+| `mobility` | 145 | 0.69 |
+| everything gym-side | | **≤ 0.09** |
+
+Squat, hinge, push, pull, lunge and core are all at or under 0.09 repeats: a
+movement essentially never comes back inside a twelve-week block. **This channel
+is overwhelmingly gym-side.** Squat Variations alone contributed 131 candidates,
+Band Exercises · Upper Body 134, Horizontal Pull 64, Deadlift Variations 51. All
+of it would have been real, correctly-authored, unnoticeable work.
+
+That is the §17.1 lesson applied instead of merely recorded. The Depth Training
+playlist was mined anyway after the same finding; this one mostly was not.
+
+### 20.2  The joint table, which is where the four came from
+
+Pool size is not pressure. Splitting the 145-entry mobility pool by joint —
+options against how often each joint is actually drawn — gives the number that
+decided this batch:
+
+| joint | options | static | dynamic | draws / block | draws per option |
+|---|---|---|---|---|---|
+| hip | 91 | 39 | 52 | 138.4 | 1.52 |
+| ankle | 27 | 11 | 16 | 55.0 | **2.04** |
+| knee | 33 | 15 | 18 | 55.9 | 1.69 |
+| shoulder | 42 | 14 | 28 | 52.8 | 1.26 |
+| lumbar | 26 | 11 | 15 | 37.4 | 1.44 |
+| **elbow** | **2** | 2 | **0** | 3.5 | 1.74 |
+| **wrist** | **1** | 1 | **0** | 2.0 | 1.96 |
+
+**The zero is the finding, not the small number.** The prep block draws
+`mobility-dynamic` and the cool-down draws `mobility-static`. With no dynamic
+option at either joint, the wrist and the elbow could be *stretched* after a
+session and could never be *prepared* before one — on a library that prescribes
+front squats, cleans, snatches and carries, all of which land on the wrist.
+`quadruped-forearm-mobilization` was the only wrist entry in the library and was
+drawn **317 times across 5,400 sessions** carrying that joint alone.
+
+The channel has a Controlled Articular Rotations playlist with Wrist CARs and
+Elbow CARs in it, and the library already holds five CARs entries with a sourced
+dose (§12 of `design-mobility-and-warmup.md`: 3 reps per side at 10 s). So the
+two entries that close a zero arrive in a shape the library already knows.
+
+Authored, all four `pattern: mobility`, `tier: mobility`, bodyweight, `either`:
+
+- **`wrist-cars`**, **`elbow-cars`** — `mobility-dynamic`, dosed like the other
+  five CARs. These are the two that close the zero.
+- **`wrist-flexor-stretch`**, **`wrist-extensor-stretch`** — `mobility-static`,
+  the two directions. The library covered neither as a free-standing movement:
+  `quadruped-forearm-mobilization` reaches the flexors, but only from hands and
+  knees with bodyweight through the hands, which is a position rather than a
+  movement and is not available to a wrist that objects to being loaded.
+
+Wrist goes 1 option to 4 (3 static, 1 dynamic), elbow 2 to 3 (2 static, 1
+dynamic). Draws per option fall 1.96 → 1.60 at the wrist and 1.74 → 1.39 at the
+elbow, and `quadruped-forearm-mobilization` sheds 317 draws to 245.
+
+### 20.3  Thirty-one titles, five movements, zero entries
+
+The Wrist & Elbow Strength playlist is 31 titles and looks like the obvious
+answer to a two-option elbow. It is a cross-product: **{Band, Weighted} × {wrist
+extension, wrist flexion, radial deviation, pronation, supination} × {plain,
+Eccentric, Isometric}**. §3.2 collapses the method axis and the implement axis is
+one axis, so 31 titles are five movements.
+
+**They were still not authored, and the reason is the measurement rather than
+the rules.** Forearm strength work is `tier: accessory`, `modalities:
+["isolation", ...]` — that is where `wrist-curl` already sits. The pool is
+`accessory :: (any) :: isolation`: **58 entries, `short 0`**, in a pattern
+measuring 0.01 mean repeats. Five more entries there would be correct, cheap,
+and impossible to notice. The same argument declines the 40 Calves | Strength
+and 50 Hamstrings | Strength candidates.
+
+`eccentric` and `isometric` as *trailing* words are also not caught by the
+tool's METHOD rule, which anchors at the start of the title. Not fixed here: the
+regex is shared with six other playlists where a leading anchor is what stops
+`isometric-split-squat`-style entries being wrongly declined, and this batch did
+not need the tool to be right to reach the right answer.
+
+### 20.4  What could not be expressed, and one thing that could not be judged
+
+- **Grip and finger work.** "Ball Squeeze" and "Rubber Band Finger Extensions"
+  have nowhere to go: the joint vocabulary is hip, knee, ankle, lumbar,
+  thoracic, shoulder, scapula, elbow, wrist, neck. There is no hand or finger.
+  Adding one for two entries is a vocabulary change, not an authoring one —
+  the same finding as §18.4's dowel, and it is recorded rather than acted on.
+- **"Wrist Extension Mobilization"** was left unauthored and is *not* declined
+  on a rule. It may be `quadruped-forearm-mobilization` under another name, in
+  which case it is an `aka`, or a distinct self-mobilisation, in which case it
+  is an entry. Fourteen silent seconds is what separates the two and the clip
+  was not watched. An `aka` guessed wrong points the matcher confidently at the
+  wrong movement, which `library.test.mjs` says is worse than the miss `aka`
+  exists to fix — so it stays open rather than becoming a coin flip.
+
+### 20.5  Counted, then delivered
+
+§19.2's rule was applied before the commit rather than after: an entry that
+passes the coverage test has been counted, not delivered. 5,400 sessions,
+150 blocks of 36:
+
+| entry | draws | prep | cool-down |
+|---|---|---|---|
+| `wrist-cars` | 256 | 256 | 0 |
+| `elbow-cars` | 181 | 181 | 0 |
+| `wrist-flexor-stretch` | 240 | 0 | 240 |
+| `wrist-extensor-stretch` | 241 | 0 | 241 |
+
+Every one is drawn, at rates matching the entries they sit beside
+(`shoulder-cars` 189, `overhead-triceps-stretch` 212), and each lands only in
+the block its modality belongs to. No repeat of the venue filter.
+
+**Open question 3 is now a question that can be answered.** It asks whether
+`elbow` and `wrist` deserve `>= 3` coverage rather than `>= 1`. Until today the
+answer was forced: with one wrist option and no dynamic option at either joint,
+`>= 3` was unreachable and the question was academic. The wrist now holds 3
+static and 1 dynamic, the elbow 2 static and 1 dynamic, so `>= 3` is reachable
+for the wrist and one entry away at the elbow. Both joints are still marked
+`·` — outside the coverage scope — in the matrix, and putting them inside it is
+still his call.

@@ -582,3 +582,19 @@ in September 2026. The sources, the measurement and the decision are in
 `docs/design-mobility-and-warmup.md` §8, question 4, which also records why the
 3 × 10–15 dose itself cannot be sourced any more precisely than "inside the
 range that worked".
+
+**The largest pull the project has made produced four entries, and that is the
+result rather than a disappointment.** E3 Rehab's channel is 80 playlists and
+2224 clips — ten times any previous source — and the measurement above was run
+before diffing any of it. The gym half of the library was still finished
+(≤ 0.09 repeats per block), and this channel is overwhelmingly gym-side: Squat
+Variations alone offered 131 candidates. Authoring them would have been real,
+correct and unnoticeable. So the 145-entry mobility pool was split by *joint*
+instead, because pool size is not pressure — and the wrist held **one** option
+and the elbow **two**, with **no dynamic option at either**. Since the warm-up
+draws dynamic movements and the cool-down draws static ones, those two joints
+could be stretched after a session and never prepared before one, in a library
+full of front squats, cleans and carries. Four entries close that: Wrist and
+Elbow CARs, and the two wrist stretches. 1657 candidates, four authored, a 0.24%
+hit rate — the lowest ever, arrived at on purpose.
+`docs/design-library-expansion.md` §20.
