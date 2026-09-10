@@ -12,6 +12,7 @@ running the suite.
 
 | pool | draw | have | survival | floor | variety | need | short |
 |---|---|---|---|---|---|---|---|
+| `accessory :: sprint :: sprint :: maximal` | 1 | 3 | 0% (hip) | exempt | 16 | 16 | 13 |
 | `primary :: hinge/pull-h :: power` | 1 | 14 | 0% (hip) | exempt | 16 | 16 | 2 |
 | `primary :: squat/hinge/push-h/push-v/pull-v :: max-strength` | 1 | 22 | 27% (hip) | 4 | 16 | 16 | 0 |
 | `primary+secondary :: (any) :: max-strength` | 1 | 45 | 38% (hip) | 3 | 16 | 16 | 0 |
@@ -56,6 +57,6 @@ running the suite.
 
 `**n**` is below target. `n·` is outside that pool's scope.
 
-Raw shortfall across all pools: **2** (pools overlap, so an
+Raw shortfall across all pools: **15** (pools overlap, so an
 entry can close more than one).
 

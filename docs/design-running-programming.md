@@ -235,14 +235,25 @@ continuous effort it is.
 
 | Slot | Pool | Prescription |
 |---|---|---|
-| A | `sprint`, `effortClass: maximal`, primary | 4-8 × 20-40 m, rest 96-160 s |
-| B (optional) | `sprint`, hill or resisted | 4-6 × 20-30 m |
-| C (opt-in only) | `flying-run` | 2-3 × 20 m |
+| A | `sprint`, `effortClass: maximal`, accessory — the starts | 3-4 × 15-20 m, rest 96-160 s |
+| B | `sprint`, `effortClass: maximal`, primary | 4-8 × 20-40 m, rest 96-160 s |
+| C (optional) | `sprint`, hill or resisted | 4-6 × 20-30 m |
+| D (opt-in only) | `flying-run` | 2-3 × 20 m |
 
 Session metreage stays within `SPRINT.METERS_PER_SESSION` [200, 800] as an
 internal budget, never shown as a target (spec 9.1). Rest derives from
-`SPRINT.WORK_REST_RATIO`. Slot C is unreachable by default —
-`requiresMeasuredGround` is excluded unconditionally at `js/generator.js:245`.
+`SPRINT.WORK_REST_RATIO`.
+
+**Slot A added 2026-09-09, and slot D's gate moved onto the slot the same day.**
+The library held three accessory-tier maximal sprints — the falling,
+half-kneeling and lateral half-kneeling starts — and no slot in any template
+admitted that combination, so none had ever been prescribed. Slot D was
+documented here as unreachable by default, but the `requiresMeasuredGround`
+check sits on the ENTRY, and `flying-run` is the only entry carrying it — so
+the slot filled with an ordinary primary maximal sprint on 100% of sessions
+instead of emptying. Skipping slot D is what pays for slot A: worst session
+stays at 68 min and no constant moved.
+`design-library-expansion.md` §25.
 
 ### 6.4 `plyometric` — high CNS
 

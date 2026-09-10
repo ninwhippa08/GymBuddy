@@ -1867,6 +1867,21 @@ export function generate({
   // real templates.
   const targets = (DAY_TYPES[chosen] && DAY_TYPES[chosen].targets) || [];
   for (const slot of template) {                                         // 6-7
+    // The opt-in gate, and it belongs HERE rather than on the entry.
+    //
+    // eligibleFor drops `requiresMeasuredGround` movements unconditionally,
+    // and `flying-run` is the only entry that carries the flag -- so the
+    // sprint day's opt-in slot did not empty, it filled with an ordinary
+    // primary maximal sprint on 100% of 5,000 sessions. The design says that
+    // slot's pool is `flying-run` and that it is unreachable by default; it
+    // was neither. A slot that exists for one movement has to be gated on the
+    // same condition that movement is, not on whether anything else happens to
+    // match its tier. design-library-expansion.md §25.
+    //
+    // Unconditional for now, exactly as the entry-side check is, because the
+    // opt-in does not exist yet. When it lands this becomes a profile read and
+    // nothing else here changes.
+    if (slot.requiresMeasuredGround) continue;
     if (slot.optional && targets.length) {
       const serves = slot.patterns
         ? slot.patterns.filter(p => targets.includes(p))

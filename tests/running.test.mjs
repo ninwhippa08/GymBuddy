@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { PREP_BLOCK, TEMPLATES } from '../js/templates.js';
-import { eligibleFor } from '../js/generator.js';
+import { eligibleFor, generate } from '../js/generator.js';
 
 const LIB = JSON.parse(
   readFileSync(new URL('../data/exercises.json', import.meta.url), 'utf8')
@@ -90,11 +90,54 @@ test('easy-day strides are submaximal only', () => {
 });
 
 test('the sprint day draws maximal efforts only', () => {
-  const ids = pool(TEMPLATES.sprint[0]);
+  // Index 1 since 2026-09-09: the start slot went in at the front. Indexing a
+  // template by position is exactly the fixture-dependence design-equipment-
+  // and-swap.md §12.2 warns about, so both slots are named here rather than
+  // one being reached by number and trusted.
+  const maximal = TEMPLATES.sprint.find(s => s.role === 'maximal sprints');
+  const ids = pool(maximal);
   assert.ok(ids.includes('acceleration-sprint'));
   assert.ok(!ids.includes('build-up-run'), 'a build-up is not the hard work');
   assert.ok(!ids.includes('flying-run'),
     'flying runs need measured ground and stay opt-in');
+});
+
+// ADDED 2026-09-09. The three starts existed in the library and NO SLOT
+// ANYWHERE admitted an accessory-tier maximal sprint, so none had ever been
+// prescribed. design-library-expansion.md §25.
+test('the sprint day has a slot that reaches the starts', () => {
+  const starts = TEMPLATES.sprint.find(s => s.role === 'starts and acceleration');
+  assert.ok(starts, 'the sprint day lost its start slot');
+  assert.equal(starts.optional, false,
+    'an optional start slot is how the warm-up stages went undelivered');
+  assert.deepEqual(pool(starts).sort(),
+    ['falling-start', 'half-kneeling-start', 'lateral-half-kneeling-start']);
+});
+
+// The gate that was a comment rather than a fact until 2026-09-09: it lived on
+// the ENTRY, so the slot filled with an ordinary primary sprint on 100% of
+// sessions instead of emptying. design-library-expansion.md §25.
+test('the opt-in flying-run slot is gated on the SLOT, not on its pool', () => {
+  const optIn = TEMPLATES.sprint.find(s => /opt-in/.test(s.role || ''));
+  assert.ok(optIn, 'the opt-in slot disappeared');
+  assert.equal(optIn.requiresMeasuredGround, true,
+    'without the flag on the slot, it fills with whatever else matches its tier');
+});
+
+// The property, not the identity of the winner. A sprint session must never
+// contain a start slot and a maximal slot holding the same movement, and the
+// day must actually deliver the starts.
+test('every sprint session delivers a start, and never twice the same sprint', () => {
+  for (let seed = 1; seed <= 200; seed++) {
+    const s = generate({ library: LIB, dayType: 'sprint', seed, now: 1e12 });
+    const main = s.blocks.filter(b => b.slot && !/^[PM]/.test(b.slot));
+    const starts = main.filter(b => b.role === 'starts and acceleration');
+    assert.equal(starts.length, 1, `seed ${seed} delivered ${starts.length} start blocks`);
+    const ids = main.map(b => b.exerciseId);
+    assert.equal(new Set(ids).size, ids.length,
+      `seed ${seed} prescribed the same sprint twice: ${ids.join(', ')}`);
+    assert.ok(!ids.includes('flying-run'), `seed ${seed} drew an opt-in flying run`);
+  }
 });
 
 test('the interval day never draws a maximal sprint', () => {

@@ -2683,3 +2683,134 @@ the sourced coefficients above ~1.12 reach the card. The decision stands as
 made; the price of it is now measured rather than assumed.
 
 Six tests in `tests/ceiling.test.mjs` and four in `tests/card.test.mjs`. 597/597.
+
+---
+
+## 25  Three movements the app owned and could never prescribe — 2026-09-09, `sw.js` v66
+
+Performance Course was picked because the measurement pointed at running and
+sprinting. The pre-flight §17.5 requires — *is the pool reachable before you
+author into it* — found the answer before a single title was judged, and it was
+not about the channel at all.
+
+### 25.1  The measurement, first, as §20.1 requires
+
+150 blocks × 36 sessions, history fed forward, mean repeats per drawn entry:
+
+| pool | entries | mean repeats per block |
+|---|---|---|
+| balance | 3 | **5.98** |
+| run | 8 | 3.90 |
+| sprint | 11 | 3.27 |
+| mobility | 149 | 0.82 |
+| everything gym-side | — | ≤ 0.25 |
+
+`balance` is new pressure that §22 created yesterday: three entries delivered on
+every outdoor session. The gym half has not moved.
+
+### 25.2  The reachability check, and what it found
+
+A static sweep of every slot in every template against every entry, asking only
+whether the slot's `tier`, `patterns`, `modality`, `effortClass` and
+`plyoIntensity` admit it. **Thirteen entries of 534 are admitted by nothing.**
+
+Three of them are sprint starts: `falling-start`, `half-kneeling-start`,
+`lateral-half-kneeling-start`. They are `accessory` tier and `maximal` effort,
+and no slot anywhere accepted that pair:
+
+| slot | takes |
+|---|---|
+| sprint A (was) | `primary`, maximal |
+| sprint B (was) | `secondary`, maximal |
+| aerobic-steady strides | `secondary`+`accessory`, **submaximal** |
+
+The channel settles that these are real: Performance Course films *Falling
+Start*, *Half Kneeling Start* and *Lateral Half Kneeling Start* under those
+exact names, and the diff matched all three as already-in-the-library. The
+library was right about the movements and could not prescribe them, in the pool
+measuring third for felt repetition.
+
+### 25.3  The minutes came from a slot running against its own design
+
+§6.3 of `design-running-programming.md` says slot C's pool is `flying-run` and
+that it is *"unreachable by default"*. It was neither.
+
+The gate lived on the **entry** — `eligibleFor` drops `requiresMeasuredGround`
+unconditionally and `flying-run` is the only entry carrying it — so the slot did
+not empty. It filled with an ordinary primary maximal sprint on **100% of 5,000
+sprint sessions**, handing out a second helping of `acceleration-sprint`,
+`hill-sprint` or `sled-push`. Never the same movement as slot A, because
+`excludeIds` forbids that; simply a third maximal sprint block on a day designed
+for two.
+
+**Fourth instance of the family §22.1 named**, after the venue filter, the prep
+budget and the ramp ceiling: a gate checked against content it was never
+written to cover. The flag now sits on the slot, where the opt-in it waits for
+will sit, and `generate()` skips it outright.
+
+### 25.4  Counted, then delivered — and it was free
+
+The start slot is `tier: ['accessory']`, which expresses "a start" exactly the
+way the slot below it expresses "hill or resisted", and for the same reason:
+the library carries no field for it. Dose 3–4 reps at 15–20 m; coaching sources
+converge on 3–6 reps of 10–20 m with 1–2 min rest per 10 m, which brackets the
+day's existing 96–160 s, so **no new rest constant was invented**.
+`optional: false`, because an optional slot is how §22.1's warm-up stages went
+undelivered for months.
+
+10,000 seeds, sprint day:
+
+| | before | after |
+|---|---|---|
+| worst session | 68 min | **68 min** |
+| mean | 51.5 | 53.7 |
+| start slot filled | — | **100%** |
+| opt-in slot filled | 100% | **0%** |
+| sprint metres, worst | 560 | 550 (budget 800) |
+
+The three starts draw evenly, 1646 / 1674 / 1680 across 5,000 sessions. **No
+constant moved.** §22.5 said the next change that adds session time has to buy
+its minutes first; these were not bought from the athlete, they were recovered
+from a defect.
+
+### 25.5  Two tests were asserting things that were not true
+
+**`running.test.mjs` indexed the template by position.** `TEMPLATES.sprint[0]`
+was the maximal-sprint slot and is now the start slot. Both are found by role
+now, which is the fixture-dependence `design-equipment-and-swap.md` §12.2
+already warned about.
+
+**`cns-account.test.mjs` asserted 48-hour spacing on one day type at one seed.**
+It passed for a reason that was itself the bug: the sprint day's `cnsLoad` was
+**pinned at exactly 9 for every seed**, because the phantom slot always added a
+`cnsCost: 3` primary. Seed 3 could not vary. Swept across 60 seeds and all four
+high-CNS day types, on HEAD, before any change today:
+
+| day type | load | 1h | 24h | 48h | 72h |
+|---|---|---|---|---|---|
+| sprint | 9–9 | 100% | 100% | **100%** | 0% |
+| power | 7–12 | 100% | 100% | 40% | 0% |
+| plyometric | 5–7 | 100% | 100% | **0%** | 0% |
+| max-strength | 5–8 | 100% | 100% | **0%** | 0% |
+
+**The 48-hour claim held for one day type of four, and only because a defect
+had frozen its load.** Removing the phantom block let sprint vary honestly,
+8–9, and 48h reads 75% — still the strictest of the four, with the real gap at
+plyometric and max-strength untouched and pre-existing.
+
+The test now sweeps and asserts what is true everywhere (acute veto at 1h and
+24h, cleared by 72h), and the 48-hour rates are pinned by a **ratchet** on the
+coefficient register's model: recorded, visible, may rise and never fall.
+Deleting the claim would have hidden a real gap.
+
+### 25.6  What this opens
+
+`accessory :: sprint :: sprint :: maximal` is a new pool of 3 against a variety
+target of 16, so the matrix's raw shortfall goes 2 → 15. That is not a
+regression: the pool did not exist yesterday because nothing could draw from
+it. Unlike the sprint pools exempted on 2026-09-06, **more starts genuinely
+exist** — the channel offers a 2-point start, a rolling start, a wicket start,
+a push-up start and a lateral crossover start among others — so this one is
+left short rather than exempted, and it is where the pull should land.
+
+Library unchanged at 534. Orphaned entries 13 → 10. 597 → 602 tests.

@@ -220,7 +220,7 @@ Two ideas hold the design together:
 node --test tests/*.test.mjs
 ```
 
-597 tests, using only Node's built-in `node:test` and `node:assert/strict`.
+602 tests, using only Node's built-in `node:test` and `node:assert/strict`.
 There is no `package.json` and nothing to install.
 
 They are not only unit tests. Several are **sweeps**: they generate sessions in
@@ -566,6 +566,38 @@ before, worst session 42 min, foot contacts inside the beginner band.
 `docs/design-running-programming.md` §11.2 — which also corrects that
 document's own September finding, where the same defect was diagnosed in the
 test and wrongly cleared in the app.
+
+
+**Three movements the app owned and could never prescribe.** Before mining a
+new channel the library was checked for reachability, as §17.5 requires: is
+there any slot, in any template, whose tier, pattern, modality and effort class
+admit this entry? **Thirteen of 534 entries were admitted by nothing.** Three
+were sprint starts — falling, half-kneeling and lateral half-kneeling — which
+are accessory tier and maximal effort, a pair no slot accepted. The sprint day
+took primary and secondary; the strides slot on easy-run days took submaximal
+only. They sat in the library unprescribable, in the pool measuring third for
+felt repetition.
+
+**The minutes to fix it came from a slot that was running against its own
+design.** The sprint day's fourth slot is documented as opt-in and unreachable
+without measured ground, but the gate sits on the *entry* and only one entry
+carries it, so the slot never emptied. It filled with an ordinary primary
+sprint on 100% of sessions, giving a third maximal sprint block to a day
+designed for two. Skipping it paid for a start slot outright: the worst sprint
+session stays at 68 minutes, no constant moved, and the three starts now appear
+on **every** sprint session, drawn evenly. It is the fourth instance of the
+same shape as the venue filter, the prep budget and the ramp ceiling: a limit
+checked against content it was never written to cover.
+
+**Fixing it exposed a test asserting something that was never true.** The CNS
+account test claimed a hard day is vetoed again at 48 hours. It checked one day
+type at one seed, and it passed because the sprint day's CNS load was pinned at
+exactly 9 for every seed — pinned by the phantom block above. Swept across
+sixty seeds and all four high-CNS day types, 48-hour spacing held for **one of
+the four**, and 0% for plyometric and max-strength. The test now sweeps, asserts
+what holds everywhere, and pins the 48-hour rates with a ratchet that may rise
+and never fall, so a real gap is recorded rather than deleted.
+`docs/design-library-expansion.md` §25.
 
 **A fourth expansion, and the measurement that should precede the next one.**
 Before mining a new channel the library was measured for where repetition is

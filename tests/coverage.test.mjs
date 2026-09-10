@@ -98,6 +98,11 @@ const FLOOR_EXEMPT = new Set([
   'accessory :: run :: aerobic-steady',
   'accessory :: sprint-drill/agility :: (any)',
   'secondary :: sprint :: sprint :: submaximal',
+  // The starts, added to the sprint day 2026-09-09. Three accessory-tier
+  // maximal sprints, all on ankle/knee/hip -- so a hurt ankle empties the
+  // pool, which is the most literal case of the sentence above.
+  // design-library-expansion.md §25.
+  'accessory :: sprint :: sprint :: maximal',
   'secondary+accessory :: jump :: (any)',
   // Easy run and intervals.
   'primary+secondary+accessory :: run/erg :: aerobic-steady',
@@ -286,7 +291,7 @@ test('every pool the generator can ask for was found and measured', () => {
   }
 });
 
-test('the fourteen floor-exempt pools really are the ones that reach zero', () => {
+test('the fifteen floor-exempt pools really are the ones that reach zero', () => {
   const measured = POOLS.filter(p => p.survival === 0).map(p => p.key).sort();
   assert.deepEqual(measured, [...FLOOR_EXEMPT].sort(),
     'a pool started or stopped collapsing to zero -- design §5 needs revisiting');

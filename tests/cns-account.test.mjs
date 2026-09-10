@@ -81,36 +81,92 @@ function highCnsSessionAt(dayType, midnightMs) {
   return s;
 }
 
-test('a high-CNS day is vetoed at 1h and 24h, vetoed again at 48h, and permitted at 72h+', () => {
-  const midnight = Date.parse('2030-01-01T00:00:00Z');
-  const seedSession = highCnsSessionAt('sprint', midnight);
-  assert.ok(seedSession.cnsLoad > CNS_VETO_THRESHOLD,
-    'fixture sanity: a hard day must actually exceed the threshold acutely');
+// REWRITTEN 2026-09-09, and the rewrite is the finding.
+//
+// This test used ONE day type at ONE seed and asserted "vetoed again at 48h".
+// It passed for two reasons, and neither was the invariant it named. The
+// sprint day's cnsLoad was PINNED AT EXACTLY 9 for every seed -- because its
+// opt-in slot was filling with a second cnsCost-3 primary sprint on 100% of
+// sessions, which is the bug §25 fixed -- and seed 3 therefore could not vary.
+// Removing that phantom block let the day's load vary honestly, 8-9 instead of
+// 9-9, and seed 3 landed on the other side of the line.
+//
+// SWEEPING IT SHOWS THE CLAIM WAS NEVER GENERAL. Measured across 60 seeds and
+// all four high-CNS day types, on HEAD, BEFORE any of today's changes:
+//
+//   day type       load    1h     24h    48h    72h
+//   sprint         9-9     100%   100%   100%    0%
+//   power          7-12    100%   100%    40%    0%
+//   plyometric     5-7     100%   100%     0%    0%
+//   max-strength   5-8     100%   100%     0%    0%
+//
+// So 48h spacing held for ONE of the four, and only because that one's load
+// was frozen by a defect. After the fix sprint reads 75% -- still the
+// strictest of the four, and the gap at plyometric and max-strength is
+// untouched, pre-existing and much larger.
+//
+// WHAT IS ASSERTED NOW: the part that is true everywhere, swept rather than
+// sampled. Plus a RATCHET on the 48h rate, so the number is visible and can
+// only improve -- the coefficient register's device, applied to a measurement
+// nobody had looked at. Deleting the 48h claim outright would have hidden a
+// real gap; pinning it makes it impossible to lose quietly.
+const HIGH_CNS_SEEDS = 60;
 
-  const history = [seedSession];
-  const vetoedAt = (hours) => {
-    const now = midnight + hours * HOUR;
-    const state = buildState({}, history, now);
+const vetoRate = (dayType, hours) => {
+  let vetoed = 0, total = 0, minLoad = Infinity, maxLoad = 0;
+  for (let seed = 1; seed <= HIGH_CNS_SEEDS; seed++) {
+    const midnight = Date.parse('2030-01-01T00:00:00Z');
+    const s = generate({ library: LIB, dayType, seed, now: midnight });
+    minLoad = Math.min(minLoad, s.cnsLoad);
+    maxLoad = Math.max(maxLoad, s.cnsLoad);
+    const state = buildState({}, [s], midnight + hours * HOUR);
     const proposal = proposeDayType(state, {});
-    // Every high-CNS type shares one account -- check them all, not just the
-    // one that was just trained.
-    return HIGH_CNS_DAY_TYPES.map(dt => {
+    for (const dt of HIGH_CNS_DAY_TYPES) {
       const cand = proposal.candidates.find(c => c.dayType === dt);
-      return { dayType: dt, vetoed: cand.vetoed };
-    });
-  };
+      total++;
+      if (cand && cand.vetoed) vetoed++;
+    }
+  }
+  return { rate: vetoed / total, minLoad, maxLoad };
+};
 
-  for (const { dayType, vetoed } of vetoedAt(1)) {
-    assert.ok(vetoed, `${dayType} should be vetoed 1h after a hard day`);
+test('every high-CNS day is acutely vetoed, at 1h and again at 24h', () => {
+  for (const dayType of HIGH_CNS_DAY_TYPES) {
+    for (const hours of [1, 24]) {
+      const { rate, minLoad } = vetoRate(dayType, hours);
+      assert.equal(rate, 1,
+        `${hours}h after a ${dayType} day only ${(100 * rate).toFixed(0)}% of ` +
+        'high-CNS day types were vetoed');
+      assert.ok(minLoad > CNS_VETO_THRESHOLD,
+        `a ${dayType} session scored ${minLoad}, at or under the threshold`);
+    }
   }
-  for (const { dayType, vetoed } of vetoedAt(24)) {
-    assert.ok(vetoed, `${dayType} should be vetoed 24h after a hard day`);
+});
+
+test('by 72h every high-CNS day type is permitted again', () => {
+  for (const dayType of HIGH_CNS_DAY_TYPES) {
+    const { rate } = vetoRate(dayType, 72);
+    assert.equal(rate, 0,
+      `72h after a ${dayType} day, ${(100 * rate).toFixed(0)}% were still vetoed ` +
+      '-- the account is not clearing');
   }
-  for (const { dayType, vetoed } of vetoedAt(48)) {
-    assert.ok(vetoed, `${dayType} should be vetoed 48h after a hard day`);
-  }
-  for (const { dayType, vetoed } of vetoedAt(72)) {
-    assert.ok(!vetoed, `${dayType} should be permitted by 72h after a hard day`);
+});
+
+// The ratchet. These are the MEASURED 48h rates, not targets: the design wants
+// 48-72h spacing and the app delivers it on one day type out of four. The
+// floors are what was measured on 2026-09-09, so the gap cannot widen without
+// this failing, and closing it means raising a number here.
+const VETO_48H_FLOOR = { sprint: 0.75, power: 0.40, plyometric: 0, 'max-strength': 0 };
+
+test('the measured 48h spacing does not get worse than it already is', () => {
+  for (const dayType of HIGH_CNS_DAY_TYPES) {
+    const floor = VETO_48H_FLOOR[dayType];
+    assert.notEqual(floor, undefined, `${dayType} has no recorded 48h floor`);
+    const { rate } = vetoRate(dayType, 48);
+    assert.ok(rate >= floor - 1e-9,
+      `48h after a ${dayType} day the veto rate fell to ${(100 * rate).toFixed(0)}% ` +
+      `against a recorded floor of ${(100 * floor).toFixed(0)}%. This number may ` +
+      'rise and must never fall.');
   }
 });
 

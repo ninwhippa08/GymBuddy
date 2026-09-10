@@ -353,16 +353,47 @@ const INTERVAL = Object.freeze([
 // design §6.3. Metreage stays inside SPRINT.METERS_PER_SESSION as an internal
 // budget, checked in finalise() and never shown as a target (spec 9.1). Rest
 // derives from SPRINT.WORK_REST_RATIO: 12-20x an assumed 8 s effort.
+//
+// SLOT LETTERS MOVED 2026-09-09 when the start slot went in at the front.
+// Nothing keys off them -- blocks are ordered by `role` through SESSION_ORDER,
+// and no test names a sprint slot -- so they were renumbered to read in the
+// order the day is actually performed rather than left with a 'D' at the top.
 const SPRINT_DAY = Object.freeze([
   Object.freeze({
-    slot: 'A', role: 'maximal sprints',
+    // ADDED 2026-09-09. The library held three accessory-tier maximal sprints
+    // -- falling-start, half-kneeling-start, lateral-half-kneeling-start --
+    // and NO SLOT ANYWHERE ADMITTED THAT COMBINATION. Slots A and B below take
+    // primary and secondary; the strides slot on aerobic-steady takes
+    // `submaximal`. Three starts sat in the library unprescribable, in the
+    // pool measuring third for felt repetition.
+    //
+    // Tier expresses "a start" the same way it expresses "hill or resisted"
+    // one slot down, and for the same reason: the library carries no field for
+    // it. Accessory-tier maximal sprints are exactly the three starts.
+    //
+    // DOSE: 3-5 reps at 15-20 m. Coaching sources converge on 3-6 reps of
+    // 10-20 m for start and acceleration work, with 1-2 min of rest per 10 m
+    // -- which for these distances is 90-180 s and brackets the day's existing
+    // 96-160 s, so no new rest constant is invented here. [corroborated]
+    //
+    // NOT OPTIONAL. The whole finding was three movements never delivered, and
+    // an optional slot is how the warm-up stages went undelivered for months
+    // (design-library-expansion.md §22.1). It is paid for by slot D below.
+    slot: 'A', role: 'starts and acceleration',
+    tier: ['accessory'], patterns: ['sprint'], effortClass: 'maximal',
+    modality: 'sprint', zone: null, mode: 'contacts',
+    sets: [3, 4], reps: [1, 1], restSec: [96, 160],
+    effort: 'first three steps as hard as you can', optional: false
+  }),
+  Object.freeze({
+    slot: 'B', role: 'maximal sprints',
     tier: ['primary'], patterns: ['sprint'], effortClass: 'maximal',
     modality: 'sprint', zone: null, mode: 'contacts',
     sets: [4, 8], reps: [1, 1], restSec: [96, 160],
     effort: 'maximal -- full recovery between every rep', optional: false
   }),
   Object.freeze({
-    slot: 'B', role: 'resisted or hill work',
+    slot: 'C', role: 'resisted or hill work',
     // "hill or resisted" in the design table is not a field the library
     // carries; secondary-tier maximal sprints are exactly hill-sprint,
     // resisted-sprint and three-point-start, so tier expresses it.
@@ -372,10 +403,22 @@ const SPRINT_DAY = Object.freeze([
     effort: 'drive out low and hard', optional: true
   }),
   Object.freeze({
-    // Unreachable by default and deliberately kept: eligibleFor excludes
-    // requiresMeasuredGround unconditionally, so this slot fills only once
-    // the opt-in lands. design §6.3.
-    slot: 'C', role: 'flying runs (opt-in: needs measured ground)',
+    // OPT-IN ONLY, and until 2026-09-09 that was a comment rather than a fact.
+    //
+    // The gate lived on the ENTRY -- eligibleFor drops `requiresMeasuredGround`
+    // unconditionally -- and `flying-run` is the only entry carrying it. So the
+    // slot did not empty. It filled with an ordinary primary maximal sprint on
+    // 100% of 5,000 sprint sessions, handing out a SECOND helping of
+    // acceleration-sprint, hill-sprint or sled-push against a design that says
+    // this slot's pool is `flying-run` and that it is unreachable by default.
+    // Fourth instance of the family: a gate checked against content it was
+    // never written to cover. design-library-expansion.md §25.
+    //
+    // The flag now sits on the SLOT, where the opt-in it is waiting for will
+    // sit too, and generate() skips the slot outright. Those minutes are what
+    // buys slot A.
+    slot: 'D', role: 'flying runs (opt-in: needs measured ground)',
+    requiresMeasuredGround: true,
     tier: ['primary'], patterns: ['sprint'], effortClass: 'maximal',
     modality: 'sprint', zone: null, mode: 'contacts',
     sets: [2, 3], reps: [1, 1], restSec: [96, 160],
