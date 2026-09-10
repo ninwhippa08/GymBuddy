@@ -599,6 +599,34 @@ what holds everywhere, and pins the 48-hour rates with a ratchet that may rise
 and never fall, so a real gap is recorded rather than deleted.
 `docs/design-library-expansion.md` §25.
 
+
+**The fifth channel pull, where the pre-flight was worth more than the batch.**
+Performance Course offered 1078 titles across 26 movement playlists, 936 of
+them unique, and **24.9% were already in the library** — the highest overlap of
+any pull, and the sign the channel was chosen correctly, because it trains the
+thing the measurement pointed at. Four entries were authored, all of them
+starts, all into the pool that had just been opened: a two-point start, a
+push-up start, a rolling start and a lateral crossover start. **1078 titles,
+four entries, 0.37%.**
+
+Most of what was declined fell into two families. Counts — *Boom Booms* at one,
+two, three and four, *Wall Drill* at one, two and three — are a dose, and this
+app prescribes dose separately from movement. The second family is new and
+large: roughly thirty titles are partner and reactive work, chases and races
+and coach-led calls, and **the athlete trains alone.** That is the equipment
+filter applied to a resource the library has no field for. Two more are left
+open rather than declined, because deciding either one would mean guessing:
+wickets are not the `hurdles` the vocabulary carries, and a squatted falling
+start is either a dose or a movement, and the clip was not watched.
+
+**The payoff is the measurement it started from.** The sprint pool held eleven
+entries of which seven were ever drawn, repeating 3.27 times per twelve-week
+block. It now holds fifteen, fourteen are drawn, and repetition is **1.90** —
+nearly halved. The only entry never drawn is the flying run, which is opt-in by
+design. The worst sprint session is still 68 minutes and no constant moved:
+four more entries in one slot replace each other rather than adding.
+`docs/design-library-expansion.md` §26.
+
 **A fourth expansion, and the measurement that should precede the next one.**
 Before mining a new channel the library was measured for where repetition is
 actually *felt* — 150 simulated 12-week blocks, history fed forward — rather

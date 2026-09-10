@@ -111,7 +111,9 @@ test('the sprint day has a slot that reaches the starts', () => {
   assert.equal(starts.optional, false,
     'an optional start slot is how the warm-up stages went undelivered');
   assert.deepEqual(pool(starts).sort(),
-    ['falling-start', 'half-kneeling-start', 'lateral-half-kneeling-start']);
+    ['falling-start', 'half-kneeling-start', 'lateral-crossover-start',
+     'lateral-half-kneeling-start', 'push-up-start', 'rolling-start',
+     'two-point-start']);
 });
 
 // The gate that was a comment rather than a fact until 2026-09-09: it lived on

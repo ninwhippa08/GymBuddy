@@ -2814,3 +2814,101 @@ a push-up start and a lateral crossover start among others — so this one is
 left short rather than exempted, and it is where the pull should land.
 
 Library unchanged at 534. Orphaned entries 13 → 10. 597 → 602 tests.
+
+---
+
+## 26  Performance Course: 1078 titles, four entries, and the pool they went into — 2026-09-09, `sw.js` v67
+
+The fifth channel pull, and the first where **the pre-flight was worth more than
+the batch** — §25 is that pre-flight. This section is the authoring it made
+possible.
+
+### 26.1  The channel
+
+26 movement playlists of 36 on the channel; the other ten are character
+lessons, nutrition talks, promos and interviews. 1078 titles, 936 unique.
+
+| bucket | count | share |
+|---|---|---|
+| not movements | 31 | 3.3% |
+| already in the library | 233 | **24.9%** |
+| candidates | 672 | 71.8% |
+
+**24.9% already-held is the highest of any pull**, against E3 Rehab's much
+lower rate, and it is the signal that the channel was chosen correctly: it
+speaks the library's vocabulary because it trains the same thing.
+
+### 26.2  What was declined, and the new reason
+
+Two families account for most of the 672.
+
+**The count axis.** *Boom Booms* at 1, 2, 3 and 4 counts, stationary and
+dynamic; *Wall Drill* at 1, 2 and 3 counts plus pistons and knee drives;
+*Prime Times* with and without a build-in. §3.2 collapses these: a count is a
+dose, and this app prescribes dose separately from movement.
+
+**Partner and reactive work — a new decline, and a large one.** *Partner
+Chase* in eight starting positions, *Partner Facing Angular Acceleration
+Races*, *Reactive Tennis Ball Acceleration*, *Coaches Call*, *Mirror Drill*,
+*Figure 8 Race*. Roughly thirty titles need a second person, and **the athlete
+trains alone.** This is E3's `Heel Slide` decline one step out: not a movement
+whose indication he lacks, but a movement whose *conditions* he lacks. It is
+the same shape as the equipment filter, on a resource the library has no field
+for.
+
+Left open rather than declined: **Wicket Starts**. Wickets are small foam
+stride markers and the equipment vocabulary has `hurdles`, which is not the
+same object. Writing `hurdles` would tell him to bring the wrong thing. Same
+class as §20.4's grip work — a vocabulary change, not an authoring one.
+**Squatted Falling Start** is also open: it is either `falling-start` from a
+lower position, in which case it is a dose, or a distinct start. The clip was
+not watched, and §20.4's rule stands — an alias guessed wrong points the
+matcher confidently at the wrong movement.
+
+### 26.3  The four, all into the pool §25 opened
+
+All `sprint` / `accessory` / `maximal`, bodyweight, `open-space`, either venue:
+
+| entry | what it is | m |
+|---|---|---|
+| `two-point-start` | staggered standing start, the simplest there is | 20 |
+| `push-up-start` | from the top of a push-up | 15 |
+| `rolling-start` | jog-in, then full speed with no gear change | 25 |
+| `lateral-crossover-start` | side-on, crossover step, square up by step three | 15 |
+
+Nothing else in the library is any of these — the whole `sprint` pattern is
+fifteen entries and was checked by hand, not only by the diff.
+
+**1078 titles, four entries, 0.37%.** Between E3's 0.24% and Depth Training's
+4.7%, and like E3 it is low on purpose: the gym half is finished and the
+partner half is unusable.
+
+### 26.4  Counted, then delivered
+
+Slot A over 5,000 sprint sessions, all seven starts:
+
+```
+two-point-start  741   lateral-half-kneeling-start  744   rolling-start  727
+lateral-crossover-start  717   half-kneeling-start  703
+falling-start  698   push-up-start  670
+```
+
+Even, with no entry starved. And the payoff is the measurement §25.1 opened
+with, re-run on the finished library:
+
+| | before v66 | after |
+|---|---|---|
+| `sprint` entries | 11 | 15 |
+| ever drawn | **7** | **14** |
+| mean repeats per entry per block | 3.27 | **1.90** |
+
+**The pool that was third for felt repetition has had it nearly halved**, and
+the one entry still never drawn is `flying-run`, which is opt-in by design.
+
+**Session time did not move.** Worst sprint session 68 min, the same figure as
+before §25 and before this batch: four more entries in one slot replace each
+other rather than adding. No constant touched.
+
+`accessory :: sprint :: sprint :: maximal` goes 3 → 7 against its target of 16,
+so the raw shortfall falls 15 → 11 — below where it stood this morning, having
+opened a whole pool on the way. Library 534 → 538. 602/602.

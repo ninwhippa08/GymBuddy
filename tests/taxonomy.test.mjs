@@ -16,8 +16,10 @@ const idsWithPattern = p => LIB.filter(e => e.pattern === p).map(e => e.id).sort
 test('the sprint bucket holds only maximal-effort running', () => {
   assert.deepEqual(idsWithPattern('sprint'), [
     'acceleration-sprint', 'build-up-run', 'falling-start', 'flying-run',
-    'half-kneeling-start', 'hill-sprint', 'lateral-half-kneeling-start',
-    'resisted-sprint', 'sideways-sled-push', 'sled-push', 'three-point-start'
+    'half-kneeling-start', 'hill-sprint', 'lateral-crossover-start',
+    'lateral-half-kneeling-start', 'push-up-start', 'resisted-sprint',
+    'rolling-start', 'sideways-sled-push', 'sled-push', 'three-point-start',
+    'two-point-start'
   ]);
 });
 
