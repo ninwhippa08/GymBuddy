@@ -3991,6 +3991,28 @@
       "cnsCost": 1, "technical": 2, "unilateral": true,
       "cues": ["Settle into the single-leg stance first, then close your eyes.","Expect it to be far harder -- your vision was doing most of the work.","Stand within reach of a wall you can touch if you need to."],
       "modalities": ["balance"] }
+,
+
+    { "id": "single-leg-balance-head-turns", "name": "Single-Leg Balance with Head Turns", "pattern": "balance", "tier": "mobility",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["ankle","knee","hip"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 1, "technical": 2, "unilateral": true,
+      "cues": ["Settle into the single-leg stance, then turn your head slowly side to side.","Add slow nods once the turns are steady, and keep the eyes open.","Your inner ear is doing the work now, not your vision."],
+      "modalities": ["balance"] },
+
+    { "id": "hip-airplane", "name": "Hip Airplane", "aka": ["single leg airplane"], "pattern": "balance", "tier": "mobility",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["ankle","knee","hip"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 1, "technical": 3, "unilateral": true,
+      "cues": ["Stand on one leg and hinge forward until the trunk is near horizontal.","Rotate the free hip open to the ceiling, then closed towards the floor.","The standing foot stays planted. Nothing to hold onto -- that is the point."],
+      "modalities": ["balance"] },
+
+    { "id": "single-leg-balance-ball-toss", "name": "Single-Leg Balance with Ball Toss", "pattern": "balance", "tier": "mobility",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["ankle","knee","hip"], "equipment": ["med-ball","wall"], "venue": "either",
+      "cnsCost": 1, "technical": 2, "unilateral": true,
+      "cues": ["Balance on one leg a couple of steps from a wall, ball in both hands.","Throw and catch off the wall without letting the standing foot move.","Vary where you throw it so the catch pulls you off centre."],
+      "modalities": ["balance"] }
 
   ]
 }

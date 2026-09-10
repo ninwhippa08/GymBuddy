@@ -2912,3 +2912,110 @@ other rather than adding. No constant touched.
 `accessory :: sprint :: sprint :: maximal` goes 3 → 7 against its target of 16,
 so the raw shortfall falls 15 → 11 — below where it stood this morning, having
 opened a whole pool on the way. Library 534 → 538. 602/602.
+
+---
+
+## 27  The balance pool, doubled — 2026-09-09, `sw.js` v68
+
+§22 built the balance modality yesterday with three entries. §25.1 measured the
+consequence this morning: **balance was the most repeated pool in the library**,
+5.98 repeats per entry per twelve-week block, ahead of `run` at 3.90 and
+`sprint` at 3.27. The pool that had existed for one day was already the one he
+would feel first.
+
+### 27.1  Why the number was that high, and what the lever is
+
+`BALANCE_DOSE.EXERCISES` is `[1, 1]`: exactly one balance movement per session.
+The stage fires on **100% of all four outdoor day types** and on nothing else.
+Roughly eighteen outdoor sessions in a 36-session block, one draw each, three
+entries — six draws apiece. The measured 5.98 is that arithmetic.
+
+So **the only lever is pool size.** Raising the dose would make it worse, and
+the coverage matrix was no help: `mobility :: balance :: balance` reads
+`coverage` rather than a variety target and shows short 0 at three entries. The
+matrix was satisfied by a pool that repeats six times a block. That is the same
+lesson as §21.1 in reverse — pool size is not pressure, and a satisfied pool is
+not an unrepetitive one.
+
+### 27.2  The channel had almost nothing, and that is the honest result
+
+Performance Course was searched for balance content first, since it was already
+pulled. Of 936 unique titles the balance-adjacent ones are almost all single-leg
+**jumps** and single-leg **strength** — snapdowns, bounds, broad jumps, RDLs,
+glute bridges. One real candidate: *Single Leg Airplane w: ISO*.
+
+**A channel that trains speed does not carry proprioceptive holds.** So this
+batch is sourced from the balance literature rather than mined, which is what
+§20 said to do when the measurement and the channel point different ways.
+
+### 27.3  The three, and the rung each one is
+
+The documented progression is single-leg stance → eyes closed → head movement →
+unstable surface, with reach work alongside. Three of those five were already
+here.
+
+| entry | rung | equipment |
+|---|---|---|
+| `single-leg-balance-head-turns` | vestibular: the head moves, vision stays | bodyweight |
+| `hip-airplane` | rotational control of the standing hip | bodyweight |
+| `single-leg-balance-ball-toss` | external perturbation, self-generated | med-ball, wall |
+
+**`hip-airplane` is not a duplicate of `supported-hip-airplane`**, which is
+already in the library. That one is `equipment: ["rack"]`, `venue: "gym"`,
+pattern `mobility` — a prep drill you hold an upright for, and unreachable
+outdoors. The sources call the supported version the beginner regression and
+the free-standing one the balance exercise. Removing the support IS the
+exercise, on exactly the grounds §22 used to make eyes-closed its own entry
+rather than a dose of the plain stance.
+
+**The ball toss is the FIFA 11+ partner throw, made solo.** §26.2 declined
+about thirty partner drills from the channel because he trains alone; this is
+the one case where the partner is replaceable by a wall without changing what
+the drill asks of the ankle. `lateral-med-ball-scoop-toss` already pairs
+`med-ball` with `wall` at `venue: either`, so the pattern is precedented.
+
+### 27.4  Two declines, both on population
+
+**Unstable surface** is the top rung of the evidence and it is not authored.
+The benchmark in the literature — 30 s of single-leg stance, eyes closed, on an
+unstable surface — is associated with reduced **recurrence** rates, and the
+population it was measured in has already sprained an ankle. §22's evidence for
+this whole modality was *primary* prevention, RR 0.57, no prior sprain, which
+is him. It would also need a `balance-pad` in the equipment vocabulary, so it
+is §20.4's class twice over. Recorded, not built.
+
+**Tandem and narrow stance** are documented rungs *below* single-leg stance.
+For an athlete who already holds eyes-closed single-leg work they are not a
+stimulus. This is §21.3's `Heel Slide` decline: a movement whose indication is
+a deficit he does not have.
+
+### 27.5  Counted, then delivered — and free
+
+All six drawn evenly across 2,000 seeds on each outdoor day type; no entry
+below 300 draws or above 364.
+
+| | before | after |
+|---|---|---|
+| balance entries | 3 | 6 |
+| mean repeats per entry per block | **5.98** | **2.49** |
+| rank among all pools | 1st | 3rd |
+
+**Session time did not move on any day type** — 67/67/67, 68, 70, 68, 51, 18,
+identical to before. One balance movement is drawn per session whatever the
+pool holds, so three more entries cost nothing. No constant touched.
+
+`run` is now the most repeated pool at 3.90 across 8 entries, and no exercise
+channel supplies runs.
+
+### 27.6  Open: the one day with time gets none of this
+
+The `mobility` deload day runs **16.2 min mean, worst 18, against the 70-minute
+ceiling — 52 minutes of headroom**, the most in the app by a factor of two. It
+draws **zero** balance work, because the stage lives in the *running* prep and
+the deload uses the gym one.
+
+That is the day balance work fits best: lowest CNS cost, restorative by
+purpose, and no clock pressure at all. §22 excluded balance from the gym prep
+on the clock (3 minutes of headroom there), and that reasoning simply does not
+reach this day type. Costed at zero and **not built, because it is a placement
+decision and it is his.** Library 538 → 541. 602/602.

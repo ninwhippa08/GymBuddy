@@ -600,6 +600,37 @@ and never fall, so a real gap is recorded rather than deleted.
 `docs/design-library-expansion.md` §25.
 
 
+
+**The balance pool was one day old and already the most repeated in the
+library.** The modality shipped with three entries, one of which is drawn on
+every outdoor session and on no other day, which works out at 5.98 repeats per
+entry per twelve-week block — ahead of running and sprinting. The coverage
+matrix was satisfied by it, because that pool is sized by coverage rather than
+by variety, so nothing failed. It was only visible in the repetition
+measurement.
+
+**Pool size was the only lever**, since raising the dose would have made it
+worse. Three entries were added: balance with head turns, the free-standing hip
+airplane, and single-leg balance throwing a ball against a wall. **Repetition
+fell from 5.98 to 2.49 and session time did not move on any day type** — one
+balance movement is drawn per session however many exist, so the additions were
+free.
+
+They came from the balance literature rather than the channel. Performance
+Course trains speed, and its single-leg content is almost entirely jumps and
+strength rather than proprioceptive holds. Two rungs of the documented
+progression were declined on population: unstable-surface work is evidenced for
+people who have already sprained an ankle, which he has not, and tandem stance
+sits below the eyes-closed work he already does. `docs/design-library-expansion.md` §27.
+
+**One finding is left open, and it is a placement question.** The mobility
+deload day runs 16 minutes against a 70-minute ceiling — 52 minutes of
+headroom, more than twice any other day — and it draws no balance work at all,
+because the stage lives in the running warm-up and the deload uses the gym one.
+It is the day this work fits best: lowest CNS cost, restorative by design, no
+clock pressure. Adding it there was costed at zero and not built, because where
+a movement is placed is a training decision rather than a defect.
+
 **The fifth channel pull, where the pre-flight was worth more than the batch.**
 Performance Course offered 1078 titles across 26 movement playlists, 936 of
 them unique, and **24.9% were already in the library** — the highest overlap of
