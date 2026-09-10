@@ -695,12 +695,25 @@ Decided with the athlete 2026-09-06.
   priced at 1.25 x the snatch root, `corroborated` from two overlapping
   coaching bands, and renamed **Snatch Deadlift**, because the coefficient and
   the card must describe the same movement. `design-library-expansion.md` 23.
-- **The return-ramp ceiling never ends, and the card says so falsely -- OPEN,
-  found 2026-09-09 while fixing the above.** `rampRow()` clamps every week past
-  the table to the last row, so the week-5 ceiling of 0.95 binds FOREVER, while
-  the app's own `stillRamping` test (`generator.js:1163`, `:425`) says the ramp
-  is over at week 5. At full volume this prints *"held down by the return
-  ramp"* on **38.3% of max-strength load blocks**, and makes any coefficient
-  above ~1.12 inert. Third member of the family the expansion doc 22.1 names:
-  a budget compared against content it was never written to cover. **Left open
-  because removing a load ceiling is a training decision, not a bug fix.**
+- **The return-ramp ceiling never ends, and the card said so falsely -- FIXED
+  2026-09-09, `sw.js` v65.** `rampRow()` clamps every week past the table to
+  the last row, so the week-5 ceiling of 0.95 bound forever, while the app's
+  own `stillRamping` test (`generator.js`, `reasonFor` and `swapBlock`) said
+  the ramp was over at week 5. At full volume this printed *"held down by the
+  return ramp"* on **38.3% of max-strength load blocks** with no ramp running.
+  The cap was right and the sentence was false. Shown the measurement, the
+  athlete chose to KEEP the cap, so it is now a named policy --
+  `STANDING_PCT_CEILING` in `js/rules.js` -- with its own card sentence, and
+  `prescribe` sets `rampLimited` or `ceilingLimited` but never both.
+  `design-library-expansion.md` 24.
+- **The ladder went through that ceiling -- FIXED the same day, and it was
+  found by a test written for something else.** `ladderise` bounds its wave by
+  the ZONE, not the ceiling, and once `prCoef` is above 1.00 those differ:
+  **4.0% of full-volume load blocks printed a working set above the standing
+  cap, worst 1.00 x PR on a push jerk.** The ramp was never breached, because
+  a ramped `pct` sits below the zone floor and the block falls through to
+  straight. Fixed with a third bound on the step in display space rather than
+  by clipping the top rung, which would have moved the mean and broken 3.2's
+  rule that a ladder changes arrangement and not intensity. **Cost: the ladder
+  share fell 42.8% -> 23.5%**, which is the price of the cap rather than of
+  the label, and was not known when the cap was chosen.

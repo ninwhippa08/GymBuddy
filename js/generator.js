@@ -739,12 +739,12 @@ export function prescribe(slot, exercise, env, rng, state) {
   pct += (rng() - 0.5) * 2 * PCT_JITTER;
   pct = clamp(pct, zone.pct[0] - PCT_JITTER, zone.pct[1] + PCT_JITTER);
 
-  // The ramp ceiling is applied TWICE, and deliberately.
+  // The ceiling is applied TWICE, and deliberately.
   //
   // First against the fraction of this movement's own max, which is what
   // "65% of what you can do on this lift" means physiologically.
   const capped = Math.min(pct, env.pctCeiling);
-  let rampLimited = capped < pct - 1e-9;
+  let ceilingBound = capped < pct - 1e-9;
   pct = capped;
 
   // Then against the number the user actually reads. A snatch pull has
@@ -756,10 +756,26 @@ export function prescribe(slot, exercise, env, rng, state) {
   let display = pct * exercise.prCoef;
   if (display > env.pctCeiling) {
     display = env.pctCeiling;
-    rampLimited = true;
+    ceilingBound = true;
   }
 
-  block.rampLimited = rampLimited;
+  // WHICH ceiling bound it, which is not the same question as whether one did.
+  //
+  // `rampWeekFor` returns the last row both for "week 5 of the ramp" and for
+  // "no ramp declared", so the app's test for whether the ramp is running is
+  // `rampWeek < RAMP.length` -- used at `reasonFor` and again in `swapBlock`.
+  // This line is the third use and it was missing: every cap was reported as
+  // a ramp cap, so at full volume the card said "held down by the return ramp"
+  // on 38.3% of max-strength load blocks with no ramp running. A false
+  // sentence to the athlete, and the third instance of a budget charged
+  // against content it was never written to cover.
+  //
+  // Both flags mean "this load was held down"; they differ in what the card is
+  // allowed to blame. STANDING_PCT_CEILING carries the reasoning for the one
+  // that never lifts. design-library-expansion.md §23.5, §24.
+  const stillRamping = env.rampWeek != null && env.rampWeek < RAMP.length;
+  block.rampLimited     = ceilingBound && stillRamping;
+  block.ceilingLimited  = ceilingBound && !stillRamping;
   block.pct = Math.round(pct * 100) / 100;
   block.prRef = exercise.prRef;
   block.prCoef = exercise.prCoef;
@@ -816,12 +832,12 @@ const MIN_LADDER_SETS = 4;
 const LADDER_STEP_MIN = 0.025;
 const LADDER_STEP_MAX = 0.05;
 
-export function applyArchitecture(blocks, architecture, zoneBySlot = {}) {
+export function applyArchitecture(blocks, architecture, zoneBySlot = {}, pctCeiling = null) {
   if (architecture !== 'ladder') return blocks;
-  return blocks.map(b => ladderise(b, ZONES[zoneBySlot[b.slot]]));
+  return blocks.map(b => ladderise(b, ZONES[zoneBySlot[b.slot]], pctCeiling));
 }
 
-function ladderise(block, zone) {
+function ladderise(block, zone, pctCeiling = null) {
   if (!block.setPlan || !zone || block.mode !== 'load') return block;
   const warmups = block.setPlan.filter(s => s.kind === 'warmup');
   const work = block.setPlan.filter(s => s.kind === 'work');
@@ -850,7 +866,33 @@ function ladderise(block, zone) {
   // agreed to. design-architectures 3.2.
   const roomBelow = block.pct - zone.pct[0];
   const roomAbove = zone.pct[1] - block.pct;
-  const step = Math.min(roomBelow / mid, roomAbove / mid, LADDER_STEP_MAX);
+
+  // A THIRD bound, and it is a safety one rather than a shape one. The two
+  // above keep the wave inside its ZONE; neither keeps it under the CEILING,
+  // and those are different numbers once `prCoef` is above 1.00. Measured
+  // 2026-09-09, before this line existed: 4.0% of full-volume load blocks
+  // printed a working set above the standing 0.95 cap, worst 1.00 x PR on a
+  // push jerk -- the app's own ceiling, exceeded on the card that announces it.
+  //
+  // The ramp was never breached (0% in weeks 1-4), and the reason is worth
+  // keeping: during the ramp `block.pct` is clamped far BELOW the zone floor,
+  // so `roomBelow` goes negative, `step` with it, and the block falls through
+  // to 'straight' below. The hole only opened where the ceiling sits INSIDE
+  // the zone rather than under it.
+  //
+  // Bounding the step rather than clipping the top rung is what preserves the
+  // property above: clipping would flatten the wave's top and pull the mean
+  // rung below the straight load, which is the intensity change the ladder is
+  // explicitly not allowed to make. Narrowing keeps the ladder centred, and if
+  // it narrows past LADDER_STEP_MIN the block goes straight and says so --
+  // which is the honest answer when the lead load is already at the cap, since
+  // a centred wave around the cap puts half its rungs through it.
+  const roomToCeiling = pctCeiling == null || !(block.displayMultiplier > 0)
+    ? Infinity
+    : block.pct * (pctCeiling / block.displayMultiplier - 1);
+
+  const step = Math.min(roomBelow / mid, roomAbove / mid, roomToCeiling / mid,
+                        LADDER_STEP_MAX);
 
   // Not enough band to build a wave with sourced spacing. Practitioner waves
   // step 2.5-5% per rung; anything tighter is not a wave, it is six sets of
@@ -1904,7 +1946,8 @@ export function generate({
     blocks.push(block);
   }
 
-  const shaped = applyArchitecture(blocks, architecture, zoneBySlot);   // 7a
+  const shaped = applyArchitecture(blocks, architecture, zoneBySlot,        // 7a
+                                   env.pctCeiling);
   const packed = packToBudget(shaped, TIME.MAIN_WORK_MAX_MIN,           // 8
                               { dayType: chosen, state });
   // 8b. AFTER the packer, never before -- design-architectures.md 3.6.3.

@@ -220,13 +220,14 @@ Two ideas hold the design together:
 node --test tests/*.test.mjs
 ```
 
-586 tests, using only Node's built-in `node:test` and `node:assert/strict`.
+597 tests, using only Node's built-in `node:test` and `node:assert/strict`.
 There is no `package.json` and nothing to install.
 
 They are not only unit tests. Several are **sweeps**: they generate sessions in
 bulk across profiles and histories and assert a property holds for every one —
-that no gym session exceeds 70 minutes, that the return ramp never prescribes
-above its ceiling, that every movement pattern is eventually covered, that no
+that no gym session exceeds 70 minutes, that neither load ceiling — the
+return ramp’s nor the standing one — is ever exceeded by any set the card
+prints, that every movement pattern is eventually covered, that no
 exercise is ever prescribed without the equipment it needs. The largest sweep
 runs 10,000 seeds against each of the seven day types: 70,000 sessions. Those are
 what catch the bugs that matter, because the generator is randomised and a
@@ -524,17 +525,32 @@ were measured on is not the wide-grip deadlift the old name and cues described
 — the rack-pull lesson applied at authoring time instead of months later.
 `docs/design-library-expansion.md` §23.
 
-**Fixing it exposed a larger bug, still open, and the decision is the
-athlete's.** The return ramp's final ceiling of 0.95 × PR is applied to every
+**Fixing it exposed a larger bug, and the athlete decided how it should be
+closed.** The return ramp's final ceiling of 0.95 × PR was applied to every
 week past the ramp, forever, while the app's own test for whether he is still
-ramping says he is not. Two things follow. Any coefficient above ~1.12 is
-inert at full volume, so a sourced number never reaches the card. And the card
-tells him he is *"held down by the return ramp"* on **38.3% of max-strength
-load blocks** when no ramp is running. It is the third instance of the shape
-described below for the venue filter and the prep budget: a limit charged
-against content it was never written to cover. It is left open because
-removing a load ceiling is a training decision rather than a defect, and that
-call is his.
+ramping said he is not. The load was right; the sentence was false. The card
+told him he was *"held down by the return ramp"* on **38.3% of max-strength
+load blocks** with no ramp running. Shown the measurement on 2026-09-09 he
+chose to **keep the cap and fix the sentence**, so the ceiling is now a named
+policy — `STANDING_PCT_CEILING` in `js/rules.js` — with its own wording on the
+card, rather than a side effect of the ramp table being clamped at its last
+row. It supersedes a stated intent: the ramp comment says the column was
+chosen to approach an *open* ceiling, and it never opened.
+
+**A test written for that fix found a third thing, and it was the one that
+mattered.** The ladder architecture spreads a lift's working sets into a wave
+bounded by its training zone, and a zone is not a ceiling once a coefficient
+sits above 1.00. **4.0% of full-volume load blocks printed a working set above
+the cap the card announces, worst 1.00 × PR on a push jerk.** The return ramp
+itself was never breached, because a ramped load sits below the zone floor and
+the wave collapses to straight sets before it can climb. Fixed by narrowing the
+wave rather than clipping its top, which would have changed the average load
+the ladder is explicitly not allowed to touch. **It costs ladders: the share of
+laddered blocks falls from 42.8% to 23.5%**, because a wave centred on a load
+already at the cap cannot be built. That is the price of keeping the cap, it
+was not known when the cap was chosen, and it is the strongest argument for
+lifting the ceiling after the ramp instead. `docs/design-library-expansion.md`
+§24.
 
 **Closing the jump pool turned up a bug in the app, and it is the more useful
 half of that day's work.** A smoke test written only to check the new entries

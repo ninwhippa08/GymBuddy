@@ -325,6 +325,32 @@ export const RAMP = Object.freeze([
 // Weeks past the end of the table clamp to the last row.
 export const RAMP_WEEKS = RAMP.length;
 
+// The ceiling that applies once the ramp is OVER, and it is a POLICY rather
+// than a row of the table above. Named on 2026-09-09 because it had been
+// running for months as an accident of `rampRow()` clamping every week past
+// the table to the last row -- so week 5's 0.95 bound forever, while the app's
+// own `stillRamping` test (`generator.js`) said the ramp had ended.
+//
+// THIS SUPERSEDES A STATED DESIGN INTENT, which is why it is written down
+// rather than left implicit. The comment on RAMP says the column was "chosen
+// to approach an OPEN ceiling gradually" -- the ramp was meant to end with no
+// cap at all. It never did. Shown the measurement on 2026-09-09 (38.3% of
+// max-strength load blocks at full volume were meeting this and blaming the
+// ramp for it), the athlete chose to KEEP the cap and fix only the false
+// sentence on the card.
+//
+// The reason it is defensible: his PRs are college numbers he keeps in his own
+// head, the app cannot drive progressive overload and so never learns they have
+// moved, and he trains alone without a spotter. Prescribing above 95% of a
+// number the app cannot verify is the one error it should not make.
+//
+// The cost, recorded so it is not rediscovered: any `prCoef` above ~1.12 is
+// INERT at full volume, because the zone's own top multiplied by the
+// coefficient lands above this line and is clipped back to it. The coefficient
+// register keeps sourcing numbers that the card cannot print.
+// design-library-expansion.md §23.5.
+export const STANDING_PCT_CEILING = 0.95;
+
 // --------------------------------------------------------------------------
 // §4  Plyometrics -- volume in foot contacts
 // --------------------------------------------------------------------------

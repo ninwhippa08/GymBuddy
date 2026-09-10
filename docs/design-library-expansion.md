@@ -2585,3 +2585,101 @@ prep budget, and now the ramp ceiling: **a budget compared against content it
 was never written to cover.** It is left open here rather than fixed, because
 removing a load ceiling is a training decision and not a bug fix, and it is
 his. Recorded at `design-architectures.md` §7.5.
+
+---
+
+## 24  The ceiling that never lifted — 2026-09-09, `sw.js` v65
+
+§23.5 found it while pricing the snatch deadlift and left it open, because
+removing a load ceiling is a training decision. The athlete made that decision
+the same day: **keep the cap, fix the sentence.** This is that work, and it
+turned out to have a third part nobody had asked for.
+
+### 24.1  What was actually wrong
+
+`rampWeekFor` returns the **last** ramp row for two different situations — "you
+are in week 5" and "you never declared a return date" — and `rampRow` clamps
+every week past the table to that row. So week 5's `pctCeiling` of 0.95 applied
+forever. The app knows this: its test for whether the ramp is running is
+`rampWeek < RAMP.length`, used at `reasonFor` (which is why no session banner
+mentions a ramp at full volume) and again in `swapBlock`.
+
+`prescribe` did not have that line. It set one flag, `rampLimited`, whenever
+either clamp bound, and the card renders that flag as *"held down by the return
+ramp"*. Measured at full volume with no `returnDate`:
+
+| day type | load blocks | said "held down by the return ramp" |
+|---|---|---|
+| max-strength | 4534 | **38.3%** |
+| power | 4380 | 5.3% |
+| hypertrophy | 2930 | 0.0% |
+
+**The cap was right and the sentence was false.** That is worth separating,
+because it decides the fix: nothing about the load needed to change.
+
+### 24.2  The cap is now a policy with a name
+
+`STANDING_PCT_CEILING = 0.95` in `js/rules.js`, and it carries its own
+reasoning rather than inheriting it from a table row it was never meant to
+share. **It supersedes a stated design intent**, which is why it is written
+down instead of left implicit: the comment above `RAMP` says the column was
+"chosen to approach an **open** ceiling gradually". The ramp was meant to end
+with no cap at all. It never did, and now it deliberately does not.
+
+The case for keeping it: his PRs are college numbers he holds in his own head,
+the app cannot drive progressive overload and so never learns they have moved,
+and he trains alone. Prescribing above 95% of a number the app cannot verify is
+the one error it should not make.
+
+`prescribe` now sets `rampLimited` or `ceilingLimited`, never both, and the
+card has a second sentence — *"at the app's standing 95% cap"* — worded as a
+standing limit rather than an event, because it is not going to stop happening.
+
+### 24.3  The part nobody asked for: the ladder went through the ceiling
+
+The test written to check the flags failed on a block that was flagged capped
+and printed 0.91. Chasing that found the ladder.
+
+`ladderise` spreads a block's working sets into a wave **centred** on the load
+`prescribe` drew, and bounds the step by the **zone** — `roomBelow`,
+`roomAbove`. Neither of those is the ceiling, and once `prCoef` is above 1.00
+they are different numbers. Measured before the fix:
+
+| week | ceiling | load blocks | printing a set over it | worst printed |
+|---|---|---|---|---|
+| full volume | 0.95 | 1533 | **4.0%** | **1.00 × PR** (push jerk) |
+| ramp 1–4 | 0.65–0.85 | ~1530 each | 0.0% | — |
+
+**The ramp was never breached, and the reason is worth keeping.** During the
+ramp `block.pct` is clamped far *below* the zone floor, so `roomBelow` goes
+negative, the step goes with it, and the block falls through to straight. The
+hole only opened where the ceiling sits *inside* the zone rather than under it —
+which is exactly the situation the standing cap creates and the ramp does not.
+
+Fixed by adding a third bound on the step, in display space, rather than by
+clipping the top rung. Clipping would flatten the wave's top and pull the mean
+rung below the straight load, which is the intensity change §3.2 says the
+ladder is not allowed to make. Narrowing keeps it centred, and when it narrows
+past `LADDER_STEP_MIN` the block goes straight and says so — the behaviour the
+function already had for a band too narrow to wave in. **0.0% over the ceiling
+in every week afterwards.**
+
+### 24.4  The cost, and it is the number he should see
+
+Enforcing the cap costs ladders, because a wave centred on a load that is
+already at the cap puts half its rungs through it and cannot be built:
+
+| | ladder | straight | ladder share |
+|---|---|---|---|
+| before | 504 | 674 | 42.8% |
+| after | 277 | 901 | **23.5%** |
+
+**Nearly half the ladders became straight sets, and that is a consequence of
+keeping the cap rather than of fixing the label.** It was not known when the
+choice was made — the ladder hole had not been found yet. It is recorded here
+at full size because it is the strongest argument for the option that was not
+taken: lifting the ceiling after the ramp would restore the ladders *and* let
+the sourced coefficients above ~1.12 reach the card. The decision stands as
+made; the price of it is now measured rather than assumed.
+
+Six tests in `tests/ceiling.test.mjs` and four in `tests/card.test.mjs`. 597/597.

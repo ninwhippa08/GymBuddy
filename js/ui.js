@@ -273,13 +273,29 @@ export function blockCard(block, cuesFor, onSwap) {
       volume ? el('span', { class: 'block-volume', text: volume }) : null
     ]),
     el('p', {
-      class: block.rampLimited ? 'block-load is-capped' : 'block-load',
+      class: block.rampLimited || block.ceilingLimited
+        ? 'block-load is-capped' : 'block-load',
       text: loadLine(block)
     }),
     // The ramp is not skippable and the user asked to be told when it bites.
     // basis §3, spec §9.
+    //
+    // Two flags, one visual treatment, two different sentences -- because for
+    // months there was one flag and the card blamed the ramp for a cap the
+    // ramp was not applying. At full volume that was 38.3% of max-strength
+    // load blocks being told a ramp was holding them down when none was
+    // running. The class stays shared: the load IS capped either way, and that
+    // is what `is-capped` marks. Only the attribution differs.
+    // design-library-expansion.md §24.
     block.rampLimited
       ? el('p', { class: 'block-note', text: 'held down by the return ramp' })
+      : null,
+    // The ceiling that does not lift. Worded as a standing limit rather than
+    // an event, because it is not going to stop happening and a note that
+    // reads like news becomes noise on the fortieth card. `STANDING_PCT_CEILING`
+    // in `js/rules.js` carries why it is there and what it costs.
+    block.ceilingLimited
+      ? el('p', { class: 'block-note', text: 'at the app\u2019s standing 95% cap' })
       : null,
     // Same shape and same reason as the ramp note above: the athlete is owed
     // the fact that the app changed something. This fires when a required

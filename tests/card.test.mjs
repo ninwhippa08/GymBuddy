@@ -276,3 +276,56 @@ test('a card with no cues still offers the swap', () => {
   assert.equal(li.querySelector('button.block-flip'), null);
   assert.ok(li.querySelector('.block-swap'), 'no swap on a card that cannot flip');
 });
+
+// The two ceilings on the card. The flags are asserted in ceiling.test.mjs;
+// these pin the SENTENCES, because the bug fixed on 2026-09-09 was not that
+// the load was capped -- it was capped correctly -- but that the card named
+// the wrong reason for it on 38.3% of full-volume max-strength blocks.
+
+const RAMP_CAPPED_BLOCK = {
+  slot: 'A', role: 'main lift', exerciseId: 'deadlift', name: 'Deadlift',
+  mode: 'load', sets: 4, reps: 5, restSec: 180,
+  pct: 0.65, prRef: 'deadlift', prCoef: 1, displayMultiplier: 0.65,
+  rampLimited: true
+};
+
+const STANDING_CAPPED_BLOCK = {
+  slot: 'A', role: 'main lift', exerciseId: 'push-jerk', name: 'Push Jerk',
+  mode: 'load', sets: 4, reps: 3, restSec: 180,
+  pct: 0.9, prRef: 'push-press', prCoef: 1.05, displayMultiplier: 0.95,
+  ceilingLimited: true
+};
+
+test('a block capped during the ramp still blames the ramp', () => {
+  const notes = blockCard(RAMP_CAPPED_BLOCK, () => null)
+    .querySelectorAll('.block-note').map(n => n.textContent);
+  assert.ok(notes.some(t => t.includes('held down by the return ramp')),
+    `no ramp note, got ${JSON.stringify(notes)}`);
+  assert.ok(!notes.some(t => t.includes('standing')),
+    'a ramp cap was reported as the standing cap');
+});
+
+test('a block capped past the ramp names the standing cap, not the ramp', () => {
+  const notes = blockCard(STANDING_CAPPED_BLOCK, () => null)
+    .querySelectorAll('.block-note').map(n => n.textContent);
+  assert.ok(notes.some(t => t.includes('standing 95% cap')),
+    `no standing-cap note, got ${JSON.stringify(notes)}`);
+  // The whole point. This sentence was appearing with no ramp running.
+  assert.ok(!notes.some(t => t.includes('return ramp')),
+    'the card still blamed the return ramp with no ramp running');
+});
+
+test('both capped blocks are marked capped, because both are', () => {
+  for (const b of [RAMP_CAPPED_BLOCK, STANDING_CAPPED_BLOCK]) {
+    const load = blockCard(b, () => null).querySelectorAll('.block-load');
+    assert.ok(load.some(n => String(n.className).includes('is-capped')),
+      `${b.exerciseId} lost its capped styling`);
+  }
+});
+
+test('an uncapped block carries neither ceiling note', () => {
+  const notes = blockCard(BLOCK, () => null)
+    .querySelectorAll('.block-note').map(n => n.textContent);
+  assert.ok(!notes.some(t => t.includes('return ramp')));
+  assert.ok(!notes.some(t => t.includes('standing 95% cap')));
+});
