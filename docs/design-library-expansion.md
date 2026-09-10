@@ -3094,3 +3094,83 @@ a corner. Five new tests. 602 → 607.
 
 Balance now reaches five of the eight day types. The three still without it are
 the gym days, and that exclusion remains what §22 said it was: the clock.
+
+---
+
+## 29  The run pool is one entry — measured 2026-09-09, nothing authored
+
+§27.5 handed `run` over as the next pressure at 3.90 repeats per entry per
+twelve-week block, the highest left after balance was doubled. The measurement
+that should precede a batch was run first, as §20.1 requires, and **it changed
+the target to nothing**. That is the result, and it is worth as much as a batch.
+
+### 29.1  Itemised, the average is a single entry
+
+120 blocks × 36 sessions, history fed forward:
+
+| entry | repeats per block |
+|---|---|
+| `warmup-jog` | **19.98** |
+| `run-interval` | 2.09 |
+| `trail-run` | 1.93 |
+| `shuttle-run` | 1.91 |
+| `easy-run` | 1.75 |
+| `stair-run` | 1.14 |
+| `fartlek` | 1.08 |
+| `tempo-run` | 0.93 |
+
+| | |
+|---|---|
+| whole `run` pattern | 3.85 |
+| **excluding `warmup-jog`** | **1.55** |
+
+**The actual running work is the least repetitive of every pool this project
+has worked on** — below `sprint` at 1.90 after §26, below `mobility` at 0.82
+only because that pool holds 149 entries. Authoring another tempo run or
+another interval would be real, correctly-sourced and completely unnoticeable:
+§20.1's lesson, which is the reason this measurement runs first.
+
+### 29.2  The raise stage is a pool of one, by construction and on purpose
+
+`RUN_RAISE` is `tier: ['accessory']`, `patterns: ['run']`,
+`modality: 'aerobic-steady'`. Exactly one entry in the library satisfies all
+three, and the stage is `optional: false` on all four outdoor day types. So
+`warmup-jog` is drawn on **100% of every outdoor session** — 8,000 of 8,000
+across the four day types — about twenty times in a twelve-week block.
+
+The coverage matrix already says so and already excuses it:
+`accessory :: run :: aerobic-steady` reads draw 1, **have 1**, `exempt`,
+`coverage`, short **0**. It is in `CLOSED_POOLS` and in `FLOOR_EXEMPT`. This is
+the balance pool's blindness of §27.1 in a second place: **a pool of one can
+satisfy this matrix**, because the matrix asks about coverage and joints, never
+about how often the same movement comes back.
+
+### 29.3  Why nothing was authored, and what the one real option is
+
+Three candidate fixes were considered and none survives.
+
+**More steady, tempo or interval runs.** Rejected on §29.1: those entries sit
+between 0.93 and 2.09 and adding to them is invisible work.
+
+**Widen the raise stage to `march`.** It looks like two birds — the stage gains
+options and four of the ten orphaned entries from §25.2 become reachable. It is
+wrong twice: three of the four need a ruck or a sled, and walking does not
+raise core temperature, which is the one thing this stage exists to do. A fix
+that happens to clear a warning is not a fix.
+
+**Vary the jog itself.** The only genuinely distinct bodyweight alternative is
+backward jogging, and the stage's dose is 3–5 minutes *continuous*. Backward
+running is prescribed in short bouts as a drill, not as a continuous warm-up,
+and outdoors it carries a fall risk the stage does not otherwise have. It would
+be an entry authored to fit a slot rather than a movement that belongs in it.
+
+**So the honest position is that this repetition is correct.** A warm-up is the
+thing you are supposed to do the same way every time; variety's premise fails
+here exactly as it fails for the sprint pools settled on 2026-09-06. The
+number is large and it is not a defect.
+
+**What is left open is a question, not a gap:** whether the athlete wants his
+3–5 minute jog to vary at all. If he does, the answer is a second raise option
+and the honest candidate list has one name on it. If he does not, this pool is
+finished and `run` should stop being described as pressured. Library unchanged
+at 541.

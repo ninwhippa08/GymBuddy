@@ -128,7 +128,7 @@ GymBuddy/
 │   └── ui.js             DOM rendering. Pure: data in, detached DOM nodes out.
 │
 ├── data/
-│   └── exercises.json    The exercise library: 493 exercises + 6 PR roots.
+│   └── exercises.json    The exercise library: 541 exercises + 6 PR roots.
 │
 ├── tests/                Node's built-in test runner, zero dependencies.
 │   ├── *.test.mjs        One file per subject (session, ramp, coverage, ui, storage, …).
@@ -646,7 +646,33 @@ more is not a reason to prescribe more. Balance now reaches five of the eight
 day types; the three without it are the gym days, and that remains a decision
 about the clock rather than the evidence.
 `docs/design-library-expansion.md` §28.
+**The run pool was measured next and turned out not to need anything.** It
+carried the highest repetition left, 3.85 per entry per twelve-week block, and
+itemising it showed the average was one entry: the warm-up jog, at **19.98
+repeats a block**. Every other run sits between 0.93 and 2.09, and **excluding
+the jog the pool measures 1.55** — the least repetitive of any pool this
+project has worked on. Authoring another tempo run or another interval would
+have been correct, sourced and completely unnoticeable.
 
+The warm-up jog repeats because the raise stage of the running warm-up is a
+pool of one by construction: it asks for an accessory-tier run at easy effort,
+and exactly one movement in the library is all three. The coverage matrix
+records that pool as *have 1, short 0*, which is the same blindness the balance
+pool exposed — **a pool of one can satisfy a matrix that asks about coverage
+and never about repetition.**
+
+Three fixes were considered and none survived. More steady or tempo runs are
+invisible work. Widening the stage to accept marches looks like it would also
+clear four orphaned entries, but three of those need a ruck or a sled and
+walking does not raise core temperature, which is the one job the stage has.
+Varying the jog itself leaves backward running as the only distinct candidate,
+and the stage prescribes three to five minutes continuous, which is not how
+backward running is used or safe outdoors.
+
+**So the repetition is correct.** A warm-up is the thing you do the same way
+every time, and variety's premise fails here as it does for the sprint pools.
+What remains is a question rather than a gap: whether the athlete wants his
+warm-up jog to vary at all. `docs/design-library-expansion.md` §29.
 **The fifth channel pull, where the pre-flight was worth more than the batch.**
 Performance Course offered 1078 titles across 26 movement playlists, 936 of
 them unique, and **24.9% were already in the library** — the highest overlap of
