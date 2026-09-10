@@ -687,7 +687,20 @@ Decided with the athlete 2026-09-06.
 - **Slot E is now rare while ramping** (5.9%, from 96.1%). That is the ramp
   doing its job, but it means the second explosive expression the athlete asked
   for is mostly a full-volume movement.
-- **Slot B can draw a movement it cannot price.** `snatch-grip-deadlift` is
-  `loadable: false, prRef: null`, and slot B exists to prescribe 75–85% of the
-  lift's own max. He got 4×2 with no load guidance and asked whether the
-  movement was invented. Not addressed here.
+- **Slot B can draw a movement it cannot price -- FIXED 2026-09-09, `sw.js`
+  v64.** `snatch-grip-deadlift` was `loadable: false, prRef: null`, and slot B
+  exists to prescribe 75-85% of the lift's own max. He got 4x2 with no load
+  guidance and asked whether the movement was invented. It fired on **7.7% of
+  power sessions** -- the pool holds fourteen and thirteen were priced. Now
+  priced at 1.25 x the snatch root, `corroborated` from two overlapping
+  coaching bands, and renamed **Snatch Deadlift**, because the coefficient and
+  the card must describe the same movement. `design-library-expansion.md` 23.
+- **The return-ramp ceiling never ends, and the card says so falsely -- OPEN,
+  found 2026-09-09 while fixing the above.** `rampRow()` clamps every week past
+  the table to the last row, so the week-5 ceiling of 0.95 binds FOREVER, while
+  the app's own `stillRamping` test (`generator.js:1163`, `:425`) says the ramp
+  is over at week 5. At full volume this prints *"held down by the return
+  ramp"* on **38.3% of max-strength load blocks**, and makes any coefficient
+  above ~1.12 inert. Third member of the family the expansion doc 22.1 names:
+  a budget compared against content it was never written to cover. **Left open
+  because removing a load ceiling is a training decision, not a bug fix.**

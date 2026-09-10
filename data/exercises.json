@@ -61,11 +61,11 @@
       "cues": ["Bar in the crook of the elbows, hands together, elbows in front of the ribs.","Sit straight down with the chest tall; the bar is trying to fold you over.","Brace hard -- this position gives out at the trunk before the legs do.","It bruises the elbows at first; a towel over the bar makes it tolerable."],
       "modalities": ["max-strength","hypertrophy"] },
 
-    { "id": "snatch-grip-deadlift", "name": "Snatch-Grip Deadlift", "pattern": "hinge", "tier": "primary",
-      "loadable": false, "prRef": null, "prCoef": null,
+    { "id": "snatch-grip-deadlift", "name": "Snatch Deadlift", "aka": ["snatch-grip deadlift"], "pattern": "hinge", "tier": "primary",
+      "loadable": true, "prRef": "snatch", "prCoef": 1.25,
       "joints": ["hip","knee","lumbar","thoracic","scapula"], "equipment": ["barbell","plates"], "venue": "gym",
       "cnsCost": 3, "technical": 2, "unilateral": false,
-      "cues": ["Grip the bar wide, at the rings, so the hips start lower.","Chest up and shoulders pulled back before the bar moves.","Expect a lot less weight than a normal deadlift -- that is the point."],
+      "cues": ["Snatch-width grip, at the rings, with the shoulders directly above the bar.","Set up like a snatch: knees over the bar and pushed out, hips low, chest tall.","Hold that back angle off the floor -- the hips must not shoot up first.","Legs and hips finish the extension together. No shrug, no jump under it."],
       "modalities": ["hypertrophy","max-strength","power"] },
 
     { "id": "weighted-chin-up", "name": "Weighted Chin-Up", "pattern": "pull-v", "tier": "primary",

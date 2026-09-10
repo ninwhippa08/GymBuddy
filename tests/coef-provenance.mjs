@@ -409,6 +409,57 @@ export const COEF_PROVENANCE = {
   // changed is that a sourced BAND now exists to check the coherent value
   // against, and it falls inside. Coherence pointed; the band is the evidence.
   "snatch-pull"               : { coef: 1.15 , of: "snatch"          , tag: 'corroborated' },
+  // SOURCED 2026-09-09, and it is a NEW claim rather than an inherited one:
+  // this entry had NO coefficient at all until today. It was loadable: false,
+  // prRef: null, so slot B -- whose whole role is "75-85% of THAT LIFT'S OWN
+  // max" -- fell through prescribe()'s unloadable path and printed 5x2 at
+  // "leave 2-3 reps in reserve" on 7.7% of power sessions. See
+  // design-architectures.md 7.5 and design-library-expansion.md 23.
+  //
+  // THE RATCHET FORCED THE SOURCING. A new loadable movement may not join the
+  // backlog, so this arrived corroborated or not at all.
+  //
+  // TWO INDEPENDENT COACHING BANDS, both as a percentage of the FULL snatch:
+  //   Catalyst Athletics (Everett), 2-6 reps    80-120%
+  //   Big Bend Strength, 1-5 reps              100-130%
+  // Intersection 100-120%; midpoint 110%. The snatch root is his POWER snatch
+  // at ~0.88 of the full lift (PMC6890263, design 5.5), so 1.10 / 0.88 = 1.25.
+  //
+  // THE ORDERING IS INDEPENDENTLY CONFIRMED, which is why this is not just
+  // arithmetic. Big Bend ranks the three snatch pulls by load with a mechanical
+  // reason -- high pull < pull < deadlift, because each drops a technical
+  // demand. 1.25 > snatch-pull's 1.15 preserves that, and squat-snatch at 1.14
+  // checks the conversion from the other side: 1.14 x 0.88 = 1.00, the full
+  // snatch itself, which is what a squat snatch IS.
+  //
+  // corroborated, NOT verified, and the reason is rack-pull's rule: a coaching
+  // WORKING-LOAD BAND IS NOT A 1RM RATIO. Two things keep it above that bar
+  // rather than below it. The sources are independent and their bands overlap,
+  // which is trap-bar's standard. And this family is not 1RM-tested -- nobody
+  // maxes a snatch deadlift -- so the top of the training band is the closest
+  // thing to a max that exists, where a rack pull has a real testable one.
+  //
+  // THE DOUBT, recorded with its DIRECTION so the next pass is not a fresh
+  // search. 1.25 is the intersection MIDPOINT. The register already places him
+  // at the TOP of these bands for a sourced reason -- Everett calls the band
+  // "far too light" for a lifter with strength surplus to technical ability,
+  // and that argument is STRONGER here than for the pulls, because a snatch
+  // deadlift has the least technique of the three. Top-end placement by
+  // snatch-pull's own precedent would give ~1.33. It was not taken: the two
+  // sources DISAGREE, so the intersection is already the strong claim, and
+  // stacking a placement inference on top of it is not new evidence. If this
+  // number moves it should move UP.
+  //
+  // THE CARD WAS FIXED WITH THE NUMBER -- rack-pull 20-40 lesson applied at
+  // authoring time rather than months later. Everett is explicit that a snatch
+  // deadlift is "not simply a standard deadlift with a wider grip": snatch
+  // positions, hips LOW, knees over the bar, not higher hips onto the heels.
+  // The entry was named "Snatch-Grip Deadlift" -- the powerlifting name for the
+  // OTHER movement -- and its last cue read "expect a lot less weight than a
+  // normal deadlift", anchoring the athlete to a lift this coefficient does not
+  // price. Renamed "Snatch Deadlift" (id unchanged, old name kept as aka) and
+  // the cues now describe the position the band was measured on.
+  "snatch-grip-deadlift"      : { coef: 1.25 , of: "snatch"          , tag: 'corroborated' },
   // INVESTIGATED 2026-08-25 AND LEFT UNSOURCED, for a different reason than
   // rack-pull's. There is no strength ratio to find, because THE OVERHEAD SQUAT
   // IS NOT STRENGTH-LIMITED. Asked directly what the snatch:overhead-squat

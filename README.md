@@ -511,6 +511,31 @@ ratio of. That is a limit of the model, not a gap in the authoring, and it is
 recorded next to the wall sit and the single-leg calf raise.
 `docs/design-library-expansion.md` §19.
 
+**One of those fourteen printed no weight at all, and he found it himself.**
+Slot B on a power day exists to prescribe 75–85% of that lift's own max, and
+`snatch-grip-deadlift` carried no coefficient, so the slot fell through to the
+reps path and printed *5 × 2, leave 2–3 reps in reserve* — a rep target and an
+effort target that do not describe the same set. It fired on **7.7% of power
+sessions**. Fixed on 2026-09-09: priced at 1.25 × the snatch root, taken from
+the overlap of two independent coaching bands, and tagged `[corroborated]`
+rather than `[verified]` because a working-load band is not a 1RM ratio. The
+entry was also **renamed Snatch Deadlift**, because the movement those bands
+were measured on is not the wide-grip deadlift the old name and cues described
+— the rack-pull lesson applied at authoring time instead of months later.
+`docs/design-library-expansion.md` §23.
+
+**Fixing it exposed a larger bug, still open, and the decision is the
+athlete's.** The return ramp's final ceiling of 0.95 × PR is applied to every
+week past the ramp, forever, while the app's own test for whether he is still
+ramping says he is not. Two things follow. Any coefficient above ~1.12 is
+inert at full volume, so a sourced number never reaches the card. And the card
+tells him he is *"held down by the return ramp"* on **38.3% of max-strength
+load blocks** when no ramp is running. It is the third instance of the shape
+described below for the venue filter and the prep budget: a limit charged
+against content it was never written to cover. It is left open because
+removing a load ceiling is a training decision rather than a defect, and that
+call is his.
+
 **Closing the jump pool turned up a bug in the app, and it is the more useful
 half of that day's work.** A smoke test written only to check the new entries
 could be drawn found one of them appearing 167 times in 1,500 generated

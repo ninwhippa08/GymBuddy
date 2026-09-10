@@ -2453,3 +2453,135 @@ shown the measured trade — balance on the two highest-risk days for a worst of
 on 2026-09-07. The limit is met and never exceeded. It has no room left in it,
 so the next change that adds session time has to buy its minutes before it
 spends them, the way `CORE_SECONDS_PER_REP` bought §18's.
+
+---
+
+## 23  The slot that printed no weight — 2026-09-09, `sw.js` v64
+
+`design-architectures.md` §7.5 has carried this since the architectures work:
+
+> **Slot B can draw a movement it cannot price.** `snatch-grip-deadlift` is
+> `loadable: false, prRef: null`, and slot B exists to prescribe 75–85% of the
+> lift's own max. He got 4×2 with no load guidance and asked whether the
+> movement was invented. Not addressed here.
+
+It is addressed here. The athlete found this one himself, which makes it the
+only item in this document that arrived as a bug report rather than as a
+measurement.
+
+### 23.1  The measurement, and how often it fired
+
+Slot B's pool is `primary :: hinge/pull-h :: power`, fourteen entries.
+Thirteen are priced. Over 5,000 power sessions the draw is flat, so the one
+that is not priced took **383 of them — 7.7%**.
+
+What those sessions printed, seed 13:
+
+```
+Snatch-Grip Deadlift
+5 × 2      leave 2-3 reps in reserve
+```
+
+`prescribe()` is doing exactly what it was written to do. `mode: 'load'` meets
+`!exercise.loadable`, falls through to the reps path, and prescribes by effort
+instead. That path is right for a weighted dip. On an Olympic derivative it is
+close to meaningless: **five doubles at 2–3 reps in reserve** is a rep target
+and an effort target that do not describe the same set, on a slot whose entire
+stated role is *75–85% of that lift's own max*.
+
+### 23.2  The ratchet decided how this was allowed to be fixed
+
+`coefficients.test.mjs` says a new loadable movement "must arrive with a
+sourced coefficient rather than joining the backlog". So the cheap fix — ship
+a plausible number tagged `unverified` — is not available, and that is the
+ratchet working as designed. This arrived `corroborated` or not at all.
+
+### 23.3  Two bands, and the intersection
+
+Both are coaching sources and both are stated as a percentage of the **full
+snatch**:
+
+| source | band | reps |
+|---|---|---|
+| Catalyst Athletics (Everett) | 80–120% | 2–6 |
+| Big Bend Strength | 100–130% | 1–5 |
+
+Intersection **100–120%**, midpoint **110%**. §5.5 established that the
+`snatch` root is his *power* snatch, ~0.88 of the full lift (PMC6890263), so
+the coefficient is `1.10 / 0.88 = ` **1.25**.
+
+**The ordering is what makes this evidence rather than arithmetic.** Big Bend
+ranks the three snatch pulls by load with a mechanical reason — snatch high
+pull < snatch pull < snatch deadlift, each dropping a technical demand — and
+1.25 sits above `snatch-pull`'s 1.15, which is the order that predicts. The
+conversion checks from the other side too: `squat-snatch` is 1.14, and
+`1.14 × 0.88 = 1.00`, the full snatch itself, which is what a squat snatch
+*is*.
+
+`corroborated`, not `verified`, for rack-pull's reason: **a coaching
+working-load band is not a 1RM ratio.** Two things keep this above that bar
+rather than below it. The sources are independent and their bands overlap,
+which is trap-bar's standard. And nobody maxes a snatch deadlift, so unlike a
+rack pull there is no testable 1RM the band is failing to be — the top of the
+training band is the closest thing that exists.
+
+**The doubt is recorded with its direction.** 1.25 is the intersection
+midpoint. The register already places him at the *top* of these bands for a
+sourced reason — Everett calls the band "far too light" for a lifter with a
+surplus of strength relative to technical ability — and that argument is
+stronger here than for the pulls, because a snatch deadlift has the least
+technique of the three. Top-end placement by `snatch-pull`'s own precedent
+gives ~1.33. It was not taken, because the two sources disagree and the
+intersection is already the strong claim. **If this number moves it should
+move up.**
+
+### 23.4  The card was fixed with the number, not months later
+
+This is rack-pull's lesson applied at authoring time. Everett is explicit that
+a snatch deadlift is *"not simply a standard deadlift with a wider grip — the
+positions, posture and balance match that of a snatch, rather than allowing
+higher hips, balance toward the heels."* Those are two different movements and
+only one of them is what the band was measured on.
+
+The entry was named **"Snatch-Grip Deadlift"**, which is the powerlifting name
+for the *other* one, and its last cue read *"Expect a lot less weight than a
+normal deadlift — that is the point"*, anchoring the athlete to a lift this
+coefficient does not price. Renamed **"Snatch Deadlift"**, `id` unchanged so
+history survives, old name kept as `aka` so the playlist matcher still finds
+it. The cues now describe the snatch start position the band belongs to.
+
+### 23.5  Delivered — and the ceiling that eats most of it
+
+Slot B now prescribes a load on **100% of 5,000 power sessions**, against 92.3%
+before. Seed 13 prints `0.95 × Snatch PR` with a warm-up ladder where it
+printed nothing.
+
+**And 91% of those draws come out of the clamp rather than the zone**, which
+is a finding about the app and not about this entry. `prescribe()` bounds the
+displayed multiplier at `env.pctCeiling`, and `rampRow()` clamps every week
+past the table to the last row — so the week-5 ceiling of 0.95 applies
+**forever**, to an athlete the app's own `stillRamping` test
+(`generator.js:1163`, and again at `:425`, both `rampWeek < RAMP.length`)
+says is not ramping.
+
+Measured at full volume, no `returnDate`, on the library **before** today's
+change, so this is not something this entry introduced:
+
+| day type | load blocks | printing "held down by the return ramp" |
+|---|---|---|
+| max-strength | 4534 | **38.3%** |
+| power | 4380 | 5.3% |
+| hypertrophy | 2930 | 0.0% |
+
+Two consequences, and the second is the serious one. Any coefficient above
+~1.12 is inert at full volume — the sourced 1.25 reaches the card on 9% of
+draws and the other 91% print 0.95 whatever the register says. And the card
+makes **a false statement to the athlete on 38% of max-strength blocks**: he
+is not being held down by the return ramp, he is meeting a permanent policy
+ceiling that no document describes as permanent.
+
+This is the third member of the family §22.1 named — the venue filter, the
+prep budget, and now the ramp ceiling: **a budget compared against content it
+was never written to cover.** It is left open here rather than fixed, because
+removing a load ceiling is a training decision and not a bug fix, and it is
+his. Recorded at `design-architectures.md` §7.5.
