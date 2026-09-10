@@ -220,7 +220,7 @@ Two ideas hold the design together:
 node --test tests/*.test.mjs
 ```
 
-602 tests, using only Node's built-in `node:test` and `node:assert/strict`.
+607 tests, using only Node's built-in `node:test` and `node:assert/strict`.
 There is no `package.json` and nothing to install.
 
 They are not only unit tests. Several are **sweeps**: they generate sessions in
@@ -623,13 +623,29 @@ progression were declined on population: unstable-surface work is evidenced for
 people who have already sprained an ankle, which he has not, and tandem stance
 sits below the eyes-closed work he already does. `docs/design-library-expansion.md` §27.
 
-**One finding is left open, and it is a placement question.** The mobility
-deload day runs 16 minutes against a 70-minute ceiling — 52 minutes of
-headroom, more than twice any other day — and it draws no balance work at all,
-because the stage lives in the running warm-up and the deload uses the gym one.
-It is the day this work fits best: lowest CNS cost, restorative by design, no
-clock pressure. Adding it there was costed at zero and not built, because where
-a movement is placed is a training decision rather than a defect.
+**That placement question was answered the same day: balance now runs on the
+deload.** The deload had inherited an exclusion written for someone else's
+clock. It declared no warm-up variant of its own, so it fell through to the gym
+one, and balance had been kept off the gym warm-up because gym days hold three
+minutes of headroom. The deload holds fifty-two. It now has its own warm-up
+variant — the gym one plus balance — and the gym days are untouched, so their
+margin is unchanged.
+
+The stage is optional there, where the identical stage is required on running
+days, and the difference is the day. Every balance movement loads the ankle,
+knee or hip, so any of those being hurt empties the pool, and the deload is the
+day reached when everything else is vetoed, which is disproportionately the day
+he is sore. Measured: with a hurt ankle, knee or hip the stage disappears and
+nothing is reported as unfilled. Required, it would have announced a hole on
+the one day that exists to be gentle.
+
+**Balance is delivered on every deload, drawn from the whole pool of six**, and
+the day runs 18 minutes where it ran 16. The dose did not change: the source it
+comes from prescribes one balance exercise per warm-up, and having the time for
+more is not a reason to prescribe more. Balance now reaches five of the eight
+day types; the three without it are the gym days, and that remains a decision
+about the clock rather than the evidence.
+`docs/design-library-expansion.md` §28.
 
 **The fifth channel pull, where the pre-flight was worth more than the batch.**
 Performance Course offered 1078 titles across 26 movement playlists, 936 of

@@ -30,21 +30,36 @@ test('the full cool-down carries core, the short one does not', () => {
 });
 
 test('no block is optional -- it is never randomised out', () => {
-  // One exception, named so a second cannot appear silently: the running
-  // prep's potentiation stage. design-running-programming.md §5.1 gives the
-  // easy run no stage 4, because build-ups before a conversational-pace run
-  // make it something other than an easy run.
-  // Both running variants end in a P5; they are the same stage with the two
-  // endpoints design §5 allows, a submaximal sprint or a low plyo. It was P4
-  // until the balance stage was inserted at P3 on 2026-09-07 (§22).
+  // TWO exceptions, each named so a third cannot appear silently.
+  //
+  // 1. THE RUNNING PREP'S POTENTIATION STAGE. design-running-programming.md
+  //    §5.1 gives the easy run no stage 4, because build-ups before a
+  //    conversational-pace run make it something other than an easy run. Both
+  //    running variants end in a P5; they are the same stage with the two
+  //    endpoints design §5 allows, a submaximal sprint or a low plyo. It was
+  //    P4 until the balance stage was inserted at P3 on 2026-09-07 (§22).
+  //
+  // 2. THE DELOAD'S BALANCE STAGE, added 2026-09-09 (§28). Optional here where
+  //    the identical stage is required in the running prep, and the difference
+  //    is the day. The balance pool is entirely ankle/knee/hip, so any one of
+  //    those hurt empties it -- and the deload is the day type reached when
+  //    everything else is VETOED, which is disproportionately the day he is
+  //    sore. Required, it would report an unfilled slot on the one day that
+  //    exists to be gentle. Measured: with a hurt ankle the stage disappears
+  //    and `unfilled` stays empty, which is the whole reason for the flag.
   const potentiation = new Set([
     PREP_BLOCK.running[4], PREP_BLOCK['running-plyo'][4]
   ]);
+  const deloadBalance = PREP_BLOCK.deload[1];
+  assert.equal(deloadBalance.slot, 'P2');
+  assert.deepEqual(deloadBalance.patterns, ['balance']);
+
+  const allowed = new Set([...potentiation, deloadBalance]);
   const optional = groups.filter(g => g.optional);
-  assert.deepEqual(new Set(optional), potentiation);
-  for (const g of optional) assert.equal(g.slot, 'P5');
+  assert.deepEqual(new Set(optional), allowed);
+  for (const g of potentiation) assert.equal(g.slot, 'P5');
   for (const g of groups) {
-    if (potentiation.has(g)) continue;
+    if (allowed.has(g)) continue;
     assert.equal(g.optional, false, `slot ${g.slot} is optional`);
   }
 });

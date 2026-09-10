@@ -8,8 +8,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { generate } from '../js/generator.js';
-import { DAY_TYPES, TEMPLATES, PHASE_1_DAY_TYPES } from '../js/templates.js';
+import { generate, estimateMinutes } from '../js/generator.js';
+import { DAY_TYPES, TEMPLATES, PHASE_1_DAY_TYPES, PREP_BLOCK } from '../js/templates.js';
 
 const LIB = JSON.parse(
   readFileSync(new URL('../data/exercises.json', import.meta.url), 'utf8')
@@ -62,4 +62,81 @@ test('the deload stays out of the rotation', () => {
     'the deload is reached by the all-vetoed fallback, never by the rotation');
   assert.ok(DAY_TYPES.mobility, 'but it is still a declared day type');
   assert.deepEqual(TEMPLATES.mobility, [], 'with an empty template');
+});
+
+// --------------------------------------------------------------------------
+// Balance on the deload, added 2026-09-09. design-library-expansion.md §28.
+//
+// §22 put balance on the four outdoor day types and excluded the gym prep ON
+// THE CLOCK -- gym days hold 3 minutes of headroom against the 70-minute
+// ceiling. The deload shared `PREP_BLOCK.full` with them and inherited an
+// exclusion written for a constraint it does not have: it runs 16 minutes and
+// holds 52 of headroom, the most in the app.
+// --------------------------------------------------------------------------
+
+const byId = new Map(LIB.map(e => [e.id, e]));
+const balanceBlocks = s =>
+  s.blocks.filter(b => {
+    const e = byId.get(b.exerciseId);
+    return e && e.pattern === 'balance';
+  });
+
+test('the deload has its own prep variant rather than sharing the gym one', () => {
+  assert.equal(DAY_TYPES.mobility.prep, 'deload');
+  // The point of the split. If these ever become the same array again the
+  // gym day types silently inherit a stage their clock cannot pay for.
+  assert.notDeepEqual(PREP_BLOCK.deload, PREP_BLOCK.full);
+  assert.equal(PREP_BLOCK.full.length, 1, 'the gym prep gained a stage');
+});
+
+test('every deload delivers balance work', () => {
+  // 19.2's rule: counted is not delivered. This is the assertion that would
+  // have caught §22.1's undelivered warm-up stages.
+  for (let seed = 1; seed <= 300; seed++) {
+    assert.equal(balanceBlocks(deload(seed)).length, 1,
+      `seed ${seed} delivered no balance block on a deload`);
+  }
+});
+
+test('the deload draws the whole balance pool, not a corner of it', () => {
+  const seen = new Set();
+  for (let seed = 1; seed <= 400; seed++) {
+    for (const b of balanceBlocks(deload(seed))) seen.add(b.exerciseId);
+  }
+  const pool = LIB.filter(e => e.pattern === 'balance').map(e => e.id);
+  assert.deepEqual([...seen].sort(), [...pool].sort(),
+    'some balance entries are never reachable from the deload');
+});
+
+// Why the stage is OPTIONAL here where the running prep has it required. The
+// balance pool is entirely ankle/knee/hip, and the deload is the day type
+// reached when everything else is VETOED -- disproportionately the day he is
+// sore. A required stage with an empty pool would report an unfilled slot on
+// the one day that exists to be gentle.
+test('a hurt ankle removes the balance stage without leaving a hole', () => {
+  for (const joint of ['ankle', 'knee', 'hip']) {
+    for (let seed = 1; seed <= 100; seed++) {
+      const s = generate({
+        library: LIB, profile: {}, history: [],
+        soreness: { [joint]: 'hurt' }, dayType: 'mobility', seed, now: 1e12
+      });
+      assert.equal(balanceBlocks(s).length, 0,
+        `seed ${seed} prescribed balance work on a hurt ${joint}`);
+      assert.equal((s.unfilled || []).length, 0,
+        `seed ${seed} reported an unfilled slot instead of skipping the stage`);
+      assert.ok(s.blocks.length > 0, `seed ${seed} produced an empty deload`);
+    }
+  }
+});
+
+test('adding the stage did not push the deload near anyone else\u2019s ceiling', () => {
+  let worst = 0;
+  for (let seed = 1; seed <= 2000; seed++) {
+    worst = Math.max(worst, estimateMinutes(deload(seed).blocks));
+  }
+  // Measured at 20 when this landed, against a 70-minute session limit. The
+  // bound is deliberately loose: it is here to catch a stage being added to
+  // the wrong prep variant, not to pin the exact figure.
+  assert.ok(worst <= 30,
+    `the deload now runs to ${worst} min; it was 18 before balance and 20 after`);
 });

@@ -3019,3 +3019,78 @@ purpose, and no clock pressure at all. §22 excluded balance from the gym prep
 on the clock (3 minutes of headroom there), and that reasoning simply does not
 reach this day type. Costed at zero and **not built, because it is a placement
 decision and it is his.** Library 538 → 541. 602/602.
+
+---
+
+## 28  Balance on the deload — 2026-09-09, `sw.js` v69
+
+§27.6 left this open and costed at zero, because placement is a training
+decision. The athlete made it the same day.
+
+### 28.1  An exclusion inherited from someone else's clock
+
+§22 put balance on the four outdoor day types and kept it off the gym prep,
+and was explicit that the reason was **the clock, not the evidence**: gym days
+hold 3 minutes of headroom against the 70-minute ceiling where outdoor days
+hold 7 to 28.
+
+The deload declares `mobilityCore: 'full'` and named no prep variant, so
+`groupsFor` fell through to `PREP_BLOCK.full` — the gym warm-up. It inherited
+an exclusion written for a constraint it does not have:
+
+| day type | worst session | headroom to 70 |
+|---|---|---|
+| max-strength / power / hypertrophy | 67 | 3 |
+| interval | 70 | **0** |
+| `mobility` deload | 18 | **52** |
+
+Fifty-two minutes, the most in the app by a factor of two and a half, on the
+day type with the lowest CNS cost, reached only when every other day is
+vetoed. That is the day ankle and knee control is worth training and load is
+not.
+
+### 28.2  Two decisions inside a small change
+
+**Its own prep variant, not a change to `full`.** `PREP_BLOCK.deload` is the
+gym mobilise stage plus balance; `full` is untouched, so the three gym day
+types keep their 3-minute margin. The shared stage is hoisted to
+`GYM_MOBILISE` and referenced by both rather than copied, and
+`mobility-day.test.mjs` asserts the two arrays have not become the same thing
+again — that is the failure mode this split exists to prevent.
+
+**The stage is `optional: true`, where the identical stage in the running prep
+is required.** The balance pool is entirely ankle/knee/hip, so any one of them
+hurt empties it — and the deload is reached when everything else is vetoed,
+which is disproportionately the day he is sore. Required, it would report an
+unfilled slot on the one day that exists to be gentle. Measured across 100
+seeds per joint: with `ankle`, `knee` or `hip` at `hurt`, balance blocks fall
+to **0** and `unfilled` stays **empty**.
+
+`templates.test.mjs` forbids optional blocks and names its exceptions so a new
+one cannot appear silently. It went red, which is the test working. There are
+now two, both named with their reason.
+
+### 28.3  The dose did not change, and having the time is not a reason
+
+`BALANCE_DOSE` is per-warm-up and the FIFA 11+ prescription it comes from is
+**one balance exercise**, 2 × 30 s per leg. Fifty-two minutes of headroom is an
+argument for putting the stage here, not for prescribing more of it than the
+only per-exercise source states. §22's warning stands: `[corroborated]`, not an
+optimum.
+
+### 28.4  Counted, then delivered
+
+| | before | after |
+|---|---|---|
+| deloads with balance | **0 / 2000** | **2000 / 2000** |
+| deload mean | 16.2 min | 18.4 |
+| deload worst | 18 | 20 |
+| headroom to 70 | 52 | **50** |
+| every other day type | — | **unchanged** |
+
+All six balance entries appear on the deload, drawn evenly, and
+`mobility-day.test.mjs` asserts the whole pool is reachable from it rather than
+a corner. Five new tests. 602 → 607.
+
+Balance now reaches five of the eight day types. The three still without it are
+the gym days, and that exclusion remains what §22 said it was: the clock.

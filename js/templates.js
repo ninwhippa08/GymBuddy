@@ -85,7 +85,12 @@ export const DAY_TYPES = Object.freeze({
   // day type is vetoed, which is the day it exists for. The athlete asked for
   // "a deload when you are wrecked", not another day in the rotation.
   mobility: Object.freeze({
-    venue: 'either', cnsClass: 'none', volumeUnit: 'time', mobilityCore: 'full'
+    venue: 'either', cnsClass: 'none', volumeUnit: 'time', mobilityCore: 'full',
+    // Its own prep variant since 2026-09-09: the gym warm-up plus balance.
+    // It shared `full` with the gym day types and so inherited 22's balance
+    // exclusion, which was written on THEIR clock -- 3 minutes of headroom --
+    // and this day has 52. design-library-expansion.md 28.
+    prep: 'deload'
   })
 });
 
@@ -593,22 +598,59 @@ const RUN_POTENTIATE_PLYO = Object.freeze({
   effort: 'light and springy off the ground -- ankles, not knees', optional: true
 });
 
+// The gym warm-up's one stage, hoisted so `full` and `deload` share it rather
+// than keeping two copies that can drift. design-mobility-and-warmup.md §9.
+const GYM_MOBILISE = Object.freeze({
+  slot: 'P1', role: 'prep', tier: ['mobility'], patterns: ['mobility'],
+  modality: 'mobility-dynamic', zone: null, mode: 'drill',
+  count: MOBILITY_DOSE.DYNAMIC_DRILLS, reps: MOBILITY_DOSE.DYNAMIC_REPS,
+  // Draw against the patterns the day actually trains, and spread the
+  // draw so each drill prepares something the last one did not. Without
+  // it this block drew any 3-4 of the 19 dynamic drills: the session that
+  // produced this flag was a Romanian deadlift, a close-grip bench and a
+  // woodchop, prepped by an inchworm, a walking quad pull and a squat to
+  // stand. 2026-09-04. design-mobility-and-warmup.md §9.
+  matchWork: true,
+  effort: 'controlled, full range -- not a stretch', optional: false
+});
+
+// The DELOAD's balance stage, added 2026-09-09.
+//
+// §22 put balance on the four outdoor day types and excluded the gym prep ON
+// THE CLOCK, not on the evidence -- gym days have 3 minutes of headroom against
+// the 70-minute ceiling where outdoor days have 7 to 28. That reasoning never
+// reached the deload, which shares `PREP_BLOCK.full` with the gym days and so
+// inherited an exclusion written for a constraint it does not have:
+//
+//   mobility deload   16.2 min mean, worst 18, 52 MINUTES OF HEADROOM
+//   gym day types     worst 67, 3 minutes
+//
+// It is also the day the work fits best -- lowest CNS cost in the app,
+// restorative by purpose, and the day reached when everything else is vetoed,
+// which is exactly when ankle and knee control is worth training and load is
+// not. Same dose as everywhere else: BALANCE_DOSE is per-warm-up and the FIFA
+// 11+ prescription it comes from is one balance exercise, so having the time
+// for more is not a reason to prescribe more. design-library-expansion.md §28.
+const DELOAD_BALANCE = Object.freeze({
+  slot: 'P2', role: 'prep', tier: ['mobility'], patterns: ['balance'],
+  modality: 'balance', zone: null, mode: 'hold',
+  count: BALANCE_DOSE.EXERCISES,
+  sets: BALANCE_DOSE.SETS,
+  holdSec: BALANCE_DOSE.HOLD_SEC,
+  // OPTIONAL here where the running prep has it required, and the difference is
+  // the day. The balance pool is all ankle/knee/hip, so a hurt ankle empties it
+  // -- and the deload is the day type reached when everything else is VETOED,
+  // which is disproportionately the day he is sore. A required stage with an
+  // empty pool would report an unfilled slot on the one day that exists to be
+  // gentle. design-library-expansion.md §28.2.
+  effort: 'still and quiet -- reset rather than wobble it out', optional: true
+});
+
 export const PREP_BLOCK = Object.freeze({
-  full: Object.freeze([
-    Object.freeze({
-      slot: 'P1', role: 'prep', tier: ['mobility'], patterns: ['mobility'],
-      modality: 'mobility-dynamic', zone: null, mode: 'drill',
-      count: MOBILITY_DOSE.DYNAMIC_DRILLS, reps: MOBILITY_DOSE.DYNAMIC_REPS,
-      // Draw against the patterns the day actually trains, and spread the
-      // draw so each drill prepares something the last one did not. Without
-      // it this block drew any 3-4 of the 19 dynamic drills: the session that
-      // produced this flag was a Romanian deadlift, a close-grip bench and a
-      // woodchop, prepped by an inchworm, a walking quad pull and a squat to
-      // stand. 2026-09-04. design-mobility-and-warmup.md §9.
-      matchWork: true,
-      effort: 'controlled, full range -- not a stretch', optional: false
-    })
-  ]),
+  full: Object.freeze([GYM_MOBILISE]),
+  // The deload is the gym warm-up plus balance, and on this day the warm-up IS
+  // most of the session. spec §5.
+  deload: Object.freeze([GYM_MOBILISE, DELOAD_BALANCE]),
   // PREP_BLOCK.short is gone. Its count of [2, 3] was the last [unverified]
   // number in this file, carried over from the pre-split block and sourced to
   // nothing. The four outdoor day types that used to select it now name the

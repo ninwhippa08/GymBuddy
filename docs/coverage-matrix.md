@@ -39,9 +39,9 @@ running the suite.
 | `primary+secondary :: jump :: (any)` | 1 | 23 | 0% (hip) | exempt | 16 | 16 | 0 |
 | `secondary+accessory :: jump :: (any)` | 1 | 6 | 0% (ankle) | exempt | repetition | 0 | 0 |
 | `mobility :: mobility :: mobility-dynamic` | 4 | 79 | 34% (hip) | 9 | coverage | 9 | 0 |
+| `mobility :: balance :: balance` | 1 | 6 | 0% (hip) | exempt | coverage | 0 | 0 |
 | `accessory :: run :: aerobic-steady` | 1 | 1 | 0% (hip) | exempt | coverage | 0 | 0 |
 | `mobility :: mobility :: mobility-dynamic :: hip/knee/ankle` | 4 | 56 | 11% (hip) | 28 | coverage | 28 | 0 |
-| `mobility :: balance :: balance` | 1 | 6 | 0% (hip) | exempt | coverage | 0 | 0 |
 | `accessory :: sprint-drill/agility :: (any)` | 3 | 38 | 0% (ankle) | exempt | coverage | 0 | 0 |
 | `secondary :: sprint :: sprint :: submaximal` | 4 | 1 | 0% (hip) | exempt | coverage | 0 | 0 |
 | `mobility :: mobility :: mobility-static` | 4 | 70 | 44% (hip) | 7 | coverage | 7 | 0 |
