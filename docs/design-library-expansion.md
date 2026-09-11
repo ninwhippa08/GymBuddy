@@ -3430,3 +3430,107 @@ or leave it generous on the grounds that a floor nobody is forced to meet costs
 nothing. **The third is what is in force today**, by default rather than by
 decision, and the exemption list is where the cost of that default shows up.
 Deciding it is not authoring work and should not be done inside a pull.
+
+---
+
+## 32  The standing ceiling, settled a second time and this time with the price on the table — 2026-09-11
+
+*The decision did not change. What changed is that it is now informed, and that
+the thing being decided turned out not to be what §24 described.*
+
+### 32.1  There are two ceilings, not one
+
+`prescribe()` applies `env.pctCeiling` **twice**, and §24 argued about them as
+if they were one number:
+
+1. **Against `pct`** — the fraction of *this movement's own max*. This is the
+   physiological claim: never more than 95% of what you can do on the bar in
+   front of you.
+2. **Against `display`** — `pct × prCoef`, the multiplier the card prints, which
+   is measured against a **different lift's** PR.
+
+Measured past the ramp over 8,257 load blocks across the three lifting days:
+
+| which cap bound | blocks | share |
+|---|---|---|
+| own-max only | 128 | **1.6%** |
+| printed multiplier | 1,537 | **18.6%** |
+
+**The safety cap is nearly a no-op.** `ZONES.maxStrength.pct` already tops out
+at 0.95 and `PCT_JITTER` is 0.025, so the own-max cap can only ever shave the
+jitter off the zone's own ceiling. Everything the athlete feels comes from the
+second application.
+
+### 32.2  And the second one bites only where a coefficient above 1.0 is the point
+
+The printed cap can only bind when `prCoef > 1.0`, and exactly ten entries
+qualify. All ten are Olympic derivatives, jerks and pulls:
+
+| movement | coefficient | tops out at | prints | how light |
+|---|---|---|---|---|
+| `split-jerk` | 1.38 × overhead-press | 1.31 | 0.95 | **28%** |
+| `snatch-grip-deadlift` | 1.25 × snatch | 1.19 | 0.95 | 20% |
+| `push-jerk` | 1.24 × overhead-press | 1.18 | 0.95 | 19% |
+| `squat-clean` | 1.18 × power-clean | 1.12 | 0.95 | 15% |
+| `clean-pull`, `snatch-pull` | 1.15 | 1.09 | 0.95 | 13% |
+| `rack-pull` | 1.15 × deadlift | 1.09 | 0.95 | 13% |
+| `squat-snatch` | 1.14 × snatch | 1.08 | 0.95 | 12% |
+| `push-press` | 1.10 × overhead-press | 1.04 | 0.95 | 9% |
+| `trap-bar-deadlift` | 1.05 × deadlift | 1.00 | 0.95 | 5% |
+
+A rack pull is pinned at 95% of the deadlift PR — **below a full deadlift**, for
+the one movement in the library whose purpose is to load above one.
+
+The ladder cost §24 recorded is the same phenomenon under another name. Among
+sessions that chose the ladder, 555 blocks survive as a wave and 1,797 collapse:
+**23.6%**, reproducing §24's 23.5% independently. Every movement on the
+collapsed-and-ceiling-bound list is one of the ten above. A load pinned at the
+cap has no room to wave.
+
+### 32.3  The cap is credited with a job it cannot do
+
+`STANDING_PCT_CEILING`'s comment justifies itself on the athlete's records being
+"college numbers the app cannot verify". The premise is sound — the detraining
+literature puts strength loss at roughly 14–25% over six weeks to three months
+away, and this lay-off was far longer.
+
+**But the app stores no maxes at all.** `spec.md` §2: the six `prRoots` are
+numbers the athlete holds in his own head, and the card prints a multiplier he
+applies himself. So a ceiling of 0.95 against a reference that is 25% high still
+prescribes ~1.19 × the true current max. **The ceiling cannot guard against a
+stale PR, because the stale number is on the other side of the multiplication.**
+The only thing that fixes a stale reference is a current reference.
+
+Asked directly on 2026-09-11, the athlete confirmed he multiplies by **a
+current, realistic number**, updated as he goes — not a college PR. That
+removes the premise the cap was defended on.
+
+### 32.4  What he decided, and it was to keep it
+
+Shown all of the above, **the athlete chose to keep both ceilings unchanged.**
+
+That is a second, informed confirmation rather than a repetition of the first.
+§24 recorded that the ladder price "was not known when the cap was chosen"; it
+is known now, it was put in front of him alongside the ten clipped lifts and
+the finding in §32.3, and the answer was the same.
+
+**The cost of that choice, stated once and not re-litigated:** ten lifts stay
+5–28% light, roughly half the ladders stay collapsed, and the coefficient
+register keeps sourcing numbers the card cannot print — `split-jerk`'s 1.38 is
+sourced and permanently inert. A conservative default for an athlete who trains
+alone without a spotter is a legitimate thing to want, and wanting it does not
+require the measurement to come out any particular way.
+
+**No code changed.** This section exists because a decision made twice with
+different information in front of it is worth more than a decision made once,
+and because the two-ceiling distinction in §32.1 is true whatever is decided
+later. If the question is ever reopened, the option to reopen it on is
+**keep the own-max cap and drop the printed one** — the safety claim survives
+intact and the ten lifts print what their sourced coefficients imply.
+
+### 32.5  One question this closed
+
+`design-architectures.md` §7.5 and README both described the ladder cost as
+"the strongest argument for lifting the ceiling after the ramp instead". That
+argument has now been made, in full, and lost on its merits. Both are amended
+to say so. The ceiling is settled policy, not an open question.

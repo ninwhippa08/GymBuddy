@@ -339,16 +339,39 @@ export const RAMP_WEEKS = RAMP.length;
 // ramp for it), the athlete chose to KEEP the cap and fix only the false
 // sentence on the card.
 //
-// The reason it is defensible: his PRs are college numbers he keeps in his own
-// head, the app cannot drive progressive overload and so never learns they have
-// moved, and he trains alone without a spotter. Prescribing above 95% of a
-// number the app cannot verify is the one error it should not make.
+// The reason first given: his PRs are college numbers he keeps in his own head,
+// the app cannot drive progressive overload and so never learns they have moved,
+// and he trains alone without a spotter.
+//
+// HALF OF THAT REASON WAS CHECKED ON 2026-09-11 AND DOES NOT HOLD. The app
+// stores no maxes -- `spec.md` §2, the six roots live in his head and he does
+// the multiplication himself -- so a stale PR sits on the OTHER SIDE of it and
+// this line cannot reach it. A ceiling of 0.95 against a reference 25% high
+// still prescribes ~1.19 x the true max. Asked directly, he confirmed he
+// multiplies by a CURRENT, realistic number. The "cannot verify" argument is
+// therefore retired; what survives is the plain one, which is enough on its
+// own: he trains alone and wants a conservative bound.
+//
+// THERE ARE TWO CEILINGS HERE AND ONLY ONE OF THEM BINDS. `prescribe()` applies
+// this number against `pct` (the fraction of the movement's OWN max -- the
+// physiological claim) and again against `display` (the printed multiplier,
+// measured against ANOTHER lift's PR). Past the ramp, over 8,257 load blocks:
+// the own-max cap binds 1.6% of the time and the printed cap 18.6%. The first
+// is nearly a no-op, because `ZONES.maxStrength` already tops out at 0.95 and
+// it can only shave `PCT_JITTER`. Everything that is felt is the second.
 //
 // The cost, recorded so it is not rediscovered: any `prCoef` above ~1.12 is
 // INERT at full volume, because the zone's own top multiplied by the
-// coefficient lands above this line and is clipped back to it. The coefficient
-// register keeps sourcing numbers that the card cannot print.
-// design-library-expansion.md §23.5.
+// coefficient lands above this line and is clipped back to it. That is ten
+// entries -- every Olympic derivative, jerk and pull -- run 5-28% light, and
+// `rack-pull` is pinned BELOW a full deadlift. It also costs roughly half the
+// ladders, since a load pinned at the cap has no room to wave.
+//
+// PUT TO HIM AGAIN ON 2026-09-11 with all of that measured, and he KEPT BOTH.
+// Settled policy, not an open question. If it is ever reopened, the option to
+// reopen it on is dropping the PRINTED cap and keeping the own-max one: the
+// safety claim survives intact and the sourced coefficients reach the card.
+// design-library-expansion.md §23.5, §32.
 export const STANDING_PCT_CEILING = 0.95;
 
 // --------------------------------------------------------------------------

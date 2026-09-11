@@ -716,4 +716,9 @@ Decided with the athlete 2026-09-06.
   by clipping the top rung, which would have moved the mean and broken 3.2's
   rule that a ladder changes arrangement and not intensity. **Cost: the ladder
   share fell 42.8% -> 23.5%**, which is the price of the cap rather than of
-  the label, and was not known when the cap was chosen.
+  the label, and was not known when the cap was chosen. PUT TO HIM AGAIN on
+  2026-09-11 with that price measured, and with the finding that it is the
+  PRINTED cap and not the own-max one that binds (18.6% against 1.6%): he
+  KEPT the cap. Settled policy now rather than an open question, and the
+  23.6% collapse rate was reproduced independently.
+  design-library-expansion.md 32.

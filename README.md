@@ -565,10 +565,11 @@ the wave collapses to straight sets before it can climb. Fixed by narrowing the
 wave rather than clipping its top, which would have changed the average load
 the ladder is explicitly not allowed to touch. **It costs ladders: the share of
 laddered blocks falls from 42.8% to 23.5%**, because a wave centred on a load
-already at the cap cannot be built. That is the price of keeping the cap, it
-was not known when the cap was chosen, and it is the strongest argument for
-lifting the ceiling after the ramp instead. `docs/design-library-expansion.md`
-§24.
+already at the cap cannot be built. That is the price of keeping the cap, and
+it was not known when the cap was first chosen. **It was put to the athlete
+again on 2026-09-11 with the price measured, and he kept the cap a second
+time** — so the ceiling is now a decision made with its cost on the table
+rather than one made in the dark. `docs/design-library-expansion.md` §24, §32.
 
 **Closing the jump pool turned up a bug in the app, and it is the more useful
 half of that day's work.** A smoke test written only to check the new entries
