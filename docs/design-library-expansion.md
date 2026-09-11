@@ -3808,3 +3808,86 @@ live constraint that has produced real authoring as recently as §20.
 What it does mean is that **the matrix has stopped being a to-do list.** From
 here, a reason to author is a measurement — felt repetition, a joint with no
 option, a pool a slot cannot reach — and not a number that is short.
+
+---
+
+## 36  The foot-contact budget gets a scope, and the test that guards it was wrong first — 2026-09-11
+
+*§33 documented a latent hole in a comment. Auditing it properly found the
+comment was right, found a different and broader weakness beside it, and then
+the guard written for both turned out not to guard anything until it was
+mutation-tested.*
+
+### 36.1  The latent hole is confirmed latent
+
+§33's claim was that widening `RUN_RAISE` to admit `jump-rope` would put
+300–700 uncounted foot contacts into a warm-up. Checked exhaustively across all
+48 slots rather than argued: **exactly two entries carry `contactsPerRep` and
+are reachable only through non-contacts slots — `depth-push-up` and
+`plyo-push-up`, both declaring ZERO**, because an upper-body plyometric spends
+none of a foot-contact budget. Nothing is undercounted today.
+
+### 36.2  The broader weakness: absence is indistinguishable from zero
+
+`generator.js` reads the field as `exercise.contactsPerRep == null ? 0 : ...`.
+**63 entries reachable by a contacts-mode slot declare nothing at all.** Each
+family was checked rather than assumed, and almost all of the zeros are right:
+
+| family | why zero is correct |
+|---|---|
+| 13 med-ball throws | no foot contacts in the plyometric sense |
+| 9 sprints and starts | budgeted in METRES by `SPRINT.METERS_PER_SESSION` |
+| ~40 sprint drills and agility drills | low-amplitude technique work, not landings |
+
+But **three sprint drills DO carry a count** — `straight-leg-bound`,
+`power-skip` and `power-skip-for-distance` — because a bound and a power skip
+have a flight phase and a landing that the plyometric literature counts, while
+the A-skips and ankling beside them do not. **That line is real, it is correct,
+and it was written down nowhere.** The field being optional means a fourth
+bounding drill authored tomorrow would silently spend nothing, and no test in
+the suite would notice. Same shape as `isometric` before `REVIEWED_HOLDS`: a
+human claim, asserted by omission.
+
+### 36.3  Three rules, and the data change the first one forced
+
+`tests/contacts.test.mjs`:
+
+1. **Every `jump`-pattern entry declares its foot contacts.** This went red
+   immediately on `squat-drop` — a jump-pattern plyometric carrying no count.
+   It is a landing you catch, so it declares **1**. It is also one of §25's ten
+   orphans for an unrelated reason (it declares no `plyoIntensity`, so no plyo
+   slot admits it), and **that was deliberately left alone**: declaring the
+   contacts is a fact about the movement, admitting it to the rotation is a
+   behaviour change nobody asked for. Orphan count unchanged at 10.
+2. **A non-jump entry may carry a count only if reviewed**, against
+   `REVIEWED_CONTACTS`, which holds the three bounds and skips at 1 and the two
+   push-ups at 0 — the zero written down so "reviewed, and it is nothing" is
+   distinguishable from "nobody looked".
+3. **No movement that lands is reachable by a slot that cannot count it.**
+
+### 36.4  Rule 3 was wrong, and the mutation is what said so
+
+The first version asked whether a landing movement can reach **at least one**
+contacts slot. It passed. Then the mistake it exists to catch was made on
+purpose — `RUN_RAISE` widened to `['run', 'jump']` — and **it stayed green**,
+because `jump-rope` already reaches `plyometric:C`, which counts perfectly well.
+
+The invariant was backwards. The hazard is not *"can this ever be counted"*; it
+is *"can this be drawn somewhere that cannot count it"*, because the budget is
+undercounted every time that happens, however many other slots get it right.
+**One blind slot is enough.** Rewritten to that, the mutation turns it red and
+names `jump-rope`, and it passes on the real templates.
+
+Worth stating plainly: **a guard that has never been seen to fail is not
+evidence of anything.** This one was written, run green, and was worthless. The
+project already owns `tests/mutate.mjs` for exactly this reason, and the habit
+generalises past it — break the thing on purpose, watch the test notice.
+
+### 36.5  What was NOT done
+
+The generator still cannot count contacts on a block dosed by time or load, and
+that was offered and declined. It is the right call: nothing reaches that path,
+and a dose model for time-based landing work does not exist. The difference from
+this morning is that the claim is now enforced rather than described, so the
+day someone widens a filter they get a red test naming the movement instead of a
+comment they may not read.

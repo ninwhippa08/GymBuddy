@@ -220,7 +220,7 @@ Two ideas hold the design together:
 node --test tests/*.test.mjs
 ```
 
-613 tests, using only Node's built-in `node:test` and `node:assert/strict`.
+616 tests, using only Node's built-in `node:test` and `node:assert/strict`.
 There is no `package.json` and nothing to install.
 
 They are not only unit tests. Several are **sweeps**: they generate sessions in
@@ -948,3 +948,28 @@ argument at the point of exemption, and that **the coverage matrix has stopped
 being a to-do list.** A reason to author is now a measurement — felt repetition,
 a joint with no option, a pool no slot can reach — rather than a number that is
 short. `docs/design-library-expansion.md` §35.
+
+**The foot-contact budget now has a written scope, and the guard for it was
+wrong on the first attempt.** Plyometric landing volume is accumulated from a
+per-exercise contact count, but the field is optional and the generator reads a
+missing value as zero, so absence was indistinguishable from a deliberate zero.
+Sixty-three entries reachable by contact-dosed slots declare nothing. Checked
+family by family, almost all of those zeros are correct: med ball throws have no
+foot contacts, sprints are budgeted separately in metres, and low-amplitude
+technique drills are not landings. But three sprint drills do carry a count,
+because a bound and a power skip have a flight phase, and that line was written
+down nowhere.
+
+Three rules now assert it, and the first one immediately found a jumping
+movement declaring no contacts at all. It was given one. It remains unreachable
+for an unrelated reason, which was deliberately left alone — declaring a fact
+about a movement is not the same as putting it into rotation.
+
+**The third rule is the interesting one.** It began as "a landing movement must
+be able to reach at least one slot that counts contacts", it passed, and then
+the mistake it exists to catch was made on purpose and it stayed green. The
+invariant was backwards: the hazard is not whether a movement can ever be
+counted, it is whether it can be drawn somewhere that cannot count it, and one
+blind slot is enough. Rewritten, the same mutation turns it red and names the
+movement. A guard that has never been seen to fail is not evidence of anything.
+`docs/design-library-expansion.md` §36.

@@ -3864,7 +3864,7 @@
     { "id": "squat-drop", "name": "Squat Drop", "pattern": "jump", "tier": "accessory",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["ankle","knee","hip"], "equipment": ["bodyweight"], "venue": "either",
-      "cnsCost": 1, "technical": 2, "unilateral": false,
+      "cnsCost": 1, "technical": 2, "unilateral": false, "contactsPerRep": 1,
       "cues": ["Stand tall, then drop fast into a quarter squat and freeze there.","It is a fall you catch, not a jump -- there is no upward push at all.","Land with the feet flat, knees over the toes, and make no noise.","This trains the catch every landing needs, so quality beats reps."],
       "modalities": ["plyometric"] },
 

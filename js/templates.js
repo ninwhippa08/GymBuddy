@@ -537,7 +537,13 @@ export const TEMPLATES = Object.freeze({
 // that does not exist yet. Teach the contact budget about time-dosed jumping
 // FIRST, and note that one prep variant serves the easy, interval AND sprint
 // days, so keeping skipping away from sprint days needs a fifth variant too.
-// design-library-expansion.md §29, §33.
+//
+// YOU DO NOT HAVE TO TAKE THIS COMMENT'S WORD FOR IT. Since 2026-09-11 the
+// claim is a test: `tests/contacts.test.mjs` asserts that no movement carrying
+// foot contacts is reachable by a slot dosed by anything else. Widening the
+// line below to `['run', 'jump']` turns it red and names `jump-rope`. A comment
+// asks to be read; that test does not. §36.
+// design-library-expansion.md §29, §33, §36.
 const RUN_RAISE = Object.freeze({
   slot: 'P1', role: 'prep', tier: ['accessory'], patterns: ['run'],
   modality: 'aerobic-steady', zone: null, mode: 'time',
