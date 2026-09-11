@@ -3377,6 +3377,14 @@ inside sixteen sessions. It holds seven.** The formula asks for sixteen because
 it multiplies the horizon by the slot's draw and never asks how often the day
 arrives.
 
+> **WRONG IN OUTCOME TERMS -- corrected 2026-09-11, see §34.** The arithmetic
+> above assumes the generator cycles a pool before repeating from it. It does
+> not: selection is weighted by recency, neglect and pattern debt. MEASURED, a
+> pool of two entries returns a movement every 11 sessions and a pool of seven
+> every 22, so "two entries would clear the horizon" is false. The starts-pool
+> exemption stands on the repetition measurement in §31.2, which is unaffected;
+> this paragraph's half of the argument is withdrawn.
+
 This is the same shape as the venue filter, the prep budget, the ramp ceiling
 and the sprint day's fourth slot: **a limit checked against content it was never
 written to cover.** `VARIETY` was written in §3 when the library was gym-only
@@ -3418,9 +3426,12 @@ established is unavailable — the athlete trains alone.
 **Raw shortfall 11 → 2.** What remains is `primary :: hinge/pull-h :: power` at
 14 of 16, blocked twice over and standing open since §19.
 
-### 31.5  Open question 7
+### 31.5  Open question 7 -- CLOSED 2026-09-11, see §34
 
-**Does `VARIETY` need a day-type term?** §31.3 measures the gap for all seven day
+**Does `VARIETY` need a day-type term?** *(Answered: no. The premise below was
+measured and does not hold -- pool size stops governing the repeat interval above
+about sixteen entries, and the change floated here would have made the app more
+repetitive, not less. Kept as written because the reasoning is what §34 corrects.)* §31.3 measures the gap for all seven day
 types and none is smaller than 5.3 sessions, so every main-work pool in this
 library is targeted between 4× and 8× its own horizon. Three shapes are
 plausible: scale the target by the measured day-type gap; restate
@@ -3621,3 +3632,91 @@ the latent hole anyway — and declined it. That is consistent: the hole buys
 nothing visible today, and this project does not build machinery against a case
 nobody has asked for. The comment is the cheap half of the fix and is enough to
 stop the trap being walked into.
+
+---
+
+## 34  Open question 7 is closed, and it is closed against the section that raised it — 2026-09-11
+
+*§31.5 asked whether `VARIETY` needs a day-type term. It does not. The reasoning
+that produced the question was arithmetic rather than measurement, and measuring
+it reverses the answer.*
+
+### 34.1  What §31.3 claimed, and why it was wrong
+
+§31.3 argued: `SESSIONS_BEFORE_REPEAT` is 16 *sessions*, the sprint day arrives
+every 8.5 sessions, therefore a pool drawn only on that day needs **two**
+entries to clear a sixteen-session horizon. The arithmetic is correct and the
+conclusion does not follow, because **it assumes round-robin selection and the
+generator does not select that way.** `scoreExercise` weights by recency,
+neglect and pattern debt; nothing guarantees a pool is cycled before it repeats.
+
+Instrumented instead of reasoned about — 120 runs of 60 sessions, history fed
+forward, measured per SLOT because a slot is what draws a pool:
+
+| entries drawn in the slot | median gap in turns of that day type | median gap in sessions |
+|---|---|---|
+| 1 | 1 | 5 |
+| 2–3 | 2 | 11–12 |
+| 7 | 2–3 | 16–22 |
+| 14–49 | **3** | **23–24** |
+
+`max-strength:B` draws 45 distinct entries and `hypertrophy:A` draws 16. **Both
+return a movement on a median of 3 turns and 24 sessions.** A pool of 49 buys
+nothing a pool of 16 does not already buy.
+
+Measuring in *turns* rather than sessions is what makes this readable: it
+controls for the confound that the smallest pools sit on the most frequent day
+types, so a raw session gap would credit pool size with the day type's own
+spacing.
+
+### 34.2  So the day-type term would have made the app worse
+
+The change §31.5 floated drops every target to 2–4 entries. The table above
+prices that: pools of 2–3 return a movement every **11 sessions**, against 24
+today. It would have relaxed a target that is not binding anything, removed the
+pressure that produced five useful authoring passes, and measurably increased
+the repetition the project exists to reduce — all on the strength of an
+arithmetic model of a selection mechanism nobody had checked.
+
+**Settled 2026-09-11: the target stays at `16 × drawMax`.** No code changed.
+
+### 34.3  The constant is right; its stated justification is not
+
+`SESSIONS_BEFORE_REPEAT = 16` does **not** deliver "no movement repeats inside
+16 sessions". Only 13–21% of repeats in the governed gym pools fall inside 16
+sessions, so the rule is neither met nor needed at its face value.
+
+What 16 actually is: **roughly the point at which the realized repeat interval
+stops improving.** Below seven entries the interval degrades fast — 3 entries
+gives 11 sessions, 7 gives 16–22 — and above sixteen, more entries buy nothing
+measurable. The number has been right the whole time and §3.2's gloss has been
+describing a different quantity.
+
+That is the honest record: an athlete's preference, stated in one unit,
+implemented as a pool floor, and landing on the correct value for a reason
+nobody had written down until it was measured.
+
+### 34.4  What is NOT claimed here
+
+**Why** size stops mattering above ~16 was not isolated. `VARIETY.RECENT_SESSIONS`
+is 8, which at a gym-day spacing of 7.2 sessions is barely ONE prior turn of that
+day type, so the recency penalty can only be part of it and the neglect and
+coverage scoring is likely narrowing the effective choice set. That is a claim
+about `scoreExercise`, it is not measured here, and it is not asserted.
+
+It is worth measuring on its own terms — "how many distinct entries can a slot
+*actually* reach in one athlete's run, as against how many the pool holds" — and
+it is a better question than the one this section closes. It is **not** opened as
+a numbered question, because nothing is waiting on it and this project has enough
+of those.
+
+### 34.5  Corrections applied
+
+- §31.3's "needs TWO entries" claim is wrong in outcome terms and is marked so
+  at the point it is made.
+- §31.5, open question 7, is **CLOSED** rather than left standing.
+- The starts-pool exemption in §31 **stands**, but note it now rests on one leg
+  rather than two: the repetition measurement (0.60 repeats per entry per block,
+  the lowest in the library) survives intact, and the seven starts realize a
+  22-session interval. The "needs only two entries" half of the argument is
+  withdrawn.

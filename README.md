@@ -902,3 +902,24 @@ is latent rather than live**, because nothing dosed by time can reach a jumping
 movement today. It is documented at the slot itself, where anyone widening the
 filter will read it, rather than only in the design notes.
 `docs/design-library-expansion.md` §33.
+
+**The variety rule was questioned and survived, and the question was closed
+against the section that raised it.** An earlier pass argued that the target of
+16 entries per pool is mis-scaled, because the athlete's rule is no repeat
+inside 16 sessions and no day type arrives more often than every 5.3 sessions.
+That arithmetic is correct and the conclusion does not follow: it assumes the
+generator cycles a pool before repeating from it, and selection is weighted by
+recency, neglect and pattern debt instead. **Measured over 120 runs of 60
+sessions, pool size stops mattering above roughly sixteen entries.** A slot
+drawing from 49 entries returns a movement on the same median as one drawing
+from 16, three turns of that day type and 24 sessions. Pools of two or three
+return one every 11.
+
+So the proposed change would have made the app measurably more repetitive. The
+target stays. What did change is the record: **16 is not a no-repeat horizon, it
+is about where the realized interval saturates**, and the constant has been
+right the whole time for a reason nobody had written down. The earlier claim is
+marked wrong where it was made rather than quietly deleted, because the mistake
+is the instructive part — it is the one this project keeps making, reasoning
+about a mechanism instead of instrumenting it.
+`docs/design-library-expansion.md` §34.

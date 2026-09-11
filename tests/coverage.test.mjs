@@ -19,8 +19,25 @@ const LIB = JSON.parse(
 // Policy inputs -- the only two numbers in this file
 // ---------------------------------------------------------------------------
 
-// The athlete's own choice: about two months at his irregular 1-3x/week.
-// A preference, not a finding. design-library-expansion.md §3.2.
+// The athlete's own choice, stated as "about two months at his irregular
+// 1-3x/week". A preference, not a finding. design-library-expansion.md §3.2.
+//
+// WHAT IT ACTUALLY DELIVERS, measured 2026-09-11 over 120 runs of 60 sessions
+// and recorded because the gloss above describes a different quantity: a pool
+// of this size does NOT stop a movement repeating inside 16 sessions. Only
+// 13-21% of repeats in the governed gym pools fall inside 16, so the rule is
+// neither met nor needed at face value.
+//
+// 16 is instead, near enough, THE POINT WHERE THE REALIZED INTERVAL SATURATES.
+// Median gap between repeats of one movement in one slot, in turns of that
+// day type: 1 entry -> 1 turn, 2-3 -> 2, 7 -> 2-3, and 14 through 49 all ->
+// 3 turns / 24 sessions. A pool of 49 buys nothing a pool of 16 does not.
+//
+// So DO NOT LOWER THIS on the arithmetic that a day-type-specific pool "only
+// needs two entries to clear sixteen sessions". That argument was made in
+// §31.3, is wrong in outcome terms, and is withdrawn in §34: two entries
+// measure at an 11-session interval. The arithmetic assumes round-robin
+// selection and `scoreExercise` does not select that way.
 const SESSIONS_BEFORE_REPEAT = 16;
 
 // The smallest number that survives one option being banned and one being
@@ -86,11 +103,17 @@ const VARIETY_EXEMPT_POOLS = new Set([
   // sprint day arrives every 8.5 sessions (measured, 3,600 sessions), so a pool
   // drawn only on that day needs TWO entries to clear a sixteen-session horizon.
   // It holds seven. `16 x drawMax` multiplies the horizon by the slot's draw and
-  // never asks how often the DAY arrives, which is the same shape as the venue
-  // filter, the prep budget and the ramp ceiling: a limit checked against
-  // content it was never written to cover. That is a finding about the FORMULA
-  // and it is left open rather than fixed here -- see design-library-expansion.md
-  // §31, which measures every day type's gap. This line settles the one pool.
+  // never asks how often the DAY arrives. That looked like a finding about the
+  // FORMULA and was logged as open question 7; it was MEASURED on 2026-09-11
+  // and does not hold -- pool size stops governing the repeat interval above
+  // about sixteen entries, so scaling the target by the day-type gap would have
+  // licensed pools of 2-4 that measure at an 11-session interval against 24
+  // today. Question 7 is CLOSED and the target stays. §34.
+  //
+  // THIS EXEMPTION IS UNAFFECTED, but it now rests on one leg rather than two:
+  // §31.2's repetition measurement (0.60 repeats per entry per twelve-week
+  // block, the lowest in the library) stands, and the seven starts realize a
+  // 22-session interval. The mis-scaling half of the argument is withdrawn.
   'accessory :: sprint :: sprint :: maximal',
   // The low-intensity plyo finisher. Six exist; the ten more would be pogo-hop
   // and line-hop variants, which is the padding §11.0 declined by name. The
