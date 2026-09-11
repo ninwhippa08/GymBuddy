@@ -3018,11 +3018,11 @@
       "targets": ["squat","lunge","rotate"],
       "modalities": ["mobility-dynamic"] },
 
-    { "id": "wide-knee-hip-internal-rotation", "name": "Wide-Knee Hip Internal Rotation", "pattern": "mobility", "tier": "mobility",
+    { "id": "wide-knee-hip-internal-rotation", "name": "Kneeling Rock-Back Hip Internal Rotation", "pattern": "mobility", "tier": "mobility",
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["hip"], "equipment": ["bodyweight"], "venue": "either",
       "cnsCost": 1, "technical": 2, "unilateral": true,
-      "cues": ["Kneel with the knees wide and the hips sat back towards the heels.","Let one hip roll inward so that thigh turns in, then the other.","Small range and slow. Internal rotation is usually the stiff one."],
+      "cues": ["Kneel with the knees wide, shins flat, and sit the hips back towards the heels.","Slide one foot out AWAY from the middle. The knee does not move at all.","The foot going out is what turns the thigh in. Backwards, and that is the drill.","Felt deep in the hip. If the KNEE complains, the foot is not travelling."],
       "targets": ["squat","lunge","rotate"],
       "modalities": ["mobility-dynamic"] },
 

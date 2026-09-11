@@ -1527,7 +1527,7 @@ function prescribeMobility(group, e, rng) {
     // share the `mobility-dynamic` modality with the swing and lunge drills --
     // correctly, they are dynamic and they belong in the prep draw -- but they
     // are prescribed nothing like them: 3-5 slow reps per side at 10-30 s each,
-    // against 10-12 reps at 2 s. One range over both was 3-4x the sourced CARs
+    // against 8-10 reps at 2 s. One range over both was 3-4x the sourced CARs
     // dose on 21.2% of sessions. The dose is a fact about the movement, so it
     // lives on the entry, for the same reason `cues` does.
     // design-mobility-and-warmup.md §12.
@@ -1642,7 +1642,7 @@ export function packCooldown(blocks, budgetMin = TIME.COOLDOWN_MIN) {
 // multiplier in estimateMinutes doubles their cost -- so a session that draws
 // several per-side drills can run well past that estimate. Mirrors
 // packCooldown's shape and its one lever: this trims drill COUNT, never the
-// sourced 10-12 rep dose, and never below the sourced 3-drill floor.
+// athlete-set 8-10 rep dose, and never below the sourced 3-drill floor.
 export function packPrep(blocks, budgetMin = TIME.PREP_MIN) {
   const out = blocks.slice();
   let guard = 0;

@@ -283,7 +283,7 @@ test('every aka is a usable alternate name, and no two entries claim one', () =>
 // `dose` -- a movement that is dosed unlike the rest of its modality. It exists
 // because CARs share `mobility-dynamic` with the swing and lunge drills and are
 // prescribed nothing like them: the sourced dose is 3 slow reps per side at
-// 10 s each, against 10-12 reps at 2 s. One range over both was charging 3-4x
+// 10 s each, against 8-10 reps at 2 s. One range over both was charging 3-4x
 // the sourced CARs dose on 21.2% of sessions, and pricing it at a tempo that
 // was never theirs. Like `aka` and the cues, it is a fact about the MOVEMENT,
 // so it lives on the entry rather than in a special case in the generator.

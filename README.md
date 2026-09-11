@@ -201,7 +201,7 @@ file is the authoritative version; this is the summary.
 | 7 | PRESCRIBE | Sets and reps at a percentage of a PR — or foot contacts, or minutes |
 | 8 | PACK | Estimates duration and trims optional slots to the main-work budget, then pairs opposing lifts into supersets |
 | 9 | PREP / COOL | Appends the dynamic warm-up and the static cool-down plus core, both **matched to the patterns the day actually trains**, then packs each to its budget |
-| 10 | ORDER | Enforces the fixed sequence: prep first, cool-down last, and a superset's two halves adjacent |
+| 10 | ORDER | Enforces the fixed sequence: prep first, cool-down last — **core before the static stretches**, which close the session — and a superset's two halves adjacent |
 
 Two ideas hold the design together:
 
@@ -290,6 +290,24 @@ draft pasted in and forgotten fails rather than ships. What a video or a list of
 names cannot supply is the rest: which pattern, which joints, how technical, and
 three lines that are true for someone performing it unsupervised.
 `docs/design-library-expansion.md` §13.
+
+**The suite cannot read a coaching cue, and in September 2026 the athlete found
+one that was wrong.** A prep drill hurt his knee. The entry was real — it is a
+kneeling rock-back with hip internal rotation, filmed by several coaches — but
+its cue said only *"let one hip roll inward so that thigh turns in"* and never
+said what the foot does. Every source that teaches the drill leads with the
+counterintuitive half: **to turn the thigh in, the foot travels out.** Without
+it, with the shin on the floor and the knee planted, the only movement
+available is torque applied straight to the knee. That is what he felt.
+
+Nothing in this repository could have caught it. `cue-guard.mjs` checks length,
+count, duplication and load-percentage leakage, and the old text passed all
+four — a cue missing the segment that must move does not read as broken, it
+reads as terse. The gate the library relies on is real but it is a gate on
+*form*, and 127 of these entries were authored from playlist titles rather than
+from watching the movement. **That is the weakest data in the project, the
+suite cannot grade it, and the only detector is an athlete in a gym.**
+`docs/design-mobility-and-warmup.md` §13.1.
 
 **Anti-repetition is counted in sessions, because a calendar window could not
 reach.** The generator downweights a movement used recently. That set was built

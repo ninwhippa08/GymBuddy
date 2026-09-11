@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { estimateMinutes, countsTowardVolume } from '../js/generator.js';
 
 const drill = (over = {}) => ({
-  role: 'prep', mode: 'drill', sets: 1, reps: 12, restSec: 0, ...over
+  role: 'prep', mode: 'drill', sets: 1, reps: 10, restSec: 0, ...over
 });
 const hold = (over = {}) => ({
   role: 'mobility', mode: 'hold', sets: 2, holdSec: 30, reps: 1, restSec: 0, ...over
@@ -65,10 +65,15 @@ test('prep is 3-4 dynamic drills, dosed in reps', () => {
       assert.equal(b.mode, 'drill');
       assert.equal(b.role, 'prep');
       // Against the dose that GOVERNS this drill, not one range over all of
-      // them: an entry may carry its own (CARs do). Asserting 10-12 on every
-      // drill is what hid the CARs overdose. §12.
+      // them: an entry may carry its own (CARs do). Asserting one range on
+      // every drill is what hid the CARs overdose. §12.
+      //
+      // The fallback READS MOBILITY_DOSE rather than repeating it. It was
+      // written as a literal [10, 12] and went stale the first time the
+      // athlete moved the range (10-12 -> 8-10, 2026-09-11), failing this
+      // test for a dose that was correct.
       const e0 = LIB.find(x => x.id === b.exerciseId);
-      const [lo, hi] = (e0.dose && e0.dose.reps) || [10, 12];
+      const [lo, hi] = (e0.dose && e0.dose.reps) || MOBILITY_DOSE.DYNAMIC_REPS;
       assert.ok(b.reps >= lo && b.reps <= hi,
         `${b.name} got ${b.reps} reps, outside its ${lo}-${hi} dose`);
       assert.equal(b.optional, false);
@@ -273,7 +278,7 @@ test('packPrep holds the 3 min budget without gutting the dose', () => {
   const packed = packPrep(raw);
   assert.ok(packed.blocks.length >= 3, 'never trims below the sourced floor of 3 drills');
   for (const b of packed.blocks) {
-    assert.equal(b.reps, 12, 'never shortens the sourced 10-12 rep dose');
+    assert.equal(b.reps, 10, 'never shortens the athlete-set 8-10 rep dose');
   }
 });
 
@@ -284,22 +289,37 @@ test('packPrep holds the 3 min budget without gutting the dose', () => {
 // The four Controlled Articular Rotations entries. They share the
 // `mobility-dynamic` modality with the swing and lunge drills and are dosed
 // nothing like them: the sourced prescription is 3-5 slow reps per side at
-// 10-30 s each, against the 10-12 reps at 2 s that range-of-motion drills get.
-const CARS_IDS = new Set(['hip-cars', 'shoulder-cars', 'knee-cars', 'ankle-cars']);
+// 10-30 s each, against the 8-10 reps at 2 s that range-of-motion drills get.
+//
+// DERIVED FROM THE LIBRARY, not listed here. The hand-written list was
+// ['hip-cars', 'shoulder-cars', 'knee-cars', 'ankle-cars'] and the library had
+// grown to SEVEN -- scapular, wrist and elbow CARs were added later and this
+// test had never looked at one of them. A per-movement dose is exactly the kind
+// of thing a fixed list stops seeing, so the set is now read off the data:
+// any entry carrying its own `dose.reps` is checked against that dose.
+const CARS_IDS = new Set(LIB.filter(e => e.dose && e.dose.reps).map(e => e.id));
+const doseFor = id => LIB.find(e => e.id === id).dose.reps;
 
-test('a CARs drill is dosed at its own sourced 3-5 reps, not the swing-drill 10-12', () => {
+test('a CARs drill is dosed at its own sourced 3-5 reps, not the swing-drill 8-10', () => {
   let seen = 0;
+  const drawn = new Set();
   for (const dayType of ['max-strength', 'power', 'hypertrophy']) {
     for (let seed = 1; seed <= 300; seed++) {
       for (const b of buildPrep(dayType, LIB, freshCtx(), makeRng(seed))) {
         if (!CARS_IDS.has(b.exerciseId)) continue;
         seen++;
-        assert.ok(b.reps >= 3 && b.reps <= 5,
-          `${b.name} on ${dayType}/${seed} was prescribed ${b.reps} reps per side; sourced dose is 3-5`);
+        drawn.add(b.exerciseId);
+        const [lo, hi] = doseFor(b.exerciseId);
+        assert.ok(b.reps >= lo && b.reps <= hi,
+          `${b.name} on ${dayType}/${seed} was prescribed ${b.reps} reps per side; its dose is ${lo}-${hi}`);
       }
     }
   }
   assert.ok(seen > 0, 'the sweep drew no CARs drill at all -- the assertion proved nothing');
+  // The sweep must actually REACH every self-dosed entry. Without this the set
+  // could go back to covering four of seven and the test would still pass.
+  assert.deepEqual([...drawn].sort(), [...CARS_IDS].sort(),
+    'the sweep never drew some self-dosed entries, so their dose is unchecked');
 });
 
 test('a CARs rep is priced at its own tempo, not the 2 s swing-drill rep', () => {

@@ -59,7 +59,7 @@ test('every dose is an inclusive [lo, hi] pair inside its sourced range', () => 
   assert.ok(MOBILITY_DOSE.STATIC_HOLD_SETS[0] >= 2);
   assert.ok(MOBILITY_DOSE.STATIC_HOLD_SETS[1] <= 4);
   // design 2.1: dynamic volume does not scale with available time.
-  assert.deepEqual([...MOBILITY_DOSE.DYNAMIC_REPS], [10, 12]);
+  assert.deepEqual([...MOBILITY_DOSE.DYNAMIC_REPS], [8, 10]);
   assert.deepEqual([...MOBILITY_DOSE.DYNAMIC_DRILLS], [3, 4]);
 });
 

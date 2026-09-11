@@ -673,18 +673,23 @@ export const PREP_BLOCK = Object.freeze({
 
 export const COOLDOWN_BLOCK = Object.freeze({
   full: Object.freeze([
-    Object.freeze({
-      slot: 'M1', role: 'mobility', tier: ['mobility'], patterns: ['mobility'],
-      modality: 'mobility-static', zone: null, mode: 'hold',
-      // Stretch what the day trained. Same collision as the prep, one joint
-      // set apart: `seated-hamstring-stretch` is [hip, knee] and
-      // `standing-quad-stretch` is [knee, hip]. §9.
-      matchWork: true,
-      count: MOBILITY_DOSE.STATIC_STRETCHES,
-      holdSec: MOBILITY_DOSE.STATIC_HOLD_SEC,
-      sets: MOBILITY_DOSE.STATIC_HOLD_SETS,
-      effort: 'ease in -- no bouncing, no forcing', optional: false
-    }),
+    // CORE RUNS FIRST, AND THE SLOT NAMES NO LONGER MATCH THE ORDER. Asked for
+    // by the athlete 2026-09-11: "I want to see core moves above the stretching
+    // part in the cool down." The emission order IS the card order -- every
+    // cool-down block sorts into orderSession's single 'mobility' class and
+    // ties break by emission index -- so this list is the only place it is set.
+    //
+    // It also puts the session back in the order its own reasoning implies.
+    // SESSION_ORDER closes with static work because static stretching impairs
+    // subsequent explosive output (design 2.2); core is still WORK, and it was
+    // being prescribed AFTER the thing that exists to end the session. Nothing
+    // in that finding argued for stretching first -- the two were simply
+    // written in slot order and never questioned.
+    //
+    // The slot ids stay M1 and M2. They are stored in saved sessions and read
+    // by the swap path (ui.js keys the core swap off role, not slot), so
+    // renaming them to match the new order would rewrite history to buy
+    // nothing. M2 now precedes M1 on the card, on purpose.
     Object.freeze({
       // modality is null on purpose: core is selected by tier and pattern.
       // `mode: 'core'` tells the builder to resolve the dose per exercise --
@@ -697,6 +702,18 @@ export const COOLDOWN_BLOCK = Object.freeze({
       holdSec: MOBILITY_DOSE.CORE_HOLD_SEC,
       restSec: MOBILITY_DOSE.CORE_REST_SEC,
       optional: false
+    }),
+    Object.freeze({
+      slot: 'M1', role: 'mobility', tier: ['mobility'], patterns: ['mobility'],
+      modality: 'mobility-static', zone: null, mode: 'hold',
+      // Stretch what the day trained. Same collision as the prep, one joint
+      // set apart: `seated-hamstring-stretch` is [hip, knee] and
+      // `standing-quad-stretch` is [knee, hip]. §9.
+      matchWork: true,
+      count: MOBILITY_DOSE.STATIC_STRETCHES,
+      holdSec: MOBILITY_DOSE.STATIC_HOLD_SEC,
+      sets: MOBILITY_DOSE.STATIC_HOLD_SETS,
+      effort: 'ease in -- no bouncing, no forcing', optional: false
     })
   ]),
   short: Object.freeze([

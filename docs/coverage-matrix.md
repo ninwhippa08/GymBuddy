@@ -44,8 +44,8 @@ running the suite.
 | `mobility :: mobility :: mobility-dynamic :: hip/knee/ankle` | 4 | 56 | 11% (hip) | 28 | coverage | 28 | 0 |
 | `accessory :: sprint-drill/agility :: (any)` | 3 | 38 | 0% (ankle) | exempt | coverage | 0 | 0 |
 | `secondary :: sprint :: sprint :: submaximal` | 4 | 1 | 0% (hip) | exempt | coverage | 0 | 0 |
-| `mobility :: mobility :: mobility-static` | 4 | 70 | 44% (hip) | 7 | coverage | 7 | 0 |
 | `core :: core/rotate :: (any)` | 2 | 66 | 0% (lumbar) | exempt | coverage | 0 | 0 |
+| `mobility :: mobility :: mobility-static` | 4 | 70 | 44% (hip) | 7 | coverage | 7 | 0 |
 
 ## Joint coverage
 

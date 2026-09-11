@@ -567,11 +567,20 @@ export const ORDER_BY_TECHNICAL_DESC = true;
 
 // Inclusive [lo, hi] ranges the generator jitters within. design 2.1, 4.2.
 export const MOBILITY_DOSE = Object.freeze({
-  // 3-4 drills at 10-12 reps. Deliberately does NOT scale with available time:
+  // 3-4 drills at 8-10 reps. Deliberately does NOT scale with available time:
   // three sets of dynamic stretching induced acute fatigue and impaired sprint
   // performance within five minutes. [corroborated]
+  //
+  // REPS 10-12 -> 8-10 on 2026-09-11, and this one is the ATHLETE'S, not the
+  // literature's. He trained a prep block of three drills at 11 reps and asked
+  // for "[8,10], not more not less". Nothing is given up: the corroborated
+  // finding above is about SETS of dynamic stretching, not about a rep count --
+  // no source this project holds prescribes a number of dynamic-mobility reps
+  // at all, so 10-12 was a choice with no more standing than 8-10 has. The
+  // ceiling is unaffected in the safe direction; see the measurement in
+  // design-mobility-and-warmup.md.
   DYNAMIC_DRILLS: Object.freeze([3, 4]),
-  DYNAMIC_REPS: Object.freeze([10, 12]),
+  DYNAMIC_REPS: Object.freeze([8, 10]),
 
   // ACSM: 10-30 s per hold, 2-4 repetitions per muscle group. [corroborated]
   // The old block spent ~3 min on a single stretch -- 1.5-9x the source.

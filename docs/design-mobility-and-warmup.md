@@ -1563,3 +1563,168 @@ athlete.** Recording it here because at the corrected dose this is now silent.
 unilateral"*. The real figures are **54 of 71** — the comment was written when
 the pool was a fifth of its size and nothing re-read it. Corrected. Fourth
 instance of the same lesson: check when a number in this repo was measured.
+
+
+## 13  Four notes from a session he actually trained — 2026-09-11, `sw.js` v70
+
+The first feedback in this project taken from a card the athlete had *performed*
+rather than read. A hypertrophy day in ramp week 3: Romanian deadlift 3×9, dip
+2×12, cable fly 2×12, deficit reverse lunge 2×11, two curls at 2 sets, prepped
+by three drills at 11 reps and closed with two core movements under three
+stretches. Four notes came back. Three were changes. One was a question, and
+the question turned out to be the most useful of the four.
+
+### 13.1  The drill that hurt his knee was real, and its description was wrong
+
+> "Wide-Knee Hip Internal Rotation hurt my knee a bit, I think I did the move
+> wrong. Where did you find this move. If you made this up delete the move."
+
+The test he set is the right one, and this entry **nearly failed it**. It
+entered in the v45 playlist batch (§14 of the library doc, 91 mobility entries
+from a 259-video coach's playlist). That playlist's title list was **never
+committed** — `tests/fixtures/` starts on 2026-09-06 and this batch is from
+09-04 — so the name appears nowhere in this repository outside
+`data/exercises.json`. There is no provenance here to show him.
+
+It is nonetheless a real drill. The kneeling rock-back with hip internal
+rotation is filmed and written up by several independent sources, and the
+wide-knee variant is one of them.
+
+**What was actually wrong is the cue, and it is wrong in the exact way that
+produces knee pain.** The old text read:
+
+> Kneel with the knees wide and the hips sat back towards the heels.
+> Let one hip roll inward so that thigh turns in, then the other.
+> Small range and slow. Internal rotation is usually the stiff one.
+
+It never says what the FOOT does. Every source that teaches this drill leads
+with the same counterintuitive point — *to turn the thigh in, the foot travels
+out* — because that is the part nobody guesses. Given a cue that says only
+"roll the hip inward", with the shin resting on the floor and the knee planted,
+the one thing an athlete can actually do is torque the shin against a fixed
+femur. That is not hip internal rotation. It is a rotary load applied straight
+to the knee, and it is what he felt.
+
+The entry now names the foot first, and carries the symptom as a cue:
+
+> Slide one foot out AWAY from the middle. The knee does not move at all.
+> The foot going out is what turns the thigh in. Backwards, and that is the drill.
+> Felt deep in the hip. If the KNEE complains, the foot is not travelling.
+
+Renamed to **Kneeling Rock-Back Hip Internal Rotation**, which is the name the
+sources use, so searching it finds a video. The `id` is unchanged: ids are
+written into saved session history, and renaming one to match a label would
+rewrite his log to buy nothing.
+
+**The lesson is not about this entry.** A mobility cue that omits the segment
+that must move does not read as incomplete — it reads as terse. `cue-guard.mjs`
+checks length, count, duplication and load-percentage leakage, and it is
+correct on all four for the old text. There is no test that can ask "does this
+cue describe the movement", and this is the first evidence in the project that
+the 127-entry mobility batch may contain more of them. **Authored-from-a-title
+cues are the weakest data in this library**, and the only detector for them is
+him, standing in a gym.
+
+### 13.2  Prep reps: 10–12 → 8–10, and it was never sourced
+
+> "The prep work has 11 reps. Let's change the reps to [8,10]. not more not less."
+
+Done, and it costs nothing, which is worth being precise about because
+`MOBILITY_DOSE` is otherwise a file of sourced numbers.
+
+`DYNAMIC_REPS` carried the comment *"3-4 drills at 10-12 reps"* directly above
+a `[corroborated]` finding, and the adjacency implied the reps came from it.
+They do not. The finding is that **three SETS of dynamic stretching** induced
+acute fatigue and impaired sprint performance within five minutes — a statement
+about volume, with no rep count in it. No source this project holds prescribes
+a number of dynamic-mobility reps at all. 10–12 was a choice with exactly the
+standing 8–10 has, and the athlete's own preference outranks an author's.
+
+The CARs entries are untouched and keep their own 3–5 at 10–30 s (§12).
+Measured after the change: 33,289 non-CARs prep drills over four day types ×
+3,000 seeds, distributed 8:11,231 9:11,071 10:10,987, **none outside 8–10**.
+The time ceiling moves in the safe direction; worst session over a 10,000-seed
+× 9 day-type sweep is 69 min, unchanged, against his stated 70.
+
+**A literal that went stale the moment the range moved.** `mobility.test.mjs`
+asserted each drill against `(e.dose && e.dose.reps) || [10, 12]` — a second
+copy of `MOBILITY_DOSE.DYNAMIC_REPS` written as a literal. It failed on a dose
+that was correct. It now reads the constant. Fifth instance of the family
+recorded across this repo: **a number copied out of its source drifts from it.**
+
+**And a fixed list that had gone structurally blind.** The same file's CARs
+check carried `['hip-cars', 'shoulder-cars', 'knee-cars', 'ankle-cars']`. The
+library has **seven** self-dosed entries — scapular, wrist and elbow CARs
+arrived later and this test had never looked at one of them, so three movements
+could have been prescribed at any dose at all and nothing would have said so.
+The set is now derived from the data (`e.dose && e.dose.reps`), each entry is
+checked against **its own** dose rather than a hardcoded 3–5, and the test now
+asserts that the sweep actually drew every one of them — without that last
+line, the set could silently shrink back to four and still pass.
+
+### 13.3  Core moves above the stretches
+
+> "I want to see core moves above the stretching part in the cool down."
+
+`COOLDOWN_BLOCK.full` emitted M1 (static stretches) then M2 (core), and
+emission order IS card order — every cool-down block sorts into
+`orderSession`'s single `'mobility'` class and ties break by emission index, so
+that array is the only place the order is set. The two are now swapped.
+
+**It also repairs an inconsistency in the project's own reasoning.**
+`SESSION_ORDER` closes with static work on the finding that static stretching
+impairs subsequent explosive output. Core is still WORK, and it was being
+prescribed *after* the block that exists to end the session. Nothing in that
+finding ever argued for stretching first; the two were written in slot order
+and never questioned.
+
+The slot ids stay `M1` and `M2`, so M2 now precedes M1 on the card. They are
+stored in saved sessions and the swap path keys off `role`, not `slot`.
+Verified over 8,000 sessions across four day types: **zero cool-downs place a
+core movement after a stretch.** One visible side effect, harmless: core now
+draws before the stretches from the same RNG stream, so a given seed yields a
+different (equally valid) cool-down than it did at v69.
+
+### 13.4  The question: why two sets? — the ramp, and a flat spot in it
+
+> "I am doing 2 sets of moves in the main work. Is that normal, I usually do at
+> the minimum 3. What are the 2 sets based on?"
+
+**They are based on nothing he should keep doing.** The templates ask for 3–4
+sets at slot A and B and a flat 3 at slot C. `generator.js` then applies
+`sets = max(1, round(sets × env.volumeMultiplier))`, and his return-to-training
+ramp was at week 3, volume 0.80. `round(3 × 0.80) = 2`. His session is the
+template doing what it was told.
+
+Measured across 2,000 hypertrophy seeds per ramp week, share of main-work
+blocks landing under 3 sets:
+
+| declared ramp week | volume multiplier | blocks under 3 sets |
+|---|---|---|
+| 1 | 0.50 | 100.0% |
+| 2 | 0.70 | 81.1% |
+| 3 | 0.80 | 82.2% |
+| 4 | 0.90 | 20.7% |
+| 5 | 1.00 | 20.0% |
+
+So the answer to "is that normal" is: it is temporary, it ends at week 4, and
+the 2-set blocks still at weeks 4–5 are the slots whose template dose is
+genuinely 2–3.
+
+**The row worth looking at is week 3, and it is why the question was worth
+more than the three changes.** Weeks 2 and 3 are the same — 81.1% and 82.2%,
+inside noise of each other — and slot C is at 2 sets for weeks 1, 2 AND 3
+identically. The arithmetic says why: at a template dose of `[3, 3]`, the
+multiplier must reach **0.834** before `round()` returns 3. Every value below
+that produces 2. **The ramp's 0.50 → 0.70 → 0.80 progression buys slot C
+nothing at all** — three weeks of a graded return that is, at that slot, one
+flat step followed by a jump.
+
+`round()` on small integers is a coarse instrument, and the ramp's volume
+column was written as though it scaled something continuous. At 3 sets it
+resolves to two possible answers. **Not changed here** — it is a real finding
+about `RAMP` rather than about anything he asked for, and the athlete has not
+chosen between leaving it, flooring the ramp differently, or expressing ramp
+volume as total sets per session rather than a per-block multiplier. Recorded
+so the next person to read the ramp table does not assume the columns do what
+they appear to do.
