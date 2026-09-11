@@ -3534,3 +3534,90 @@ intact and the ten lifts print what their sourced coefficients imply.
 "the strongest argument for lifting the ceiling after the ramp instead". That
 argument has now been made, in full, and lost on its merits. Both are amended
 to say so. The ceiling is settled policy, not an open question.
+
+---
+
+## 33  The warm-up jog does not vary, and the candidate nobody had looked at — 2026-09-11
+
+*§29 measured the run pool, found the repetition was one entry, and left a
+question rather than a gap. This closes it. The answer is no, and finding that
+out turned up both a candidate §29 missed and a trap sitting behind it.*
+
+### 33.1  The question, and the answer
+
+`warmup-jog` is drawn 21 times per twelve-week block because the raise stage is
+a pool of one by construction: it asks for an accessory-tier, `aerobic-steady`
+entry of pattern `run`, and exactly one movement in 552 is all three. §29
+established that this repetition is *correct* rather than a defect, and left
+one question: **does the athlete want it to vary at all?**
+
+**Settled 2026-09-11: no.** The jog stays the only raise option. No code
+changed. `run` should stop being described as a pressured pool anywhere it
+still is.
+
+### 33.2  The evidence says variety was permitted, not required
+
+Worth recording because it means the answer was a preference and was his to
+give. Muscle temperature rises fastest over the first 3–5 minutes of activity
+and plateaus after 10–20, which is exactly the dose this stage prescribes — so
+the dose is sourced. And the reviews are explicit that the temperature rise
+*can be achieved in a variety of ways*: the modality is interchangeable, and
+contemporary warm-up models call for individualisation rather than one fixed
+routine.
+
+So §29's line — "a warm-up is the thing you are supposed to do the same way
+every time" — is a defensible preference and **not** a finding, and this
+section corrects it to that. Nothing in the evidence forbade varying it. He
+simply does not want it varied, which is a complete answer.
+
+### 33.3  §29's candidate list was incomplete
+
+§29 considered three fixes and rejected all three: more steady/tempo/interval
+runs (invisible), widening the stage to `march` (walking does not raise core
+temperature, and three of the four need a ruck or a sled), and varying the jog
+itself (backward running, wrong dose and wrong risk outdoors).
+
+**It never looked at `jump`.** `jump-rope` is accessory tier and already carries
+`aerobic-steady` — it satisfies two of the stage's three filters today, and the
+only thing making it unreachable is `patterns: ['run']`. Skipping for three
+minutes is a completely ordinary way to raise core temperature. It is the honest
+second option §29 concluded did not exist.
+
+The lesson is the narrow one: §29 searched the *pattern it was already using*
+and the pattern next door. A pool of one is a filter question before it is a
+catalogue question, and the filter has three terms.
+
+### 33.4  And behind that candidate, a trap
+
+Widening the filter to `['run', 'jump']` looks like a one-word change. It is not.
+
+`footContacts` is assigned **only** where `slot.mode === 'contacts'`. This stage
+is `mode: 'time'`. Three to five minutes of skipping is roughly **300–700 foot
+contacts** at an ordinary cadence, against `PLYO_CONTACTS_PER_SESSION.beginner`
+of **50–100 per session** — and the budget would record **zero**. The check is
+not day-type scoped; it runs on every session.
+
+So the obvious widening would put three to seven times the whole session's
+sanctioned contact volume into the warm-up, invisibly, on all four running day
+types including sprint and plyometric.
+
+**This is the same shape as the venue filter, the prep budget, the ramp ceiling,
+the sprint day's fourth slot and `VARIETY`'s missing day-type term: a limit that
+does not cover content it was never written for.** It differs from all five in
+one respect worth stating — **it is latent, not live.** No time-dosed slot can
+currently reach a jumping movement, so nothing is wrong in the app today. It is
+a trap rather than a bug, and it is documented at `RUN_RAISE` in
+`js/templates.js` rather than only here, because that comment is what a future
+widener will actually read.
+
+Also recorded there: one prep variant serves the easy, interval **and** sprint
+days, so admitting skipping to the easy days alone would need a fifth prep
+variant, not a filter edit.
+
+### 33.5  What was NOT done, and why that was offered
+
+The athlete was offered the counting fix on its own — leave the jog alone, close
+the latent hole anyway — and declined it. That is consistent: the hole buys
+nothing visible today, and this project does not build machinery against a case
+nobody has asked for. The comment is the cheap half of the fix and is enough to
+stop the trap being walked into.

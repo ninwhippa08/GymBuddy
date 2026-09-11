@@ -509,6 +509,35 @@ export const TEMPLATES = Object.freeze({
 // block per day type would give them no more resolution than this, and four
 // places to drift.
 
+// `patterns: ['run']` IS LOAD-BEARING AND IS NOT A TYPO. Read it before
+// widening it, because the obvious widening is a trap.
+//
+// This stage is a pool of ONE: exactly one library entry is accessory-tier,
+// pattern `run` and `aerobic-steady`, so `warmup-jog` is drawn on all four
+// running day types, 21 times per twelve-week block. §29 measured that, looked
+// for a second option among runs and marches, found none, and left the question
+// with the athlete. He settled it on 2026-09-11: the jog does NOT vary. A
+// warm-up he does the same way every time is what he wants, and the evidence
+// agrees the 3-5 min dose is what matters rather than the movement.
+//
+// THE CANDIDATE §29 DID NOT CONSIDER is `jump-rope` -- accessory tier, and it
+// already carries `aerobic-steady`, so widening this filter to `['run', 'jump']`
+// would admit it and look like a free second option. It is not free:
+//
+//   `footContacts` is set ONLY where `slot.mode === 'contacts'` (generator.js,
+//   the prescribe branch). This stage is `mode: 'time'`. Three to five minutes
+//   of skipping is roughly 300-700 foot contacts at an ordinary cadence,
+//   against `PLYO_CONTACTS_PER_SESSION.beginner` of 50-100 PER SESSION -- and
+//   the budget would record ZERO. That check runs on every session, not only
+//   plyometric ones.
+//
+// The hole is latent rather than live: no time-dosed slot can currently reach a
+// jumping movement, so nothing is wrong today. It is the same shape as the venue
+// filter and the prep budget before them -- a limit that does not cover content
+// that does not exist yet. Teach the contact budget about time-dosed jumping
+// FIRST, and note that one prep variant serves the easy, interval AND sprint
+// days, so keeping skipping away from sprint days needs a fifth variant too.
+// design-library-expansion.md §29, §33.
 const RUN_RAISE = Object.freeze({
   slot: 'P1', role: 'prep', tier: ['accessory'], patterns: ['run'],
   modality: 'aerobic-steady', zone: null, mode: 'time',

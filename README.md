@@ -879,3 +879,26 @@ horizon. Correcting that would make a derived document depend on a stochastic
 day-type chooser and would turn settled pools into apparent overshoot, so it is
 open question 7 rather than a change made in passing.
 `docs/design-library-expansion.md` §31.
+
+**The warm-up jog was settled on 2026-09-11, and it does not vary.** It is drawn
+21 times per twelve-week block because the raise stage is a pool of one by
+construction: one entry in 552 is accessory-tier, steady-aerobic and a run. An
+earlier section had established that this repetition is correct rather than a
+defect and left the preference to the athlete, who chose to leave it alone.
+The evidence supports that being a free choice rather than a constraint — muscle
+temperature rises fastest over the first three to five minutes, which is the
+dose the stage prescribes, and the reviews are explicit that the rise can be
+achieved in a variety of ways.
+
+**Closing it found a candidate the earlier pass had missed, and a trap behind
+it.** That pass searched for more runs and considered walking; it never looked
+at jumping. Jump rope is already accessory tier and already tagged steady
+aerobic, so only the stage's pattern filter keeps it out, and skipping for three
+minutes is an ordinary way to raise core temperature. But foot contacts are
+counted only on blocks dosed by contacts, and this stage is dosed by time — so
+three to five minutes of skipping would put roughly 300 to 700 contacts against
+a beginner band of 100 per session and the budget would record zero. **The hole
+is latent rather than live**, because nothing dosed by time can reach a jumping
+movement today. It is documented at the slot itself, where anyone widening the
+filter will read it, rather than only in the design notes.
+`docs/design-library-expansion.md` §33.
