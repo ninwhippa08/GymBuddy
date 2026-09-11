@@ -45,8 +45,8 @@ const SESSIONS_BEFORE_REPEAT = 16;
 // [unverified] -- a design floor, open question 1.
 const OPTIONS_PER_JOINT = 3;
 
-// Pools drawn by a TEMPLATE slot normally carry VARIETY. These eight do not,
-// and in seven cases the reason is that VARIETY's premise -- that novelty is
+// Pools drawn by a TEMPLATE slot normally carry VARIETY. These nine do not,
+// and in eight cases the reason is that VARIETY's premise -- that novelty is
 // what drives the adaptation -- fails, not that variety would do harm.
 //
 // Keyed on the POOL and not, as until 2026-09-06, on the modality. Three
@@ -119,7 +119,32 @@ const VARIETY_EXEMPT_POOLS = new Set([
   // and line-hop variants, which is the padding §11.0 declined by name. The
   // two moderate/high jump pools are NOT here -- they are close enough to
   // author, and one of them already passes.
-  'secondary+accessory :: jump :: (any)'
+  'secondary+accessory :: jump :: (any)',
+  // THE LAST SHORTFALL, settled 2026-09-11. It stood at 14 of 16 since §19 and
+  // was the one pool §11.0 called "genuinely closeable by authoring". It is not,
+  // and two independent findings say so.
+  //
+  // IT CANNOT BE MET, which is this list's original ground. What is left in the
+  // catalogue is bar position -- hang high pull, block work -- which §3.2 treats
+  // as a dose rather than a movement. The two with a real training case, the
+  // JUMP SHRUG and the MID-THIGH PULL, cannot be priced: `prCoef` claims a ratio
+  // between two MAXES, and the literature prescribes these as a percentage of a
+  // DIFFERENT lift's 1RM (~30% and ~45% of the hang clean). Nobody tests a jump
+  // shrug to failure. Entering them `loadable: false` is worse -- prescribe()
+  // drops to reps and prints "leave 2-3 reps in reserve" on a movement whose
+  // whole point is the load. A per-exercise dose reference is a schema change,
+  // and it would unlock exactly two entries in a family where the library
+  // already carries three. §19.3.
+  //
+  // AND MEETING IT WOULD BUY NOTHING. §34 measured the realized repeat interval
+  // per slot: this pool is `power:B`, and at 14 entries it returns a movement on
+  // a median of 3 turns and 24 sessions -- IDENTICAL to `max-strength:B`, which
+  // draws 45. Pool size saturates before 16. The two missing entries are a
+  // counter artifact with no behavioural consequence.
+  //
+  // Closing open question 5, which had stood since §5.4 and offered three
+  // resolutions. The third -- accept 14 and record why -- is taken. §35.
+  'primary :: hinge/pull-h :: power'
 ]);
 
 const JOINTS = [

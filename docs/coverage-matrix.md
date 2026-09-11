@@ -8,11 +8,10 @@ running the suite.
 - `OPTIONS_PER_JOINT` = 3 ([unverified] design floor)
 - library holds 552 entries
 - closed pools: mobility :: mobility :: mobility-static, mobility :: mobility :: mobility-dynamic, core :: core/rotate :: (any), primary+secondary :: jump/throw :: power, primary :: squat/hinge/push-h/push-v/pull-v :: max-strength, accessory :: lunge/carry/rotate :: hypertrophy, primary+secondary :: squat/push-h/push-v :: power, primary :: squat/hinge/push-h/push-v/pull-v :: hypertrophy, mobility :: mobility :: mobility-dynamic :: hip/knee/ankle, accessory :: run :: aerobic-steady, accessory :: sprint-drill/agility :: (any), secondary :: sprint :: sprint :: submaximal, primary+secondary+accessory :: run/erg :: aerobic-steady, primary+secondary :: jump :: (any), primary :: jump :: (any)
-- variety-exempt pools: primary+secondary+accessory :: run/erg :: aerobic-steady, primary+secondary+accessory :: run/erg :: interval, primary+secondary+accessory :: run/erg :: tempo, primary :: sprint :: sprint :: maximal, secondary :: sprint :: sprint :: maximal, secondary+accessory :: sprint :: sprint :: submaximal, accessory :: sprint :: sprint :: maximal, secondary+accessory :: jump :: (any) -- pools where VARIETY’s premise fails, settled 2026-09-06; see design-running-programming.md §11.0
+- variety-exempt pools: primary+secondary+accessory :: run/erg :: aerobic-steady, primary+secondary+accessory :: run/erg :: interval, primary+secondary+accessory :: run/erg :: tempo, primary :: sprint :: sprint :: maximal, secondary :: sprint :: sprint :: maximal, secondary+accessory :: sprint :: sprint :: submaximal, accessory :: sprint :: sprint :: maximal, secondary+accessory :: jump :: (any), primary :: hinge/pull-h :: power -- pools where VARIETY’s premise fails, settled 2026-09-06; see design-running-programming.md §11.0
 
 | pool | draw | have | survival | floor | variety | need | short |
 |---|---|---|---|---|---|---|---|
-| `primary :: hinge/pull-h :: power` | 1 | 14 | 0% (hip) | exempt | 16 | 16 | 2 |
 | `primary :: squat/hinge/push-h/push-v/pull-v :: max-strength` | 1 | 22 | 27% (hip) | 4 | 16 | 16 | 0 |
 | `primary+secondary :: (any) :: max-strength` | 1 | 45 | 38% (hip) | 3 | 16 | 16 | 0 |
 | `secondary+accessory :: (any) :: hypertrophy` | 1 | 156 | 48% (hip) | 3 | 16 | 16 | 0 |
@@ -21,6 +20,7 @@ running the suite.
 | `secondary+accessory :: push-v/push-h :: hypertrophy` | 1 | 30 | 7% (elbow) | 15 | 16 | 16 | 0 |
 | `accessory :: lunge/carry :: hypertrophy` | 1 | 31 | 13% (hip) | 8 | 16 | 16 | 0 |
 | `primary+secondary :: jump/throw :: power` | 1 | 30 | 13% (hip) | 8 | 16 | 16 | 0 |
+| `primary :: hinge/pull-h :: power` | 1 | 14 | 0% (hip) | exempt | repetition | 0 | 0 |
 | `primary+secondary :: squat/push-h/push-v :: power` | 1 | 18 | 22% (shoulder) | 5 | 16 | 16 | 0 |
 | `secondary+accessory :: squat/hinge :: hypertrophy` | 1 | 32 | 13% (hip) | 8 | 16 | 16 | 0 |
 | `primary :: squat/hinge/push-h/push-v/pull-v :: hypertrophy` | 1 | 16 | 38% (hip) | 3 | 16 | 16 | 0 |
@@ -57,6 +57,6 @@ running the suite.
 
 `**n**` is below target. `n·` is outside that pool's scope.
 
-Raw shortfall across all pools: **2** (pools overlap, so an
+Raw shortfall across all pools: **0** (pools overlap, so an
 entry can close more than one).
 

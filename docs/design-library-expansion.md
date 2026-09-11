@@ -803,7 +803,12 @@ executable form of this document.
    plausible shapes are a mode-coverage rule (≥1 option per locomotion mode the
    athlete can access) or simply a non-shrink ratchet; both need deciding, not
    guessing.
-5. **`primary :: hinge/pull-h :: power` reached 14 of 16 on 2026-09-07 and
+5. **CLOSED 2026-09-11 — exempt, see §35.** *(Two independent grounds: the last
+   two entries cannot be priced without a schema change, and §34 measured this
+   pool at 14 entries returning a movement on the same interval as a 45-entry
+   pool. The third resolution below — accept 14 and record why — is the one
+   taken. Text kept as written, because it is the reasoning §35 acts on.)*
+   **`primary :: hinge/pull-h :: power` reached 14 of 16 on 2026-09-07 and
    stays open.** (§19.3 has the working; the paragraph below is as written at
    13 and its argument is unchanged by the extra entry.)
    §5.4 has the working. Unlike question 4 this is not a missing rule — the rule
@@ -3720,3 +3725,86 @@ of those.
   the lowest in the library) survives intact, and the seven starts realize a
   22-session interval. The "needs only two entries" half of the argument is
   withdrawn.
+
+---
+
+## 35  The last shortfall, and the matrix reads zero — 2026-09-11
+
+*`primary :: hinge/pull-h :: power` is exempt. Open question 5 is closed after
+standing since §5.4. The raw shortfall across every pool in the library is now
+**0** for the first time in the project.*
+
+### 35.1  Two independent reasons, and either would have done
+
+**It cannot be met.** §19.3 established this and it was re-checked rather than
+taken on trust. What remains in the catalogue is bar position — hang high pull,
+block work — which §3.2 treats as a dose rather than a movement. The two entries
+with a genuine training case behind them, the **jump shrug** and the
+**mid-thigh pull**, cannot be entered at all: `prCoef` asserts a ratio between
+two *maxes*, and Suchomel, Comfort and Stone prescribe these as a percentage of
+a **different** lift's 1RM — about 30% and 45% of the hang clean. Nobody tests a
+jump shrug to failure. Entering them `loadable: false` is worse than leaving
+them out, because `prescribe()` then drops to the reps path and prints *"leave
+2–3 reps in reserve"* on a movement whose entire point is the load and the
+intent — the `snatch-grip-deadlift` bug of §23, reintroduced deliberately.
+
+This is the ground this exemption list was written for: **a target that cannot
+be met, never one that has not been.** Unlike §31's starts pool, this one
+qualifies on the original wording.
+
+**And meeting it would buy nothing.** §34 measured the realized repeat interval
+per slot. This pool is `power:B`:
+
+| slot | entries drawn | median gap, turns | median gap, sessions | repeats inside 16 sessions |
+|---|---|---|---|---|
+| `power:B` — this pool | 14 | 3 | 24 | 14% |
+| `max-strength:B` | 45 | 3 | 24 | 13% |
+
+**Fourteen entries already delivers what forty-five delivers.** Pool size
+saturates before the target does. The two missing entries are a counter artifact
+with no behavioural consequence whatsoever, and that was not knowable before §34.
+
+### 35.2  The option that was declined, and why it was still worth offering
+
+The honest alternative was a **per-exercise dose reference** — a field letting a
+movement be prescribed as a percentage of a different lift's max — which is the
+schema change §19.3 named. It was offered and declined.
+
+Declining it was right on the numbers. It would unlock **exactly two entries**,
+in a family where the library already carries three of the same paper's
+derivatives: `clean-pull`, `clean-high-pull` and `snatch-pull`. A schema change
+that buys two movements the athlete would not notice, in a pool already at
+saturation, is machinery built against a case nobody has hit.
+
+**The limitation itself does not go away and is not being hidden.** It stays
+recorded here and at the exemption, next to §18.4's wall sit and single-leg calf
+raise — movements that are real, sourced, wanted, and unsayable in this model.
+Those two are blocked by *different* limits (the `isometric` flag is scoped to
+`pattern: core`; there is no unilateral ankle pattern), so there is no single
+schema change that clears the set. That is worth knowing before anyone proposes
+one.
+
+### 35.3  Open question 5 is closed
+
+It was written at 13 of 16 in §5.4, restated at 14 in §19.3, and offered three
+resolutions throughout: widen the slot's tier, accept a shorter repeat horizon
+for this one pool, or accept 14 and record why. **The third is taken.**
+
+Its own standing note said "doing nothing remains a valid choice". That was true
+and is now better than true: §34 turned "we cannot close this" into "closing it
+would change nothing", which is a different and stronger claim.
+
+### 35.4  What zero means, and what it does not
+
+`docs/coverage-matrix.md` now reads **raw shortfall 0**. Every pool either meets
+its derived target or is exempt for a reason written down at the exemption.
+
+It does **not** mean the library is finished. It means no pool is short of a
+target this project still believes in. Nine pools are exempt and each carries its
+argument; `FLOOR` still governs every pool that can have one and is measured, not
+assumed; and the mobility and core pools are sized by joint coverage, which is a
+live constraint that has produced real authoring as recently as §20.
+
+What it does mean is that **the matrix has stopped being a to-do list.** From
+here, a reason to author is a measurement — felt repetition, a joint with no
+option, a pool a slot cannot reach — and not a number that is short.
