@@ -28,8 +28,8 @@ const SESSIONS_BEFORE_REPEAT = 16;
 // [unverified] -- a design floor, open question 1.
 const OPTIONS_PER_JOINT = 3;
 
-// Pools drawn by a TEMPLATE slot normally carry VARIETY. These seven do not,
-// and in every case the reason is that VARIETY's premise -- that novelty is
+// Pools drawn by a TEMPLATE slot normally carry VARIETY. These eight do not,
+// and in seven cases the reason is that VARIETY's premise -- that novelty is
 // what drives the adaptation -- fails, not that variety would do harm.
 //
 // Keyed on the POOL and not, as until 2026-09-06, on the modality. Three
@@ -46,6 +46,15 @@ const OPTIONS_PER_JOINT = 3;
 // on its own, and `primary :: jump :: (any)` is short 2 -- closeable by
 // authoring, so it stays measured. An exemption is for a target that cannot be met, never for
 // one that has not been.
+//
+// THE EIGHTH, added 2026-09-11, rests on a DIFFERENT ground and the difference
+// is worth stating rather than blurring. The seven above are pools where the
+// movements do not exist. The starts pool could be filled -- fifteen or so solo
+// start positions are describable -- and it is exempt because the TARGET is
+// mis-scaled for a pool tied to one day type, and because the pool already
+// repeats less than anything else in the library. That is a claim about the
+// formula, not about the catalogue, so it is argued in full at the entry
+// itself and recorded as an open question rather than generalised silently.
 const VARIETY_EXEMPT_POOLS = new Set([
   // Aerobic adaptation is accumulated time at intensity, which one movement
   // delivers as well as sixteen. Amended 2026-08-25, sourced in §3.2.
@@ -61,6 +70,28 @@ const VARIETY_EXEMPT_POOLS = new Set([
   'primary :: sprint :: sprint :: maximal',
   'secondary :: sprint :: sprint :: maximal',
   'secondary+accessory :: sprint :: sprint :: submaximal',
+  // The third sprint pool on the same day, and it did not exist as a pool when
+  // the three above were settled -- opening the start slot on 2026-09-09 (§25)
+  // made seven accessory-tier starts prescribable for the first time, and they
+  // arrived carrying a target their two neighbours had been exempted from three
+  // days earlier. Settled 2026-09-11 by the athlete, on two measurements.
+  //
+  // It is the LEAST REPEATED pool in the library: 0.60 repeats per entry per
+  // twelve-week block over 150 blocks with history fed forward, against 1.41
+  // for the primary sprints beside it and 1.55 for the run pool, which §29
+  // called the least repetitive this project had worked on.
+  //
+  // And the target it misses is counting the wrong thing. SESSIONS_BEFORE_REPEAT
+  // is 16 SESSIONS -- "about two months at his irregular 1-3x/week", §3.2. The
+  // sprint day arrives every 8.5 sessions (measured, 3,600 sessions), so a pool
+  // drawn only on that day needs TWO entries to clear a sixteen-session horizon.
+  // It holds seven. `16 x drawMax` multiplies the horizon by the slot's draw and
+  // never asks how often the DAY arrives, which is the same shape as the venue
+  // filter, the prep budget and the ramp ceiling: a limit checked against
+  // content it was never written to cover. That is a finding about the FORMULA
+  // and it is left open rather than fixed here -- see design-library-expansion.md
+  // §31, which measures every day type's gap. This line settles the one pool.
+  'accessory :: sprint :: sprint :: maximal',
   // The low-intensity plyo finisher. Six exist; the ten more would be pogo-hop
   // and line-hop variants, which is the padding §11.0 declined by name. The
   // two moderate/high jump pools are NOT here -- they are close enough to

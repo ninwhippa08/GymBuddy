@@ -3319,3 +3319,114 @@ every string ends with the empty string.
 The shortfall is still **11, in two pools**, exactly where §25 and §19 left it:
 nine in the starts pool and two in `primary :: hinge/pull-h :: power`. Library
 541 → **552**. 607 tests → **613**.
+
+---
+
+## 31  The starts pool is settled, and the counter that flagged it is measuring the wrong thing — 2026-09-11
+
+*Two findings, and only the first was asked for. The pool is exempt. The formula
+that flagged it is mis-scaled for every pool tied to one day type, and that is
+left open rather than fixed in the same breath.*
+
+### 31.1  The pool
+
+`accessory :: sprint :: sprint :: maximal` has printed `short 9` on every test
+run since §25 opened the sprint day's start slot on 2026-09-09. It was never
+decided. It inherited a variety target that the two sprint pools it shares a
+day with had been exempted from on 2026-09-06 — three days before it existed as
+a pool at all, which is why nobody exempted it with them.
+
+### 31.2  Measurement one: it is the least repeated pool in the library
+
+150 blocks × 36 sessions, history fed forward, day type chosen by the app:
+
+| pool | entries | ever drawn | repeats per entry per block |
+|---|---|---|---|
+| `starts` | 7 | 7 | **0.60** |
+| `primary :: sprint :: maximal` | 4 | 3 | 1.41 |
+| `secondary :: sprint :: maximal` | 3 | 3 | 1.41 |
+| `run`, excluding `warmup-jog` | 7 | 7 | 1.55 |
+| `balance` | 6 | 6 | 3.50 |
+
+The draws are flat across all seven — 0.71 at the top, 0.46 at the bottom — so
+this is not an average hiding a pile-up, the distinction §21 had to make for the
+ankle. **§29 called the run pool at 1.55 the least repetitive this project had
+worked on. The starts pool is under half of it.** Every start comes back about
+four times a year.
+
+### 31.3  Measurement two, and it is the one that generalises
+
+`SESSIONS_BEFORE_REPEAT` is **16 sessions** — §3.2 is explicit that this means
+"about two months at his irregular 1–3x/week". It is a horizon in sessions, all
+sessions, because that is how the athlete experiences them.
+
+`VARIETY` computes `16 × drawMax`. That is the right answer for a pool exposed
+on *every* session and wrong by the day type's own frequency for any pool that
+is not. Measured over 3,600 sessions:
+
+| day type | per 36-session block | sessions between two of them | entries needed for a 16-session horizon |
+|---|---|---|---|
+| aerobic-steady | 6.77 | 5.3 | 4 |
+| interval | 5.89 | 6.1 | 3 |
+| max-strength / power / hypertrophy | 5.00 each | 7.2 | 3 |
+| sprint | 4.23 | 8.5 | **2** |
+| plyometric | 4.11 | 8.8 | 2 |
+
+**A pool drawn once on the sprint day needs two entries for nothing to repeat
+inside sixteen sessions. It holds seven.** The formula asks for sixteen because
+it multiplies the horizon by the slot's draw and never asks how often the day
+arrives.
+
+This is the same shape as the venue filter, the prep budget, the ramp ceiling
+and the sprint day's fourth slot: **a limit checked against content it was never
+written to cover.** `VARIETY` was written in §3 when the library was gym-only
+and every main-work pool was drawn on three of three day types. The running
+templates added four more day types and nothing revisited the arithmetic.
+
+**It is NOT fixed here, and the restraint is deliberate.** Correcting it means
+computing a day-type gap inside `coverage.test.mjs`, which would make a derived
+document depend on a stochastic day-type chooser — and it would lower the target
+on pools this project has already closed at 16 and 21, turning settled work into
+apparent overshoot. Neither is a change to make in the same commit as the
+decision it was found under. **Open question 7**, below.
+
+### 31.4  What was decided, and on what ground
+
+The athlete exempted the pool on 2026-09-11. The ground is recorded honestly
+because it is **not** the ground the other seven exemptions rest on.
+
+Those seven are pools where the movements do not exist: the library holds 11
+sprint entries because that is how many sprints there are. The starts pool is
+not that. Roughly fifteen solo start positions are describable — seated, supine,
+prone and tall-kneeling are all real and all absent — so the target could be
+approached, and §11.0's rule that "an exemption is for a target that cannot be
+met, never for one that has not been" does not cover this case.
+
+It is exempt because **the target is mis-scaled and the pool already repeats
+less than anything else in the library**. Authoring nine more would take 0.60
+repeats per block to 0.26, at no cost in session time — one start is drawn
+however many exist — and at no perceptible benefit. That is the §29 conclusion
+reached from the other direction: there, the repetition was correct and large;
+here, it is correct and the smallest in the library.
+
+The coaching literature was read before deciding and does not object. Varied
+start positions are prescribed to build a robust acceleration pattern rather
+than to avoid boredom, and seven drawn evenly delivers that. Much of what is
+described beyond seven is reactive and partner work, which §26 already
+established is unavailable — the athlete trains alone.
+
+**Raw shortfall 11 → 2.** What remains is `primary :: hinge/pull-h :: power` at
+14 of 16, blocked twice over and standing open since §19.
+
+### 31.5  Open question 7
+
+**Does `VARIETY` need a day-type term?** §31.3 measures the gap for all seven day
+types and none is smaller than 5.3 sessions, so every main-work pool in this
+library is targeted between 4× and 8× its own horizon. Three shapes are
+plausible: scale the target by the measured day-type gap; restate
+`SESSIONS_BEFORE_REPEAT` as a horizon in *that day type's* sessions, which makes
+the current formula correct as written and the athlete's stated intent wrong;
+or leave it generous on the grounds that a floor nobody is forced to meet costs
+nothing. **The third is what is in force today**, by default rather than by
+decision, and the exemption list is where the cost of that default shows up.
+Deciding it is not authoring work and should not be done inside a pull.
