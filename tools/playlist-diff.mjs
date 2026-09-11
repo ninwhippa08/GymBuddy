@@ -173,6 +173,61 @@ function bestMatch(title) {
 }
 
 // --------------------------------------------------------------------------
+// Channel boilerplate
+// --------------------------------------------------------------------------
+
+// THE THIRD TIME THE MATCHER WAS THE BUG, and the worst of the three. §16.3
+// fixed the hyphen, §18 fixed the asymmetric score, and both were about how a
+// title is compared. This one is about what is compared: NASM films every clip
+// as "How to do a Plank | Proper Form & Technique | NASM", which is three words
+// of movement and nine words of channel. `f1` scores precision against the
+// WHOLE token set, so nine junk tokens sink every score below the 0.7
+// threshold no matter how exact the match underneath.
+//
+// Measured on that playlist: 1 duplicate and 72 candidates before, 46 and 28
+// after. Forty-five titles the library already answered were reported as new,
+// which is the failure that actually reaches the data -- a miss gets checked
+// by eye and dropped, a false candidate gets authored.
+//
+// EMPIRICAL, NOT A LIST OF CHANNELS. A hardcoded NASM regex would be one more
+// thing to remember on the sixth pull. Boilerplate is defined by what it is:
+// a pipe-delimited segment repeated across a large share of the playlist. One
+// movement name is not repeated 60 times; a channel's sign-off is. The 0.3
+// share is deliberately low -- a playlist is often two facilities' worth of
+// clips, so a suffix on a third of them is still a suffix.
+const BOILERPLATE_SHARE = 0.3;
+
+// The one rule that is NOT empirical, because it does not repeat as a segment:
+// an instructional prefix is glued to the movement name with no delimiter.
+// It is a fixed phrase in the imperative, and it is safe to cut -- no movement
+// in this library or any other is called "How To".
+const HOWTO = /^how\s+to\s+(?:do|perform)?\s*(?:an?|the)?\s+/i;
+
+export function deboilerplate(titles) {
+  const counts = new Map();
+  for (const t of titles) {
+    // Only the segments AFTER the first are candidates. The first segment is
+    // the movement; a channel that puts its name first would make every title
+    // start with boilerplate and the share rule would still catch it, but the
+    // movement would be gone with it, so the head is never eligible.
+    const parts = t.split('|').map(s => s.trim()).filter(Boolean);
+    for (const p of parts.slice(1)) counts.set(p, (counts.get(p) || 0) + 1);
+  }
+  const floor = Math.max(2, Math.ceil(titles.length * BOILERPLATE_SHARE));
+  const junk = new Set([...counts].filter(([, n]) => n >= floor).map(([p]) => p));
+
+  const out = titles.map(t => {
+    const parts = t.split('|').map(s => s.trim()).filter(Boolean);
+    const kept = [parts[0], ...parts.slice(1).filter(p => !junk.has(p))];
+    // A title that was nothing but boilerplate keeps its original text rather
+    // than becoming empty -- an empty title matches everything, which is the
+    // most confident possible way of being wrong.
+    return (kept.join(' | ').replace(HOWTO, '').trim() || t);
+  });
+  return { titles: out, dropped: [...junk] };
+}
+
+// --------------------------------------------------------------------------
 // Input
 // --------------------------------------------------------------------------
 
@@ -192,6 +247,17 @@ function titlesFromPlaylist(url) {
                   'Install it, or pass --titles with a file of titles.');
 }
 
+// Everything below is the command line, and it is fenced off the way
+// tools/derive.mjs fences its own. `deboilerplate` is the first piece of this
+// file a test can check without a playlist or a network, and an unguarded
+// module body would have run `process.exit(2)` the moment the test imported it.
+// The empty guard is load-bearing: `String(undefined).replace(...)` is the
+// empty string and every url `endsWith('')`, so an entry point with no argv[1]
+// -- `node -e`, or an embedding host -- would read as "this file is main".
+const entry = String(process.argv[1] || '').replace(/\\/g, '/');
+const isMain = entry !== '' &&
+               (import.meta.url === `file://${entry}` || import.meta.url.endsWith(entry));
+
 const args = process.argv.slice(2);
 const argOf = flag => {
   const i = args.indexOf(flag);
@@ -200,16 +266,19 @@ const argOf = flag => {
 
 const url = argOf('--url');
 const file = argOf('--titles');
-if (!url && !file) {
+if (isMain && !url && !file) {
   console.error('usage: playlist-diff.mjs --url <playlist> | --titles <file>');
   process.exit(2);
 }
 
-const raw = file ? readFileSync(file, 'utf8') : titlesFromPlaylist(url);
+const raw = !isMain ? '' : (file ? readFileSync(file, 'utf8') : titlesFromPlaylist(url));
 
 let titles = raw.replace(/^﻿/, '').split(/\r?\n/)
   .map(s => s.trim()).filter(Boolean);
 const rawCount = titles.length;
+
+const { titles: stripped, dropped } = deboilerplate(titles);
+titles = stripped;
 
 const seen = new Set();
 const dupes = [];
@@ -243,8 +312,16 @@ for (const t of titles) {
 
 const pct = n => `${((100 * n) / titles.length).toFixed(1)}%`;
 
+// Guarded for the same reason the input is: importing this file to test one
+// exported function must not print a report for a playlist nobody asked for.
+if (isMain) {
 console.log(`library ${LIB.length} entries | playlist ${rawCount} titles, ` +
             `${titles.length} unique (${dupes.length} exact duplicates)`);
+// Printed rather than done silently: if the rule eats a real word, the reader
+// sees WHICH word before they read a single bucket.
+if (dropped.length) {
+  console.log(`channel boilerplate stripped: ${dropped.map(d => `"${d}"`).join(', ')}`);
+}
 
 console.log(`\n=== NOT MOVEMENTS (${notMovements.length}, ${pct(notMovements.length)}) ===`);
 for (const [t, why] of notMovements) console.log(`  ${why.padEnd(20)} ${t}`);
@@ -269,3 +346,4 @@ console.log('\nWatch for a lifter\'s first name at either end of a title --');
 console.log('"Kasey TrapBar Deadlift" is a trap bar deadlift, not a new entry.');
 
 console.log('\nNext: for any name you cannot classify, tools/contact-sheet.mjs.');
+}

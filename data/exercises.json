@@ -4012,7 +4012,86 @@
       "joints": ["ankle","knee","hip"], "equipment": ["med-ball","wall"], "venue": "either",
       "cnsCost": 1, "technical": 2, "unilateral": true,
       "cues": ["Balance on one leg a couple of steps from a wall, ball in both hands.","Throw and catch off the wall without letting the standing foot move.","Vary where you throw it so the catch pulls you off centre."],
-      "modalities": ["balance"] }
+      "modalities": ["balance"] },
+
+    { "id": "wrist-extension", "name": "Wrist Extension", "aka": ["reverse wrist curl"], "pattern": "pull-h", "tier": "accessory",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["wrist"], "equipment": ["dumbbell","bench"], "venue": "gym",
+      "cnsCost": 1, "technical": 1, "unilateral": true,
+      "cues": ["Forearm flat on a bench, palm facing down, hand hanging over the end.","Let the weight draw the hand down, then lift the knuckles as high as they go.","Go light. The extensors are small, and this is the side that gets sore first."],
+      "modalities": ["isolation","hypertrophy"] },
+
+    { "id": "wrist-rotation", "name": "Wrist Supination and Pronation", "aka": ["forearm rotation"], "pattern": "pull-h", "tier": "accessory",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["wrist","elbow"], "equipment": ["dumbbell","bench"], "venue": "gym",
+      "cnsCost": 1, "technical": 1, "unilateral": true,
+      "cues": ["Forearm on a bench, elbow bent, gripping one end of a light dumbbell.","Turn the palm all the way up, then all the way down. Only the forearm moves.","Holding it off centre is the point: the lever does the work, not the weight."],
+      "modalities": ["isolation","hypertrophy"] },
+
+    { "id": "high-cable-curl", "name": "High Cable Curl", "aka": ["cable biceps curl with shoulder flexed"], "pattern": "pull-h", "tier": "accessory",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["elbow"], "equipment": ["cable"], "venue": "gym",
+      "cnsCost": 1, "technical": 1, "unilateral": false,
+      "cues": ["Pulleys at shoulder height, stand between them with the arms straight out.","Curl the hands in towards the ears without letting the elbows drop.","The shoulder stays flexed all set. That is what makes this a different curl."],
+      "modalities": ["isolation","hypertrophy"] },
+
+    { "id": "bench-dip", "name": "Bench Dip", "pattern": "push-h", "tier": "accessory",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["shoulder","elbow","scapula"], "equipment": ["bench"], "venue": "gym",
+      "cnsCost": 1, "technical": 1, "unilateral": false,
+      "cues": ["Hands on the edge of a bench behind you, legs out front, heels on the floor.","Lower until the upper arms are about parallel, then press back to straight.","Keep the hips brushing the bench. Walking the feet out is what makes it hard.","Stop short if the front of the shoulder pinches; the range here is the risk."],
+      "modalities": ["isolation","hypertrophy"] },
+
+    { "id": "prisoner-squat", "name": "Prisoner Squat", "aka": ["bodyweight squat"], "pattern": "squat", "tier": "accessory",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["hip","knee","ankle"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 1, "technical": 1, "unilateral": false,
+      "cues": ["Hands behind the head, elbows wide, chest up. Nothing in the hands.","Sit down between the feet as deep as you can with the heels flat.","The arm position is the test: if the chest folds forward, end the set."],
+      "modalities": ["hypertrophy"] },
+
+    { "id": "squat-thrust", "name": "Squat Thrust", "aka": ["burpee"], "pattern": "squat", "tier": "accessory",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["hip","knee","shoulder"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 1, "technical": 1, "unilateral": false,
+      "cues": ["From standing, hands to the floor and jump both feet back into a plank.","Jump the feet back under the hips and stand up tall.","Hips level as the feet land. Do not let the low back sag in the plank."],
+      "modalities": ["hypertrophy"] },
+
+    { "id": "jumping-jack", "name": "Jumping Jack", "pattern": "jump", "tier": "accessory",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["ankle","knee"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 1, "technical": 1, "unilateral": false, "contactsPerRep": 1, "plyoIntensity": "low",
+      "cues": ["Feet together, arms at the sides, then jump the feet out as the arms go up.","Land on the balls of the feet with soft knees and jump straight back in.","Rhythmic, not maximal. This is a finisher and the calves take all of it."],
+      "modalities": ["plyometric","interval"] },
+
+    { "id": "straight-arm-plank", "name": "Straight-Arm Plank", "aka": ["high plank"], "derivedFrom": "plank", "pattern": "core", "tier": "core",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["lumbar","shoulder"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 1, "technical": 1, "unilateral": false, "isometric": true,
+      "cues": ["Hands under the shoulders, arms straight, feet hip width, body in one line.","Squeeze the glutes and tuck the ribs down so the hips do not sag.","Push the floor away so the upper back stays broad, and keep breathing."],
+      "modalities": ["isolation"] },
+
+    { "id": "plank-walkup", "name": "Plank Walk-Up", "aka": ["plank up down"], "pattern": "core", "tier": "core",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["lumbar","shoulder","scapula"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 1, "technical": 2, "unilateral": true,
+      "cues": ["Start on the elbows with the feet a little wider than a front plank.","Press up onto one hand, then the other, then back down onto each elbow.","Hips dead still. Lead with the other arm each rep so both sides get it."],
+      "modalities": ["isolation"] },
+
+    { "id": "iron-cross", "name": "Iron Cross", "aka": ["supine leg crossover"], "pattern": "mobility", "tier": "mobility",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["lumbar","thoracic","hip"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 1, "technical": 2, "unilateral": true,
+      "cues": ["Lie on your back, arms out wide, palms flat on the floor.","Take one leg up and across the body towards the opposite hand.","Both shoulders stay down. Rotate only as far as they stay on the floor."],
+      "targets": ["rotate","hinge"],
+      "modalities": ["mobility-dynamic"] },
+
+    { "id": "levator-scapulae-stretch", "name": "Levator Scapulae Stretch", "pattern": "mobility", "tier": "mobility",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["neck","scapula"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 1, "technical": 1, "unilateral": true,
+      "cues": ["Sit tall, one hand under the opposite thigh to anchor that shoulder.","Turn the head about halfway away, then look down towards that armpit.","Lower down the neck than the upper trap stretch. Gentle, and no pulling."],
+      "targets": ["carry","pull-v","push-v"],
+      "modalities": ["mobility-static"] }
 
   ]
 }

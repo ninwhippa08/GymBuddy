@@ -3174,3 +3174,148 @@ number is large and it is not a defect.
 and the honest candidate list has one name on it. If he does not, this pool is
 finished and `run` should stop being described as pressured. Library unchanged
 at 541.
+
+---
+
+## 30  The sixth channel: a gym catalogue mined against advice — 2026-09-11, `sw.js` v71
+
+*The first pull where the recommendation was "author nothing" and the athlete
+said author it anyway. He was right about one thing the recommendation got
+wrong, and the pull found the worst matcher defect this tool has had.*
+
+### 30.1  The pre-flight, and what it said
+
+NASM's technique playlist: **77 titles, 75 unique.** §17.5 and §20.1 were run
+before a single title was judged, and both pointed the same way.
+
+The channel contains **no sprint, no start and no running content of any kind**,
+and the only pool the coverage matrix is still short on that new movements can
+reach is `accessory :: sprint :: sprint :: maximal` — the starts pool opened in
+§25, sitting at 7 against a target of 16. Nothing here feeds it. The gym half of
+the library has measured finished since §17 at under 0.4 repeats per twelve-week
+block, and that is where all 77 titles land.
+
+**The recommendation was to author nothing and fix the tool instead.** It was
+overruled, deliberately, and the eleven entries below are the result. The
+measurement stands: none of them changes a shortfall, and the repetition they
+relieve was not being felt.
+
+### 30.2  What the recommendation got wrong
+
+One count in it was wrong, and it was wrong in the direction that matters.
+`levator-scapulae-stretch` was written off as out of scope on the belief that
+the library carries no neck joint. It does — `SORENESS_JOINTS` has held `neck`
+since the soreness map was built, and `shrug` and `upper-trap-stretch` both
+declare it. **Two entries is the whole of the neck's coverage**, and a stretch
+that is neither of them is a genuine addition rather than a third way to say
+the same thing. That is the §20 wrist finding again at a different joint: a
+*zero-ish* pool hidden behind a library that looks large.
+
+Checking the vocabulary before ruling something outside it costs one grep.
+
+### 30.3  The eleven, and the sixty-four that were declined
+
+| authored | pool it joins |
+|---|---|
+| Wrist Extension, Wrist Supination and Pronation | the wrist, which held one strength entry and only in flexion |
+| High Cable Curl | `accessory :: (any) :: isolation` |
+| Bench Dip | isolation and push-h hypertrophy |
+| Prisoner Squat | the library's first bodyweight squat |
+| Squat Thrust | accessory squat hypertrophy |
+| Jumping Jack | `plyometric` slot C, the low-intensity finisher |
+| Straight-Arm Plank *(derived from `plank`)*, Plank Walk-Up | core |
+| Iron Cross | `mobility-dynamic` |
+| Levator Scapulae Stretch | `mobility-static`, and the neck's third entry |
+
+The declines split into five families, and the largest is the one the tool
+exists to catch: **thirty-one titles the library already answered under another
+name.** The cable crossover is `cable-fly`. The lunge jump is `split-jump`.
+Stir the Pot is `stability-ball-plank-rotation` — watched, to be sure. The bench
+dumbbell triceps extension is `dumbbell-skullcrusher`, and the cable triceps
+extension with the shoulder flexed is `overhead-tricep-extension`, which the
+contact sheet settled in one frame. Eight push-up variants all resolve to
+`push-up`.
+
+Then: three bands-and-chains titles, which are a method written onto a bench
+press; two chained combos; one programme sequence; and one straight
+duplicate-under-a-prop, the lat stretch over a stability ball, whose cues would
+have been `wall-lat-stretch`'s almost word for word.
+
+`leg-press-calf-raise` was declined on §19's rule rather than on repetition:
+the knee is straight, so it is the same claim as `calf-raise` made on a
+different machine, which is the rack-pull lesson in its original form.
+
+### 30.4  Reachability and the smoke test, before anything was written
+
+Every one of the eleven was probed against all 48 slots before it was authored,
+because §25 is explicit that an entry no slot admits is worse than no entry.
+Then the §22 smoke test, 4,900 sessions across all eight day types:
+
+| entry | share of sessions | days reached |
+|---|---|---|
+| `jumping-jack` | 7.2% | plyometric |
+| `iron-cross` | 5.8% | seven of eight |
+| `levator-scapulae-stretch` | 2.7% | five |
+| `plank-walkup` | 1.4% | three |
+| `straight-arm-plank` | 1.3% | three |
+| `wrist-rotation` | 0.7% | three |
+| `wrist-extension` | 0.7% | two |
+| `high-cable-curl`, `bench-dip` | 0.6% | two |
+| `prisoner-squat` | 0.2% | two |
+| `squat-thrust` | 0.1% | two |
+
+**All eleven are drawn.** The bottom two are low because they are competing in
+a 32-entry squat pool, which is the measurement's point restated: these are
+additions to pools that did not need them.
+
+**Worst session 68 minutes, unchanged**, on the sprint day as before. Two
+mobility entries is the kind of prep growth §15.5 says to sweep for, and at two
+it cost nothing.
+
+`squat-thrust` carries `hypertrophy` and **not** `interval`, which is what it
+actually is. The conditioning template takes `run` and `erg` patterns only, so
+an `interval` tag on a `squat` would be a tag the generator silently ignores —
+the same defect the `dose` guard exists to prevent, and worse than not claiming
+it, because the entry would then look correct.
+
+### 30.5  The matcher, for the third time, and the worst of the three
+
+`f1` scores precision against the entry's whole token set. NASM titles every
+clip *"How to do a Plank | Proper Form & Technique | NASM"* — three words of
+movement, nine of channel — so every score sank below the 0.7 threshold however
+exact the match underneath.
+
+| | recognised | candidates |
+|---|---|---|
+| as run | 1 | 72 (96.0%) |
+| branding stripped | 46 | 28 (37.3%) |
+
+**Forty-five titles the library already held were reported as new.** §17's
+missed duplicates were the same defect pointing the other way and were the
+lesson of that pull; this is worse, because the directions are not symmetric.
+A missed duplicate is caught by eye and dropped. A false candidate gets
+authored, and then the library holds one movement under two names — which is
+precisely what `aka` was invented to unwind.
+
+**The fix is empirical, not a list of channels.** Boilerplate is defined by
+what it is: a pipe-delimited segment repeated across at least 30% of the
+playlist. A movement name is not repeated sixty times; a sign-off is. Only
+segments after the first are eligible, so a channel that leads with its own
+name cannot take the movement with it, and a title that is nothing but
+branding keeps its original text rather than becoming the empty string, which
+matches every entry at once. The one non-empirical rule is the `How to do a`
+prefix, which is glued to the name with no delimiter and so never repeats as a
+segment.
+
+Six tests in `tests/playlist-tool.test.mjs`, including the inertness case — a
+playlist with no branding comes back byte-identical, so the four earlier pulls'
+settled results are not silently rewritten. Fencing the CLI behind an `isMain`
+guard was needed to test it at all, and that guard carries its own trap: with
+no `argv[1]` the old form of the check reads every module as main, because
+every string ends with the empty string.
+
+### 30.6  What this pull did not change
+
+The shortfall is still **11, in two pools**, exactly where §25 and §19 left it:
+nine in the starts pool and two in `primary :: hinge/pull-h :: power`. Library
+541 → **552**. 607 tests → **613**.
