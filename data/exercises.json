@@ -4091,7 +4091,37 @@
       "cnsCost": 1, "technical": 1, "unilateral": true,
       "cues": ["Sit tall, one hand under the opposite thigh to anchor that shoulder.","Turn the head about halfway away, then look down towards that armpit.","Lower down the neck than the upper trap stretch. Gentle, and no pulling."],
       "targets": ["carry","pull-v","push-v"],
-      "modalities": ["mobility-static"] }
+      "modalities": ["mobility-static"] },
+
+    { "id": "kettlebell-halo", "name": "Kettlebell Halo", "aka": ["halo"], "pattern": "mobility", "tier": "mobility",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["shoulder","scapula","thoracic"], "equipment": ["kettlebell"], "venue": "either",
+      "cnsCost": 1, "technical": 1, "unilateral": false,
+      "cues": ["Hold a light kettlebell upside down by the horns at chest height.","Circle it around your head, close to the skull, without leaning back.","Same number of circles each way, and keep the ribs down throughout."],
+      "targets": ["push-v","pull-v","carry"],
+      "modalities": ["mobility-dynamic"] },
+
+    { "id": "banded-tke", "name": "Banded Terminal Knee Extension", "aka": ["terminal knee extension"], "pattern": "mobility", "tier": "mobility",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["knee"], "equipment": ["bands"], "venue": "either",
+      "cnsCost": 1, "technical": 1, "unilateral": true,
+      "cues": ["Anchor a band at knee height and step in so it pulls from behind the knee.","Stand on that leg, let the knee bend a little, then straighten it hard.","Small range. The work is the last few degrees, not a squat."],
+      "targets": ["squat","lunge","run"],
+      "modalities": ["mobility-dynamic"] },
+
+    { "id": "bench-reverse-hyper", "name": "Bench Reverse Hyper", "aka": ["reverse hyper"], "pattern": "hinge", "tier": "accessory",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["hip","lumbar"], "equipment": ["bench"], "venue": "gym",
+      "cnsCost": 1, "technical": 2, "unilateral": false,
+      "cues": ["Lie face down on a bench with the hips at the edge and the legs hanging.","Hold the bench and raise the legs until they are about level with your back.","Drive with the glutes. Do not arch the low back to get them higher.","Lower slowly -- rushing the way down is how this one goes wrong."],
+      "modalities": ["hypertrophy","isolation"] },
+
+    { "id": "kneeling-jump", "name": "Kneeling Jump", "aka": ["tall kneeling jump"], "pattern": "jump", "tier": "secondary",
+      "loadable": false, "prRef": null, "prCoef": null,
+      "joints": ["ankle","knee","hip"], "equipment": ["bodyweight"], "venue": "either",
+      "cnsCost": 2, "technical": 2, "unilateral": false, "contactsPerRep": 1, "plyoIntensity": "moderate",
+      "cues": ["Start tall on both knees, hips forward, toes turned under behind you.","Swing the arms and jump through to land on both feet in a quarter squat.","Land soft and balanced, then step back to kneeling rather than dropping in.","Everything comes from the hips off a dead stop, so quality beats reps."],
+      "modalities": ["plyometric","power"] }
 
   ]
 }

@@ -3891,3 +3891,114 @@ and a dose model for time-based landing work does not exist. The difference from
 this morning is that the claim is now enforced rather than described, so the
 day someone widens a filter they get a red test naming the movement instead of a
 comment they may not read.
+
+---
+
+## 37  The sixth channel, four entries authored against the measurement — 2026-09-11, `sw.js` v75
+
+*Invictus Fitness, a CrossFit gym: 58 playlists, 25 of them movement, 1,384
+titles, 1,147 unique. The pre-flight said author nothing and the athlete said
+author the four anyway. The valuable part is what the fourth one did to a
+ratchet.*
+
+### 37.1  The pre-flight, and the family that was declined
+
+**17.3% of the titles were already in the library** — a healthy overlap. The
+other 909 broke down as:
+
+| family | titles | disposition |
+|---|---|---|
+| bar and ring gymnastics | ~360 | **declined by the athlete** |
+| variants of entries held | ~250 | every landmine twist is `landmine-rotation`; every prone Y-T-W is `prone-wti-raise` |
+| stretch and mobility | 62 | the pool is closed at 149 on coverage |
+| Olympic technique constraints | 25 | "no hook, no feet" is a cue, not a movement (§3.2) |
+| partner and coached drills | 25 | he trains alone (§26) |
+| complexes | 17 | a man maker is two movements; this app prescribes one |
+| holds and pulses | 20 | a dose |
+| carries and strongman | 18 | 18 already held |
+
+**The gymnastics family was the real decision and it was declined.** It is the
+one thing this library genuinely lacks — it has the pull-up family, dips, the
+L-sit, hollow holds, toes-to-bar and a handstand push-up, and nothing above
+that. Three things decided it: **every one of the 552 entries sat at
+`technical: 3` or below**, so a ring muscle-up would have been the first entry
+through an unwritten ceiling; the equipment vocabulary has no rig, rings or
+rope; and most of those 360 are *progressions toward* a skill, which this app
+has no way to express — it prescribes movements, not paths to one.
+
+**The §30 lesson was applied and did not fire this time.** That pull nearly
+declined a neck stretch on a belief about scope that was wrong, so every joint
+was checked here rather than assumed. The shoulder holds 28 dynamic and 14
+static options, the knee 18 and 15. Nothing in this channel lands on a thin
+joint. The recommendation was to author nothing; it was overruled.
+
+### 37.2  A false alarm worth recording
+
+First reading of the diff said the matcher was under-recognising duplicates
+again, as it had on NASM in §30. **Measured, it was not**: three hyphenated
+camera angles, five series prefixes, seven rig mentions across 1,147 titles.
+The 80.6% candidate rate was real. This channel trains a different sport, and
+the tool was working correctly. The instinct to blame the tool a second time
+was pattern-matching on the previous pull, and the measurement is what stopped
+it becoming a second tool change nobody needed.
+
+### 37.3  The four, all watched before authoring
+
+Contact sheets for all four, per §14.1 — none was authored from its title.
+
+| entry | pool it joins | drawn |
+|---|---|---|
+| `kettlebell-halo` | `mobility-dynamic`; nothing in the library circles a load round the head | 2.9%, four day types |
+| `banded-tke` | `mobility-dynamic`; `leg-extension` is open-chain and on a machine | 4.3%, **all eight** day types |
+| `bench-reverse-hyper` | accessory `hinge`; `back-extension` fixes the legs and moves the torso, this is the reverse | 0.3%, two day types |
+| `kneeling-jump` | secondary `jump`; seventeen jumps and none starts from the knees | 1.0%, two day types |
+
+**`banded-tke` nearly could not be authored at all, and the reason is §18.4.**
+It is a unilateral knee movement, and `taxonomy.test.mjs` requires the `squat`
+family to be bilateral — while filing it under `lunge` would let a lunge slot
+draw it, which is the exact objection that removed the single-leg calf raise.
+It is authored as a `mobility`-tier activation drill instead, alongside
+`mini-band-step-out`, which is unilateral, banded and aimed with `targets`. That
+is honest rather than a dodge: a terminal knee extension IS an activation drill.
+**The single-leg calf raise is still unauthorable** — it has no such home.
+
+All four probed against all 48 slots before writing. Worst session **68 min,
+unchanged**.
+
+### 37.4  The fourth entry tripped a ratchet, and the ratchet was wrong
+
+`cns-account.test.mjs` went red: *"48h after a power day the veto rate fell to
+38% against a recorded floor of 40%. This number may rise and must never fall."*
+
+Bisected one entry at a time. **`bench-reverse-hyper` alone causes it** —
+removing it restores 40.0% exactly, removing any of the other three changes
+nothing. It is `cnsCost: 1`, and it joins an accessory pool that is already
+**60 of 74 entries at cnsCost 1**.
+
+So the mechanism is: one more light accessory in a pool that is 81% light
+accessories makes the average power session slightly lighter, and a lighter
+session needs less spacing, so marginally fewer of them still demand 48h.
+**The app is correctly permitting a hard day after an easier session.**
+
+Everything rule-level still passes untouched: acute veto at 1h and 24h,
+clearance by 72h, the threshold swept across the whole measured load range, and
+no back-to-back hard days over 21 days.
+
+**The ratchet pins a population average, and a population average moves with
+the library's composition.** It reads every downward move as a regression. Any
+future commit authoring a light accessory trips it the same way, and the honest
+response each time is to bisect and re-base — which is not a ratchet. It is
+re-based to 0.38 with the bisection written at the constant, and the flaw is
+named there rather than fixed, because the property actually worth guarding is
+the rule-level one and the test below it already asserts that.
+
+§25 introduced this ratchet so that "a real gap is recorded rather than
+deleted", which was right. What it could not know is that the quantity it
+pinned is not purely a property of the rule.
+
+### 37.5  The yield
+
+**1,384 titles, four entries, 0.29%** — the second-lowest hit rate the project
+has recorded, after §20's 0.24%. Library 552 → **556**. 616 tests, unchanged in
+count. Coverage shortfall stays **0**: none of the four was authored against a
+counter, and none of them moved one.

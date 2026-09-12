@@ -156,7 +156,34 @@ test('by 72h every high-CNS day type is permitted again', () => {
 // 48-72h spacing and the app delivers it on one day type out of four. The
 // floors are what was measured on 2026-09-09, so the gap cannot widen without
 // this failing, and closing it means raising a number here.
-const VETO_48H_FLOOR = { sprint: 0.75, power: 0.40, plyometric: 0, 'max-strength': 0 };
+//
+// POWER RE-BASED 0.40 -> 0.38 on 2026-09-11, and the reason is written out
+// because lowering a ratchet is exactly what a ratchet exists to prevent.
+//
+// It fired when four entries were authored. Bisected one at a time, the cause
+// is a single one of them: `bench-reverse-hyper`, `cnsCost: 1`, which joins a
+// 74-entry accessory pool that is ALREADY 60 entries at cnsCost 1. Removing it
+// restores 40.0% exactly; removing any of the other three changes nothing.
+//
+// WHAT THAT MEANS IS NOT A WEAKER RULE. The veto fires on a session's measured
+// `cnsLoad`. One more light accessory in a pool that is 81% light accessories
+// makes the average power session slightly lighter, so slightly fewer of them
+// still demand spacing at 48h. The app is correctly permitting a hard day after
+// an easier session. Nothing about the threshold, the decay or the spacing
+// logic moved, and the four tests around this one -- acute veto at 1h and 24h,
+// clearance by 72h, the threshold swept across the whole measured load range,
+// and no back-to-back hard days over 21 days -- all still pass untouched.
+//
+// SO THE RATCHET HAS A FLAW WORTH NAMING: it pins a POPULATION AVERAGE, which
+// moves with the library's composition, and reads every downward move as a
+// regression. Any future commit that authors a light accessory will trip it the
+// same way, and the honest response each time is to bisect and re-base, which
+// is not a ratchet. The property actually worth guarding is the rule-level one,
+// and the test below this already asserts it across the measured load range.
+// Left as a measurement with its provenance rather than deleted, because the
+// number is still worth seeing; but do not read a fall here as a safety
+// regression without bisecting it first. design-library-expansion.md §37.
+const VETO_48H_FLOOR = { sprint: 0.75, power: 0.38, plyometric: 0, 'max-strength': 0 };
 
 test('the measured 48h spacing does not get worse than it already is', () => {
   for (const dayType of HIGH_CNS_DAY_TYPES) {

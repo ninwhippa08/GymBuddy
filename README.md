@@ -128,7 +128,7 @@ GymBuddy/
 │   └── ui.js             DOM rendering. Pure: data in, detached DOM nodes out.
 │
 ├── data/
-│   └── exercises.json    The exercise library: 552 exercises + 6 PR roots.
+│   └── exercises.json    The exercise library: 556 exercises + 6 PR roots.
 │
 ├── tests/                Node's built-in test runner, zero dependencies.
 │   ├── *.test.mjs        One file per subject (session, ramp, coverage, ui, storage, …).
@@ -973,3 +973,32 @@ counted, it is whether it can be drawn somewhere that cannot count it, and one
 blind slot is enough. Rewritten, the same mutation turns it red and names the
 movement. A guard that has never been seen to fail is not evidence of anything.
 `docs/design-library-expansion.md` §36.
+
+**A sixth channel was mined against the measurement, and four entries came out
+of 1,384 titles.** Invictus Fitness is a CrossFit gym, and the pre-flight said
+author nothing: no pool was short, every joint was checked rather than assumed,
+and the shoulder and knee both hold nearly thirty options. Overruled, it
+produced a kettlebell halo, a banded terminal knee extension, a bench reverse
+hyper and a kneeling jump — each watched on video before authoring, each probed
+against all 48 slots first, and all four drawn in a 5,600-session sweep with the
+worst session unchanged at 68 minutes.
+
+**The large decision was what got declined.** Roughly 360 titles were bar and
+ring gymnastics, the one family this library genuinely lacks. It was declined
+for three reasons: every entry in the library sat at a technical rating of 3 or
+below, so a ring muscle-up would have been the first through an unwritten
+ceiling; the equipment vocabulary has no rig, rings or rope; and most of those
+titles are progressions *toward* a skill, which the app cannot express, since it
+prescribes movements rather than paths to one.
+
+**One of the four tripped a ratchet, and the ratchet turned out to be measuring
+the wrong thing.** A test pinning the spacing between hard days went red. Bisected
+one entry at a time, the cause was the bench reverse hyper alone — a light
+accessory joining a pool that was already 81% light accessories, which makes the
+average power session slightly easier, so slightly fewer of them still demand 48
+hours before the next hard day. That is the app correctly permitting a hard day
+after an easier session, not a weaker rule, and every rule-level guarantee still
+passes. The ratchet pins a population average, which moves with the library's
+composition and reads every downward move as a regression. It is re-based with
+the bisection recorded at the constant, and the flaw is named there rather than
+quietly fixed. `docs/design-library-expansion.md` §37.
