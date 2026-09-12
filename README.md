@@ -145,9 +145,14 @@ GymBuddy/
 │   │                     to paste, with the cues left deliberately unwritten.
 │   ├── playlist-diff.mjs Diffs a coach's YouTube playlist against the library: what is
 │   │                     not a movement, what we already have, what is worth a look.
-│   └── contact-sheet.mjs Six frames of one movement demo tiled into a single image,
-│                         for the clips whose name is not enough. They are silent,
-│                         so captions give nothing.
+│   ├── contact-sheet.mjs Six frames of one movement demo tiled into a single image,
+│   │                     for the clips whose name is not enough. They are silent,
+│   │                     so captions give nothing.
+│   └── measure.mjs       Six sweeps over generated sessions: which entries no slot
+│                         admits, how often each day type comes up, felt repetition,
+│                         the realized repeat interval, which load cap binds, and the
+│                         48h CNS veto rate. Every swept number the design docs quote
+│                         came from one of these.
 │
 ├── docs/                 Written before the code, and kept in step with it.
 │   ├── spec.md              What the product is. Sections are cited from code as "spec §n".
