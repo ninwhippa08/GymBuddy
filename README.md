@@ -84,12 +84,13 @@ Expected result: **every test passing, 0 failing.** The current count is in
 4. Tap **Generate today's workout** and the app **proposes a day type** — one of `max-strength`, `power`,
    `hypertrophy`, `aerobic-steady`, `interval`, `sprint`, `plyometric` — and
    states the reason it chose that one. You can reroll into a different type.
-5. It builds the **full session**: a warm-up, main work, and a mobility and core
-   cool-down, with sets, reps, rest, and a load written as a multiplier of a
-   named lift — `0.85 × Back Squat PR`, never a number in kilograms.
+5. It builds the **full session** in four sections — **Prep**, **Main work**,
+   **Core**, **Cool-down** — with sets, reps, rest, and a load written as a
+   multiplier of a named lift — `0.85 × Back Squat PR`, never a number in
+   kilograms. The cool-down is one 30-second hold per stretch.
 6. Any exercise you cannot do today (equipment busy, machine missing) can be
    **swapped** for an equivalent one. That includes the two **core** movements
-   in the cool-down — the static stretches deliberately have no swap, because
+   — the cool-down's static stretches deliberately have no swap, because
    they are matched to the patterns the session actually trained.
 7. Tapping **"I did this workout"** marks the day trained. Only then does it
    appear on the calendar — if you didn't tap it, you didn't do it. Tapping a
@@ -281,7 +282,12 @@ is readable on its own terms, and the deployed app is byte-for-byte the source.
 **Offline-first, not offline-capable.** The service worker is cache-first
 always. A gym basement with no signal is the design target, not an edge case.
 The cost is that `VERSION` in `sw.js` must be bumped on every deploy, which is
-why that file opens with a large warning comment.
+why that file opens with a large warning comment — and `js/version.js` with
+it, which a test enforces. The running version is printed at the foot of every
+screen, and when a newer one has downloaded the footer offers **Update ready —
+tap to reload**. It is offered, never forced, so a workout being read between
+sets cannot change under the reader. It exists because a phone once ran a build
+six deploys old for five days and nothing on screen could say so.
 
 **The library grows by hand, and the suite is the gate.** There is no importer
 and no second validator. Adding a movement means writing an entry and running

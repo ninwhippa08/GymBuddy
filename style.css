@@ -1049,3 +1049,24 @@ body {
   font-size: 0.85rem;
   line-height: 1.5;
 }
+
+/* -------------------------------------------------------------------------
+   Version footer and update control. tests/version.test.mjs has the why.
+   ------------------------------------------------------------------------- */
+
+.app-meta {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 0 calc(env(safe-area-inset-right) + 16px)
+           calc(env(safe-area-inset-bottom) + 20px)
+           calc(env(safe-area-inset-left) + 16px);
+  text-align: center;
+}
+
+.app-update { width: 100%; margin-bottom: 12px; }
+
+.app-version {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+}

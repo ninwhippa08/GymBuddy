@@ -12,7 +12,7 @@ const {
   loadLine, volumeLine, equipmentControl, renderNothingBuildable,
   renderConfirmPrevious, sorenessMap, addMoveControl, warmupLine, workLine,
   renderSession, blockCard, renderCalendar, renderHome, backupControl,
-  supersetLine, supersetRestLine
+  supersetLine, supersetRestLine, appMeta
 } = await import('../js/ui.js');
 const { SORENESS_JOINTS } = await import('../js/rules.js');
 
@@ -30,6 +30,13 @@ test('a hold prints seconds', () => {
     loadLine({ mode: 'hold', holdSec: 25, sets: 2, perSide: true }),
     '25s hold per side'
   );
+});
+
+test('a single hold carries no chip -- "× 1" is noise', () => {
+  // Every cool-down stretch is one hold since 2026-09-16. A core plank is
+  // still three, and keeps its chip.
+  assert.equal(volumeLine({ mode: 'hold', sets: 1, holdSec: 30 }), '');
+  assert.equal(volumeLine({ mode: 'hold', sets: 3, holdSec: 40 }), '× 3');
 });
 
 test('the volume chip suits the dose', () => {
@@ -1057,6 +1064,22 @@ const cooldownCard = () => card({
 const swapLabels = node =>
   node.querySelectorAll('.block-swap').map(b => b.getAttribute('aria-label'));
 
+// The athlete, 2026-09-16: "I want to see the Core workout separated from
+// cool-down. Put it after the main work under its own place." Core is trained
+// work; the cool-down heading made it read as part of winding down.
+test('core has its own section between main work and the cool-down', () => {
+  const node = renderSession(cooldownCard(), { onSwap() {} });
+  const groups = node.querySelectorAll('.group');
+  const titles = groups.map(g => g.querySelector('.group-title').textContent);
+  assert.deepEqual(titles, ['Main work', 'Core', 'Cool-down']);
+  const namesIn = title => groups[titles.indexOf(title)].textContent;
+  assert.ok(/Ab Wheel Rollout/.test(namesIn('Core')) && /Hollow Hold/.test(namesIn('Core')),
+    'both core blocks belong under Core');
+  assert.ok(!/Couch Stretch/.test(namesIn('Core')), 'a stretch rendered under Core');
+  assert.ok(!/Ab Wheel|Hollow Hold/.test(namesIn('Cool-down')),
+    'core still rendered under Cool-down');
+});
+
 test('the core blocks offer a swap and the static stretch does not', () => {
   const labels = swapLabels(renderSession(cooldownCard(), { onSwap() {} }));
   assert.ok(labels.some(l => /Ab Wheel Rollout/.test(l)),
@@ -1079,4 +1102,25 @@ test('a core swap says WHICH block was tapped, not just the slot', () => {
   assert.ok(second, 'the second core block rendered no swap button');
   second.dispatch('click');
   assert.deepEqual(seen, [['M2', 'hollow-hold']]);
+});
+
+// ---------------------------------------------------------------------------
+// The version footer and the update control -- tests/version.test.mjs has why
+// ---------------------------------------------------------------------------
+
+test('the footer names the running version', () => {
+  const node = appMeta({ version: 'v76', updateReady: false });
+  assert.match(node.textContent, /v76/);
+  assert.equal(node.querySelectorAll('button').length, 0,
+    'an update control appeared with no update waiting');
+});
+
+test('a waiting update is offered, and taken only on a tap', () => {
+  let taps = 0;
+  const node = appMeta({ version: 'v76', updateReady: true, onUpdate: () => { taps++; } });
+  const btn = node.querySelectorAll('button').find(b => /update/i.test(b.textContent));
+  assert.ok(btn, 'no update button while an update is waiting');
+  assert.equal(taps, 0, 'the update ran before anyone tapped');
+  btn.dispatch('click');
+  assert.equal(taps, 1);
 });

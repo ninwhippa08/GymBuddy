@@ -1728,3 +1728,98 @@ chosen between leaving it, flooring the ramp differently, or expressing ramp
 volume as total sets per session rather than a per-block multiplier. Recorded
 so the next person to read the ramp table does not assume the columns do what
 they appear to do.
+
+## 14  A second trained session, and a phone six deploys behind — 2026-09-16, `sw.js` v76
+
+A hypertrophy day, performed: side-lying shoulder circle 12 per side,
+alternating spiderman 11, leg swings 10; deadlift 4×6, pause squat 4×11,
+single-arm lat pulldown 3×12, tall-kneeling cable chop 2×14; four stretches at
+two holds each, then a weighted plank 3×40 s and straight-leg windshield wipers
+3×12. Five notes came back.
+
+### 14.1  Two of them were already fixed, and that was the finding
+
+He asked for prep reps of 8–10 and for core to sit apart from the stretches.
+**Both shipped in v70 (§13), five days and six deploys before this session.**
+His card still showed 12- and 11-rep drills, and core *after* the stretches —
+two things v70 made impossible. The live site served v75. The phone was
+running something older than v70.
+
+Nothing was broken in the deploy. `sw.js` is cache-first with no
+`skipWaiting` on install, on purpose, so the code cannot change under a workout
+being read between sets. The cost of that promise was that a new version waited
+for a relaunch he had no reason to know about, and **no screen said which
+version was running** — not to him, and not to anyone reading his feedback.
+
+Built: `js/version.js` carries `APP_VERSION`, a test fails if it ever disagrees
+with `sw.js`'s `VERSION`, and the footer prints it. When a new worker has
+installed behind a live one, the footer offers **Update ready — tap to
+reload**; a tap posts `SKIP_WAITING`, and the page reloads when the new worker
+takes control. The promise stands — nothing changes without the tap. The reload
+waits for the tap because `controllerchange` also fires on the very first
+install, and the page also asks for an update check on resume, because a
+home-screen app is resumed far more often than it is navigated to. Guards:
+`tests/version.test.mjs`, each mutation-tested (install calling `skipWaiting`,
+any message activating the worker, the two versions disagreeing — all three
+turn it red).
+
+**The browser half — `updatefound`, `controllerchange`, the reload — cannot run
+under `node --test`** and was not exercised here. Say so rather than claim it.
+
+### 14.2  One hold per stretch
+
+> "I think 2 sets of cool down is unnecessary … Just check if only doing 1 is
+> fine medically."
+
+It is. The ACSM figure behind `STATIC_HOLD_SETS` — 2–4 repetitions, ~60 s per
+muscle group, 2–3 times a week — is a *flexibility-training* dose for gaining
+range over weeks. This block is a cool-down. As a cool-down, post-exercise
+stretching is **not distinguishable from passive rest** for recovery of
+strength, soreness at 24–72 h, or range of motion (Afonso et al. 2021,
+*Frontiers in Physiology*, systematic review and meta-analysis of RCTs:
+"there wasn't sufficient statistical evidence to reject the null hypothesis
+that stretching and passive recovery have equivalent influence on recovery").
+The second hold bought no recovery.
+
+What it gives up is long-term range, which follows *total weekly* stretch time
+— a 2024 meta-analysis of 189 studies puts the optimum near 10 minutes per
+muscle group per week. At 1–3 sessions a week neither one 30 s hold nor two
+approached that, so the honest statement is that this block was never a
+flexibility programme and still is not.
+
+`STATIC_HOLD_SETS` [2, 2] → **[1, 1]**; `STATIC_HOLD_SEC` [20, 30] → **[30, 30]**,
+the top of the ACSM per-hold range, so each stretch keeps a full half-minute.
+`[corroborated]`. The card's `× n` chip is dropped for a single hold, as it
+already was for a single stride.
+
+Measured, 3,000 seeds per day type, `now = 1e12`, before → after:
+
+| day type | mean session | worst | stretch minutes |
+|---|---|---|---|
+| max-strength | 63.5 → 62.3 | 68 → 67 | 5.7 → 3.9 |
+| power | 61.5 → 60.4 | 67 → 67 | 5.6 → 3.8 |
+| hypertrophy | 61.6 → 60.4 | 67 → 67 | 5.8 → 3.9 |
+| mobility | 18.0 → 16.9 | 20 → 20 | 5.8 → 4.0 |
+| interval | 52.9 → 51.5 | 69 → 66 | 4.2 → 2.9 |
+
+The mean falls by less than the stretching does because `packCooldown` had
+been trimming core work to pay for the second holds; that work now survives.
+
+### 14.3  Core gets its own heading
+
+> "I want to see the Core workout separated from cool-down. Put it after the
+> main work under its own place."
+
+The card now reads Prep → Main work → **Core** → Cool-down. This is the card
+only: the generator still builds and budgets core inside `COOLDOWN_BLOCK`, and
+it already emitted core before the stretches (§13), so the order he performs
+things in is unchanged. `blockGroup` lost its per-block `swappable` predicate —
+it existed only because core and the stretches shared a heading. The guard
+that stretches carry no swap button was mutation-tested after the move.
+
+### 14.4  The other two notes are about main work
+
+"Main work is too heavy" (deadlift and pause squat on one day, 4×11 at 0.59 ×
+back squat PR) and "ground the rep and set count in move difficulty, not the
+clock" are a change to how every load is prescribed, not to mobility. They are
+designed next, in `docs/superpowers/specs/2026-09-16-rep-method-design.md`.

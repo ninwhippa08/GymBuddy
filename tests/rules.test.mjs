@@ -53,11 +53,14 @@ test('every dose is an inclusive [lo, hi] pair inside its sourced range', () => 
     assert.ok(Array.isArray(v) && v.length === 2, `${k} is not a pair`);
     assert.ok(v[0] <= v[1], `${k} is inverted`);
   }
-  // ACSM: 10-30 s per hold, 2-4 repetitions per muscle group.
+  // ACSM: 10-30 s per hold. One hold per stretch since 2026-09-16, the
+  // athlete's ask: post-exercise stretching does not beat rest for recovery
+  // (Afonso 2021), so the second hold bought no recovery. The one hold sits at
+  // the top of the ACSM range rather than the middle.
   assert.ok(MOBILITY_DOSE.STATIC_HOLD_SEC[0] >= 10);
   assert.ok(MOBILITY_DOSE.STATIC_HOLD_SEC[1] <= 30);
-  assert.ok(MOBILITY_DOSE.STATIC_HOLD_SETS[0] >= 2);
-  assert.ok(MOBILITY_DOSE.STATIC_HOLD_SETS[1] <= 4);
+  assert.deepEqual([...MOBILITY_DOSE.STATIC_HOLD_SETS], [1, 1]);
+  assert.deepEqual([...MOBILITY_DOSE.STATIC_HOLD_SEC], [30, 30]);
   // design 2.1: dynamic volume does not scale with available time.
   assert.deepEqual([...MOBILITY_DOSE.DYNAMIC_REPS], [8, 10]);
   assert.deepEqual([...MOBILITY_DOSE.DYNAMIC_DRILLS], [3, 4]);

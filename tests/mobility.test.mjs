@@ -93,8 +93,8 @@ test('the cool-down is static stretches plus core, and no drill', () => {
     assert.equal(core.length, 2);
     for (const b of statics) {
       assert.equal(b.mode, 'hold');
-      assert.ok(b.holdSec >= 20 && b.holdSec <= 30, `held ${b.holdSec}s`);
-      assert.ok(b.sets >= 2 && b.sets <= 4);
+      assert.equal(b.holdSec, 30, `held ${b.holdSec}s`);
+      assert.equal(b.sets, 1, `${b.name} prescribed ${b.sets} sets of a stretch`);
       const e = LIB.find(x => x.id === b.exerciseId);
       assert.ok(e.modalities.includes('mobility-static'));
     }
@@ -168,8 +168,10 @@ test('packCooldown holds the cool-down budget without gutting the dose', () => {
   assert.ok(packed.blocks.filter(b => b.role === 'mobility').length >= 3,
     'never trims below 3 stretches');
   for (const b of packed.blocks.filter(b => b.role === 'mobility')) {
-    assert.ok(b.sets >= 2, 'never drops a hold below the ACSM 2-rep floor');
-    assert.ok(b.holdSec >= 20, 'never shortens a hold below the ACSM floor');
+    // Packing never touches a stretch's dose -- one 30 s hold since
+    // 2026-09-16 -- it may only drop a whole stretch above the floor of three.
+    assert.equal(b.sets, MOBILITY_DOSE.STATIC_HOLD_SETS[0], 'never trims a stretch\'s holds');
+    assert.equal(b.holdSec, MOBILITY_DOSE.STATIC_HOLD_SEC[0], 'never shortens a hold');
   }
   for (const b of packed.blocks.filter(b => b.role === 'core')) {
     assert.ok(b.sets >= 2, 'never trims core below 2 sets');

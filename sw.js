@@ -15,7 +15,7 @@
 // differ. Forgetting this is the one way to ship an invisible update.
 // ------------------------------------------------------------------------
 
-const VERSION = 'v75';
+const VERSION = 'v76';
 const CACHE = `gymbuddy-${VERSION}`;
 
 // Relative, every one of them. GitHub Pages serves this from /GymBuddy/, not
@@ -33,6 +33,7 @@ const SHELL = [
   './js/rules.js',
   './js/templates.js',
   './js/calendar.js',
+  './js/version.js',
   './data/exercises.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
@@ -60,6 +61,15 @@ self.addEventListener('install', event => {
     // worker. Caught doing exactly this on 2026-08-21.
     await cache.addAll(SHELL.map(url => new Request(url, { cache: 'reload' })));
   })());
+});
+
+// ...but the app may ASK. The footer offers "Update ready -- tap to reload"
+// while a new worker waits, and a tap posts this message. The athlete chooses
+// the moment, so the promise above holds. Added 2026-09-16, after a phone ran
+// a build older than v70 for five days while v75 was live.
+// design-mobility-and-warmup.md §14.
+self.addEventListener('message', event => {
+  if (event.data === 'SKIP_WAITING') self.skipWaiting();
 });
 
 // --------------------------------------------------------------------------

@@ -220,8 +220,9 @@ export function volumeLine(block) {
   // A drill is one set by definition; "1 × 12" is noise next to "12 reps".
   if (block.mode === 'drill') return '';
   // For a hold the hero line already carries the seconds, so the chip carries
-  // how many of them.
-  if (block.mode === 'hold') return `× ${block.sets}`;
+  // how many of them -- unless there is one. Every cool-down stretch is a
+  // single hold since 2026-09-16, and "× 1" is the same noise as "1 × 12".
+  if (block.mode === 'hold') return block.sets > 1 ? `× ${block.sets}` : '';
   // The hero line carries work AND recovery, so the chip carries the one
   // thing left to ask: when am I finished. Work plus the recoveries BETWEEN
   // the rounds -- there is no recovery after the last one, which is why this
@@ -436,19 +437,18 @@ export function blockCard(block, cuesFor, onSwap) {
   }, [btn, swap]);
 }
 
-// `swappable` lets a group offer the control on SOME of its blocks. The
-// cool-down needs it: core is swappable and the static stretches are not, and
-// they render in one group. Absent, every block in the group gets it, which is
-// what main work wants. design-equipment-and-swap.md 13.
-function blockGroup(title, blocks, cuesFor, onSwap, swappable = null) {
+// A group offers swap on every block or on none. It used to take a per-block
+// predicate because core and the static stretches shared the Cool-down group;
+// since core got its own group (2026-09-16) each group is one or the other.
+// design-equipment-and-swap.md 13.
+function blockGroup(title, blocks, cuesFor, onSwap) {
   if (!blocks.length) return null;
   return el('section', { class: 'group' }, [
     el('h2', { class: 'group-title', text: title }),
     // NOT blocks.map(blockCard) -- map passes the index as the second argument,
     // which would arrive where cuesFor belongs.
     el('ul', { class: 'block-list' },
-      blocks.map(b => blockCard(b, cuesFor,
-        !swappable || swappable(b) ? onSwap : null)))
+      blocks.map(b => blockCard(b, cuesFor, onSwap)))
   ]);
 }
 
@@ -672,12 +672,20 @@ export function renderSession(
     offer = null;
     swapNote = null;
   }
-  // Three groups, not two. Prep and cool-down do different jobs at opposite
-  // ends of the session, and one "Mobility & core" heading hid that.
-  // design 4.2, discrepancy 6.
+  // Four groups. Prep and cool-down do different jobs at opposite ends of the
+  // session, and one "Mobility & core" heading hid that. design 4.2,
+  // discrepancy 6.
+  //
+  // Core became its own group on 2026-09-16, at the athlete's ask: "I want to
+  // see the Core workout separated from cool-down." Core is trained work, and
+  // under a Cool-down heading it read as part of winding down. This is the
+  // CARD only -- the generator still builds and budgets core inside
+  // COOLDOWN_BLOCK, and already emits it before the stretches, so the order he
+  // performs it in does not change. design-mobility-and-warmup.md §14.
   const COOLDOWN_ROLES = ['mobility', 'core'];
   const prep = session.blocks.filter(b => b.role === 'prep');
-  const cooldown = session.blocks.filter(b => COOLDOWN_ROLES.includes(b.role));
+  const core = session.blocks.filter(b => b.role === 'core');
+  const cooldown = session.blocks.filter(b => b.role === 'mobility');
   const main = session.blocks.filter(
     b => b.role !== 'prep' && !COOLDOWN_ROLES.includes(b.role)
   );
@@ -739,14 +747,15 @@ export function renderSession(
                        addMove.open)
       : null,
 
-    // Prep has no template slot and is not swappable. The cool-down is mixed:
-    // the CORE blocks are swappable (he asked for it -- no ab wheel, or the
-    // same movement two days ago), the static stretches are not, because they
-    // are matched to the patterns the day trained and swapping one drifts it
-    // away from that work. design-equipment-and-swap.md 13.
+    // Prep has no template slot and is not swappable. CORE blocks are
+    // swappable (he asked for it -- no ab wheel, or the same movement two days
+    // ago); the static stretches are not, because they are matched to the
+    // patterns the day trained and swapping one drifts it away from that work.
+    // design-equipment-and-swap.md 13.
     blockGroup('Prep', prep, cuesFor),
     blockGroup('Main work', main, cuesFor, onSwap),
-    blockGroup('Cool-down', cooldown, cuesFor, onSwap, b => b.role === 'core'),
+    blockGroup('Core', core, cuesFor, onSwap),
+    blockGroup('Cool-down', cooldown, cuesFor),
 
     // Confirming is the end of the day's decisions: it says the session on the
     // record is training he actually did, so there is nothing left to reroll.
@@ -827,6 +836,22 @@ export function renderError(message) {
   return el('div', { class: 'screen' }, [
     el('h1', { class: 'day-type', text: 'Stuck' }),
     el('p', { class: 'setup-copy', text: message })
+  ]);
+}
+
+// The footer: which build is running, and a way onto the next one. The update
+// is OFFERED, never applied -- sw.js has no skipWaiting on install so the code
+// cannot change under a workout being read between sets, and a tap keeps that
+// promise while ending the silent wait for a relaunch. tests/version.test.mjs.
+export function appMeta({ version, updateReady = false, onUpdate } = {}) {
+  return el('div', { class: 'app-meta' }, [
+    updateReady
+      ? el('button', {
+          class: 'btn app-update', type: 'button',
+          onclick: () => onUpdate && onUpdate()
+        }, 'Update ready — tap to reload')
+      : null,
+    el('p', { class: 'app-version', text: `GymBuddy ${version}` })
   ]);
 }
 

@@ -18,8 +18,9 @@ import {
 } from './storage.js';
 import {
   renderSession, renderSetup, renderError, renderNothingBuildable,
-  renderConfirmPrevious, renderHome, mount
+  renderConfirmPrevious, renderHome, mount, appMeta
 } from './ui.js';
+import { APP_VERSION } from './version.js';
 
 const root = document.getElementById('app');
 
@@ -452,9 +453,56 @@ async function boot() {
 // Registered after boot, never before: a failed or slow registration must not
 // delay the workout appearing. Relative path so the scope follows the app
 // wherever it is served from -- '/GymBuddy/' on Pages, '/' on localhost.
+//
+// THE UPDATE IS OFFERED, NEVER TAKEN. sw.js deliberately has no skipWaiting on
+// install, so a new version used to wait for a relaunch nobody knew to do --
+// and a phone ran a build older than v70 for five days while v75 was live
+// (2026-09-16). Now a waiting worker puts a button in the footer; a tap posts
+// SKIP_WAITING and the page reloads once the new worker has taken control.
+//
+// `controllerchange` also fires on the very first install, when clients.claim()
+// hands an uncontrolled page to its first worker. Reloading then would be a
+// pointless flash on first visit, so the reload waits for the tap.
+// design-mobility-and-warmup.md §14.
+const meta = document.getElementById('app-meta');
+
+function showMeta(onUpdate = null) {
+  if (!meta) return;
+  meta.replaceChildren(appMeta({
+    version: APP_VERSION, updateReady: !!onUpdate, onUpdate
+  }));
+}
+
 function registerServiceWorker() {
+  showMeta();
   if (!('serviceWorker' in navigator)) return;
-  navigator.serviceWorker.register('./sw.js').catch(() => {
+  let tapped = false;
+  const offer = worker => showMeta(() => {
+    tapped = true;
+    worker.postMessage('SKIP_WAITING');
+  });
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (tapped) location.reload();
+  });
+  navigator.serviceWorker.register('./sw.js').then(reg => {
+    // Only an UPDATE is offered: with no controller this is the first install
+    // and there is nothing older to replace.
+    if (reg.waiting && navigator.serviceWorker.controller) offer(reg.waiting);
+    reg.addEventListener('updatefound', () => {
+      const incoming = reg.installing;
+      if (!incoming) return;
+      incoming.addEventListener('statechange', () => {
+        if (incoming.state === 'installed' && navigator.serviceWorker.controller) {
+          offer(incoming);
+        }
+      });
+    });
+    // A home-screen app is resumed far more often than it is navigated to, and
+    // the browser only looks for a new sw.js on navigation. Look on resume too.
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') reg.update().catch(() => {});
+    });
+  }).catch(() => {
     // Offline install is a nicety; the app works without it. Nothing to show
     // the user, and nothing worth blocking on.
   });

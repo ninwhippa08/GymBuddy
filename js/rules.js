@@ -607,9 +607,23 @@ export const MOBILITY_DOSE = Object.freeze({
 
   // ACSM: 10-30 s per hold, 2-4 repetitions per muscle group. [corroborated]
   // The old block spent ~3 min on a single stretch -- 1.5-9x the source.
+  //
+  // SETS 2 -> 1 and HOLD 20-30 -> 30, 2026-09-16, the ATHLETE'S ask: "2 sets of
+  // cool down is unnecessary ... check if only doing 1 is fine medically". It
+  // is. The ACSM 2-4 repetitions are a FLEXIBILITY-TRAINING dose (60 s per
+  // muscle, 2-3x a week, to gain range over weeks), and this block is not a
+  // flexibility programme. As a cool-down, post-exercise stretching does not
+  // beat passive rest for recovery of strength, soreness at 24-72 h, or range
+  // of motion (Afonso et al. 2021, Front Physiol, meta-analysis of RCTs) --
+  // so the second hold bought no recovery. What it costs is long-term range,
+  // which tracks total weekly stretch time (~10 min per muscle group per week
+  // is where chronic gains top out, 2024 meta-analysis); at 1-3 sessions a
+  // week neither one hold nor two came near that. The single hold takes the
+  // top of the ACSM per-hold range so each stretch still gets a full 30 s.
+  // [corroborated]. design-mobility-and-warmup.md §14.
   STATIC_STRETCHES: Object.freeze([3, 4]),
-  STATIC_HOLD_SEC: Object.freeze([20, 30]),
-  STATIC_HOLD_SETS: Object.freeze([2, 2]),
+  STATIC_HOLD_SEC: Object.freeze([30, 30]),
+  STATIC_HOLD_SETS: Object.freeze([1, 1]),
 
   // Core. 3 sets x 10-15 reps and 30-45 s holds are [corroborated]: they sit
   // inside the dose envelope of the 31 trials pooled in Saeterbakken 2022
