@@ -717,8 +717,18 @@ export function prescribe(slot, exercise, env, rng, state) {
     return block;
   }
 
+  // Reps, rest and reps in reserve by WHAT THE EXERCISE IS, on load slots in
+  // the zones where proximity to failure is the prescription. rules.js
+  // LOAD_GROUPS has the source; docs/superpowers/specs/
+  // 2026-09-16-rep-method-design.md §4.
+  const zoneKey = slot.zone in ZONES ? slot.zone : 'hypertrophy';
+  const group = slot.mode === 'load' && RIR_ZONES.includes(zoneKey)
+    ? LOAD_GROUPS[loadGroupFor(exercise, slot)]
+    : null;
+  const groupDosed = Boolean(group) && GROUP_DOSED_ZONES.includes(zoneKey);
+
   let sets = intBetween(rng, slot.sets);
-  const reps = intBetween(rng, slot.reps);
+  const reps = intBetween(rng, groupDosed ? group.reps : slot.reps);
 
   // Ramp trims volume before anything else touches it. basis §3.
   sets = Math.max(1, Math.round(sets * env.volumeMultiplier));
@@ -740,7 +750,8 @@ export function prescribe(slot, exercise, env, rng, state) {
     return block;
   }
 
-  block.restSec = Math.round(between(rng, slot.restSec) / 15) * 15;
+  block.restSec = Math.round(
+    between(rng, groupDosed ? group.restSec : slot.restSec) / 15) * 15;
 
   if (slot.mode === 'contacts') {
     // Default 0, not 1. Every plyometric exercise in the library carries an
@@ -755,18 +766,37 @@ export function prescribe(slot, exercise, env, rng, state) {
   }
 
   // mode === 'load'
+  let rir = null;
+  if (group) {
+    rir = intBetween(rng, group.rir);
+    block.rir = [...group.rir];
+    block.effort = group.rir[0] === group.rir[1]
+      ? `leave ${group.rir[0]} reps in reserve`
+      : `leave ${group.rir[0]}-${group.rir[1]} reps in reserve`;
+  }
+
   if (!exercise.loadable) {
     // No percentage is meaningful here -- bodyweight, machine, or dumbbell work
     // the app has no reference max for. Prescribe by reps and effort instead.
     block.mode = 'reps';
-    block.effort = 'leave 2-3 reps in reserve';
+    block.effort = block.effort || 'leave 2-3 reps in reserve';
     return block;
   }
 
-  const zone = ZONES[slot.zone] || ZONES.hypertrophy;
-  let pct = between(rng, zone.pct);
-  pct += (rng() - 0.5) * 2 * PCT_JITTER;
-  pct = clamp(pct, zone.pct[0] - PCT_JITTER, zone.pct[1] + PCT_JITTER);
+  const zone = ZONES[zoneKey];
+  let pct;
+  if (group) {
+    // THE WEIGHT COMES FROM THE REPS. It used to be drawn from the zone
+    // independently of them, which is how 11 reps met a load that is an 8RM:
+    // 34.6% of hypertrophy and 40.9% of max-strength loaded blocks asked for
+    // more than a true N-rep max, measured 2026-09-16. Jitter only DOWNWARD --
+    // a jitter that raises the load re-creates the bug.
+    pct = repMax(reps + rir) - rng() * PCT_JITTER;
+  } else {
+    pct = between(rng, zone.pct);
+    pct += (rng() - 0.5) * 2 * PCT_JITTER;
+    pct = clamp(pct, zone.pct[0] - PCT_JITTER, zone.pct[1] + PCT_JITTER);
+  }
 
   // The ceiling is applied TWICE, and deliberately.
   //
