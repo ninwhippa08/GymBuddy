@@ -94,6 +94,44 @@ press. The table is a starting point, not a law. The generator treats it as a
 centre point and jitters within the zone rather than prescribing exact
 percentages as if they were precise.
 
+### Discrepancy 9 — load and reps were drawn independently — FIXED 2026-09-17, `sw.js` v77
+
+The paragraph above describes the generator as it was: a zone's rep range and
+its percentage band, each jittered **on its own**. Nothing tied them together,
+so 11 reps could meet a load that is an 8RM. Measured over 3,000 sessions per
+day type: **37.4%** of max-strength and **34.1%** of hypertrophy loaded sets
+asked for more than the chart's N-rep max. The athlete found it at the bar —
+four sets of eleven paused squats after deadlifts.
+
+Now reps come first, then reps in reserve, then `load = repMax(reps + RIR)`,
+where `repMax` reads this chart, interpolates the missing 11, and uses Epley
+`1 / (1 + n/30)` past 12. The zone bands above stay as descriptions; the load
+for `maxStrength`, `hypertrophy` and `muscularEndurance` is no longer drawn from
+them. Power zones are unchanged — they are about bar speed, not failure.
+
+Sources for the groups that set reps, reps in reserve and rest:
+
+- **Schoenfeld BJ, Fisher JP, Grgic J, et al.** "Resistance Training
+  Recommendations to Maximize Muscle Hypertrophy in an Athletic Population:
+  Position Stand of the IUSCA." *Int J Strength Cond* 1(1), 2021. Read in full.
+  **[verified]** — heavy free-weight compounds at low-to-moderate reps,
+  single-joint and machine work at moderate-to-high reps and closer to failure,
+  rest ≥ 2 min on multi-joint work and 60–90 s on single-joint, ~10 sets per
+  muscle per session.
+- **Pareja-Blanco F, et al.** 2019, recovery time course after sets with
+  different loads and velocity loss. A moderate load taken far into the set
+  (60% 1RM, 40% velocity loss) recovered slower at 24–48 h than a heavier load
+  stopped earlier. Read in full. **[verified]**
+- **Schoenfeld et al. 2021**, *Sports* 9(2):32, and **Robinson et al. 2024**,
+  *Sports Med* 54(9): hypertrophy similar across ~5–30 reps near failure;
+  proximity to failure matters more for size than for strength.
+  **[corroborated]** — read through summaries, not the papers.
+
+The exact rep bands inside that shape are the athlete's choice. The rule of one
+heavy squat or hinge per session has **no trial** behind it and is
+**[corroborated]**: the IUSCA recovery reasoning, Pareja-Blanco, and coaching
+consensus.
+
 **Why percentages at all.** The user holds his own PRs and does the arithmetic.
 The app never stores a weight. This removes the entire max-registry, e1RM-update,
 and stale-number problem, and it happens to be exactly how the NSCA prescribes.

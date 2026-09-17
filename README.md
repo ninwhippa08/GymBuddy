@@ -203,9 +203,9 @@ file is the authoritative version; this is the summary.
 | 3 | PROPOSE | Scores each day type by how neglected it is, then vetoes on fatigue and soreness |
 | 4 | ENVELOPE | Turns the day type into an intensity zone, clamped by the ramp ceiling |
 | 5 | ARCHITECT | Picks a session architecture: straight sets, a ladder, or an antagonist superset. Three more are declared in `templates.js` and deliberately not built |
-| 6 | FILL | Chooses an actual exercise for each slot in the template |
-| 7 | PRESCRIBE | Sets and reps at a percentage of a PR — or foot contacts, or minutes |
-| 8 | PACK | Estimates duration and trims optional slots to the main-work budget, then pairs opposing lifts into supersets |
+| 6 | FILL | Chooses an actual exercise for each slot in the template — and on a max-strength or hypertrophy day, **never a second heavy squat or deadlift-type lift** |
+| 7 | PRESCRIBE | Reps from **what the exercise is**, then reps in reserve, then the load those two imply — or foot contacts, or minutes |
+| 8 | PACK | Estimates duration and trims optional slots to the main-work budget, caps any movement pattern at **ten sets**, then pairs opposing lifts into supersets |
 | 9 | PREP / COOL | Appends the dynamic warm-up and the static cool-down plus core, both **matched to the patterns the day actually trains**, then packs each to its budget |
 | 10 | ORDER | Enforces the fixed sequence: prep first, cool-down last — **core before the static stretches**, which close the session — and a superset's two halves adjacent |
 
@@ -274,6 +274,35 @@ would catch.
 ---
 
 ## Design decisions worth knowing
+
+**Reps come from the exercise, and the weight comes from the reps.** Every
+lifting exercise falls into one of three groups, worked out from fields the
+library already carries:
+
+| group | what it is | reps | stop short of failure by | rest |
+|---|---|---|---|---|
+| heavy | barbell lifts priced off a PR, highest fatigue (squats, deadlifts, bench) | 6–8 | 2–3 reps | 2 min |
+| compound | other multi-joint work (Romanian deadlift, dumbbell press, rows) | 8–12 | 2 reps | 2 min |
+| light | machines, cables, single-joint and low-fatigue work | 10–15 | 1–2 reps | 60–90 s |
+
+The load printed on the card is the one that leaves those reps in reserve, read
+off the NSCA rep–percentage chart. On max-strength days the strength rep ranges
+stay, and the load still comes from the reps. Two more rules sit beside it: at
+most one heavy squat or deadlift-type lift per max-strength or hypertrophy
+session, and at most ten sets of one movement pattern per session. The shape is
+the IUSCA position stand's (Schoenfeld et al. 2021): hard free-weight compounds
+at low-to-moderate reps, machine and single-joint work at higher reps and closer
+to failure, at least two minutes between compound sets.
+
+This replaced something worth naming. Reps used to be drawn from a range
+attached to the **slot**, blind to which exercise landed there, and the load was
+drawn separately from the reps. It was the athlete, after a trained session of
+deadlifts followed by 4×11 pause squats, who said the counts were not grounded
+in the movement. Measured over 3,000 sessions per day type, 34–37% of loaded
+sets had asked for more than a true N-rep max, and 6.5–15.7% of heavy days
+paired two heavy squat/hinge lifts; both now read zero, with no session longer
+than before (worst 67 min). Reps were never fitted to the clock — packing only
+ever removes work. `docs/superpowers/specs/2026-09-16-rep-method-design.md`.
 
 **Zero dependencies, by requirement.** No npm, no bundler, no framework, no
 transpiler, no CSS preprocessor. Every line in `js/`, `tests/` and `style.css`

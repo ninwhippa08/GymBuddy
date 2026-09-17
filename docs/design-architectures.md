@@ -722,3 +722,23 @@ Decided with the athlete 2026-09-06.
   KEPT the cap. Settled policy now rather than an open question, and the
   23.6% collapse rate was reproduced independently.
   design-library-expansion.md 32.
+
+## 8. The ladder is bounded per rung — 2026-09-17, `sw.js` v77
+
+When load became a function of reps (programming-basis discrepancy 9), the
+ladder's bounds stopped describing it. `ladderise` kept every rung inside
+`ZONES.maxStrength.pct` [0.85, 0.95], but a rep-derived load for 4 reps at 2–3
+in reserve is 0.83–0.85 — at or under the band's floor — so `roomBelow` went
+negative and **every** ladder fell back to straight sets (0 of 3 fixture draws
+built one).
+
+A block carrying `rir` is now bounded rung by rung: no rung heavier than
+`repMax(its own reps + the group's least reps in reserve)`, and none lighter
+than `WARMUP.FLOOR`, so a wave cannot dip into warm-up loads. The step keeps its
+other bounds — `LADDER_STEP_MAX` and the room to the ceiling — and a block that
+cannot fit a step of `LADDER_STEP_MIN` still goes straight and says so. A block
+without `rir` keeps the zone band exactly as before.
+
+The test that held rungs inside the zone band was re-pointed to the per-rung
+invariant rather than deleted, and a second test pins that ladders are still
+built. `tests/architecture.test.mjs`.

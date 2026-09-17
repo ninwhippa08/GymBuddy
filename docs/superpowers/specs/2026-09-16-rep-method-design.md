@@ -1,6 +1,6 @@
 # Reps, weight and pairing by what the exercise is — design
 
-**Date:** 2026-09-16 · **Status:** approved in chat, awaiting review of this file
+**Date:** 2026-09-16 · **Status:** BUILT 2026-09-17 on branch `rep-method` — see §10
 **Asked for by:** the athlete, after a trained hypertrophy session
 **Ships as:** `sw.js` / `js/version.js` **v77**
 
@@ -102,8 +102,8 @@ Derived from fields every entry already carries. **No entry is edited.**
 | group | membership (first match wins) | reps* | reps in reserve | rest* |
 |---|---|---|---|---|
 | `light` | the slot's `modality` is `isolation`, **or** `cnsCost` 1 | 10–15 | 1–2 | 60–90 s |
-| `heavy` | `loadable` **and** `cnsCost` 3 | 6–8 | 2–3 | 120–180 s |
-| `compound` | everything else (`cnsCost` 2, or `cnsCost` 3 unpriced, e.g. weighted pull-up) | 8–12 | 2 | 120–180 s |
+| `heavy` | `loadable` **and** `cnsCost` 3 | 6–8 | 2–3 | 120 s (§10) |
+| `compound` | everything else (`cnsCost` 2, or `cnsCost` 3 unpriced, e.g. weighted pull-up) | 8–12 | 2 | 120 s (§10) |
 
 \* **Reps and rest from the group apply only on `hypertrophy`-zone slots.**
 Everywhere else the slot keeps its own:
@@ -259,3 +259,29 @@ nothing.
   would be the unsourced indirect-set table `patternDebt` already declines to
   invent.
 - **Per-exercise authored ranges** (approach B), declined.
+
+## 10. As built — measured 2026-09-16/17
+
+3,000 sessions per day type, fully ramped, `now = 1e12`:
+
+| | before | as designed (rest 120–180 s) | **as built (rest 120 s)** |
+|---|---|---|---|
+| A. load heavier than reps allow, max-strength / hypertrophy | 37.4% / 34.1% | 0 / 0 | **0 / 0** |
+| B. two heavy lower lifts, max-strength / hypertrophy | 15.7% / 6.5% | 0 / 0 | **0 / 0** |
+| C. a pattern over 10 sets, any lifting day | 0.3–1.1% | 0 | **0** |
+| worst session, all three lifting day types | 67 min | 67 | **67** |
+| hypertrophy exercises / working sets | 5.02 / 15.1 | 4.49 / 13.7 | **5.17 / 15.4** |
+| power 48h veto rate, 1,000 seeds | 38.0% | 37.9% | **41.3%** |
+
+**Rest changed at the measurement gate.** The 120–180 s band spent the
+main-work minutes on rest, and packing dropped half an exercise per hypertrophy
+session to pay for it. 120 s is the IUSCA floor — "at least 2 minutes" — and
+keeps the volume. The athlete chose it on these numbers.
+
+**The one red test during the build** was the power-day 48h veto ratchet
+(`cns-account.test.mjs`), 38.3% → 33.3% on its 60-seed sample. Bisected to the
+weight-from-reps commit; at 1,000 seeds the rate had not moved (38.0% → 37.9%)
+and the mean power `cnsLoad` was 8.286 → 8.271 — three sessions of sixty
+re-rolled by the new random draws. At 120 s rest it passes unedited.
+
+641/641.

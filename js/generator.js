@@ -955,7 +955,8 @@ function ladderise(block, zone, pctCeiling = null) {
   }
 
   // A THIRD bound, and it is a safety one rather than a shape one. The two
-  // above keep the wave inside its ZONE; neither keeps it under the CEILING,
+  // above keep the wave inside its ZONE -- or, for a block with `rir`, under
+  // each rung's rep-derived limit; neither keeps it under the CEILING,
   // and those are different numbers once `prCoef` is above 1.00. Measured
   // 2026-09-09, before this line existed: 4.0% of full-volume load blocks
   // printed a working set above the standing 0.95 cap, worst 1.00 x PR on a
