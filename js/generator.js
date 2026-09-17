@@ -1535,6 +1535,72 @@ export function capPatternSets(blocks, cap = VOLUME.SETS_PER_PATTERN_PER_SESSION
 }
 
 // --------------------------------------------------------------------------
+// 7b  THE RAMP'S PERCENTAGE, AS A BUDGET ON THE SESSION'S WORKING SETS
+// --------------------------------------------------------------------------
+
+// The 50/30/20/10 rule is a schedule of reductions in WORKLOAD [verified], and
+// workload is a session total. Applying its column to each block on its own was
+// an interpretation made in this project, and `round()` on a small integer
+// cannot carry it: at a dose of 3 the multiplier must reach 0.834 before it
+// returns 3, so 0.50, 0.70 and 0.80 all returned 2 and 0.90 cut nothing at all.
+// Measured at v77: hypertrophy slot C held 2.00 sets for three weeks running,
+// and week 4 delivered 101% of full volume. design-mobility-and-warmup.md 13.4.
+//
+// So the percentage is applied ONCE, to the session. What the budget covers is
+// countsTowardVolume -- the same line patternSets and cnsLoad ride on -- so the
+// ramp's arithmetic cannot drift from what the app calls training volume.
+// Everything else (timed work, intervals, core, prep) keeps the per-block
+// multiplier in prescribe(); removing that too would silently RAISE interval
+// and core work during the ramp.
+//
+// Runs BEFORE applyArchitecture, because the architecture builds ladders and
+// waves out of the set count and a set removed afterwards leaves a rung
+// dangling.
+export function rampToBudget(blocks, volume) {
+  // At full volume the budget equals the drawn total and every step below is a
+  // no-op. Returning early makes that a guarantee rather than an outcome: a
+  // fully recovered athlete's session must be identical to the one the app
+  // built before this function existed.
+  if (!(volume < 1)) return blocks;
+
+  const covered = blocks.filter(countsTowardVolume);
+  if (!covered.length) return blocks;
+
+  const drawn = covered.reduce((a, b) => a + b.sets, 0);
+  const budget = Math.max(1, Math.round(drawn * volume));
+
+  // `order` is template order -- the fill loop pushes in it, and design 4.4
+  // calls the template a priority order in those words. It breaks ties below.
+  const plan = covered.map((b, order) => {
+    const floor = setFloor(b);
+    const exact = Math.max(floor, b.sets * volume);
+    return {
+      b, order,
+      base: Math.min(b.sets, Math.max(floor, Math.floor(exact))),
+      frac: exact - Math.floor(exact)
+    };
+  });
+
+  // Largest remainder. One pass is provably enough: budget <= sum(exact) <
+  // sum(floor(exact)) + n <= sum(base) + n, so at most one set per block is
+  // ever owed. A tie goes to the earlier slot, which is the more specific one --
+  // the only place the deload-ordering source is used, and it is [unverified].
+  let total = plan.reduce((a, p) => a + p.base, 0);
+  for (const p of [...plan].sort((x, y) => (y.frac - x.frac) || (x.order - y.order))) {
+    if (total >= budget) break;
+    if (p.base < p.b.sets) { p.base += 1; total += 1; }
+  }
+
+  // The floors can hold the total ABOVE the budget, and when they do the
+  // session delivers more than the ramp asked for. Left visible -- a test
+  // asserts it -- rather than forced down by a mechanism invented to hide it.
+  for (const p of plan) {
+    while (p.b.sets > p.base) dropWorkingSet(p.b);
+  }
+  return blocks;
+}
+
+// --------------------------------------------------------------------------
 // 9  PREP and COOL-DOWN -- never randomised out
 // --------------------------------------------------------------------------
 
