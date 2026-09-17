@@ -160,3 +160,41 @@ test('the pause squat that started this is no longer an 11-rep near-failure set'
     assert.match(b.effort, /reps in reserve/);
   }
 });
+
+import { swapBlock, makeRng } from '../js/generator.js';
+
+const heavyLowerIn = s => mainOf(s).filter(b => isHeavyLower(LIB.find(e => e.id === b.exerciseId)));
+
+test('no max-strength or hypertrophy session holds two heavy squats or hinges (defect B)', () => {
+  for (const dayType of ['max-strength', 'hypertrophy']) {
+    const pairs = SESSIONS[dayType].filter(s => heavyLowerIn(s).length > 1);
+    assert.equal(pairs.length, 0,
+      `${dayType}: ${pairs.length} sessions, e.g. ${pairs[0] && heavyLowerIn(pairs[0]).map(b => b.exerciseId)}`);
+  }
+});
+
+test('power days are exempt -- their squat is speed work', () => {
+  assert.ok(SESSIONS.power.some(s => heavyLowerIn(s).length > 1),
+    'the rule reached power days, which the athlete exempted');
+});
+
+test('a swap never puts a second heavy squat or hinge on the card', () => {
+  let tried = 0;
+  for (const s of SESSIONS.hypertrophy) {
+    const heavy = heavyLowerIn(s);
+    if (heavy.length !== 1) continue;
+    // Swap every OTHER lower-body main block, many times.
+    for (const b of mainOf(s)) {
+      if (b === heavy[0] || !['squat', 'hinge'].includes(b.pattern)) continue;
+      for (let seed = 1; seed <= 20; seed++) {
+        const { block } = swapBlock(s, b.slot, LIB, { profile: TRAINED, history: [] },
+                                    makeRng(seed), b.exerciseId);
+        if (!block) continue;
+        tried++;
+        assert.ok(!isHeavyLower(LIB.find(e => e.id === block.exerciseId)),
+          `swapping ${b.exerciseId} handed back ${block.exerciseId} beside ${heavy[0].exerciseId}`);
+      }
+    }
+  }
+  assert.ok(tried > 50, `only ${tried} swaps exercised`);
+});

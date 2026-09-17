@@ -519,9 +519,14 @@ export function equipmentNeededBy(entry) {
 // selected if nothing else fits. spec §4.1.
 export function eligibleFor(slot, library, ctx) {
   const { soreness = {}, banned = [], venue, excludeIds = new Set(),
-          excludeEquipment = [] } = ctx;
+          excludeEquipment = [], heavyLowerTaken = false } = ctx;
   return library.filter(e => {
     if (excludeIds.has(e.id)) return false;
+    // One heavy squat or hinge per max-strength or hypertrophy session.
+    // generate() and swapBlock() set the flag; nothing else does, so a caller
+    // that does not know the rule gets the old behaviour. rules.js
+    // ONE_HEAVY_LOWER_DAY_TYPES has the source and its standing.
+    if (heavyLowerTaken && isHeavyLower(e)) return false;
     // DELIBERATELY DORMANT, not dead. `profile.banned` is empty in every
     // profile the app has ever written, because nothing puts anything on it:
     // the UI for retiring a movement permanently was declined on 2026-09-03,
@@ -1250,6 +1255,15 @@ export function swapBlock(session, slotId, library, ctx, rng, exerciseId = null)
   // trap-bar-deadlift twice and squat-clean three times. spec §4.2.
   const rejected = (session.rejected && session.rejected[slotId]) || [];
   const excludeIds = new Set([...session.blocks.map(b => b.exerciseId), ...rejected]);
+  // The pairing rule survives a swap: counted against the session's OTHER
+  // blocks, so the heavy lift itself may still be swapped for another one.
+  const heavyLowerTaken = ONE_HEAVY_LOWER_DAY_TYPES.includes(session.dayType) &&
+    session.blocks.some(b => {
+      if (b === current) return false;
+      const e = library.find(x => x.id === b.exerciseId);
+      return Boolean(e) && isHeavyLower(e);
+    });
+  const swapCtx = { ...ctx, state, excludeIds, heavyLowerTaken };
   const narrowed = { ...slot, patterns: [entry.pattern] };
 
   // THE RAMP MUST SURVIVE A SWAP, and until 2026-09-05 it did not. basis §3
@@ -1289,15 +1303,15 @@ export function swapBlock(session, slotId, library, ctx, rng, exerciseId = null)
   let rampTierWidened = false;
   if (preferLoadable) {
     const loadable = library.filter(e => e.loadable);
-    exercise = fillSlot(narrowed, loadable, { ...ctx, state, excludeIds }, rng);
+    exercise = fillSlot(narrowed, loadable, swapCtx, rng);
     if (!exercise) {
       exercise = fillSlot({ ...narrowed, tier: ALL_TIERS }, loadable,
-                          { ...ctx, state, excludeIds }, rng);
+                          swapCtx, rng);
       rampTierWidened = Boolean(exercise);
     }
   }
   if (!exercise) {
-    exercise = fillSlot(narrowed, library, { ...ctx, state, excludeIds }, rng);
+    exercise = fillSlot(narrowed, library, swapCtx, rng);
   }
 
   // Only once the slot's own tier is spent. Every primary hinge in the library
@@ -1310,7 +1324,7 @@ export function swapBlock(session, slotId, library, ctx, rng, exerciseId = null)
   let tierRelaxed = false;
   if (!exercise) {
     exercise = fillSlot({ ...narrowed, tier: ALL_TIERS }, library,
-                        { ...ctx, state, excludeIds }, rng);
+                        swapCtx, rng);
     tierRelaxed = Boolean(exercise);
   }
 
@@ -1928,8 +1942,10 @@ export function generate({
     dayType: chosen,
     state,
     excludeIds: new Set(),
-    excludeEquipment
+    excludeEquipment,
+    heavyLowerTaken: false
   };
+  const oneHeavyLower = ONE_HEAVY_LOWER_DAY_TYPES.includes(chosen);
 
   const blocks = [];
   const zoneBySlot = {};
@@ -2033,6 +2049,7 @@ export function generate({
       continue;
     }
     ctx.excludeIds.add(exercise.id);
+    if (oneHeavyLower && isHeavyLower(exercise)) ctx.heavyLowerTaken = true;
     zoneBySlot[slot.slot] = slot.zone;
     const block = prescribe(slot, exercise, env, rng, state);
     // Flagged, never silent: the athlete's standing rule is that the app says
