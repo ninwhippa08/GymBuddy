@@ -1443,6 +1443,30 @@ export function sessionTargets(blocks) {
   return out;
 }
 
+// A ramped block floors at TWO working sets, not one. Warm-ups cannot be
+// trimmed -- they are the safety feature -- so a block that keeps shrinking
+// ends up all ramp and no work: five warm-up sets to perform one working set
+// is not a prescription anyone would write by hand.
+export const setFloor = block => (block.setPlan ? 2 : 1);
+
+// Remove ONE working set and keep `setPlan` honest. The ramp was built against
+// the pre-trim count, so a shaved working set has to come out of the plan too
+// or it overstates `block.sets` -- the exact drift 'the work entries and
+// block.sets never disagree' (tests/ramp.test.mjs) exists to catch. Drop a
+// WORK entry, never a warm-up rung: the ramp still has to reach the same load.
+//
+// Three callers: packToBudget (the clock), capPatternSets (ten sets per
+// pattern) and rampToBudget (the return ramp). It was copied twice before it
+// was extracted.
+export function dropWorkingSet(block) {
+  block.sets -= 1;
+  if (block.setPlan) {
+    const idx = block.setPlan.map(s => s.kind).lastIndexOf('work');
+    if (idx !== -1) block.setPlan.splice(idx, 1);
+  }
+  return block;
+}
+
 // Trim to the main-work budget: drop optional blocks last-first, then shave
 // sets off the highest-volume block. Never drops a required block -- if the
 // budget still cannot be met, the session is returned over budget and flagged,
@@ -1477,25 +1501,11 @@ export function packToBudget(blocks, budgetMin = TIME.MAIN_WORK_MAX_MIN, opts = 
 
   let guard = 0;
   while (estimateMinutes(out) > budgetMin && guard++ < 50) {
-    // A ramped block floors at TWO working sets, not one. Warm-ups cannot be
-    // trimmed -- they are the safety feature -- so a ramped block that keeps
-    // shrinking ends up all ramp and no work: five warm-up sets to perform one
-    // working set is not a prescription anyone would write by hand. Two is the
-    // floor at which the ramp still buys something.
     const target = out
-      .filter(b => b.mode !== 'time' && b.sets > (b.setPlan ? 2 : 1))
+      .filter(b => b.mode !== 'time' && b.sets > setFloor(b))
       .sort((a, b) => b.sets * b.reps - a.sets * a.reps)[0];
     if (!target) break;
-    target.sets -= 1;
-    // The ramp was already built against the pre-trim set count. A shaved
-    // working set has to come out of setPlan too, or the plan overstates
-    // block.sets -- the exact drift 'the work entries and block.sets never
-    // disagree' (tests/ramp.test.mjs) exists to catch. Drop one WORK entry,
-    // never a warm-up rung: the ramp still has to reach the same working load.
-    if (target.setPlan) {
-      const idx = target.setPlan.map(s => s.kind).lastIndexOf('work');
-      if (idx !== -1) target.setPlan.splice(idx, 1);
-    }
+    dropWorkingSet(target);
   }
 
   return { blocks: out, trimmedSlots: trimmed, overBudget: estimateMinutes(out) > budgetMin };
@@ -1515,14 +1525,10 @@ export function capPatternSets(blocks, cap = VOLUME.SETS_PER_PATTERN_PER_SESSION
     let guard = 0;
     while (setsOf(pattern) > cap && guard++ < 100) {
       const target = out
-        .filter(b => direct(b) && b.pattern === pattern && b.sets > (b.setPlan ? 2 : 1))
+        .filter(b => direct(b) && b.pattern === pattern && b.sets > setFloor(b))
         .sort((a, b) => b.sets - a.sets)[0];
       if (!target) break;
-      target.sets -= 1;
-      if (target.setPlan) {
-        const idx = target.setPlan.map(s => s.kind).lastIndexOf('work');
-        if (idx !== -1) target.setPlan.splice(idx, 1);
-      }
+      dropWorkingSet(target);
     }
   }
   return out;
