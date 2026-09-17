@@ -1583,7 +1583,10 @@ export function rampToBudget(blocks, volume) {
 
   // Largest remainder. One pass is provably enough: budget <= sum(exact) <
   // sum(floor(exact)) + n <= sum(base) + n, so at most one set per block is
-  // ever owed. A tie goes to the earlier slot, which is the more specific one --
+  // ever owed. The middle step reads `base` as `floor(exact)`, which needs
+  // its own line: `base`'s `min(b.sets, ...)` never actually binds here,
+  // because volume < 1 makes exact <= b.sets and so floor(exact) <= b.sets
+  // already. A tie goes to the earlier slot, which is the more specific one --
   // the only place the deload-ordering source is used, and it is [unverified].
   let total = plan.reduce((a, p) => a + p.base, 0);
   for (const p of [...plan].sort((x, y) => (y.frac - x.frac) || (x.order - y.order))) {

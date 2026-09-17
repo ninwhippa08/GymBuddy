@@ -48,6 +48,17 @@ test('the leftover goes by largest remainder, ties to the earlier slot', () => {
   assert.deepEqual(setsOf(tie), [2, 1]);
 });
 
+test('the largest remainder wins even when it is not the first slot', () => {
+  // The fixture above cannot tell largest-remainder from slot order, because
+  // there slot A had both. Here it does not: 3 and 4 sets at 0.70 are exact
+  // 2.1 and 2.8, both floor to 2, and budget round(4.9) = 5 leaves ONE set to
+  // hand out. It goes to B, on 0.8 against 0.1. A rule that walked the slots
+  // in order would give it to A and this test would catch it.
+  const bs = [block('A', 3), block('B', 4)];
+  rampToBudget(bs, 0.70);
+  assert.deepEqual(setsOf(bs), [2, 3]);
+});
+
 test('no block is handed back more sets than it drew', () => {
   const bs = [block('A', 2), block('B', 6)];
   rampToBudget(bs, 0.90);
