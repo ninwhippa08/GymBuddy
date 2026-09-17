@@ -7,8 +7,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { prescribe, applyArchitecture, generate, estimateMinutes } from '../js/generator.js';
-import { ZONES } from '../js/rules.js';
+import { prescribe, applyArchitecture, generate, estimateMinutes, repMax } from '../js/generator.js';
+import { ZONES, WARMUP } from '../js/rules.js';
 
 const LIB = JSON.parse(
   readFileSync(new URL('../data/exercises.json', import.meta.url), 'utf8')
@@ -94,12 +94,28 @@ test('a load too near the band edge stays straight, and never descends', () => {
   }
 });
 
-test('every rung stays inside the zone band', () => {
-  const [lo, hi] = ZONES.maxStrength.pct;
-  for (const s of work(ladderOf())) {
-    assert.ok(s.pct >= lo - 1e-9 && s.pct <= hi + 1e-9,
-      `rung at ${s.pct} escaped the ${lo}-${hi} band`);
+// RE-POINTED 2026-09-16. It used to hold rungs inside ZONES.maxStrength.pct,
+// which was the only bound when load was drawn from the zone. Load now comes
+// from reps plus reps in reserve (spec 2026-09-16-rep-method-design.md §4.2),
+// so the protection that matters is per rung: no rung heavier than ITS reps
+// allow, and none so light it is a warm-up rather than a working set.
+test('every rung sits under its own rep-derived limit and above the warm-up floor', () => {
+  for (const draw of [0, 0.05, 0.3, 0.5, 0.7, 0.95]) {
+    const block = prescribe(SIX, SQUAT, ENV, () => draw, {});
+    const out = applyArchitecture([block], 'ladder', ZONE_BY_SLOT)[0];
+    for (const s of work(out)) {
+      assert.ok(s.pct <= repMax(s.reps + block.rir[0]) + 0.005,
+        `draw ${draw}: ${s.reps} reps at ${s.pct} > ${repMax(s.reps + block.rir[0])}`);
+      assert.ok(s.pct >= WARMUP.FLOOR, `draw ${draw}: rung at ${s.pct} is a warm-up load`);
+    }
   }
+});
+
+test('a ladder still gets built -- the new bound must not retire the architecture', () => {
+  const built = [0.3, 0.5, 0.7].filter(draw =>
+    applyArchitecture([prescribe(SIX, SQUAT, ENV, () => draw, {})], 'ladder', ZONE_BY_SLOT)[0]
+      .architecture === 'ladder');
+  assert.ok(built.length >= 2, `only ${built.length} of 3 draws built a ladder`);
 });
 
 test('reps never fall below the zone minimum', () => {

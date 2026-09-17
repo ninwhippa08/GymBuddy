@@ -923,8 +923,31 @@ function ladderise(block, zone, pctCeiling = null) {
   // what the straight session would have prescribed, so the ladder changes the
   // arrangement and not the intensity, which is exactly the scope the athlete
   // agreed to. design-architectures 3.2.
-  const roomBelow = block.pct - zone.pct[0];
-  const roomAbove = zone.pct[1] - block.pct;
+  const repFloor = zone.reps[0];
+  const rungReps = positions.map((_, i) =>
+    Math.max(repFloor, block.reps - (i < rungs1 ? i : i - rungs1)));
+
+  // TWO REGIMES. A block with `rir` had its load derived from its reps
+  // (docs/superpowers/specs/2026-09-16-rep-method-design.md §4.3), so the zone
+  // band no longer describes it -- its load usually sits BELOW the maxStrength
+  // floor, and bounding by that floor retired every ladder (measured: 0 of 3
+  // fixture draws built one). Such a block is bounded PER RUNG: no rung heavier
+  // than repMax(its own reps + the group's least reps in reserve), and the wave
+  // may not dip to warm-up loads. A block without `rir` keeps the zone band
+  // exactly as before.
+  let roomBelow, aboveBound;
+  if (block.rir) {
+    roomBelow = block.pct - WARMUP.FLOOR;
+    aboveBound = Infinity;
+    positions.forEach((pos, i) => {
+      if (pos <= mid) return;
+      const limit = repMax(rungReps[i] + block.rir[0]);
+      aboveBound = Math.min(aboveBound, (limit - block.pct) / (pos - mid));
+    });
+  } else {
+    roomBelow = block.pct - zone.pct[0];
+    aboveBound = (zone.pct[1] - block.pct) / mid;
+  }
 
   // A THIRD bound, and it is a safety one rather than a shape one. The two
   // above keep the wave inside its ZONE; neither keeps it under the CEILING,
@@ -950,7 +973,7 @@ function ladderise(block, zone, pctCeiling = null) {
     ? Infinity
     : block.pct * (pctCeiling / block.displayMultiplier - 1);
 
-  const step = Math.min(roomBelow / mid, roomAbove / mid, roomToCeiling / mid,
+  const step = Math.min(roomBelow / mid, aboveBound, roomToCeiling / mid,
                         LADDER_STEP_MAX);
 
   // Not enough band to build a wave with sourced spacing. Practitioner waves
@@ -959,13 +982,11 @@ function ladderise(block, zone, pctCeiling = null) {
   // so rather than pretending.
   if (!(step >= LADDER_STEP_MIN)) return { ...block, architecture: 'straight' };
 
-  const repFloor = zone.reps[0];
   const rungs = positions.map((pos, i) => {
-    const wavePos = i < rungs1 ? i : i - rungs1;
     const pct = Math.round((block.pct + (pos - mid) * step) * 100) / 100;
     return {
       kind: 'work',
-      reps: Math.max(repFloor, block.reps - wavePos),
+      reps: rungReps[i],
       pct,
       displayMultiplier:
         Math.round(block.displayMultiplier * (pct / block.pct) * 100) / 100
