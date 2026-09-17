@@ -198,3 +198,44 @@ test('a swap never puts a second heavy squat or hinge on the card', () => {
   }
   assert.ok(tried > 50, `only ${tried} swaps exercised`);
 });
+
+import { capPatternSets } from '../js/generator.js';
+
+const directSets = s => {
+  const by = {};
+  for (const b of mainOf(s)) if (['load', 'reps'].includes(b.mode)) by[b.pattern] = (by[b.pattern] || 0) + b.sets;
+  return by;
+};
+
+test('no pattern carries more than ten direct sets in a session (defect C)', () => {
+  for (const [dayType, sessions] of Object.entries(SESSIONS)) {
+    for (const s of sessions) {
+      for (const [p, n] of Object.entries(directSets(s))) {
+        assert.ok(n <= VOLUME.SETS_PER_PATTERN_PER_SESSION, `${dayType} seed ${s.seed}: ${n} sets of ${p}`);
+      }
+    }
+  }
+});
+
+test('the cap takes sets from the biggest block and respects the floors', () => {
+  const work = n => Array.from({ length: n }, () => ({ kind: 'work', reps: 8 }));
+  const blocks = [
+    { slot: 'A', pattern: 'squat', mode: 'load', sets: 4, setPlan: [{ kind: 'warmup' }, ...work(4)] },
+    { slot: 'B', pattern: 'squat', mode: 'reps', sets: 4 },
+    { slot: 'C', pattern: 'squat', mode: 'reps', sets: 4 },
+    { slot: 'D', pattern: 'pull-v', mode: 'reps', sets: 3 }
+  ];
+  const out = capPatternSets(blocks, 10);
+  const squat = out.filter(b => b.pattern === 'squat').reduce((a, b) => a + b.sets, 0);
+  assert.equal(squat, 10);
+  assert.equal(out.find(b => b.slot === 'D').sets, 3, 'another pattern was touched');
+  const a = out.find(b => b.slot === 'A');
+  assert.equal(a.setPlan.filter(s => s.kind === 'work').length, a.sets, 'setPlan drifted from sets');
+
+  const floors = capPatternSets([
+    { slot: 'A', pattern: 'hinge', mode: 'load', sets: 2, setPlan: [...work(2)] },
+    { slot: 'B', pattern: 'hinge', mode: 'reps', sets: 1 }
+  ], 1);
+  assert.equal(floors[0].sets, 2, 'a ramped block went under two working sets');
+  assert.equal(floors[1].sets, 1);
+});

@@ -1500,6 +1500,33 @@ export function packToBudget(blocks, budgetMin = TIME.MAIN_WORK_MAX_MIN, opts = 
   return { blocks: out, trimmedSlots: trimmed, overBudget: estimateMinutes(out) > budgetMin };
 }
 
+// IUSCA 2021 caps per-session volume at ~10 sets per muscle; pattern stands in
+// for muscle (rules.js VOLUME). Runs AFTER packToBudget, so it only ever removes
+// what the clock already allowed. Same lever and floors as the packer: one
+// working set at a time from the pattern's biggest block, never below two on a
+// ramped block, and the matching setPlan work entry goes with it.
+export function capPatternSets(blocks, cap = VOLUME.SETS_PER_PATTERN_PER_SESSION) {
+  const out = blocks.slice();
+  const direct = b => b.mode === 'load' || b.mode === 'reps';
+  const setsOf = p => out.filter(b => direct(b) && b.pattern === p)
+                         .reduce((a, b) => a + b.sets, 0);
+  for (const pattern of new Set(out.filter(direct).map(b => b.pattern))) {
+    let guard = 0;
+    while (setsOf(pattern) > cap && guard++ < 100) {
+      const target = out
+        .filter(b => direct(b) && b.pattern === pattern && b.sets > (b.setPlan ? 2 : 1))
+        .sort((a, b) => b.sets - a.sets)[0];
+      if (!target) break;
+      target.sets -= 1;
+      if (target.setPlan) {
+        const idx = target.setPlan.map(s => s.kind).lastIndexOf('work');
+        if (idx !== -1) target.setPlan.splice(idx, 1);
+      }
+    }
+  }
+  return out;
+}
+
 // --------------------------------------------------------------------------
 // 9  PREP and COOL-DOWN -- never randomised out
 // --------------------------------------------------------------------------
@@ -2067,7 +2094,10 @@ export function generate({
   // superset would quietly buy back optional blocks and CHANGE THE WORK,
   // which design 1's scope rule forbids. It also means there is nothing left
   // to drop, so a half-pair cannot be orphaned.
-  const paired = pairAntagonists(packed.blocks, architecture);
+  // 8a. Ten direct sets per pattern, after the packer so it only ever removes
+  // what the clock already allowed. rules.js VOLUME.SETS_PER_PATTERN_PER_SESSION.
+  const capped = capPatternSets(packed.blocks);
+  const paired = pairAntagonists(capped, architecture);
   // `paired` is the main work as it will actually be performed, after the
   // packer has dropped or shaved anything that did not fit. Prepping work the
   // packer removed would warm up a lift the athlete is not going to do.
