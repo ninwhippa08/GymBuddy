@@ -165,6 +165,62 @@ export const ZONES = Object.freeze({
 // chart is a starting point, not a law. §1.
 export const PCT_JITTER = 0.025;
 
+// --------------------------------------------------------------------------
+// Load groups -- reps, reps in reserve and rest by WHAT THE EXERCISE IS
+// --------------------------------------------------------------------------
+
+// Asked for by the athlete 2026-09-16 after a hypertrophy day of deadlift 4x6
+// then pause squat 4x11: "ground the rep and set count according to move
+// difficulty". Until now reps were drawn from the SLOT's range, blind to the
+// exercise, and load was drawn from the zone independently of the reps --
+// 34.6% of hypertrophy and 40.9% of max-strength loaded blocks asked for more
+// than a true N-rep max. docs/superpowers/specs/2026-09-16-rep-method-design.md.
+//
+// The arrangement is the IUSCA position stand's (Schoenfeld et al. 2021, Int J
+// Strength Cond 1(1)) nearly verbatim: "pairing more technically complex,
+// energetically demanding, free-weight multi-joint exercises with low to
+// moderate repetition ranges, followed by moderate to high-repetition sets
+// using single-joint or machine-based exercises"; failure training confined
+// "primarily to single-joint movements and machine-based exercises"; rest "at
+// least 2 minutes" for multi-joint work and "60-90 secs" for single-joint and
+// machine work. [verified] -- read in full text.
+//
+// Membership is DERIVED, in generator.js loadGroupFor(), from fields every
+// entry already carries. No entry is edited. The exact rep bands are the
+// athlete's choice inside that sourced shape. [corroborated]
+export const LOAD_GROUPS = Object.freeze({
+  heavy: Object.freeze({
+    reps: Object.freeze([6, 8]), rir: Object.freeze([2, 3]),
+    restSec: Object.freeze([120, 180])
+  }),
+  compound: Object.freeze({
+    reps: Object.freeze([8, 12]), rir: Object.freeze([2, 2]),
+    restSec: Object.freeze([120, 180])
+  }),
+  light: Object.freeze({
+    reps: Object.freeze([10, 15]), rir: Object.freeze([1, 2]),
+    restSec: Object.freeze([60, 90])
+  })
+});
+
+// Where load is derived from reps plus reps in reserve. Power zones are about
+// bar speed, not proximity to failure, and keep their own bands.
+export const RIR_ZONES = Object.freeze(['maxStrength', 'hypertrophy', 'muscularEndurance']);
+
+// Where the GROUP also sets reps and rest. maxStrength keeps its sourced
+// strength reps and >= 2 min rests; muscularEndurance is the isolation
+// finisher's 12-15 and keeps them.
+export const GROUP_DOSED_ZONES = Object.freeze(['hypertrophy']);
+
+// One heavy squat or hinge per session on these day types. [corroborated] --
+// no trial compares it. IUSCA's recovery reasoning for heavy free-weight
+// compounds, Pareja-Blanco et al. 2019 (moderate load taken near failure
+// recovers slowest), and practitioner consensus on stacking two spinally
+// loaded lifts. Power days are exempt by the athlete's decision: their squat
+// is dynamic-effort speed work at 40-60%.
+export const ONE_HEAVY_LOWER_DAY_TYPES = Object.freeze(['max-strength', 'hypertrophy']);
+export const HEAVY_LOWER_PATTERNS = Object.freeze(['squat', 'hinge']);
+
 // The warm-up ramp. design-mobility-and-warmup.md §4.3.
 //
 // A ladder is COMPUTED from these, never tabulated: the step count is
@@ -260,7 +316,12 @@ export const VOLUME = Object.freeze({
   // the reasoning it encodes is the reasoning that declined the day type, and
   // because a fourth weekly session would make it live again for the cost of a
   // template. spec §5. Do not "clean it up".
-  ISOLATION_PROPOSAL_PENALTY: 0.25
+  ISOLATION_PROPOSAL_PENALTY: 0.25,
+  // IUSCA 2021: "cap per-session volume at ~10 sets per muscle". [verified]
+  // PATTERN stands in for muscle because it is the one grouping every entry
+  // carries exactly once -- an approximation, and stated as one. Measured
+  // before the cap: median 5-6, p95 8-9, max 13 direct sets on one pattern.
+  SETS_PER_PATTERN_PER_SESSION: 10
 });
 
 // --------------------------------------------------------------------------

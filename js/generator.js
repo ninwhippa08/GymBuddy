@@ -26,7 +26,9 @@ import {
   HIGH_CNS_DAY_TYPES, PLYO_CONTACTS_PER_SESSION, PLYO_TRANSITION_WEEKLY_CAP,
   PLYO_TRANSITION_LAST_WEEK, PLYO_RECOVERY_HOURS, SPRINT, SESSION_ORDER, TIME,
   CHRONIC, CHRONIC_BOOSTABLE,
-  ALL_TIERS, NON_NEGOTIABLE_EQUIPMENT, EQUIPMENT_IMPLIES, MOBILITY_DOSE
+  ALL_TIERS, NON_NEGOTIABLE_EQUIPMENT, EQUIPMENT_IMPLIES, MOBILITY_DOSE,
+  REP_TO_PCT, LOAD_GROUPS, RIR_ZONES, GROUP_DOSED_ZONES, ONE_HEAVY_LOWER_DAY_TYPES,
+  HEAVY_LOWER_PATTERNS
 } from './rules.js';
 
 import {
@@ -57,6 +59,33 @@ const pick = (rng, arr) => arr[Math.floor(rng() * arr.length)];
 const between = (rng, [lo, hi]) => lo + rng() * (hi - lo);
 const intBetween = (rng, [lo, hi]) => Math.floor(lo + rng() * (hi - lo + 1));
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+// The fraction of 1RM that is an n-rep max. The NSCA chart where it has a row,
+// linear between rows (it skips 11), and Epley's 1 / (1 + n/30) past its last
+// row, taken as a min so the curve never steps back up where the two meet
+// (Epley at 12 is 0.714 against the chart's 0.70). Epley is [corroborated] as
+// the standard estimator and is used only past the chart.
+export function repMax(n) {
+  const rows = Object.keys(REP_TO_PCT).map(Number).sort((a, b) => a - b);
+  const first = rows[0], last = rows[rows.length - 1];
+  if (n <= first) return REP_TO_PCT[first];
+  if (n > last) return Math.min(REP_TO_PCT[last], 1 / (1 + n / 30));
+  if (REP_TO_PCT[n] != null) return REP_TO_PCT[n];
+  const lo = rows.filter(r => r < n).pop();
+  const hi = rows.find(r => r > n);
+  return REP_TO_PCT[lo] + (REP_TO_PCT[hi] - REP_TO_PCT[lo]) * (n - lo) / (hi - lo);
+}
+
+// The only place group membership is decided. rules.js LOAD_GROUPS has why.
+export function loadGroupFor(exercise, slot = null) {
+  if ((slot && slot.modality === 'isolation') || exercise.cnsCost === 1) return 'light';
+  if (exercise.loadable && exercise.cnsCost === 3) return 'heavy';
+  return 'compound';
+}
+
+export function isHeavyLower(exercise) {
+  return loadGroupFor(exercise) === 'heavy' && HEAVY_LOWER_PATTERNS.includes(exercise.pattern);
+}
 
 // Weighted pick. Weights need not sum to 1.
 function weightedPick(rng, items, weightOf) {
