@@ -188,14 +188,29 @@ export const PCT_JITTER = 0.025;
 // Membership is DERIVED, in generator.js loadGroupFor(), from fields every
 // entry already carries. No entry is edited. The exact rep bands are the
 // athlete's choice inside that sourced shape. [corroborated]
+//
+// COMPOUND REST IS 120 s FLAT -- the IUSCA floor, not a range above it. The
+// design first said 120-180. Measured 2026-09-16, 3,000 hypertrophy sessions
+// each, same 60-min mean and 67-min worst in all three columns:
+//
+//                      before   120-180 s   120 s
+//   exercises/session   5.02      4.49       5.17
+//   working sets        15.1      13.7       15.4
+//
+// The longer band spent the main-work minutes on rest and packing dropped an
+// exercise to pay for it. The athlete chose 120 s on those numbers. It also
+// settled the power-day 48h veto ratchet in cns-account.test.mjs, which the
+// longer band had moved within its 60-seed sample (38.3% -> 33.3%) while the
+// 1,000-seed rate had not moved at all (38.0% -> 37.9%); at 120 s it reads
+// 41.3% over 1,000 seeds.
 export const LOAD_GROUPS = Object.freeze({
   heavy: Object.freeze({
     reps: Object.freeze([6, 8]), rir: Object.freeze([2, 3]),
-    restSec: Object.freeze([120, 180])
+    restSec: Object.freeze([120, 120])
   }),
   compound: Object.freeze({
     reps: Object.freeze([8, 12]), rir: Object.freeze([2, 2]),
-    restSec: Object.freeze([120, 180])
+    restSec: Object.freeze([120, 120])
   }),
   light: Object.freeze({
     reps: Object.freeze([10, 15]), rir: Object.freeze([1, 2]),

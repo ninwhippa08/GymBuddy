@@ -14,7 +14,7 @@
 
 - Zero dependencies. No npm, no build step.
 - House style: every constant carries its source and a `[verified]` / `[corroborated]` / `[unverified]` tag inline.
-- Groups: `light` = slot modality `isolation` or `cnsCost` 1 → reps 10–15, RIR 1–2, rest 60–90 s. `heavy` = `loadable` and `cnsCost` 3 → reps 6–8, RIR 2–3, rest 120–180 s. `compound` = everything else → reps 8–12, RIR 2, rest 120–180 s. First match wins in that order.
+- Groups: `light` = slot modality `isolation` or `cnsCost` 1 → reps 10–15, RIR 1–2, rest 60–90 s. `heavy` = `loadable` and `cnsCost` 3 → reps 6–8, RIR 2–3, rest 120 s. `compound` = everything else → reps 8–12, RIR 2, rest 120 s. (Changed from 120–180 s at the Task 6 gate, by the athlete, on measurement.) First match wins in that order.
 - Group reps and rest apply only on `hypertrophy`-zone slots. RIR and weight-from-reps apply on `maxStrength`, `hypertrophy`, `muscularEndurance`. Power zones, `contacts`, `time`, `interval`: untouched.
 - Pair rule on day types `max-strength` and `hypertrophy` only.
 - Cap: 10 direct `load`/`reps` sets per pattern per session, floors two working sets on a ramped block, one otherwise.

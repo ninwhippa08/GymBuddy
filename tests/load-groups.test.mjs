@@ -41,8 +41,11 @@ test('the groups carry the doses the athlete approved', () => {
   assert.deepEqual([...LOAD_GROUPS.light.reps], [10, 15]);
   assert.deepEqual([...LOAD_GROUPS.light.rir], [1, 2]);
   assert.deepEqual([...LOAD_GROUPS.light.restSec], [60, 90]);
-  assert.deepEqual([...LOAD_GROUPS.heavy.restSec], [120, 180]);
-  assert.deepEqual([...LOAD_GROUPS.compound.restSec], [120, 180]);
+  // 2 min flat, not 2-3: chosen by the athlete 2026-09-17 on the measurement.
+  // At 120-180 s hypertrophy days fell from 5.0 to 4.5 exercises and 15.1 to
+  // 13.7 working sets in the same minutes; at 120 s they hold 5.2 and 15.4.
+  assert.deepEqual([...LOAD_GROUPS.heavy.restSec], [120, 120]);
+  assert.deepEqual([...LOAD_GROUPS.compound.restSec], [120, 120]);
   assert.equal(VOLUME.SETS_PER_PATTERN_PER_SESSION, 10);
 });
 
