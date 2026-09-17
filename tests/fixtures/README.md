@@ -1,4 +1,23 @@
-# Playlist fixtures
+# Fixtures
+
+## `full-volume-v77.json`
+
+`generate()` output for `max-strength`, `power` and `hypertrophy`, seeds 1-40,
+captured from the tree at v77 (35221f3, before the ramp's percentage became a
+session-level budget) with `profile: { returnDate: '2020-01-01' }` -- fully
+recovered, so `env.volumeMultiplier` is 1 and the ramp is a no-op. Each entry
+is `blocks.map(b => [b.slot, b.sets, b.reps])`.
+
+Committed because `tests/ramp-budget.test.mjs`'s "full volume is unchanged,
+block for block" test used to compare two live full-volume profiles against
+each other -- `atWeek(5)` against `returnDate: '2020-01-01'`. Both go through
+the same code, so a change that moved both by the same amount would pass
+undetected; the test could not see the one failure mode it was named for. This
+fixture is the tree's actual output from before the behavioural change, so the
+same test can now assert against a value that cannot drift with the code it is
+checking.
+
+## Playlist fixtures
 
 Title lists pulled from YouTube channels, kept so `tools/playlist-diff.mjs`
 can be re-run and tested without a network call.
