@@ -4,18 +4,32 @@
 
 `generate()` output for `max-strength`, `power` and `hypertrophy`, seeds 1-40,
 captured from the tree at v77 (35221f3, before the ramp's percentage became a
-session-level budget) with `profile: { returnDate: '2020-01-01' }` -- fully
-recovered, so `env.volumeMultiplier` is 1 and the ramp is a no-op. Each entry
-is `blocks.map(b => [b.slot, b.sets, b.reps])`.
+session-level budget) with `profile: {}` -- no `returnDate` declared, which
+`rampWeekFor` treats as "no ramp declared" and returns `RAMP.length` (5)
+directly, so `env.volumeMultiplier` is 1 and the ramp is a no-op. Verified
+against `atWeek(5)` (a completed ramp, which lands on the same `RAMP[4]` row)
+across all three day types and all 40 seeds before capture: 0 mismatches.
+Each entry is `blocks.map(b => [b.slot, b.sets, b.reps])`.
 
 Committed because `tests/ramp-budget.test.mjs`'s "full volume is unchanged,
 block for block" test used to compare two live full-volume profiles against
-each other -- `atWeek(5)` against `returnDate: '2020-01-01'`. Both go through
-the same code, so a change that moved both by the same amount would pass
-undetected; the test could not see the one failure mode it was named for. This
-fixture is the tree's actual output from before the behavioural change, so the
-same test can now assert against a value that cannot drift with the code it is
-checking.
+each other -- `atWeek(5)` against a second profile. Both go through the same
+code, so a change that moved both by the same amount would pass undetected;
+the test could not see the one failure mode it was named for. This fixture is
+the tree's actual output from before the behavioural change, so the same test
+can now assert against a value that cannot drift with the code it is checking.
+
+**This is the second capture.** The first (git history only, superseded by
+this commit) used `profile: { returnDate: '2020-01-01' }`, copied verbatim
+from the original test's comparison profile. That was wrong: the test harness
+fixes `now: 1e12`, which is 2001-09-09, and `2020-01-01` is *after* that fake
+"now" -- so `rampWeekFor` computed a negative `days` and took its `days < 0`
+branch, returning ramp week 1 (volume 0.50, pctCeiling 0.65), not a completed
+ramp. The first fixture pinned week-1-ramped output under the old per-block
+rounding while its own name and the test it fed claimed to pin full volume.
+Caught by running the comparison it would be asserted as -- `atWeek(5)`
+against the candidate full-volume profile -- and finding 120/120 mismatches
+before ever trusting the fixture.
 
 ## Playlist fixtures
 
