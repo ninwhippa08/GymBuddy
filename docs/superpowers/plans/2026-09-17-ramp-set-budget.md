@@ -464,15 +464,28 @@ test('no session is emptied, and none is left at every floor by accident', () =>
 
 test('full volume is unchanged, block for block', () => {
   // The ramp is the only thing this touches. A fully recovered athlete's
-  // session must be what v77 built.
+  // session must be what v77 built -- so it is asserted against v77 OUTPUT,
+  // captured from the tree before any source edit (Tasks 1 and 2 change no
+  // behaviour, so the tree still built v77 sessions at that point).
+  //
+  // AN EARLIER DRAFT OF THIS TEST COMPARED TWO LIVE PROFILES and was wrong
+  // twice over. It compared the new code against itself, so a change that
+  // moved both sides equally was invisible; and its second profile,
+  // `{ returnDate: '2020-01-01' }`, is not a recovered athlete at all. `now`
+  // is 1e12, which is 2001-09-09, so that date is in the FUTURE relative to
+  // it, `rampWeekFor` takes its `days < 0` branch and returns week ONE. It
+  // was comparing week 5 against week 1. The profile for "no ramp" is `{}`,
+  // which `rampWeekFor` answers with RAMP.length by its own early return.
+  const v77 = JSON.parse(
+    readFileSync(new URL('./fixtures/full-volume-v77.json', import.meta.url), 'utf8')
+  );
   for (const dayType of LIFTING) {
     for (let seed = 1; seed <= 40; seed++) {
-      const a = generate({ library: LIB, profile: atWeek(5), history: [], soreness: {},
+      const s = generate({ library: LIB, profile: atWeek(5), history: [], soreness: {},
                            dayType, seed, now: NOW });
-      const b = generate({ library: LIB, profile: { returnDate: '2020-01-01' }, history: [],
-                           soreness: {}, dayType, seed, now: NOW });
-      assert.deepEqual(a.blocks.map(x => [x.slot, x.sets, x.reps]),
-                       b.blocks.map(x => [x.slot, x.sets, x.reps]));
+      assert.deepEqual(s.blocks.map(x => [x.slot, x.sets, x.reps]),
+                       v77[dayType][seed - 1],
+                       `${dayType} seed ${seed} differs from v77`);
     }
   }
 });
