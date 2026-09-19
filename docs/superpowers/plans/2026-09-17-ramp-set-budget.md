@@ -484,7 +484,7 @@ test('full volume is unchanged, block for block', () => {
       const s = generate({ library: LIB, profile: atWeek(5), history: [], soreness: {},
                            dayType, seed, now: NOW });
       assert.deepEqual(s.blocks.map(x => [x.slot, x.sets, x.reps]),
-                       v77[dayType][seed - 1],
+                       v77[dayType][String(seed)],
                        `${dayType} seed ${seed} differs from v77`);
     }
   }

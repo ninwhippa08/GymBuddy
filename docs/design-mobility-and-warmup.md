@@ -1722,12 +1722,49 @@ flat step followed by a jump.
 
 `round()` on small integers is a coarse instrument, and the ramp's volume
 column was written as though it scaled something continuous. At 3 sets it
-resolves to two possible answers. **Not changed here** — it is a real finding
-about `RAMP` rather than about anything he asked for, and the athlete has not
-chosen between leaving it, flooring the ramp differently, or expressing ramp
-volume as total sets per session rather than a per-block multiplier. Recorded
-so the next person to read the ramp table does not assume the columns do what
-they appear to do.
+resolves to two possible answers.
+
+**Fixed 2026-09-19, `sw.js` v78 — `docs/superpowers/specs/2026-09-17-ramp-set-budget-design.md`.**
+Three options were on the table: floor the per-block ramp differently, re-table
+`RAMP`'s own values, or stop applying the multiplier per block and instead
+spend it once, as a **session set budget**. He chose the session budget,
+2026-09-17 — not a re-floored ramp (it would still be an artifact of
+`Math.round` at whatever floor was chosen) and not a re-tabled one (it would
+only work for exercises dosed at 3, and `RAMP` is a safety constant the app
+does not get to retune to fit a rounding quirk). `rampToBudget()` now runs once
+per session: it takes `budget = round(drawn × volume)` over the session's
+`countsTowardVolume` blocks and hands out the difference from full dose, one
+set at a time, by largest fractional remainder, ties to the earlier slot.
+`prescribe()` no longer scales these blocks individually.
+
+Re-measured at the gate (Task 5 report, 3,000 seeds/cell, `now = 1e12`):
+
+| | wk 1 | wk 2 | wk 3 | wk 4 | wk 5 |
+|---|---|---|---|---|---|
+| RAMP intends | 50% | 70% | 80% | 90% | 100% |
+| max-strength, budget/drawn | 52.3% | 69.7% | 81.1% | 91.6% | 100.0% |
+| power, budget/drawn | 51.6% | 71.0% | 80.7% | 89.2% | 100.0% |
+| hypertrophy, budget/drawn | 52.5% | 69.7% | 79.6% | 89.7% | 100.0% |
+
+The flat spot is gone — slot C no longer holds 2.00 sets for three weeks
+running — and week 4 is no longer a no-op: the budget itself tracks `RAMP`'s
+column within a point or two at every week, on every lifting day type.
+
+**What the fix does not reach: what the athlete actually feels, on a
+coverage-heavy day.** The budget answers "does the session ask for the right
+share of sets", not "does the session feel like that share." Hypertrophy week
+1 asks for 52.5% and gets it, but the fill loop's own ramp caps
+(`rampedSlots`, `rampedMinutes`) also cut the session from 5.17 working blocks
+at week 5 to 3.02 at week 1 — two mechanisms compounding, the block count and
+the sets inside the blocks that survive — so the share against full volume
+that reaches him is **34%**, not 50%. Shown this table, 2026-09-19, he accepted
+it and chose to record it rather than engineer it away. He declined two
+alternatives: raising the early-week exercise floor, and changing what the
+card prints. `design-architectures.md` §7.4 records why the two fill-loop caps
+that cause the compounding were measured and kept rather than loosened —
+loosening either makes every day type overshoot full volume instead, up to
+102% at max-strength week 4. Recorded so the next person to read the ramp
+table sees both numbers — what the session asks for, and what he feels.
 
 ## 14  A second trained session, and a phone six deploys behind — 2026-09-16, `sw.js` v76
 

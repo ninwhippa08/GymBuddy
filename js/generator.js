@@ -1374,6 +1374,18 @@ export function swapBlock(session, slotId, library, ctx, rng, exerciseId = null)
   // describing the old number. Only when both sides count toward volume --
   // core routes to prescribeMobility, which the budget never reached either.
   // Spec §4.4.
+  //
+  // NOTE, deferred from the Task 4 review of this line: the right-hand check
+  // reads slot.mode (the TEMPLATE's declared mode, always 'load' here), not
+  // the mode the produced block will actually carry -- prescribe() (~line
+  // 817) rewrites block.mode to 'reps' when the drawn exercise is not
+  // loadable. This line agrees with countsTowardVolume(current)'s reading of
+  // the REAL block only because 'load' and 'reps' are both in VOLUME_MODES,
+  // so slot.mode and the eventual block.mode always land on the same side of
+  // the check -- correct by accident today. If 'reps' is ever removed from
+  // VOLUME_MODES, this stops matching current's actual state whenever the
+  // swap resolves to an unloadable exercise, and forcedSets goes wrong
+  // silently.
   const forcedSets = !isCore && countsTowardVolume(current) &&
     countsTowardVolume({ mode: slot.mode, role: slot.role })
     ? current.sets : undefined;

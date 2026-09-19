@@ -136,6 +136,44 @@ consensus.
 The app never stores a weight. This removes the entire max-registry, e1RM-update,
 and stale-number problem, and it happens to be exactly how the NSCA prescribes.
 
+### Discrepancy 10 — the ramp's percentage was applied per exercise, not per session — FIXED 2026-09-19, `sw.js` v78
+
+**The claim.** §3's 50/30/20/10 rule governs **WORKLOAD** — a statement about
+the athlete's total conditioning volume for the week — and is already cited
+**[verified]** at `RAMP` in `js/rules.js`. The generator read that column as an
+instruction to scale each exercise on its own:
+`sets = max(1, round(sets × env.volumeMultiplier))`, applied inside
+`prescribe()`, per block. That per-exercise reading was never in the source. It
+is an interpretation made in this project, and it is the interpretation that
+produced the defect below.
+
+**The measurement.** `design-mobility-and-warmup.md` §13.4 (v70) first found
+that at a template dose of 3, `round()` needs the multiplier to reach **0.834**
+before it returns 3 rather than 2 — name the arithmetic, because no reader will
+re-derive it. `RAMP`'s own column is 0.50 / 0.70 / 0.80 / 0.90 / 1.00, so weeks
+1, 2 and 3 all round to 2 and only weeks 4 and 5 reach 3: three weeks of a
+graded ramp buying one slot nothing at all, then a jump. Re-measured at v77
+(spec §1, 400 seeds/cell): hypertrophy slot C held exactly 2.00 sets for three
+consecutive weeks, and week 4 delivered 100% / 99% / 101% of full volume across
+the three lifting day types — a promised 10% cut that `round(3 × 0.9) = 3`
+never applied. The as-built measurement (Task 5 report, 3,000 seeds/cell)
+confirms the session-level fix below closes both: `budget/drawn` tracks
+`RAMP`'s column directly (e.g. hypertrophy week 1: 52.5% asked, 52.6%
+delivered against the per-exercise reading's 34.2% "share of full volume" —
+see discrepancy 10's continuation in `design-mobility-and-warmup.md` §13.4 for
+why that last figure is not the budget's own number).
+
+**The fix.** `rampToBudget()`, run once per session between the fill loop and
+`applyArchitecture()`. `prescribe()` no longer scales sets for any block the
+budget covers (`countsTowardVolume` — modes `load`, `contacts`, `reps`,
+excluding roles `core` and `prep`); each such block is drawn at full template
+dose, and the session-level budget (`round(drawn × volume)`) is distributed
+across those blocks by largest fractional remainder, ties to the earlier,
+more specific slot. Blocks outside the budget — `time`/`interval` modes, core,
+prep — keep the old per-block multiplier unchanged, because removing it there
+would silently raise their volume during the ramp instead of fixing anything.
+Full design: `docs/superpowers/specs/2026-09-17-ramp-set-budget-design.md`.
+
 ---
 
 ## 2. Frequency and volume

@@ -1,6 +1,6 @@
 # The ramp's percentage becomes a session set budget — design
 
-**Date:** 2026-09-17 · **Status:** SPEC — not built
+**Date:** 2026-09-17 · **Status:** BUILT 2026-09-19 on branch `ramp-set-budget` — see §10
 **Asked for by:** the athlete, from `design-mobility-and-warmup.md` §13.4
 **Ships as:** `sw.js` / `js/version.js` **v78**
 
@@ -266,4 +266,98 @@ so the power figures will move. Nothing from the probe is quoted as a result.
 
 ## 10. As built
 
-To be filled at the gate.
+Shipped 2026-09-19, `sw.js` / `js/version.js` v78. `prescribe()` no longer
+scales sets for blocks the budget covers. `rampToBudget()` runs once per
+session between the fill loop and `applyArchitecture()`, taking `budget =
+round(drawn × volume)` over `countsTowardVolume` blocks and distributing the
+leftover whole sets by largest fractional remainder, ties to the earlier
+(more specific) slot. Floors are 1 set, or 2 for a block carrying a warm-up
+ladder. `finalise()` records `session.rampSets = { drawn, budget, delivered
+}`. A swapped block inherits its set count via an optional forced draw
+threaded into `prescribe()`. Suite 641 → 660.
+
+Five things this spec got wrong or could not know, each measured rather than
+argued:
+
+**1. §4.5's damper prediction was overturned.** §4.5 expected `rampedMinutes`
+to be damping a loop this change removes, and planned to measure it for
+removal. Measured instead (Task 3 report, three-configuration sweep, 300
+seeds/cell, `now = 1e12`): removing either fill-loop cap (`rampedSlots` or
+`rampedMinutes`) makes **every** lifting day type overshoot full volume at
+**every** ramp week — max-strength week 4 reaches **102%**, above what a
+fully recovered athlete gets. Both caps stay, untouched. Neither was edited
+in the shipped code.
+
+**2. §4.1's "core and prep keep `env.volumeMultiplier` exactly as today" was
+true in effect, wrong about the mechanism.** Core and prep never reach
+`prescribe()` at all: `buildBlockGroups()` routes `MOBILITY_BLOCK_MODES`
+(`drill`, `hold`, `core`) to `prescribeMobility()`, which takes no `env` and
+has never applied a ramp multiplier, before this change or after it. Core
+work has never been ramped in this app. **Open question for the athlete,
+not decided by this build: should core be ramped at all?**
+
+**3. §6 test 3 ("delivered equals `round(unramped × volume)`") was written
+against a metric that cannot express it.** `packToBudget`'s clock ceiling is
+fixed and never ramped, and it trims week 5 in 109–244 of 300 sessions while
+week 4 escapes it in all but 1–7 (Task 3 report) — so "share of full volume"
+divides by a denominator the clock has already cut, which flatters week 4 and
+buries week 1. The guards in `tests/ramp-budget.test.mjs` assert against
+`rampSets` instead. The consequence is plain: at full volume the clock
+discards **13–17%** of the sets a session drew — `delivered/drawn` at week 5
+is 83.0% max-strength, 86.6% power, 87.1% hypertrophy (Task 5 report, 3,000
+seeds/cell).
+
+**4. A regression this change introduced, and a guard caught.** `footContacts`
+and `sprintMeters` are denormalised in `prescribe()` from the set count as
+drawn, and `dropWorkingSet` did not update them, so a ramped session
+OVERSTATED both: a power day reported 6.97 against 4.65 actual at weeks 1–2,
+and reported a FLAT 7.0 across weeks 1–4 (Task 3 report, fix round) — the same
+flat spot this change removed from sets, surviving inside the counter. Fixed
+by storing per-set rates (`contactsPerSet`, `metersPerSet`) on the block and
+deriving both counters at every set removal. This is the third structurally
+blind counter found in this project, and nothing had guarded it before the
+fix round's new test.
+
+**5. The athlete's decision at the measurement gate, 2026-09-19.** Week-1
+hypertrophy delivers ~34% of a recovered session where the table prints 50%,
+because the fill-loop caps cut the exercise count from 5.17 to 3.02 and the
+budget then cuts the sets inside those three — two cuts of one fraction each
+(Task 5 report). Shown the tables, he accepted it and chose to record it
+rather than engineer it away. He declined two alternatives: raising the
+early-week exercise floor, and changing what the card prints.
+
+### Final tables (Task 5 report, 3,000 seeds/cell, shipped configuration)
+
+**max-strength**
+
+| wk | RAMP | budget/drawn | delivered/drawn | vs full(wk5) |
+|----|------|-------------:|-----------------:|--------------:|
+| 1 | 50% | 52.3% | 52.3% | 56.7% |
+| 2 | 70% | 69.7% | 69.6% | 75.6% |
+| 3 | 80% | 81.1% | 80.3% | 87.8% |
+| 4 | 90% | 91.6% | 86.9% | 98.5% |
+| 5 | 100% | 100.0% | 83.0% | 100.0% |
+
+**power**
+
+| wk | RAMP | budget/drawn | delivered/drawn | vs full(wk5) |
+|----|------|-------------:|-----------------:|--------------:|
+| 1 | 50% | 51.6% | 51.6% | 49.0% |
+| 2 | 70% | 71.0% | 71.0% | 67.4% |
+| 3 | 80% | 80.7% | 80.7% | 78.4% |
+| 4 | 90% | 89.2% | 88.9% | 94.8% |
+| 5 | 100% | 100.0% | 86.6% | 100.0% |
+
+**hypertrophy**
+
+| wk | RAMP | budget/drawn | delivered/drawn | vs full(wk5) |
+|----|------|-------------:|-----------------:|--------------:|
+| 1 | 50% | 52.5% | 52.6% | **34.2%** |
+| 2 | 70% | 69.7% | 69.7% | 55.2% |
+| 3 | 80% | 79.6% | 79.6% | 71.9% |
+| 4 | 90% | 89.7% | 89.7% | 93.6% |
+| 5 | 100% | 100.0% | 87.1% | 100.0% |
+
+Full method, per-slot mean sets, floor-forced rates and the three-configuration
+damper sweep are in `.superpowers/sdd/2026-09-17-ramp-set-budget/task-5-report.md`
+and `task-3-report.md`.

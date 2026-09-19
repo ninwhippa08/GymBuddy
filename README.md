@@ -149,11 +149,13 @@ GymBuddy/
 │   ├── contact-sheet.mjs Six frames of one movement demo tiled into a single image,
 │   │                     for the clips whose name is not enough. They are silent,
 │   │                     so captions give nothing.
-│   └── measure.mjs       Six sweeps over generated sessions: which entries no slot
+│   └── measure.mjs       Seven sweeps over generated sessions: which entries no slot
 │                         admits, how often each day type comes up, felt repetition,
-│                         the realized repeat interval, which load cap binds, and the
-│                         48h CNS veto rate. Every swept number the design docs quote
-│                         came from one of these.
+│                         the realized repeat interval, which load cap binds, the
+│                         48h CNS veto rate, and (`ramp`) the return ramp's delivered
+│                         set budget by week and day type, read off `session.rampSets`.
+│                         Every swept number the design docs quote came from one of
+│                         these. Run a single sweep with `node tools/measure.mjs ramp`.
 │
 ├── docs/                 Written before the code, and kept in step with it.
 │   ├── spec.md              What the product is. Sections are cited from code as "spec §n".
@@ -205,6 +207,7 @@ file is the authoritative version; this is the summary.
 | 5 | ARCHITECT | Picks a session architecture: straight sets, a ladder, or an antagonist superset. Three more are declared in `templates.js` and deliberately not built |
 | 6 | FILL | Chooses an actual exercise for each slot in the template — and on a max-strength or hypertrophy day, **never a second heavy squat or deadlift-type lift** |
 | 7 | PRESCRIBE | Reps from **what the exercise is**, then reps in reserve, then the load those two imply — or foot contacts, or minutes |
+| 7b | RAMP BUDGET | Spends the return ramp's percentage once, as a session-level set budget across the working blocks it drew at full dose — not as a per-block multiplier |
 | 8 | PACK | Estimates duration and trims optional slots to the main-work budget, caps any movement pattern at **ten sets**, then pairs opposing lifts into supersets |
 | 9 | PREP / COOL | Appends the dynamic warm-up and the static cool-down plus core, both **matched to the patterns the day actually trains**, then packs each to its budget |
 | 10 | ORDER | Enforces the fixed sequence: prep first, cool-down last — **core before the static stretches**, which close the session — and a superset's two halves adjacent |
@@ -226,7 +229,7 @@ Two ideas hold the design together:
 node --test tests/*.test.mjs
 ```
 
-616 tests, using only Node's built-in `node:test` and `node:assert/strict`.
+660 tests, using only Node's built-in `node:test` and `node:assert/strict`.
 There is no `package.json` and nothing to install.
 
 They are not only unit tests. Several are **sweeps**: they generate sessions in
@@ -459,6 +462,41 @@ marks each number `[verified]`, `[corroborated]`, `[unverified]`, or
 were re-checked against primary ones. Numbers tagged `[measured]` have no source
 at all and were derived by sweeping generated sessions — the doc says so rather
 than dressing them up.
+
+**The ramp's percentage is what the session delivers, not what one exercise
+gets scaled by.** Through v77 the return ramp scaled each block on its own —
+`sets = round(sets × volumeMultiplier)` — which at a template dose of 3 is a
+coarse instrument: the multiplier needs to reach **0.834** before `round()`
+returns 3 rather than 2, so weeks 1, 2 and 3 all rounded to the same 2 sets and
+week 4's promised 10% cut delivered nothing at all (`round(3 × 0.9) = 3`). v78
+moves the ramp to a session-level set budget instead: `rampToBudget()` takes
+`budget = round(drawn × volume)` over the session's working sets and hands out
+the difference from full dose by largest fractional remainder. Every week now
+differs, and week 4 is no longer free:
+
+| | wk 1 | wk 2 | wk 3 | wk 4 | wk 5 |
+|---|---|---|---|---|---|
+| RAMP intends | 50% | 70% | 80% | 90% | 100% |
+| v77, hypertrophy slot C (mean sets) | 2.00 | 2.00 | 2.00 | 3.00 | 3.00 |
+| v78, hypertrophy budget/drawn | 52.5% | 69.7% | 79.6% | 89.7% | 100.0% |
+
+**A swap now inherits the block's set count.** `swapBlock()` calls
+`prescribe()` internally, and with the ramp out of per-block scaling a swapped
+exercise would otherwise come back at full template dose regardless of week —
+swapping a movement was never meant to be a way to change how much work the
+session holds, at any volume, so the replacement now keeps the set count of
+the block it replaced.
+
+**What the budget does not reach: a coverage-heavy day still feels smaller
+than its own percentage.** The budget is met (hypertrophy week 1 asks for
+52.5% and gets 52.6%), but the fill loop's own ramp caps also cut the number
+of working blocks a low-week session carries — hypertrophy goes from 5.17
+blocks at week 5 to 3.02 at week 1 — so the share of full volume that reaches
+the athlete is **~34%**, not the 50% the card prints. Shown this on
+2026-09-19, he chose to record it rather than engineer it away, and declined
+both raising the early-week exercise floor and changing what the card prints.
+`docs/design-mobility-and-warmup.md` §13.4, `docs/design-architectures.md`
+§7.4.
 
 ---
 

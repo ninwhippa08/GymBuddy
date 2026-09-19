@@ -679,6 +679,37 @@ breaking it means bounding coverage on delivered working sets rather than on
 minutes, which is a change to §4.4's decision rule and was not taken here.
 Decided with the athlete 2026-09-06.
 
+**`rampedMinutes` outlived the reason it was written for, and stays anyway —
+measured 2026-09-19, `sw.js` v78.** `docs/superpowers/specs/2026-09-17-ramp-set-budget-design.md`
+§4 moved sets out of `prescribe()`'s per-block scaling entirely: the fill loop
+now draws every block at full template dose, and only a session-level budget
+(`rampToBudget()`) removes sets afterward. That means `estimateMinutes(blocks)`
+sees full-size blocks again, so the coverage guard binds exactly as it does at
+full volume, and the feedback loop `rampedMinutes` was built to damp — fewer
+sets, fewer minutes, the guard stops binding, coverage spends the freed minutes
+on more movements — no longer has the root cause that drove it. The candidate
+fix was to remove `rampedMinutes` as redundant. **Measured, not reasoned
+about, per the same discipline that got this mechanism wrong twice before**
+(§7.3): a three-configuration sweep at 300 seeds/cell (Task 3 report),
+`now = 1e12`, comparing the shipped tree against `rampedMinutes` neutralized
+(alone, and together with `rampedSlots`). Removing either cap makes **every**
+lifting day type overshoot full volume at **every** ramp week — max-strength
+week 4 reaches **102%**, above what a fully recovered athlete gets, in both
+configurations. **Both caps stay, untouched.** Neither was edited in the build
+that shipped this change.
+
+**§7.4's week-4 exclusion is now obsolete in its stated reason.** The line
+above reads "the test excludes week 4 by name" because at a per-block
+multiplier of 0.90 and a dose of 3, `round(3 × 0.9) = 3` cut nothing for the
+guard to claw back — there was no defect at week 4 to test for. That is no
+longer how sets are cut. Week 4 is now bounded by the session budget like
+every other week (`docs/programming-basis.md` discrepancy 10), and the
+current guards (`tests/ramp-budget.test.mjs`) assert against `session.rampSets`
+at week 4 along with the rest. The historical figures above (103%, then 78/110/107/103%
+before the fix) are left as originally measured, not restated, per this file's
+own rule that a superseded number stays with its date rather than being edited
+in place.
+
 ### 7.5 Left open
 
 - **Same pattern twice in one session.** Down to 1.3% on a ramped power day and
