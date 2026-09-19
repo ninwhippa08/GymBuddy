@@ -149,16 +149,26 @@ test('week 4 is not a free week', () => {
   // budget must land below drawn on essentially every session.
   // [measured] 2026-09-19, 300 seeds x 3 lifting day types: 300/300 cut on
   // every one. Bounded at 97%, well under what was observed.
+  //
+  // `budget < drawn` alone is near-tautological once the test below pins
+  // `budget === round(drawn x 0.9)`, which is below drawn for any drawn of 2
+  // or more -- it says nothing about sets actually DELIVERED, the original
+  // defect's whole subject. Assert that too: delivered, not just budget, must
+  // land under drawn. [measured] 2026-09-19, 120 seeds x 3 lifting day types:
+  // 120/120 on every day type.
   for (const dayType of LIFTING) {
-    let cut = 0, total = 0;
+    let cut = 0, deliveredCut = 0, total = 0;
     for (let seed = 1; seed <= 120; seed++) {
       const s = generate({ library: LIB, profile: atWeek(4), history: [], soreness: {},
                            dayType, seed, now: NOW });
       total++;
       if (s.rampSets.budget < s.rampSets.drawn) cut++;
+      if (s.rampSets.delivered < s.rampSets.drawn) deliveredCut++;
     }
     assert.ok(cut / total > 0.97,
       `${dayType}: week 4 cut nothing on ${total - cut}/${total} sessions`);
+    assert.equal(deliveredCut, total,
+      `${dayType}: week 4 delivered full drawn volume on ${total - deliveredCut}/${total} sessions`);
   }
 });
 
@@ -188,9 +198,13 @@ test('a ramped session delivers the budget its own draw implies', () => {
   // detect it.
   //
   // [measured] 2026-09-19, 120 seeds x 3 lifting day types x weeks 1-4 (1440
-  // sessions): 0 were floor-forced. Bounded at 2% here, well above what was
-  // observed, so a template change that makes floor-forcing common trips it.
-  let floorForced = 0, total = 0;
+  // sessions): 0 floor-forced, 132 trimmed below budget (all at max-strength
+  // week 3-4 and the higher-volume tail of power/hypertrophy week 4), 1308
+  // exact. Bounds below are set well outside those measured values, so both
+  // branches can actually fail -- a per-iteration `delivered <= budget` recheck
+  // was dropped here because it was vacuous: reachable only when already known
+  // true by the branch that led to it.
+  let floorForced = 0, trimmed = 0, exact = 0, total = 0;
   for (const dayType of LIFTING) {
     for (const week of [1, 2, 3, 4]) {
       const intended = RAMP[week - 1].volume;
@@ -201,14 +215,16 @@ test('a ramped session delivers the budget its own draw implies', () => {
         assert.equal(budget, Math.max(1, Math.round(drawn * intended)),
           `${dayType} wk${week} seed ${seed}: budget ${budget} does not match round(${drawn} x ${intended})`);
         total++;
-        if (delivered > budget) { floorForced++; continue; }
-        assert.ok(delivered <= budget,
-          `${dayType} wk${week} seed ${seed}: delivered ${delivered} exceeds budget ${budget}`);
+        if (delivered > budget) floorForced++;
+        else if (delivered < budget) trimmed++;
+        else exact++;
       }
     }
   }
   assert.ok(floorForced / total < 0.02,
     `floor-forced sessions were ${floorForced}/${total} (${(100 * floorForced / total).toFixed(1)}%), not a small minority`);
+  assert.ok(exact / total > 0.5,
+    `sessions delivering exactly the budget were only ${exact}/${total} (${(100 * exact / total).toFixed(1)}%)`);
 });
 
 test('no session is emptied, and none is left at every floor by accident', () => {
@@ -236,6 +252,21 @@ test('full volume is unchanged, block for block', () => {
   // rather than compared against a second live call, because two live
   // full-volume profiles go through the same code and a change that moved
   // both equally would pass here undetected. See tests/fixtures/README.md.
+  //
+  // Widened to footContacts and sprintMeters (null where the block never had
+  // either): [slot, sets, reps] alone cannot see the counter desync
+  // 'footContacts and sprintMeters track delivered sets, not drawn ones'
+  // exists to catch. rampToBudget is a no-op at full volume, but
+  // packToBudget and capPatternSets are not, and both go through
+  // dropWorkingSet on any ramp week including this one -- so a contacts block
+  // shaved by either at full volume would drift here too. This particular
+  // 40-seed sample does not happen to exercise that path (checked: this test
+  // stayed green with the fix reverted); the comprehensive guard above, run
+  // across all five ramp weeks, is what actually caught the bug. This
+  // widening is a second, independent net for the same defect, not the one
+  // that found it. Captured from af71716 (pre-behavioural-change), not from
+  // HEAD -- see tests/fixtures/README.md for why regenerating from the
+  // current tree would have asserted the new code against itself.
   const fixture = JSON.parse(
     readFileSync(new URL('../tests/fixtures/full-volume-v77.json', import.meta.url), 'utf8')
   );
@@ -243,8 +274,11 @@ test('full volume is unchanged, block for block', () => {
     for (let seed = 1; seed <= 40; seed++) {
       const s = generate({ library: LIB, profile: atWeek(5), history: [], soreness: {},
                            dayType, seed, now: NOW });
-      assert.deepEqual(s.blocks.map(x => [x.slot, x.sets, x.reps]),
-                       fixture[dayType][String(seed)]);
+      assert.deepEqual(
+        s.blocks.map(x => [x.slot, x.sets, x.reps,
+                            x.footContacts == null ? null : x.footContacts,
+                            x.sprintMeters == null ? null : x.sprintMeters]),
+        fixture[dayType][String(seed)]);
     }
   }
 });
@@ -286,4 +320,44 @@ test('intervals are still ramped by prescribe, and core never was', () => {
   };
   assert.ok(intervals(1) < intervals(5),
     `interval work must stay ramped: week 1 ${intervals(1)} against full ${intervals(5)}`);
+});
+
+test('footContacts and sprintMeters track delivered sets, not drawn ones', () => {
+  // THE FLAT SPOT THIS TASK REMOVED FROM SETS, STILL ALIVE IN THE COUNTERS.
+  // prescribe() denormalises both from the drawn set count; before this task
+  // that count was already the ramped one, so it was right. Now rampToBudget
+  // (and packToBudget, and capPatternSets) can remove sets from a 'contacts'
+  // block via dropWorkingSet AFTER prescribe() ran, and until this fix
+  // neither counter followed -- reported contacts sat flat across ramp
+  // weeks exactly the way sets used to before rampToBudget existed.
+  //
+  // Checked against the exercise library (contactsPerRep, nominalMeters)
+  // rather than against the block's own stored per-set rate, so a bug that
+  // corrupts the rate and the recompute the same way cannot hide behind
+  // internal self-consistency.
+  for (const dayType of LIFTING) {
+    for (const week of [1, 2, 3, 4, 5]) {
+      for (let seed = 1; seed <= 40; seed++) {
+        const s = generate({ library: LIB, profile: atWeek(week), history: [], soreness: {},
+                             dayType, seed, now: NOW });
+        for (const b of s.blocks) {
+          if (b.mode !== 'contacts') {
+            assert.equal(b.contactsPerSet, undefined,
+              `${dayType} wk${week} seed ${seed} slot ${b.slot}: non-contacts block carries contactsPerSet`);
+            assert.equal(b.metersPerSet, undefined,
+              `${dayType} wk${week} seed ${seed} slot ${b.slot}: non-contacts block carries metersPerSet`);
+            continue;
+          }
+          const exercise = LIB.find(e => e.id === b.exerciseId);
+          const per = exercise.contactsPerRep == null ? 0 : exercise.contactsPerRep;
+          assert.equal(b.footContacts, per * b.sets * b.reps,
+            `${dayType} wk${week} seed ${seed} slot ${b.slot}: footContacts ${b.footContacts} against ${per} x ${b.sets} x ${b.reps}`);
+          if (exercise.nominalMeters) {
+            assert.equal(b.sprintMeters, exercise.nominalMeters * b.sets * b.reps,
+              `${dayType} wk${week} seed ${seed} slot ${b.slot}: sprintMeters ${b.sprintMeters} against ${exercise.nominalMeters} x ${b.sets} x ${b.reps}`);
+          }
+        }
+      }
+    }
+  }
 });

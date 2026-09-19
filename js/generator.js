@@ -740,9 +740,10 @@ export function prescribe(slot, exercise, env, rng, state) {
   // 50/30/20/10 rule is a statement about workload and `round()` on a dose of
   // 3 cannot express the column at all. basis §3, discrepancy 10.
   //
-  // What the budget does not cover still scales here -- intervals and timed
-  // work. NOT core or prep: buildBlockGroups routes those to prescribeMobility,
-  // which has never taken `env` and has never been ramped at all.
+  // What the budget does not cover still scales here -- intervals. Timed work
+  // scales earlier and returns before this line (durationMin, above). NOT
+  // core or prep: buildBlockGroups routes those to prescribeMobility, which
+  // has never taken `env` and has never been ramped at all.
   if (!countsTowardVolume({ mode: slot.mode, role: slot.role })) {
     sets = Math.max(1, Math.round(sets * env.volumeMultiplier));
   }
@@ -773,8 +774,17 @@ export function prescribe(slot, exercise, env, rng, state) {
     // ground contact to count -- a med ball slam or throw. Defaulting to 1
     // would spend the foot-contact budget on work that never lands.
     const per = exercise.contactsPerRep == null ? 0 : exercise.contactsPerRep;
-    block.footContacts = per * sets * reps;
-    if (exercise.nominalMeters) block.sprintMeters = exercise.nominalMeters * sets * reps;
+    // Per-set rates, stored so a set dropped later (rampToBudget, packToBudget,
+    // capPatternSets -- all three go through dropWorkingSet) can recompute
+    // footContacts and sprintMeters from block.sets instead of going stale.
+    // `reps` does not change when a set is dropped, so per*reps is stable for
+    // the life of the block.
+    block.contactsPerSet = per * reps;
+    block.footContacts = block.contactsPerSet * sets;
+    if (exercise.nominalMeters) {
+      block.metersPerSet = exercise.nominalMeters * reps;
+      block.sprintMeters = block.metersPerSet * sets;
+    }
     block.effort = slot.effort || 'maximal intent, full recovery between sets';
     return block;
   }
@@ -1473,6 +1483,15 @@ export function dropWorkingSet(block) {
     const idx = block.setPlan.map(s => s.kind).lastIndexOf('work');
     if (idx !== -1) block.setPlan.splice(idx, 1);
   }
+  // footContacts and sprintMeters are denormalised from the set count at
+  // prescribe() time; a set dropped here has to take its share of both with
+  // it, or they go stale exactly the way block.sets used to before
+  // rampToBudget existed. Derived from the stored per-set rate, never scaled
+  // by a ratio -- a proportional adjustment reintroduces the rounding problem
+  // this whole task is about. Blocks with neither rate (anything that never
+  // went through prescribe()'s 'contacts' branch) are untouched.
+  if (block.contactsPerSet != null) block.footContacts = block.contactsPerSet * block.sets;
+  if (block.metersPerSet != null) block.sprintMeters = block.metersPerSet * block.sets;
   return block;
 }
 
