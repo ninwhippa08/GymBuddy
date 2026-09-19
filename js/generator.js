@@ -699,7 +699,7 @@ export function buildWarmup(workingPct, exercise = {}) {
   return steps;
 }
 
-export function prescribe(slot, exercise, env, rng, state) {
+export function prescribe(slot, exercise, env, rng, state, forcedSets = null) {
   const block = {
     slot: slot.slot,
     role: slot.role,
@@ -747,6 +747,18 @@ export function prescribe(slot, exercise, env, rng, state) {
   if (!countsTowardVolume({ mode: slot.mode, role: slot.role })) {
     sets = Math.max(1, Math.round(sets * env.volumeMultiplier));
   }
+
+  // A SWAP INHERITS ITS COUNT RATHER THAN RE-ROLLING IT. rampToBudget applies
+  // the ramp to the session ONCE now, not per block, so a block rebuilt alone
+  // (swapBlock) carries no ramp at all -- the same hole the load ceiling had
+  // one field over, before 2026-09-05. The draw above still runs unconditionally
+  // so the rng stream is untouched for every block prescribed after this one;
+  // only the RESULT is overridden here, before setPlan, footContacts and
+  // sprintMeters are built from it below -- so they come out right by
+  // construction instead of needing a patch after the fact. swapBlock is the
+  // only caller that passes this. generator.js:1270 documents the same class
+  // of hole in the load ceiling. Spec §4.4.
+  if (forcedSets != null) sets = forcedSets;
 
   block.sets = sets;
   block.reps = reps;
@@ -1352,12 +1364,26 @@ export function swapBlock(session, slotId, library, ctx, rng, exerciseId = null)
     return { block: null, reason: `no other ${entry.pattern} movement is available` };
   }
 
+  // THE SESSION'S BUDGET MUST SURVIVE A SWAP, one field over from the ramp fix
+  // above. rampToBudget now applies the ramp to the session ONCE, to its
+  // working sets, so a block rebuilt on its own here would carry no ramp at
+  // all -- the same hole the load ceiling had before 2026-09-05. Passed into
+  // prescribe() as a forced draw rather than assigned onto block.sets after
+  // the fact: setPlan, footContacts and sprintMeters are all built FROM the
+  // set count, so an assignment afterward would leave every one of them still
+  // describing the old number. Only when both sides count toward volume --
+  // core routes to prescribeMobility, which the budget never reached either.
+  // Spec §4.4.
+  const forcedSets = !isCore && countsTowardVolume(current) &&
+    countsTowardVolume({ mode: slot.mode, role: slot.role })
+    ? current.sets : undefined;
+
   // Core is dosed per exercise -- a plank by time, an ab wheel by reps -- and
   // prescribe() would hand back a percentage a core movement must never carry.
   // Same branch the builder takes. 13.
   const block = isCore
     ? prescribeMobility(slot, exercise, rng)
-    : prescribe(slot, exercise, env, rng, state);
+    : prescribe(slot, exercise, env, rng, state, forcedSets);
   // Flagged, never silent -- the card already knows how to say this. design §1.2.
   if (tierRelaxed) block.tierRelaxed = true;
   // Widened to keep the ramp's ceiling reachable. Distinct from tierRelaxed

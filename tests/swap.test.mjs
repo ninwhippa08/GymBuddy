@@ -350,6 +350,146 @@ test('a core swap never returns something already in the session', () => {
   }
 });
 
+// --------------------------------------------------------------------------
+// A swap stops re-rolling the set count. The ramp lives in the SESSION
+// budget now (rampToBudget), so a block rebuilt alone -- swapBlock -- carries
+// no ramp in it at all. Same class of hole as the load ceiling at
+// generator.js:1270, one field over. Spec §4.4.
+// --------------------------------------------------------------------------
+
+test('a swap keeps the set count of the block it replaces', () => {
+  // The ramp lives in the SESSION budget now, so a block rebuilt on its own
+  // has no ramp in it. Inheriting the count is what keeps a swap from being an
+  // exit from the ramp -- the same rule as the load ceiling at generator.js
+  // :1270 -- and it also means swapping a movement can no longer change how
+  // much work the session holds. Spec §4.4.
+  const LIBRARY = JSON.parse(
+    readFileSync(new URL('../data/exercises.json', import.meta.url), 'utf8')
+  ).exercises;
+  const NOW = 1e12;
+  const profile = { returnDate: new Date(NOW - 3 * 86400e3).toISOString().slice(0, 10) };
+  let checked = 0;
+  for (let seed = 1; seed <= 40; seed++) {
+    const session = generate({ library: LIBRARY, profile, history: [], soreness: {},
+                               dayType: 'hypertrophy', seed, now: NOW });
+    for (const current of session.blocks.filter(b => b.slot === 'A' || b.slot === 'B')) {
+      const { block } = swapBlock(session, current.slot, LIBRARY,
+                                  { profile, history: [] }, makeRng(seed + 7));
+      if (!block) continue;
+      assert.equal(block.sets, current.sets,
+        `seed ${seed} slot ${current.slot}: ${current.sets} became ${block.sets}`);
+      checked++;
+    }
+  }
+  assert.ok(checked > 20, `only ${checked} swaps were exercised`);
+});
+
+test('a swapped contacts block has footContacts consistent with its inherited set count', () => {
+  // The defect the brief's test alone would miss: a naive `block.sets =
+  // current.sets` assignment leaves footContacts (and sprintMeters) still
+  // describing the set count prescribe() originally drew, because both are
+  // denormalised from block.sets at prescribe() time (contactsPerSet * sets),
+  // not read live from it.
+  //
+  // Power day slot A is the obvious contacts block by template (js/templates.js
+  // POWER[0], mode 'contacts') -- read off the template rather than assumed,
+  // since slot letters are not mode guarantees elsewhere in this file (M2 is
+  // shared by two roles, for instance). But its dose is FIXED at sets [3, 3],
+  // so it can never expose the raise path this guard exists for -- a fresh
+  // draw is always 3 and a ramp-trimmed current.sets is always <= 3, so the
+  // inherited count only ever needs to go down or stay put, which
+  // dropWorkingSet already handled before this task.
+  //
+  // Plyometric day slot A ('main jump', templates.js PLYOMETRIC[0]) is also
+  // mode 'contacts', draws from a real range (sets [3, 5]), and every jump
+  // entry in the library carries a nonzero contactsPerRep -- unlike sprint
+  // patterns, which carry none and would make footContacts trivially 0 either
+  // way. It is used for the sweep that lands on both sides of current.sets;
+  // power day slot A is checked too, for the one direction it can reach.
+  const LIB = JSON.parse(
+    readFileSync(new URL('../data/exercises.json', import.meta.url), 'utf8')
+  ).exercises;
+  const checkFootContacts = (block, seed, label) => {
+    assert.equal(block.footContacts, block.contactsPerSet * block.sets,
+      `${label} seed ${seed}: footContacts (${block.footContacts}) disagrees ` +
+      `with contactsPerSet * sets (${block.contactsPerSet * block.sets}) -- ` +
+      'stale from before the inherited count');
+  };
+
+  const powerProfile = { returnDate: '2026-06-01', banned: [], plyoLevel: 'beginner' };
+  let checked = 0;
+  for (let seed = 1; seed <= 40; seed++) {
+    const session = generate({ library: LIB, profile: powerProfile, history: [],
+                               soreness: {}, dayType: 'power', seed });
+    const current = session.blocks.find(b => b.slot === 'A' && b.mode === 'contacts');
+    if (!current) continue;
+    const { block } = swapBlock(session, 'A', LIB, { profile: powerProfile, history: [] },
+                                makeRng(seed + 11));
+    if (!block || block.mode !== 'contacts') continue;
+    assert.equal(block.sets, current.sets,
+      `power seed ${seed}: contacts block did not inherit the set count`);
+    checkFootContacts(block, seed, 'power');
+    checked++;
+  }
+
+  const plyoProfile = { venue: 'gym', plyoLevel: 'beginner' };
+  for (let seed = 1; seed <= 30; seed++) {
+    const session = generate({ library: LIB, profile: plyoProfile, history: [],
+                               soreness: {}, dayType: 'plyometric', seed });
+    const current = session.blocks.find(b => b.slot === 'A' && b.mode === 'contacts');
+    if (!current) continue;
+    for (let s2 = 1; s2 <= 10; s2++) {
+      const { block } = swapBlock(session, 'A', LIB, { profile: plyoProfile, history: [] },
+                                  makeRng(seed * 13 + s2));
+      if (!block || block.mode !== 'contacts') continue;
+      assert.equal(block.sets, current.sets,
+        `plyo seed ${seed}/${s2}: contacts block did not inherit the set count`);
+      checkFootContacts(block, `${seed}/${s2}`, 'plyometric');
+      checked++;
+    }
+  }
+  assert.ok(checked > 30, `only ${checked} contacts swaps were exercised`);
+});
+
+test('a swapped block\'s setPlan has exactly block.sets working entries', () => {
+  // setPlan is built from `sets` at prescribe() time (the Array.from at
+  // generator.js ~885). If the inherited count were patched onto block.sets
+  // after prescribe() returned rather than threaded into the draw, setPlan
+  // would still carry the ORIGINAL number of 'work' entries and silently
+  // disagree with block.sets -- the exact drift tests/ramp.test.mjs guards for
+  // the ramp path, here for the swap path instead.
+  //
+  // Uses a full-volume (unramped) profile rather than a ramping one: with the
+  // ramp running, the session's current.sets is trimmed at or below a fresh
+  // draw's range, so only the DOWN direction (handled by dropWorkingSet even
+  // in the rejected approach) ever gets exercised. Off the ramp, a fresh draw
+  // for the replacement and the session's own original draw for `current` are
+  // independent samples of the same range, so both directions occur -- this
+  // is what actually exercises the raise path the ruling is about.
+  const LIB = JSON.parse(
+    readFileSync(new URL('../data/exercises.json', import.meta.url), 'utf8')
+  ).exercises;
+  const profile = { venue: 'gym' };
+  let checked = 0;
+  for (let seed = 1; seed <= 30; seed++) {
+    const session = generate({ library: LIB, profile, history: [], soreness: {},
+                               dayType: 'hypertrophy', seed });
+    for (const current of session.blocks.filter(b => b.slot === 'A' || b.slot === 'B')) {
+      for (let s2 = 1; s2 <= 5; s2++) {
+        const { block } = swapBlock(session, current.slot, LIB,
+                                    { profile, history: [] }, makeRng(seed * 19 + s2));
+        if (!block || !block.setPlan) continue;
+        const workEntries = block.setPlan.filter(s => s.kind === 'work');
+        assert.equal(workEntries.length, block.sets,
+          `seed ${seed}/${s2} slot ${current.slot}: setPlan has ` +
+          `${workEntries.length} work entries but block.sets is ${block.sets}`);
+        checked++;
+      }
+    }
+  }
+  assert.ok(checked > 30, `only ${checked} swaps with a setPlan were exercised`);
+});
+
 test('the static stretches are still not swappable', () => {
   // He asked for core only. A stretch is matched to the patterns the day
   // actually trained, so swapping one drifts it away from the work. §8.
