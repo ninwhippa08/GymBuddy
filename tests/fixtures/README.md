@@ -9,7 +9,9 @@ session-level budget) with `profile: {}` -- no `returnDate` declared, which
 directly, so `env.volumeMultiplier` is 1 and the ramp is a no-op. Verified
 against `atWeek(5)` (a completed ramp, which lands on the same `RAMP[4]` row)
 across all three day types and all 40 seeds before capture: 0 mismatches.
-Each entry is `blocks.map(b => [b.slot, b.sets, b.reps])`.
+Each entry is `blocks.map(b => [b.slot, b.sets, b.reps, b.footContacts ?? null, b.sprintMeters ?? null])`
+-- `footContacts`/`sprintMeters` null, not omitted, on any block that never
+carried either, so every entry has the same shape.
 
 Committed because `tests/ramp-budget.test.mjs`'s "full volume is unchanged,
 block for block" test used to compare two live full-volume profiles against
@@ -18,6 +20,26 @@ code, so a change that moved both by the same amount would pass undetected;
 the test could not see the one failure mode it was named for. This fixture is
 the tree's actual output from before the behavioural change, so the same test
 can now assert against a value that cannot drift with the code it is checking.
+
+**Widened to `footContacts`/`sprintMeters` in the fix round after `5beb094`.**
+`[slot, sets, reps]` alone cannot see the round's Critical -- `prescribe()`
+denormalises both counters from the set count as drawn, and
+`rampToBudget`/`packToBudget`/`capPatternSets` can all remove sets afterward
+via `dropWorkingSet` without either counter following. `rampToBudget` is a
+no-op at full volume, but `packToBudget` and `capPatternSets` are not, so a
+contacts block shaved by either at full volume would drift here too -- this
+40-seed sample just does not happen to exercise that path (checked directly:
+'full volume is unchanged, block for block' stayed green with the fix
+reverted). The comprehensive guard, run across all five ramp weeks
+('footContacts and sprintMeters track delivered sets, not drawn ones'), is
+what actually caught the bug; this widening is a second, independent net for
+the same defect, not the one that found it. Recaptured from a worktree at
+`af71716` (`git worktree add <tmpdir> af71716`), not from HEAD: HEAD already
+carries the fix, so regenerating there would assert the new code against
+itself -- the exact mistake this fixture exists to avoid. `af71716` is the
+fixture-only commit right before the behavioural change (`5beb094`), so its
+`generate()` is the last one that predates both defects this fixture now has
+to catch (the ramp defect and the counter desync).
 
 **This is the second capture.** The first (git history only, superseded by
 this commit) used `profile: { returnDate: '2020-01-01' }`, copied verbatim
