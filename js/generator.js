@@ -735,8 +735,17 @@ export function prescribe(slot, exercise, env, rng, state) {
   let sets = intBetween(rng, slot.sets);
   const reps = intBetween(rng, groupDosed ? group.reps : slot.reps);
 
-  // Ramp trims volume before anything else touches it. basis §3.
-  sets = Math.max(1, Math.round(sets * env.volumeMultiplier));
+  // The ramp trims volume, but no longer one block at a time: rampToBudget
+  // applies the column ONCE, to the session's working sets, because the
+  // 50/30/20/10 rule is a statement about workload and `round()` on a dose of
+  // 3 cannot express the column at all. basis §3, discrepancy 10.
+  //
+  // What the budget does not cover still scales here -- intervals and timed
+  // work. NOT core or prep: buildBlockGroups routes those to prescribeMobility,
+  // which has never taken `env` and has never been ramped at all.
+  if (!countsTowardVolume({ mode: slot.mode, role: slot.role })) {
+    sets = Math.max(1, Math.round(sets * env.volumeMultiplier));
+  }
 
   block.sets = sets;
   block.reps = reps;
@@ -1556,17 +1565,21 @@ export function capPatternSets(blocks, cap = VOLUME.SETS_PER_PATTERN_PER_SESSION
 // Runs BEFORE applyArchitecture, because the architecture builds ladders and
 // waves out of the set count and a set removed afterwards leaves a rung
 // dangling.
+//
+// Returns { blocks, drawn, budget } rather than the array alone, so the
+// session can state its own arithmetic instead of a caller recomputing it --
+// finalise() threads `drawn` and `budget` straight into `rampSets` alongside
+// `delivered`, read off the finished session the same way patternSets is.
 export function rampToBudget(blocks, volume) {
-  // At full volume the budget equals the drawn total and every step below is a
-  // no-op. Returning early makes that a guarantee rather than an outcome: a
-  // fully recovered athlete's session must be identical to the one the app
-  // built before this function existed.
-  if (!(volume < 1)) return blocks;
-
   const covered = blocks.filter(countsTowardVolume);
-  if (!covered.length) return blocks;
-
   const drawn = covered.reduce((a, b) => a + b.sets, 0);
+
+  // At full volume, or with nothing the budget covers, the budget equals the
+  // drawn total and every step below is a no-op. Returning early makes that a
+  // guarantee rather than an outcome: a fully recovered athlete's session
+  // must be identical to the one the app built before this function existed.
+  if (!(volume < 1) || !covered.length) return { blocks, drawn, budget: drawn };
+
   const budget = Math.max(1, Math.round(drawn * volume));
 
   // `order` is template order -- the fill loop pushes in it, and design 4.4
@@ -1600,7 +1613,7 @@ export function rampToBudget(blocks, volume) {
   for (const p of plan) {
     while (p.b.sets > p.base) dropWorkingSet(p.b);
   }
-  return blocks;
+  return { blocks, drawn, budget };
 }
 
 // --------------------------------------------------------------------------
@@ -2161,7 +2174,11 @@ export function generate({
     blocks.push(block);
   }
 
-  const shaped = applyArchitecture(blocks, architecture, zoneBySlot,        // 7a
+  // 7b. BEFORE the architecture, never after -- a ladder is built out of the
+  // set count, and a set removed afterwards leaves a rung dangling.
+  const { blocks: budgeted, drawn: rampDrawn, budget: rampBudget } =
+    rampToBudget(blocks, env.volumeMultiplier);
+  const shaped = applyArchitecture(budgeted, architecture, zoneBySlot,      // 7a
                                    env.pctCeiling);
   const packed = packToBudget(shaped, TIME.MAIN_WORK_MAX_MIN,           // 8
                               { dayType: chosen, state });
@@ -2203,18 +2220,22 @@ export function generate({
   return finalise({
     chosen, env, architecture, proposal, ordered, packed, prepped, cooled,
     unfilled, state, seed, now, excludeEquipment, soreness,
-    offeredDayTypes: offered
+    offeredDayTypes: offered, rampDrawn, rampBudget
   });
 }
 
 // Denormalise the counters at write time so the next generation never has to
 // recompute them while reading history. spec §3.2.
-function finalise({ chosen, env, architecture, proposal, ordered, packed, prepped, cooled, unfilled, state, seed, now, excludeEquipment, soreness, offeredDayTypes = [] }) {
+function finalise({ chosen, env, architecture, proposal, ordered, packed, prepped, cooled, unfilled, state, seed, now, excludeEquipment, soreness, offeredDayTypes = [], rampDrawn, rampBudget }) {
   const patternSets = {};
-  let footContacts = 0, sprintMeters = 0, cnsLoad = 0;
+  let footContacts = 0, sprintMeters = 0, cnsLoad = 0, rampDelivered = 0;
   for (const b of ordered) {
     if (countsTowardVolume(b)) {
       patternSets[b.pattern] = (patternSets[b.pattern] || 0) + b.sets;
+      // Same guard as `drawn` and `budget` read off rampToBudget -- delivered
+      // has to count exactly what those counted, or the three numbers in
+      // rampSets could disagree about what a "working set" is.
+      rampDelivered += b.sets;
       // basis §7: the account tracks draw on shared recovery from actual
       // training work, not from prep drills or cool-down stretches. Every
       // mobility-dynamic and mobility-static entry carries cnsCost 1 (data
@@ -2297,6 +2318,12 @@ function finalise({ chosen, env, architecture, proposal, ordered, packed, preppe
     excludeEquipment,
     blocks: ordered,
     patternSets,
+    // What rampToBudget actually claims: delivered equals budget, except that
+    // floors can force it above and later trims (the clock, the ten-per-
+    // pattern cap) can only take it below. `drawn` and `budget` are threaded
+    // out of rampToBudget rather than recomputed here, so this cannot drift
+    // from the arithmetic that produced the session.
+    rampSets: { drawn: rampDrawn, budget: rampBudget, delivered: rampDelivered },
     footContacts,
     sprintMeters,
     cnsLoad,
