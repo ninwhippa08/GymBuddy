@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { installDom } from './dom-shim.mjs';
 
 installDom();
-const { blockCard } = await import('../js/ui.js');
+const { blockCard, warmupLine, workLine } = await import('../js/ui.js');
 
 const BLOCK = {
   slot: 'A', role: 'primary', exerciseId: 'back-squat', name: 'Back Squat',
@@ -328,4 +328,124 @@ test('an uncapped block carries neither ceiling note', () => {
     .querySelectorAll('.block-note').map(n => n.textContent);
   assert.ok(!notes.some(t => t.includes('return ramp')));
   assert.ok(!notes.some(t => t.includes('standing 95% cap')));
+});
+
+// --------------------------------------------------------------------------
+// The staircase card.
+// docs/superpowers/specs/2026-10-22-warmup-and-staircase-card-design.md §5
+// --------------------------------------------------------------------------
+
+const rung = (kind, reps, displayMultiplier) => ({ kind, reps, displayMultiplier });
+
+const STAIR_BLOCK = {
+  ...BLOCK,
+  setPlan: [rung('warmup', 5, 0.3), rung('warmup', 3, 0.5),
+    rung('work', 5, 0.72), rung('work', 5, 0.72), rung('work', 5, 0.72)]
+};
+
+const LADDER_BLOCK = {
+  ...BLOCK, architecture: 'ladder', sets: 6, reps: 3, displayMultiplier: 0.76,
+  setPlan: [rung('warmup', 5, 0.4), rung('warmup', 3, 0.6),
+    ...[0.76, 0.78, 0.8, 0.77, 0.79, 0.81].map(m => rung('work', 3, m))]
+};
+
+const frontOf = b => blockCard(b, () => null).querySelector('.is-front');
+
+test('a loaded block draws one bar per set, warm-ups marked', () => {
+  const bars = frontOf(STAIR_BLOCK).querySelectorAll('.stair-bar');
+  assert.equal(bars.length, 5);
+  assert.deepEqual(bars.map(b => b.classList.contains('is-warmup')),
+    [true, true, false, false, false]);
+  const cols = frontOf(STAIR_BLOCK).querySelectorAll('.stair-col').map(c => c.textContent);
+  assert.equal(bars[0].textContent, '5');
+  assert.equal(cols[0], '5.30');
+  assert.equal(cols[4], '5.72');
+});
+
+test('the staircase replaces the warm-up and sets text lines', () => {
+  const f = frontOf(LADDER_BLOCK);
+  assert.equal(f.querySelector('.block-warmup'), null);
+  assert.equal(f.querySelector('.block-work'), null);
+});
+
+test('the staircase keeps the full prescription for screen readers', () => {
+  const stair = frontOf(LADDER_BLOCK).querySelector('.stair');
+  assert.equal(stair.getAttribute('role'), 'img');
+  const label = stair.getAttribute('aria-label');
+  assert.ok(label.includes(warmupLine(LADDER_BLOCK)));
+  assert.ok(label.includes(workLine(LADDER_BLOCK)));
+});
+
+test('the tallest bar is full height and none falls under the minimum', () => {
+  const pct = n => parseFloat(n.style.height);
+  const bars = frontOf({
+    ...STAIR_BLOCK,
+    setPlan: [rung('warmup', 5, 0.1), rung('work', 5, 0.8)]
+  }).querySelectorAll('.stair-bar');
+  assert.equal(bars[1].style.height, '100%');
+  assert.ok(pct(bars[0]) >= 18, `shortest bar is ${bars[0].style.height}`);
+  for (const b of frontOf(LADDER_BLOCK).querySelectorAll('.stair-bar')) {
+    assert.ok(pct(b) >= 18 && pct(b) <= 100);
+  }
+});
+
+test('the header carries sets, reps and a plain rest', () => {
+  assert.equal(frontOf(STAIR_BLOCK).querySelector('.block-volume').textContent,
+    '3 × 5 · rest 3 min');
+  const meta = frontOf(STAIR_BLOCK).querySelectorAll('.block-meta')
+    .map(n => n.textContent).join('|');
+  assert.ok(!meta.includes('rest'), `rest printed twice: ${meta}`);
+});
+
+test('a superset keeps its rest sentence in the meta line, not the header', () => {
+  const sup = { ...STAIR_BLOCK, group: 'g1', groupRole: 'A2', groupRounds: 3, groupRestSec: 120 };
+  const f = frontOf(sup);
+  assert.equal(f.querySelector('.block-volume').textContent, '3 × 5');
+  const meta = f.querySelectorAll('.block-meta').map(n => n.textContent);
+  assert.ok(meta.some(t => t.includes('rest 2 min')), JSON.stringify(meta));
+});
+
+test('the hero is the multiplier, with the PR reference under it', () => {
+  const f = frontOf(STAIR_BLOCK);
+  assert.equal(f.querySelector('.block-load').textContent, '0.72×');
+  assert.equal(f.querySelector('.block-load-ref').textContent, 'Back Squat PR');
+});
+
+test('a ladder keeps the first working set as its hero', () => {
+  assert.equal(frontOf(LADDER_BLOCK).querySelector('.block-load').textContent, '0.76×');
+});
+
+test('a capped loaded block keeps is-capped on the hero and the staircase', () => {
+  const f = frontOf({ ...STAIR_BLOCK, rampLimited: true });
+  assert.ok(f.querySelector('.block-load').classList.contains('is-capped'));
+  assert.ok(f.querySelector('.stair').classList.contains('is-capped'));
+});
+
+test('a straight block with no warm-ups gets no staircase', () => {
+  const f = frontOf({ ...BLOCK, setPlan: [rung('work', 5, 0.72), rung('work', 5, 0.72)] });
+  assert.equal(f.querySelector('.stair'), null);
+  assert.equal(f.querySelector('.block-load').textContent, '0.72×');
+});
+
+test('ten bars render ten bars', () => {
+  const plan = [rung('warmup', 5, 0.3), rung('warmup', 3, 0.5)];
+  for (let i = 0; i < 8; i++) plan.push(rung('work', 3, 0.5));
+  assert.equal(frontOf({ ...STAIR_BLOCK, setPlan: plan })
+    .querySelectorAll('.stair-bar').length, 10);
+});
+
+// Everything that is not a loaded block must read exactly as it did. These
+// strings were captured from the card before the staircase existed.
+test('non-loaded cards read exactly as before the staircase', () => {
+  const text = b => frontOf(b).textContent;
+  assert.equal(text(INTERVAL_BLOCK),
+    'Running Intervals~24 min6 rounds of 90 s hard, 2:55 easy betweenwalk or jog the recovery -- never stand still · hard -- talking is down to a word or two');
+  assert.equal(text(RELAXED_BLOCK),
+    'Chin-Up4 × 5leave 2-3 reps in reserveneeds equipment you do not have -- this is the closest movement availablerest 3 min');
+  assert.equal(text({ slot: 'C', exerciseId: 'box-jump', name: 'Box Jump', mode: 'contacts',
+    sets: 4, reps: 3, footContacts: 12, restSec: 90 }),
+    'Box Jump4 × 312 contactsrest 1:30');
+  assert.equal(text({ slot: 'C', exerciseId: 'plank', name: 'Plank', mode: 'hold',
+    sets: 3, reps: 1, holdSec: 30, restSec: 60 }),
+    'Plank× 330s holdrest 1 min');
 });

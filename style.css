@@ -171,22 +171,75 @@ body {
 
 .block-note { color: #6fd08c; }
 
-/* The ladder. Dimmer than the working load on purpose -- it is the way in,
-   not the number being read between sets. Tabular figures so the steps line
-   up under each other. */
-.block-warmup {
-  font-variant-numeric: tabular-nums;
-  line-height: 1.5;
+/* The PR the hero multiplies. Small and dim under the number, so the number
+   stays the only large thing on the card. */
+.block-load-ref {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  line-height: 1.3;
 }
 
-/* A ladder's working sets. Same tabular figures so the rungs align, but NOT
-   dimmed like the warm-up: these are the working sets, read between sets, and
-   on a laddered block the hero line above is true of only the first of them.
-   design-architectures.md 3.3. */
-.block-work {
+/* The staircase: one bar per set, warm-ups grey, working sets amber (green when
+   capped). Plain flex columns -- no canvas, no SVG. Ten bars at 320 px is the
+   worst case, so the columns shrink (min-width: 0) and the labels are small
+   and never wrap. docs/superpowers/specs/2026-10-22-warmup-and-staircase-card-design.md
+   section 5. */
+.stair {
+  display: flex;
+  gap: 3px;
+  margin-top: 12px;
   font-variant-numeric: tabular-nums;
-  line-height: 1.5;
-  color: var(--text, inherit);
+}
+
+.stair-col {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* The bar's height is a percentage of this, so it needs a height of its own. */
+.stair-slot {
+  position: relative;
+  height: 84px;
+}
+
+.stair-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  padding-top: 2px;
+  border-radius: 4px 4px 0 0;
+  background: var(--accent);
+  color: var(--bg);
+  overflow: hidden;
+}
+
+.stair-bar.is-warmup {
+  background: var(--surface-edge);
+  color: var(--text-dim);
+}
+
+.stair.is-capped .stair-bar:not(.is-warmup) { background: #6fd08c; }
+
+.stair-reps,
+.stair-mult {
+  font-size: 0.7rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.stair-reps { font-weight: 700; }
+
+.stair-mult {
+  margin-top: 3px;
+  text-align: center;
+  color: var(--text-dim);
 }
 
 /* -------------------------------------------------------------------------

@@ -242,13 +242,83 @@ export function volumeLine(block) {
 }
 
 // --------------------------------------------------------------------------
+// The staircase. docs/superpowers/specs/2026-10-22-warmup-and-staircase-card-design.md §5
+// --------------------------------------------------------------------------
+
+// The hero of a loaded card, in the two pieces it is drawn in: the multiplier
+// large, the PR it multiplies small beneath. Same content as loadLine's
+// fallthrough -- which stays as it is, because its text is pinned and the
+// ladder's hero is still the FIRST working set. Null for every other mode.
+export function heroParts(block) {
+  if (block.mode !== 'load') return null;
+  return {
+    value: `${block.displayMultiplier.toFixed(2)}×`,
+    ref: `${titleCase(block.prRef)} PR`
+  };
+}
+
+// One entry per set, in setPlan order: the warm-ups, then the working sets.
+// Nothing to climb gives []: a straight block with no warm-up rungs would draw
+// a row of identical bars that only repeats the header's sets x reps and makes
+// the card taller. A ladder always has a shape to show, so it keeps its bars
+// even without warm-ups. spec §5.
+export function staircase(block) {
+  if (block.mode !== 'load') return [];
+  const plan = block.setPlan || [];
+  if (!plan.length) return [];
+  const hasWarmup = plan.some(s => s.kind === 'warmup');
+  if (!hasWarmup && block.architecture !== 'ladder') return [];
+  return plan.map(s => ({
+    kind: s.kind, reps: s.reps, displayMultiplier: s.displayMultiplier
+  }));
+}
+
+// Shortest bar, as a share of the tallest. A 0.30 warm-up against a 0.95 peak
+// would be 32% anyway; the floor is for the odd 0.10 so it is still a bar and
+// its reps still fit inside it.
+const STAIR_MIN_PCT = 18;
+
+// '.65', not '0.65': ten labels have to fit 320 px, and the leading zero is
+// the cheapest character to lose.
+const stairLabel = m => m.toFixed(2).replace(/^0(?=\.)/, '');
+
+function stairEl(block, bars) {
+  const tallest = Math.max(...bars.map(b => b.displayMultiplier));
+  const cols = bars.map(b => {
+    const pct = Math.max(STAIR_MIN_PCT, Math.round(100 * b.displayMultiplier / tallest));
+    const bar = el('div', {
+      class: b.kind === 'warmup' ? 'stair-bar is-warmup' : 'stair-bar'
+    }, el('span', { class: 'stair-reps', text: String(b.reps) }));
+    // Set on the node, not through el(): a style attribute would be a string
+    // to parse back out, and the height is a number the card computed.
+    bar.style.height = `${pct}%`;
+    return el('div', { class: 'stair-col' }, [
+      el('div', { class: 'stair-slot' }, bar),
+      el('span', { class: 'stair-mult', text: stairLabel(b.displayMultiplier) })
+    ]);
+  });
+  // The bars are a picture; the two text lines they replaced are the
+  // description, so a screen reader still gets the whole prescription.
+  const label = [warmupLine(block), workLine(block)].filter(Boolean).join('; ');
+  return el('div', {
+    class: block.rampLimited || block.ceilingLimited ? 'stair is-capped' : 'stair',
+    role: 'img',
+    'aria-label': label
+  }, cols);
+}
+
+// --------------------------------------------------------------------------
 // Blocks
 // --------------------------------------------------------------------------
 
 export function blockCard(block, cuesFor, onSwap) {
-  const volume = volumeLine(block);
-  const warmup = warmupLine(block);
-  const work = workLine(block);
+  const hero = heroParts(block);
+  const bars = staircase(block);
+  // A loaded card puts a plain rest in the header beside sets x reps; a
+  // superset's rest sentence is longer than a header slot and stays in the
+  // meta line. spec §5.
+  const restInHeader = hero && !block.group ? formatRest(block.restSec) : null;
+  const volume = [volumeLine(block), restInHeader].filter(Boolean).join(' · ');
   const superset = supersetLine(block);
 
   // The effort cue is already the headline for contact-less explosive work;
@@ -264,7 +334,7 @@ export function blockCard(block, cuesFor, onSwap) {
   // between hard efforts is how the next one goes badly.
   const meta = [block.mode === 'interval'
     ? 'walk or jog the recovery -- never stand still'
-    : supersetRestLine(block)];
+    : (restInHeader ? null : supersetRestLine(block))];
   if (block.effort && !heroIsEffort) meta.push(block.effort);
   if (block.optional) meta.push('optional');
 
@@ -276,8 +346,9 @@ export function blockCard(block, cuesFor, onSwap) {
     el('p', {
       class: block.rampLimited || block.ceilingLimited
         ? 'block-load is-capped' : 'block-load',
-      text: loadLine(block)
+      text: hero ? hero.value : loadLine(block)
     }),
+    hero ? el('p', { class: 'block-load-ref', text: hero.ref }) : null,
     // The ramp is not skippable and the user asked to be told when it bites.
     // basis §3, spec §9.
     //
@@ -343,13 +414,9 @@ export function blockCard(block, cuesFor, onSwap) {
     superset
       ? el('p', { class: 'block-meta block-superset', text: superset })
       : null,
-    // Above the warm-up line, because it is what he does after it.
-    work
-      ? el('p', { class: 'block-meta block-work', text: work })
-      : null,
-    warmup
-      ? el('p', { class: 'block-meta block-warmup', text: warmup })
-      : null,
+    // The staircase replaces the warm-up and sets text lines on loaded cards;
+    // other modes never had them. spec §5.
+    bars.length ? stairEl(block, bars) : null,
     meta.filter(Boolean).length
       ? el('p', { class: 'block-meta', text: meta.filter(Boolean).join(' · ') })
       : null

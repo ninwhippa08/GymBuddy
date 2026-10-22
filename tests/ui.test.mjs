@@ -12,7 +12,7 @@ const {
   loadLine, volumeLine, equipmentControl, renderNothingBuildable,
   renderConfirmPrevious, sorenessMap, addMoveControl, warmupLine, workLine,
   renderSession, blockCard, renderCalendar, renderHome, backupControl,
-  supersetLine, supersetRestLine, appMeta
+  supersetLine, supersetRestLine, appMeta, staircase, heroParts
 } = await import('../js/ui.js');
 const { SORENESS_JOINTS } = await import('../js/rules.js');
 
@@ -1123,4 +1123,52 @@ test('a waiting update is offered, and taken only on a tap', () => {
   assert.equal(taps, 0, 'the update ran before anyone tapped');
   btn.dispatch('click');
   assert.equal(taps, 1);
+});
+
+// --------------------------------------------------------------------------
+// The staircase's model.
+// docs/superpowers/specs/2026-10-22-warmup-and-staircase-card-design.md §5
+// --------------------------------------------------------------------------
+
+const rung = (kind, reps, displayMultiplier) => ({ kind, reps, displayMultiplier });
+
+test('staircase lists warm-ups then work, in setPlan order', () => {
+  const bars = staircase({
+    mode: 'load', architecture: 'straight', displayMultiplier: 0.8,
+    setPlan: [rung('warmup', 5, 0.4), rung('warmup', 3, 0.6),
+      rung('work', 5, 0.8), rung('work', 5, 0.8), rung('work', 5, 0.8)]
+  });
+  assert.equal(bars.length, 5);
+  assert.deepEqual(bars.map(b => b.kind),
+    ['warmup', 'warmup', 'work', 'work', 'work']);
+  assert.deepEqual(bars.map(b => b.displayMultiplier), [0.4, 0.6, 0.8, 0.8, 0.8]);
+});
+
+test('a ladder with no warm-ups keeps its wave, dips and all', () => {
+  const wave = [0.76, 0.78, 0.8, 0.77, 0.79, 0.81];
+  const bars = staircase({
+    mode: 'load', architecture: 'ladder', displayMultiplier: 0.76,
+    setPlan: wave.map(m => rung('work', 3, m))
+  });
+  assert.deepEqual(bars.map(b => b.displayMultiplier), wave);
+  assert.ok(bars.every(b => b.kind === 'work'));
+});
+
+test('nothing to climb means no staircase', () => {
+  assert.deepEqual(staircase({ mode: 'load', displayMultiplier: 0.5, sets: 4, reps: 3 }), []);
+  assert.deepEqual(staircase({
+    mode: 'load', architecture: 'straight', displayMultiplier: 0.5,
+    setPlan: [rung('work', 3, 0.5), rung('work', 3, 0.5)]
+  }), []);
+  assert.deepEqual(staircase({
+    mode: 'reps', setPlan: [rung('warmup', 5, 0.4), rung('work', 5, 0.8)]
+  }), []);
+});
+
+test('heroParts splits the hero into the multiplier and its reference', () => {
+  assert.deepEqual(
+    heroParts({ mode: 'load', displayMultiplier: 0.8, prRef: 'power-clean' }),
+    { value: '0.80×', ref: 'Power Clean PR' });
+  assert.equal(heroParts(
+    { mode: 'interval', sets: 6, workSec: 90, restSec: 120 }), null);
 });
