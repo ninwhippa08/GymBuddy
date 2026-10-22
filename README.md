@@ -472,7 +472,8 @@ week 4's promised 10% cut delivered nothing at all (`round(3 × 0.9) = 3`). v78
 moves the ramp to a session-level set budget instead: `rampToBudget()` takes
 `budget = round(drawn × volume)` over the session's working sets and hands out
 the difference from full dose by largest fractional remainder. Every week now
-differs, and week 4 is no longer free:
+differs, and week 4 now cuts its own sets (though the session clock trims
+week 5 often enough that the two still end up close in size; spec §10.3):
 
 | | wk 1 | wk 2 | wk 3 | wk 4 | wk 5 |
 |---|---|---|---|---|---|

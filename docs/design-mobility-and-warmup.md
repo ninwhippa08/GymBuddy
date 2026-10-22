@@ -1762,8 +1762,8 @@ it and chose to record it rather than engineer it away. He declined two
 alternatives: raising the early-week exercise floor, and changing what the
 card prints. `design-architectures.md` §7.4 records why the two fill-loop caps
 that cause the compounding were measured and kept rather than loosened —
-loosening either makes every day type overshoot full volume instead, up to
-102% at max-strength week 4. Recorded so the next person to read the ramp
+loosening `rampedMinutes` makes the day types overshoot the ramp column
+instead, with max-strength week 4 reaching 102% of full volume. Recorded so the next person to read the ramp
 table sees both numbers — what the session asks for, and what he feels.
 
 ## 14  A second trained session, and a phone six deploys behind — 2026-09-16, `sw.js` v76

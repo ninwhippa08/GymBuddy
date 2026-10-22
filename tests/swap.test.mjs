@@ -396,7 +396,7 @@ test('a swapped contacts block has footContacts consistent with its inherited se
   // since slot letters are not mode guarantees elsewhere in this file (M2 is
   // shared by two roles, for instance). But its dose is FIXED at sets [3, 3],
   // so it can never expose the raise path this guard exists for -- a fresh
-  // draw is always 3 and a ramp-trimmed current.sets is always <= 3, so the
+  // draw is always 3 and current.sets is always <= 3, so the
   // inherited count only ever needs to go down or stay put, which
   // dropWorkingSet already handled before this task.
   //

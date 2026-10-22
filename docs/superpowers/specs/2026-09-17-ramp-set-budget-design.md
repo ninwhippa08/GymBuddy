@@ -282,10 +282,10 @@ argued:
 **1. §4.5's damper prediction was overturned.** §4.5 expected `rampedMinutes`
 to be damping a loop this change removes, and planned to measure it for
 removal. Measured instead (Task 3 report, three-configuration sweep, 300
-seeds/cell, `now = 1e12`): removing either fill-loop cap (`rampedSlots` or
-`rampedMinutes`) makes **every** lifting day type overshoot full volume at
-**every** ramp week — max-strength week 4 reaches **102%**, above what a
-fully recovered athlete gets. Both caps stay, untouched. Neither was edited
+seeds/cell, `now = 1e12`): removing `rampedMinutes` (alone, or with
+`rampedSlots`) makes every lifting day type overshoot the `RAMP` column in
+most weeks, and max-strength week 4 reaches **102%** of full volume, above
+what a fully recovered athlete gets. `rampedSlots` alone was not measured. Both caps stay, untouched. Neither was edited
 in the shipped code.
 
 **2. §4.1's "core and prep keep `env.volumeMultiplier` exactly as today" was

@@ -159,7 +159,7 @@ the three lifting day types — a promised 10% cut that `round(3 × 0.9) = 3`
 never applied. The as-built measurement (Task 5 report, 3,000 seeds/cell)
 confirms the session-level fix below closes both: `budget/drawn` tracks
 `RAMP`'s column directly (e.g. hypertrophy week 1: 52.5% asked, 52.6%
-delivered against the per-exercise reading's 34.2% "share of full volume" —
+delivered, against a 34.2% "share of full volume" by the older measure —
 see discrepancy 10's continuation in `design-mobility-and-warmup.md` §13.4 for
 why that last figure is not the budget's own number).
 
@@ -169,9 +169,13 @@ budget covers (`countsTowardVolume` — modes `load`, `contacts`, `reps`,
 excluding roles `core` and `prep`); each such block is drawn at full template
 dose, and the session-level budget (`round(drawn × volume)`) is distributed
 across those blocks by largest fractional remainder, ties to the earlier,
-more specific slot. Blocks outside the budget — `time`/`interval` modes, core,
-prep — keep the old per-block multiplier unchanged, because removing it there
+more specific slot. Interval and timed blocks, which the budget does not
+cover, keep the old per-block multiplier unchanged, because removing it there
 would silently raise their volume during the ramp instead of fixing anything.
+Core and prep never had one: they are prescribed by `prescribeMobility()`,
+which takes no ramp input and has never been ramped. Whether core work
+*should* ramp is an open question for the athlete, recorded here rather than
+answered by this change.
 Full design: `docs/superpowers/specs/2026-09-17-ramp-set-budget-design.md`.
 
 ---

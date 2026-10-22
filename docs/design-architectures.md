@@ -692,10 +692,11 @@ fix was to remove `rampedMinutes` as redundant. **Measured, not reasoned
 about, per the same discipline that got this mechanism wrong twice before**
 (§7.3): a three-configuration sweep at 300 seeds/cell (Task 3 report),
 `now = 1e12`, comparing the shipped tree against `rampedMinutes` neutralized
-(alone, and together with `rampedSlots`). Removing either cap makes **every**
-lifting day type overshoot full volume at **every** ramp week — max-strength
-week 4 reaches **102%**, above what a fully recovered athlete gets, in both
-configurations. **Both caps stay, untouched.** Neither was edited in the build
+(alone, and together with `rampedSlots`). Removing `rampedMinutes` makes
+every lifting day type overshoot the `RAMP` column in most weeks, and
+max-strength week 4 reaches **102%** of full volume, above what a fully
+recovered athlete gets, in both configurations. `rampedSlots` alone was not
+measured. **Both caps stay, untouched.** Neither was edited in the build
 that shipped this change.
 
 **§7.4's week-4 exclusion is now obsolete in its stated reason.** The line

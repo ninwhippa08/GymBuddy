@@ -1376,7 +1376,8 @@ export function swapBlock(session, slotId, library, ctx, rng, exerciseId = null)
   // Spec §4.4.
   //
   // NOTE, deferred from the Task 4 review of this line: the right-hand check
-  // reads slot.mode (the TEMPLATE's declared mode, always 'load' here), not
+  // reads slot.mode (the TEMPLATE's declared mode -- 'load' or 'contacts'
+  // here; power and plyometric slot A are 'contacts'), not
   // the mode the produced block will actually carry -- prescribe() (~line
   // 817) rewrites block.mode to 'reps' when the drawn exercise is not
   // loadable. This line agrees with countsTowardVolume(current)'s reading of
@@ -1615,9 +1616,9 @@ export function capPatternSets(blocks, cap = VOLUME.SETS_PER_PATTERN_PER_SESSION
 // So the percentage is applied ONCE, to the session. What the budget covers is
 // countsTowardVolume -- the same line patternSets and cnsLoad ride on -- so the
 // ramp's arithmetic cannot drift from what the app calls training volume.
-// Everything else (timed work, intervals, core, prep) keeps the per-block
-// multiplier in prescribe(); removing that too would silently RAISE interval
-// and core work during the ramp.
+// Timed work and intervals keep the per-block multiplier in prescribe();
+// removing that too would silently RAISE them during the ramp. Core and prep
+// never had one -- prescribeMobility() takes no env and has never ramped.
 //
 // Runs BEFORE applyArchitecture, because the architecture builds ladders and
 // waves out of the set count and a set removed afterwards leaves a rung
@@ -1651,10 +1652,12 @@ export function rampToBudget(blocks, volume) {
     };
   });
 
-  // Largest remainder. One pass is provably enough: budget <= sum(exact) <
-  // sum(floor(exact)) + n <= sum(base) + n, so at most one set per block is
-  // ever owed. The middle step reads `base` as `floor(exact)`, which needs
-  // its own line: `base`'s `min(b.sets, ...)` never actually binds here,
+  // Largest remainder. One pass is provably enough: budget = round(drawn*v)
+  // <= ceil(drawn*v) <= ceil(sum(exact)) <= sum(floor(exact)) + n
+  // = sum(base) + n (round, not floor: drawn*v ending in .5 rounds UP, so
+  // budget can exceed sum(exact) by up to half a set), so at most one set
+  // per block is ever owed. The last step reads `base` as `floor(exact)`,
+  // which needs its own line: `base`'s `min(b.sets, ...)` never binds here,
   // because volume < 1 makes exact <= b.sets and so floor(exact) <= b.sets
   // already. A tie goes to the earlier slot, which is the more specific one --
   // the only place the deload-ordering source is used, and it is [unverified].
