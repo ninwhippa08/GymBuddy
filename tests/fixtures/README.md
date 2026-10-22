@@ -53,6 +53,30 @@ Caught by running the comparison it would be asserted as -- `atWeek(5)`
 against the candidate full-volume profile -- and finding 120/120 mismatches
 before ever trusting the fixture.
 
+## `work-v78.json`
+
+The working sets of `generate()` for every day type in `PHASE_1_DAY_TYPES` (7),
+ramp weeks 1-5, seeds 1-20 (700 sessions), keyed `fixture[dayType][week][seed]`.
+Each value is `blocks.map(workPrint)`, where `workPrint` (in
+`tests/work-held.test.mjs`) is `[slot, exerciseId, sets, reps,
+displayMultiplier, architecture, [[reps, displayMultiplier], ...]]`, the last
+item taken from the `work` entries of `setPlan`. Warm-up entries are left out
+on purpose: they are what the v79 change alters. Weeks use the same
+`atWeek(w)` and `now: 1e12` as `tests/ramp-budget.test.mjs`.
+
+Captured from `eaf4f92`, whose `generate()` is v78's (the commits since
+`5758824` only touch docs).
+
+Why it exists: warm-up sets are priced into the session's time budget, so
+cutting rungs frees time, and freed time can let the packer keep a working set
+it used to drop. The warm-up change must leave the work untouched, and that can
+only be shown against output from before it.
+
+**Never regenerate this from a tree that carries the warm-up change.** That
+would assert the new code against itself, the mistake `full-volume-v77.json`
+was recaptured to avoid. If it must be rebuilt, check out `eaf4f92` in a
+worktree and run `CAPTURE_WORK=1 node --test tests/work-held.test.mjs` there.
+
 ## Playlist fixtures
 
 Title lists pulled from YouTube channels, kept so `tools/playlist-diff.mjs`
