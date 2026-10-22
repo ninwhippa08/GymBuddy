@@ -17,7 +17,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { generate } from '../js/generator.js';
+import { generate, swapBlock, makeRng } from '../js/generator.js';
 import { PHASE_1_DAY_TYPES } from '../js/templates.js';
 
 const LIB = JSON.parse(
@@ -65,4 +65,30 @@ test('working sets are what v78 built, every day type and ramp week', () => {
       }
     }
   }
+});
+
+// A swap runs the replacement through prescribe() and drops it into a session
+// the packer has already priced. If the swapped block came back with a
+// setPlan but no budgetWarmupReps, any later held pricing of that session
+// would charge it the new two rungs and the hold would leak through the swap.
+// Call shape is tests/swap.test.mjs's.
+test('a swap is priced the same as before', () => {
+  const ctx = { venue: 'gym', soreness: {}, banned: [], excludeEquipment: [] };
+  let checked = 0;
+  for (const dayType of ['power', 'max-strength']) {
+    for (const week of [1, 5]) {
+      for (const seed of SEEDS) {
+        const s = session(dayType, week, seed);
+        const { block } = swapBlock(s, 'A', LIB, ctx, makeRng(seed));
+        // Slot A is not a loaded slot on every day and seed; those cases have
+        // nothing to hold, so they are skipped rather than failed.
+        if (!block || !block.setPlan) continue;
+        checked++;
+        assert.ok(Array.isArray(block.budgetWarmupReps) && block.budgetWarmupReps.length > 0,
+          `${dayType} week ${week} seed ${seed}: swapped ${block.exerciseId} has a setPlan ` +
+          `but no budgetWarmupReps`);
+      }
+    }
+  }
+  assert.ok(checked > 0, 'no swap produced a setPlan, so nothing was checked');
 });

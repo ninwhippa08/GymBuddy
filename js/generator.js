@@ -658,13 +658,60 @@ function repsForStep(pct) {
   return WARMUP.REPS_BY_PCT[WARMUP.REPS_BY_PCT.length - 1][1];
 }
 
-// The ladder into a working set. Steps only -- no displayMultiplier, because
-// only prescribe() knows what the working set actually prints, and every step
-// is scaled against that. plan-05 decision 2.
+// The warm-up into a working set: two rungs, one light and one heavy.
+// docs/superpowers/specs/2026-10-22-warmup-and-staircase-card-design.md §4.
+// Steps only -- no displayMultiplier, because only prescribe() knows what the
+// working set actually prints, and every step is scaled against that. plan-05
+// decision 2.
+//
+// Two, not a ladder whose count grows with the load: the one controlled trial
+// behind START (Ribeiro et al. 2020) ran two sets, 40% then 80% of the
+// training load, and no trial found tests more than two against two. The old
+// 2-5 rung count was practitioner convention. spec §3.
 //
 // `workingPct` is a fraction of THIS movement's own max, already clamped by
-// env.pctCeiling, so the ladder inherits the return ramp for free.
+// env.pctCeiling, so the warm-up inherits the return ramp for free.
 export function buildWarmup(workingPct, exercise = {}) {
+  if (workingPct < WARMUP.FLOOR) return [];
+
+  const maxJump = WARMUP.UPPER_BODY_PATTERNS.includes(exercise.pattern)
+    ? WARMUP.MAX_JUMP_UPPER
+    : WARMUP.MAX_JUMP;
+  // A technical lift keeps its rep cap but no longer gets an extra set at
+  // START: it broke "at most two", and the light technical repetition it
+  // bought is what the prep block already provides. spec §4.
+  const cap = (exercise.technical || 1) === 3 ? WARMUP.TECHNICAL_REP_CAP : Infinity;
+  const step = pct => ({ kind: 'warmup', reps: Math.min(repsForStep(pct), cap), pct });
+
+  // The heavy rung is Ribeiro's 80% of working, unless that leaves a jump into
+  // the work wider than the body-region band -- the max() keeps the sourced
+  // increment limit where the practitioner sources want it most, near-maximal
+  // work. Rounded BEFORE the reps lookup, as setPlan rounds it, so float slop
+  // cannot drop a rung under a REPS_BY_PCT threshold it sits on (upper-body
+  // 0.85 -> 0.75 is one): 0.95 - 0.15 is 0.7999999999999999 in IEEE-754.
+  const heavy = Math.round(
+    Math.max(WARMUP.HEAVY_RUNG * workingPct, workingPct - maxJump) * 100) / 100;
+  // Cannot bind for working >= FLOOR with today's numbers; guarded so a
+  // retuned constant degrades to one rung rather than a rung that goes down.
+  if (heavy <= WARMUP.START) return [step(WARMUP.START)];
+  return [step(WARMUP.START), step(heavy)];
+}
+
+// TEMPORARY HOLD -- PRICING ONLY. Never printed, never put in a setPlan.
+// This is v78's buildWarmup, verbatim apart from its name. The athlete decided
+// (2026-10-22) that the time two fewer warm-up sets frees must NOT buy working
+// sets: a session is built from intensity and combinations, time is a
+// ceiling. The packer and the optional-slot loop do fill the clock, so they
+// keep pricing a loaded block's warm-up at this ladder's cost
+// (block.budgetWarmupReps, estimateMinutes({ held: true })), which leaves every
+// packing decision unchanged by construction. tests/work-held.test.mjs pins
+// the result. Removed by the session-composition rebuild. spec §4.
+//
+// v78's comment, kept with the body it describes: the ladder into a working
+// set. Steps only -- no displayMultiplier, because only prescribe() knows
+// what the working set actually prints, and every step is scaled against
+// that. plan-05 decision 2.
+export function legacyWarmup(workingPct, exercise = {}) {
   if (workingPct < WARMUP.FLOOR) return [];
   const gap = workingPct - WARMUP.START;
   if (gap <= 0) return [];
@@ -901,6 +948,11 @@ export function prescribe(slot, exercise, env, rng, state, forcedSets = null) {
         displayMultiplier: block.displayMultiplier
       }))
     ];
+    // TEMPORARY HOLD, pricing only: the reps v78's ladder would have warmed
+    // up with. The budget checks price these instead of setPlan's two rungs,
+    // so the minutes the shorter warm-up frees cannot buy working sets --
+    // the athlete's ruling, spec §4. See legacyWarmup. Removed with it.
+    block.budgetWarmupReps = legacyWarmup(pct, exercise).map(s => s.reps);
   }
   return block;
 }
@@ -1123,7 +1175,11 @@ const restOf = b => (b.restSec || TIME.DEFAULT_REST_SEC);
 
 // One block's cost in seconds. This is the body estimateMinutes always had --
 // extracted unchanged so a pair can be priced AGAINST it rather than beside it.
-function blockSeconds(b) {
+//
+// `held` is the TEMPORARY pricing hold (spec §4, see legacyWarmup): the budget
+// checks pass it so a loaded block's warm-up costs what v78's ladder cost.
+// Without it -- durationMin, what the card reports -- the real setPlan is priced.
+function blockSeconds(b, held = false) {
   if (b.mode === 'time') return (b.durationMin || 0) * 60;
   // An interval's work is its work seconds, not reps x SECONDS_PER_REP.
   // Falling through to the generic branch below priced eight 90 s efforts
@@ -1165,9 +1221,11 @@ function blockSeconds(b) {
   // The ramp is real time on the clock. Its sets are short and its rests
   // shorter, but four warm-up sets before a heavy squat is minutes, and the
   // budget has to see them or packToBudget trims the wrong thing.
-  for (const s of (b.setPlan || [])) {
-    if (s.kind !== 'warmup') continue;
-    sec += s.reps * secPerRep * sides;
+  const warmupReps = held && b.budgetWarmupReps
+    ? b.budgetWarmupReps
+    : (b.setPlan || []).filter(s => s.kind === 'warmup').map(s => s.reps);
+  for (const r of warmupReps) {
+    sec += r * secPerRep * sides;
     sec += TIME.WARMUP_REST_SEC;
   }
   sec += transitionSec(b);
@@ -1180,16 +1238,19 @@ function blockSeconds(b) {
 // plus the rest the paired schedule actually takes. Pricing it as a fresh sum
 // would put the WORK estimate at risk for no gain -- and the work estimate is
 // what the whole time budget is built on. design-architectures 3.6.3.
-function pairSeconds(a, b) {
+function pairSeconds(a, b, held = false) {
   const R = a.groupRounds;
   const straightRest = a.sets * restOf(a) + b.sets * restOf(b);
   const pairedRest = R * Math.max(restOf(a), restOf(b))
     + (a.sets - R) * restOf(a)
     + (b.sets - R) * restOf(b);
-  return blockSeconds(a) + blockSeconds(b) - straightRest + pairedRest;
+  return blockSeconds(a, held) + blockSeconds(b, held) - straightRest + pairedRest;
 }
 
-export function estimateMinutes(blocks) {
+// `held`: price warm-ups at v78's ladder (TEMPORARY, spec §4). Only the two
+// packing decisions that fill the clock pass it -- packToBudget and the
+// optional-slot loop's rampedMinutes check. See blockSeconds.
+export function estimateMinutes(blocks, { held = false } = {}) {
   let sec = 0;
   const priced = new Set();
   for (const b of blocks) {
@@ -1198,13 +1259,13 @@ export function estimateMinutes(blocks) {
       const partner = blocks.find(x => x !== b && x.group === b.group);
       if (partner) {
         priced.add(b.group);
-        sec += pairSeconds(b, partner);
+        sec += pairSeconds(b, partner, held);
         continue;
       }
       // A group with one member is a bug elsewhere, not a reason to misprice
       // it here: fall through and charge it as the straight block it is.
     }
-    sec += blockSeconds(b);
+    sec += blockSeconds(b, held);
   }
   return Math.round(sec / 60);
 }
@@ -1551,7 +1612,11 @@ export function packToBudget(blocks, budgetMin = TIME.MAIN_WORK_MAX_MIN, opts = 
   // Without a dayType there is no debt to read and the old last-first order
   // stands, which is what every other caller and test relies on.
   const { dayType, state } = opts;
-  while (estimateMinutes(out) > budgetMin) {
+  // { held: true } throughout: the packer prices warm-ups at v78's ladder so
+  // the shorter warm-up cannot buy back a set it would have shaved. TEMPORARY
+  // pricing hold, spec §4; see legacyWarmup.
+  const minutes = bs => estimateMinutes(bs, { held: true });
+  while (minutes(out) > budgetMin) {
     const optional = out
       .map((b, i) => ({ b, i }))
       .filter(({ b }) => b.optional);
@@ -1567,7 +1632,7 @@ export function packToBudget(blocks, budgetMin = TIME.MAIN_WORK_MAX_MIN, opts = 
   }
 
   let guard = 0;
-  while (estimateMinutes(out) > budgetMin && guard++ < 50) {
+  while (minutes(out) > budgetMin && guard++ < 50) {
     const target = out
       .filter(b => b.mode !== 'time' && b.sets > setFloor(b))
       .sort((a, b) => b.sets * b.reps - a.sets * a.reps)[0];
@@ -1575,7 +1640,7 @@ export function packToBudget(blocks, budgetMin = TIME.MAIN_WORK_MAX_MIN, opts = 
     dropWorkingSet(target);
   }
 
-  return { blocks: out, trimmedSlots: trimmed, overBudget: estimateMinutes(out) > budgetMin };
+  return { blocks: out, trimmedSlots: trimmed, overBudget: minutes(out) > budgetMin };
 }
 
 // IUSCA 2021 caps per-session volume at ~10 sets per muscle; pattern stands in
@@ -2206,7 +2271,9 @@ export function generate({
       // work with it. This one is inside the optional-slot branch and touches
       // nothing a session is obliged to deliver. design-architectures.md 7.
       const rampedMinutes = TIME.MAIN_WORK_MAX_MIN * rampRow(state.rampWeek).volume;
-      if (estimateMinutes(blocks) >= rampedMinutes) break;
+      // Held at v78's warm-up price (TEMPORARY, spec §4): otherwise the
+      // shorter warm-up would let this loop add a movement v78 did not.
+      if (estimateMinutes(blocks, { held: true }) >= rampedMinutes) break;
     }
     let exercise = fillSlot(slot, library, ctx, rng);
 

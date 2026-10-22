@@ -236,11 +236,13 @@ export const GROUP_DOSED_ZONES = Object.freeze(['hypertrophy']);
 export const ONE_HEAVY_LOWER_DAY_TYPES = Object.freeze(['max-strength', 'hypertrophy']);
 export const HEAVY_LOWER_PATTERNS = Object.freeze(['squat', 'hinge']);
 
-// The warm-up ramp. design-mobility-and-warmup.md §4.3.
+// The warm-up ramp. design-mobility-and-warmup.md §4.3, and since v79
+// docs/superpowers/specs/2026-10-22-warmup-and-staircase-card-design.md §3-§4.
 //
-// A ladder is COMPUTED from these, never tabulated: the step count is
-// ceil((workingPct - START) / MAX_JUMP), so a heavier working set gets more
-// steps because the gap to bridge is longer, and nothing special-cases it.
+// Two rungs from these, never tabulated: START, then HEAVY_RUNG x working or
+// one MAX_JUMP below the work, whichever is heavier. Until v79 the step count
+// was ceil((workingPct - START) / MAX_JUMP), 2-5 sets; that ladder survives
+// only as generator.js legacyWarmup, a temporary pricing hold.
 export const WARMUP = Object.freeze({
   // Where every ladder starts, as a fraction of the movement's own max.
   // Ribeiro et al. 2020's effective progressive warm-up began at 40% of the
@@ -251,7 +253,14 @@ export const WARMUP = Object.freeze({
   // that only holds if the movement's max is ~67 kg. It described a lifter the
   // athlete is not. The number was right; the reason was not.
   START: 0.30,
-  // No step, and no jump into the working set, may exceed this. The sourced
+  // The second, heavy rung, as a fraction of the WORKING load. Ribeiro et al.
+  // 2020 (IJERPH 17:6882, n = 40 trained men, crossover): the effective
+  // progressive warm-up was two sets, 40% then 80% of the training load, and
+  // the heavy set is what mattered. [verified] spec §3.
+  HEAVY_RUNG: 0.80,
+  // No step, and no jump into the working set, may exceed this. Since v79
+  // only the jump INTO the work is held to it: START to HEAVY_RUNG is light
+  // load and Ribeiro's own protocol jumps 40% -> 80% of working. spec §4. The sourced
   // increment band splits by body region -- 10-20% for lower-body lifts,
   // 5-10% for upper-body ones -- so one number could not be right for both.
   // 0.15 is the midpoint of the lower band; it was ABOVE the upper band
@@ -280,7 +289,9 @@ export const WARMUP = Object.freeze({
     Object.freeze([0.00, 8])
   ]),
   // An Olympic derivative warms up with light repetition, not with eights.
-  // [corroborated] design §2.3.
+  // [corroborated] design §2.3. The rep cap stays; the EXTRA set at START that
+  // technical: 3 lifts used to get is gone since v79 -- it broke "at most two"
+  // and the prep block already buys that light repetition. spec §4.
   TECHNICAL_REP_CAP: 3
 });
 

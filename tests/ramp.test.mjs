@@ -1,15 +1,17 @@
-// The warm-up ladder. design-mobility-and-warmup.md §4.3.
-//
-// Computed, never tabulated: the step COUNT falls out of the gap between the
-// ramp's start and the working load, so a heavier working set gets more steps
-// without anything special-casing it.
+// The warm-up. design-mobility-and-warmup.md §4.3, and since v79
+// docs/superpowers/specs/2026-10-22-warmup-and-staircase-card-design.md §3-§4:
+// two rungs -- WARMUP.START, then a heavy rung at 80% of the work or one
+// body-region jump below it, whichever is heavier.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildWarmup } from '../js/generator.js';
+import { buildWarmup, legacyWarmup } from '../js/generator.js';
 import { WARMUP } from '../js/rules.js';
 
 const pcts = ladder => ladder.map(s => Math.round(s.pct * 100) / 100);
 const plain = { technical: 1 };
+const pushH = { technical: 1, pattern: 'push-h' };
+// 0.50 to 0.95 in hundredths, built from integers so no float drift.
+const WORKINGS = Array.from({ length: 46 }, (_, i) => (50 + i) / 100);
 
 test('a working load under the floor gets no ramp at all', () => {
   // "Light work gets nothing, which is what the sources say and what a rest
@@ -18,35 +20,60 @@ test('a working load under the floor gets no ramp at all', () => {
   assert.deepEqual(buildWarmup(0.30, plain), []);
 });
 
-test('the step count falls out of the gap, so heavier means longer', () => {
-  assert.equal(buildWarmup(0.55, plain).length, 2);
-  assert.equal(buildWarmup(0.65, plain).length, 3);
-  assert.equal(buildWarmup(0.80, plain).length, 4);
-  // ceil(0.60 / 0.15) = 4. §4.3's table says 5 for this row and is wrong --
-  // see decision 3 in plan-05. Every jump here is exactly 0.15, none larger.
-  assert.equal(buildWarmup(0.90, plain).length, 4);
+test('never more than two warm-up sets', () => {
+  // spec §3: no trial found tests more than two sets against two before heavy
+  // work. Every load from the floor up gets exactly two, technical or not.
+  for (const working of WORKINGS) {
+    for (const ex of [plain, { technical: 3 }, pushH]) {
+      const n = buildWarmup(working, ex).length;
+      assert.ok(n <= 2, `working ${working} ${JSON.stringify(ex)}: ${n} warm-up sets`);
+      assert.equal(n, 2, `working ${working} ${JSON.stringify(ex)}: ${n} warm-up sets, want 2`);
+    }
+  }
+});
+
+test('rung one is WARMUP.START, rung two is the heavy rung', () => {
+  // spec §4's worked examples, written out rather than recomputed.
+  assert.deepEqual(pcts(buildWarmup(0.80, plain)), [0.30, 0.65]);
+  assert.deepEqual(pcts(buildWarmup(0.90, plain)), [0.30, 0.75]);
+  assert.deepEqual(pcts(buildWarmup(0.95, plain)), [0.30, 0.80]);
+  assert.deepEqual(pcts(buildWarmup(0.55, plain)), [0.30, 0.44]);
+  assert.deepEqual(pcts(buildWarmup(0.85, pushH)), [0.30, 0.75]);
+});
+
+test('the jump into the work stays inside the body-region band', () => {
+  // The rung-1 to rung-2 jump may be wide -- light loads, and Ribeiro's own
+  // protocol jumps 40% -> 80% -- but the last jump, into the work, may not.
+  // 0.15 and 0.10 written out: they pin the SOURCED bands, so widening the
+  // constants must break this. spec §4, design §8 q5.
+  for (const working of WORKINGS) {
+    for (const [ex, band] of [[plain, 0.15], [{ technical: 3 }, 0.15], [pushH, 0.10]]) {
+      const w = buildWarmup(working, ex);
+      const jump = working - w[w.length - 1].pct;
+      assert.ok(jump <= band + 1e-9,
+        `working ${working} ${JSON.stringify(ex)}: jump of ${jump.toFixed(3)} into the work`);
+    }
+  }
+});
+
+test('reps are unchanged rules', () => {
+  // WARMUP.REPS_BY_PCT is untouched; only the rung count changed. 0.44 is
+  // under the 0.45 threshold, so 0.55's heavy rung is still eight. spec §4.
+  assert.deepEqual(buildWarmup(0.55, plain).map(s => s.reps), [8, 8]);
+  assert.deepEqual(buildWarmup(0.80, plain).map(s => s.reps), [8, 3]);
+  assert.deepEqual(buildWarmup(0.90, plain).map(s => s.reps), [8, 2]);
+  assert.deepEqual(buildWarmup(0.80, { technical: 3 }).map(s => s.reps), [3, 3]);
+});
+
+test('a technical lift gets no extra set', () => {
+  // The v78 extra START set is gone: it broke "at most two". spec §4.
+  assert.equal(buildWarmup(0.80, { technical: 3 }).length, 2);
 });
 
 test('the ladder starts at WARMUP.START and never reaches the working load', () => {
   const ladder = buildWarmup(0.80, plain);
   assert.equal(ladder[0].pct, WARMUP.START);
   assert.ok(ladder[ladder.length - 1].pct < 0.80);
-});
-
-test('no jump between steps, or into the work, exceeds MAX_JUMP', () => {
-  // The one invariant that makes this a ramp rather than a list of numbers.
-  for (const working of [0.52, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]) {
-    const stops = [...buildWarmup(working, plain).map(s => s.pct), working];
-    for (let i = 1; i < stops.length; i++) {
-      const jump = stops[i] - stops[i - 1];
-      assert.ok(jump <= WARMUP.MAX_JUMP + 1e-9,
-        `working ${working}: jump of ${jump.toFixed(3)} from ${stops[i - 1]}`);
-    }
-  }
-});
-
-test('the 0.80 ladder is the worked example from §2.3', () => {
-  assert.deepEqual(pcts(buildWarmup(0.80, plain)), [0.3, 0.43, 0.55, 0.68]);
 });
 
 test('reps fall as the step gets heavier', () => {
@@ -58,24 +85,54 @@ test('reps fall as the step gets heavier', () => {
   assert.equal(ladder[0].reps, 8, 'a 0.30 step is eight reps');
 });
 
-test('an Olympic lift gets an extra technique set and never eights', () => {
-  // "repetition at light load, never eight reps of a snatch" §4.3
-  const oly = buildWarmup(0.80, { technical: 3 });
-  const bar = buildWarmup(0.80, { technical: 1 });
-  assert.equal(oly.length, bar.length + 1);
-  assert.equal(oly[0].pct, WARMUP.START);
-  assert.equal(oly[1].pct, WARMUP.START, 'the extra set is a second one at the start');
-  for (const s of oly) {
-    assert.ok(s.reps <= WARMUP.TECHNICAL_REP_CAP, `${s.reps} reps of a technical lift`);
-  }
-});
-
 test('a missing technical rating is treated as the plain progression', () => {
   assert.deepEqual(buildWarmup(0.80, {}), buildWarmup(0.80, { technical: 1 }));
 });
 
 test('every step is marked as a warm-up', () => {
   for (const s of buildWarmup(0.85, plain)) assert.equal(s.kind, 'warmup');
+});
+
+// --------------------------------------------------------------------------
+// Pricing hold. legacyWarmup is v78's ladder, kept ONLY so the time budget
+// prices a loaded block's warm-up as v78 did and the freed minutes cannot buy
+// working sets (spec §4, the athlete's ruling). These are v78's ladder tests,
+// retargeted: they pin what the hold prices. They go when the hold goes.
+// --------------------------------------------------------------------------
+
+test('pricing hold: the step count falls out of the gap, so heavier means longer', () => {
+  assert.equal(legacyWarmup(0.55, plain).length, 2);
+  assert.equal(legacyWarmup(0.65, plain).length, 3);
+  assert.equal(legacyWarmup(0.80, plain).length, 4);
+  // ceil(0.60 / 0.15) = 4. §4.3's table says 5 for this row and is wrong --
+  // see decision 3 in plan-05. Every jump here is exactly 0.15, none larger.
+  assert.equal(legacyWarmup(0.90, plain).length, 4);
+});
+
+test('pricing hold: no jump between steps, or into the work, exceeds MAX_JUMP', () => {
+  for (const working of [0.52, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]) {
+    const stops = [...legacyWarmup(working, plain).map(s => s.pct), working];
+    for (let i = 1; i < stops.length; i++) {
+      const jump = stops[i] - stops[i - 1];
+      assert.ok(jump <= WARMUP.MAX_JUMP + 1e-9,
+        `working ${working}: jump of ${jump.toFixed(3)} from ${stops[i - 1]}`);
+    }
+  }
+});
+
+test('pricing hold: the 0.80 ladder is the worked example from §2.3', () => {
+  assert.deepEqual(pcts(legacyWarmup(0.80, plain)), [0.3, 0.43, 0.55, 0.68]);
+});
+
+test('pricing hold: an Olympic lift gets an extra technique set and never eights', () => {
+  const oly = legacyWarmup(0.80, { technical: 3 });
+  const bar = legacyWarmup(0.80, { technical: 1 });
+  assert.equal(oly.length, bar.length + 1);
+  assert.equal(oly[0].pct, WARMUP.START);
+  assert.equal(oly[1].pct, WARMUP.START, 'the extra set is a second one at the start');
+  for (const s of oly) {
+    assert.ok(s.reps <= WARMUP.TECHNICAL_REP_CAP, `${s.reps} reps of a technical lift`);
+  }
 });
 
 import { readFileSync } from 'node:fs';
@@ -319,22 +376,26 @@ test('no generated session prescribes a ramp for fewer than two working sets', (
 // The jump splits by body region. design §8 q5, closed 2026-09-04: the sourced
 // increment band is 5-10% for upper-body lifts and 10-20% for lower-body ones,
 // so one constant could not be right for both.
+//
+// Since v79 the band only governs the jump INTO the work (pinned above in
+// 'the jump into the work stays inside the body-region band'). The two
+// rung-count tests below are v78 ladder tests and now pin the pricing hold.
 // --------------------------------------------------------------------------
 
 const upper = { technical: 1, pattern: 'push-h' };
 const lower = { technical: 1, pattern: 'squat' };
 
-test('an upper-body lift ramps in smaller steps than a lower-body one', () => {
-  const bench = buildWarmup(0.85, upper);
-  const squat = buildWarmup(0.85, lower);
+test('pricing hold: an upper-body lift ramps in smaller steps than a lower-body one', () => {
+  const bench = legacyWarmup(0.85, upper);
+  const squat = legacyWarmup(0.85, lower);
   assert.ok(bench.length > squat.length,
     `bench took ${bench.length} steps and squat ${squat.length} -- the upper-body ` +
     `band tops out at 10%, so the bench ladder must have more rungs`);
 });
 
-test('no upper-body jump, or jump into the work, exceeds the upper band', () => {
+test('pricing hold: no upper-body jump, or jump into the work, exceeds the upper band', () => {
   for (const working of [0.55, 0.65, 0.75, 0.85, 0.95]) {
-    const rungs = [...buildWarmup(working, upper).map(s => s.pct), working];
+    const rungs = [...legacyWarmup(working, upper).map(s => s.pct), working];
     for (let i = 1; i < rungs.length; i++) {
       const jump = rungs[i] - rungs[i - 1];
       // 0.10 is written out rather than read from WARMUP: this test pins the
@@ -351,5 +412,47 @@ test('lower-body and unclassified lifts keep the wider band', () => {
   // The default must stay the wider number: a movement the taxonomy has not
   // classified is never over-ramped on the strength of a missing field.
   assert.deepEqual(pcts(buildWarmup(0.80, lower)), pcts(buildWarmup(0.80, plain)));
-  assert.equal(buildWarmup(0.90, lower).length, 4);
+  // The rung count is the hold's: lower 0.90 bridges 0.60 in four 0.15 steps.
+  assert.equal(legacyWarmup(0.90, lower).length, 4);
+});
+
+// --------------------------------------------------------------------------
+// The rule, across what the generator actually builds. spec §4: "at most two"
+// and "never heavier than the working set", over every day type and ramp week.
+// --------------------------------------------------------------------------
+
+import { PHASE_1_DAY_TYPES } from '../js/templates.js';
+
+test('every generated plan has at most two warm-ups, none heavier than the work', () => {
+  const NOW = 1e12;
+  const DAY = 86400e3;
+  const atWeek = w => ({
+    returnDate: new Date(NOW - ((w - 1) * 7 + 3) * DAY).toISOString().slice(0, 10)
+  });
+  let plans = 0;
+  for (const dayType of PHASE_1_DAY_TYPES) {
+    for (let week = 1; week <= 5; week++) {
+      for (let seed = 1; seed <= 20; seed++) {
+        const s = generate({ library: LIB, profile: atWeek(week), history: [],
+                             soreness: {}, dayType, seed, now: NOW });
+        for (const b of s.blocks) {
+          if (!b.setPlan) continue;
+          plans++;
+          const where = `${dayType} week ${week} seed ${seed} ${b.exerciseId}`;
+          const warm = b.setPlan.filter(x => x.kind === 'warmup');
+          assert.ok(warm.length <= 2, `${where}: ${warm.length} warm-up sets`);
+          // Against the LIGHTEST working set, not the first: a ladder
+          // architecture's waves dip, and the invariant is "never heavier
+          // than the work", not "lighter than whatever prints first".
+          const lightest = Math.min(...b.setPlan.filter(x => x.kind === 'work')
+                                                .map(x => x.displayMultiplier));
+          for (const w of warm) {
+            assert.ok(w.displayMultiplier <= lightest + 1e-9,
+              `${where}: warm-up ${w.displayMultiplier} above the lightest work ${lightest}`);
+          }
+        }
+      }
+    }
+  }
+  assert.ok(plans > 0, 'the sweep found no set plans to check');
 });
