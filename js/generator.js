@@ -1220,7 +1220,9 @@ function blockSeconds(b, held = false) {
   sec += b.sets * restOf(b);
   // The ramp is real time on the clock. Its sets are short and its rests
   // shorter, but four warm-up sets before a heavy squat is minutes, and the
-  // budget has to see them or packToBudget trims the wrong thing.
+  // budget has to see them or packToBudget trims the wrong thing. "Four" is
+  // true of the HELD pricing only (v78's ladder, budgetWarmupReps); the real
+  // setPlan carries two rungs since v79, and that is what durationMin prices.
   const warmupReps = held && b.budgetWarmupReps
     ? b.budgetWarmupReps
     : (b.setPlan || []).filter(s => s.kind === 'warmup').map(s => s.reps);
@@ -1247,9 +1249,10 @@ function pairSeconds(a, b, held = false) {
   return blockSeconds(a, held) + blockSeconds(b, held) - straightRest + pairedRest;
 }
 
-// `held`: price warm-ups at v78's ladder (TEMPORARY, spec §4). Only the two
-// packing decisions that fill the clock pass it -- packToBudget and the
-// optional-slot loop's rampedMinutes check. See blockSeconds.
+// `held`: price warm-ups at v78's ladder (TEMPORARY, spec §4). Only the
+// decisions that fill the clock pass it: packToBudget's trimming loops AND its
+// overBudget flag, and the optional-slot fill loop's rampedMinutes check.
+// durationMin, what the card shows, does not. See blockSeconds.
 export function estimateMinutes(blocks, { held = false } = {}) {
   let sec = 0;
   const priced = new Set();

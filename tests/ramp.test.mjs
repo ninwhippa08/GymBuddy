@@ -26,7 +26,6 @@ test('never more than two warm-up sets', () => {
   for (const working of WORKINGS) {
     for (const ex of [plain, { technical: 3 }, pushH]) {
       const n = buildWarmup(working, ex).length;
-      assert.ok(n <= 2, `working ${working} ${JSON.stringify(ex)}: ${n} warm-up sets`);
       assert.equal(n, 2, `working ${working} ${JSON.stringify(ex)}: ${n} warm-up sets, want 2`);
     }
   }
@@ -245,26 +244,31 @@ test('only loaded work gets a ramp -- never a drill, hold, interval or contact',
   }
 });
 
-test('the return ramp shortens the ladder on its own', () => {
-  // §4.3's emergent property: during the return ramp env.pctCeiling is 0.65,
-  // so no working load can exceed it and no ladder can be long. Nothing
-  // special-cases the ramp weeks -- if this ever needs a special case, the
-  // clamp has stopped doing its job.
+test('the return ramp lowers the heavy rung on its own', () => {
+  // §4.3's emergent property, restated for v79: during the return ramp
+  // env.pctCeiling is 0.65, so no working load can exceed it, and the heavy
+  // rung (80% of the work, or one body-region jump below it) cannot sit above
+  // max(0.80 x 0.65, 0.65 - maxJump) -- 0.52 on the lower-body band, 0.55 on
+  // the upper-body one. The 0.80 is written out below rather than read from
+  // WARMUP, so retuning HEAVY_RUNG breaks this. The ladder is two rungs at any
+  // load now, so what the ramp changes is HOW HEAVY the second one is, not
+  // how many there are.
+  // Nothing special-cases the ramp weeks -- if this ever needs a special case,
+  // the clamp has stopped doing its job.
   for (const ex of LOADABLE) {
     for (const zone of Object.keys(ZONES)) {
       const block = prescribe({ ...SLOT, zone }, ex,
         { pctCeiling: 0.65, volumeMultiplier: 1 }, rng, {});
       if (!block.setPlan) continue;
-      const warmups = block.setPlan.filter(s => s.kind === 'warmup').length;
-      // ceil((0.65 - 0.30) / 0.15) = 3 rungs on the lower-body band, and
-      // ceil((0.65 - 0.30) / 0.10) = 4 on the upper-body one (design §8 q5,
-      // closed 2026-09-04), PLUS the extra technique set an Olympic derivative
-      // gets. §4.3 said "no ramp exceeds three steps" and overlooked its own
-      // technical rule; the cap is per band and per technical rating.
-      const cap = (WARMUP.UPPER_BODY_PATTERNS.includes(ex.pattern) ? 4 : 3)
-        + (ex.technical === 3 ? 1 : 0);
-      assert.ok(warmups <= cap,
-        `${ex.id} (technical ${ex.technical}) ${zone}: ${warmups} warm-up sets under a 0.65 ceiling`);
+      const warmups = block.setPlan.filter(s => s.kind === 'warmup');
+      const maxJump = WARMUP.UPPER_BODY_PATTERNS.includes(ex.pattern)
+        ? WARMUP.MAX_JUMP_UPPER : WARMUP.MAX_JUMP;
+      const heavyCeiling = Math.round(
+        Math.max(0.80 * 0.65, 0.65 - maxJump) * 100) / 100;
+      assert.equal(warmups.length, 2,
+        `${ex.id} (technical ${ex.technical}) ${zone}: ${warmups.length} warm-up sets under a 0.65 ceiling`);
+      assert.ok(warmups[1].pct <= heavyCeiling,
+        `${ex.id} ${zone}: heavy rung ${warmups[1].pct} above ${heavyCeiling} under a 0.65 ceiling`);
     }
   }
 });

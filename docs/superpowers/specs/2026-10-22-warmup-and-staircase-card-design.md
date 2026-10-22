@@ -133,6 +133,11 @@ ramp- and ceiling-clamped) and `exercise` (`pattern`, `technical`).
   may choose another mechanism only if the sweep shows identical working sets.
   This hold is removed by the next project: rebuilding session composition
   around intensity and combinations, with time as a final check only.
+  **Built (v79):** the held callers are packToBudget's trimming loops, its
+  `overBudget` flag, and the fill loop's `rampedMinutes` check; `durationMin`
+  prices the real two rungs. So the card's "over the main-work budget"
+  warning (ui.js ~714), which is driven by the held `overBudget` flag, fires on
+  exactly the sessions v78 warned on, even though `durationMin` is now shorter.
 - `rules.js` comments that cite warm-up time in derivations (e.g. around the
   re-derived allowance, ~line 1000) must be re-checked; numbers in them that
   the change falsifies get re-measured or marked stale.

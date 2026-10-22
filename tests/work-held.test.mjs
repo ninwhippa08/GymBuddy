@@ -72,7 +72,7 @@ test('working sets are what v78 built, every day type and ramp week', () => {
 // setPlan but no budgetWarmupReps, any later held pricing of that session
 // would charge it the new two rungs and the hold would leak through the swap.
 // Call shape is tests/swap.test.mjs's.
-test('a swap is priced the same as before', () => {
+test('a swapped loaded block carries the pricing hold (budgetWarmupReps)', () => {
   const ctx = { venue: 'gym', soreness: {}, banned: [], excludeEquipment: [] };
   let checked = 0;
   for (const dayType of ['power', 'max-strength']) {

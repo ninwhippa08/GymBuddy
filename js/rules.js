@@ -258,11 +258,12 @@ export const WARMUP = Object.freeze({
   // progressive warm-up was two sets, 40% then 80% of the training load, and
   // the heavy set is what mattered. [verified] spec §3.
   HEAVY_RUNG: 0.80,
-  // No step, and no jump into the working set, may exceed this. Since v79
-  // only the jump INTO the work is held to it: START to HEAVY_RUNG is light
-  // load and Ribeiro's own protocol jumps 40% -> 80% of working. spec §4. The sourced
-  // increment band splits by body region -- 10-20% for lower-body lifts,
-  // 5-10% for upper-body ones -- so one number could not be right for both.
+  // The largest jump into the working set. Until v79 no step in the ladder
+  // could exceed it; since v79 only the jump INTO the work is held to it,
+  // because START to HEAVY_RUNG is light load and Ribeiro's own protocol
+  // jumps 40% -> 80% of working. spec §4. The sourced increment band splits
+  // by body region -- 10-20% for lower-body lifts, 5-10% for upper-body ones
+  // -- so one number could not be right for both.
   // 0.15 is the midpoint of the lower band; it was ABOVE the upper band
   // entirely until 2026-09-04. [corroborated] design §2.3, §8 q5.
   MAX_JUMP: 0.15,
@@ -769,6 +770,13 @@ export const TIME = Object.freeze({
   // 70 -> 60. The whole saving comes from dosing mobility correctly; main work
   // is untouched. design 5.
   GYM_SESSION_TOTAL_MIN: 60,
+  // v79 NOTE on every warm-up-driven number below: packing is priced at the
+  // v78 ladder (a temporary hold, generator.js legacyWarmup), so the working
+  // sets and the packing derivations stand as measured. The minutes and
+  // "max session" figures are PRE-v79 DISPLAYED durations; the card now shows
+  // a shorter session (measured over seeds 1-300: -2 to -6 min mean per
+  // loaded day type, design-mobility-and-warmup.md §4.3).
+  //
   // 45 -> 50 [measured], 2026-08-31. The warm-up ramp (design-mobility-and-
   // warmup.md §4.3) is real time on the clock that packToBudget cannot trim --
   // warm-ups are the safety feature -- so it was paying for itself by shaving
@@ -1007,6 +1015,10 @@ export const TIME = Object.freeze({
   // it: 63 min x124, 64 min x16, 65 min x1.
   // This number moves with the pool. Expect to re-derive it again as the
   // remaining pools are closed. design-library-expansion.md.
+  //
+  // (v79: the sweeps below were taken before the two-set warm-up; their packing
+  // outcomes still hold because pricing is held, their displayed minutes are
+  // pre-v79.)
   //
   // RE-DERIVED 2026-08-31, held at 5. Task 6 priced buildWarmup's warm-up
   // ladder into estimateMinutes and packToBudget (plan-05 tasks 1-5) and

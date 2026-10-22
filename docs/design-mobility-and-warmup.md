@@ -10,7 +10,8 @@ justify one.
 `prescribe`, `packToBudget` and `SESSION_ORDER`
 
 **Revision 2** replaced two constants that revision 1 invented: a fixed
-three-set warm-up ladder (now a function of load and technical demand, §4.3)
+three-set warm-up ladder (made a function of load and technical demand, §4.3;
+since v79 two sets, §4.3 "v79")
 and a purely time-driven exercise count (now coverage-driven and time-bounded,
 §4.4). It also widened §2.3 beyond a single training tradition and added §4.5 on
 new day types. Both corrections came from the user, who caught the same class of
@@ -104,6 +105,11 @@ primary lift. That was wrong, and wrong in the same way as the slot counts in
 §1.6 — a constant invented and then presented as a design. The sources are
 explicit that the ramp scales.
 
+**Superseded in v79 (2026-10-22): two sets, not 2-5.** The paragraph below is
+what the ladder rested on through v78: practitioner convention, no controlled
+trial behind it. The v79 evidence is at the end of this section; section 4.3
+has the new rule.
+
 **The number of warm-up sets scales with the working load.** "The heavier the
 weight being lifted for a given exercise, the more warm up sets you'll typically
 need. The opposite is true as well — the lighter the weight, the less warming up
@@ -133,6 +139,27 @@ press a progressive two-set ramp performed best. A separate trial found no
 volume-load advantage to elaborate potentiation protocols over an ordinary
 progressive warm-up, and recommended the ordinary one as the practical choice.
 `[verified]`
+
+**v79 evidence: two sets is the evidence-backed dose** (researched 2026-10-22,
+spec `docs/superpowers/specs/2026-10-22-warmup-and-staircase-card-design.md`
+section 3). The athlete said more than two warm-up sets was unnecessary and
+asked for it to be checked before anything changed:
+
+- **Ribeiro et al. 2020** (IJERPH 17:6882, n = 40 trained men, crossover): its
+  effective progressive warm-up was two sets, 6 reps at 40% then 6 reps at 80%
+  of the training load; the heavy set is what mattered. `[verified]`
+- **sportRxiv preprint 559** (n = 29 trained, crossover): 0 vs 1 vs 2 specific
+  warm-up sets before 4 x 10RM to failure gave negligible to small differences;
+  more sets did not beat fewer. `[corroborated]` (A preprint, at ~10RM loads
+  rather than heavy strength work.)
+- **Stronger by Science, "heavier warm-ups"** (2024, summarising a Brazilian
+  crossover): one heavy set (80% of 10RM x 5) beat lighter ones; the advice is
+  1-2 sets, heavier first. `[corroborated]`
+
+No trial found tests more than two sets against two before heavy work. The gap:
+none of them test near-maximal (90% and up) work, where the practitioner
+sources want more, smaller jumps, so section 4.3 keeps the sourced jump limit
+for the last step into the work.
 
 **Design reading:** the ramp is computed, not tabulated. Its inputs are the
 working load, the movement's technical demand, and the exercise's own max — and
@@ -562,6 +589,61 @@ rung 0, so its first two rungs are always identical: 46.2% of ramped cards
 worst-case line ran to 82 characters, which wraps mid-step on the phone. The
 collapse is a value comparison, not a `technical === 3` special case; worst
 case is now 73 characters.
+
+#### v79 (2026-10-22): two rungs, and a temporary pricing hold
+
+**The rule (supersedes the step-count paragraph and table above).** Below
+`WARMUP.FLOOR` (0.50) there is still no warm-up. Otherwise exactly two rungs:
+rung 1 is `WARMUP.START` (0.30); rung 2 is
+`max(WARMUP.HEAVY_RUNG (0.80) x working, working - maxJump)`, where `maxJump`
+is the body-region band above. 0.80 is Ribeiro's heavy rung; the `max()` only
+binds above about 0.75 working (lower body) or 0.50 (upper body), and keeps the
+last jump into the work inside the sourced band where the practitioner sources
+want it most. The rung 1 to rung 2 jump may be wide: those are light loads.
+Reps per rung are unchanged (`WARMUP.REPS_BY_PCT`, capped at 3 on
+`technical: 3` lifts). **The extra technique set a `technical: 3` lift used to
+get at `START` is gone**: it broke "at most two", and the light technical
+repetition is what the prep block already provides (a builder's call, not the
+athlete's). Examples, lower body: working 0.80 gives 0.30 x 8 then 0.65 x 3;
+0.90 gives 0.30 x 8 then 0.75 x 2; 0.95 gives 0.30 x 8 then 0.80 x 2.
+
+**The temporary pricing hold.** Two fewer warm-up sets frees time, and the
+generator fills the clock (the optional-slot loop stops at a minutes check;
+`packToBudget` trims to `MAIN_WORK_MAX_MIN`), so the saving would have leaked
+into working sets. The athlete ruled (2026-10-22): **the freed time does not
+buy work**. A session is built from the moves' intensity and how they combine;
+time is a ceiling. So the budget checks keep pricing a loaded block's warm-up
+at v78's ladder (`legacyWarmup`, carried as `block.budgetWarmupReps`, read by
+`estimateMinutes(blocks, { held: true })`) while the card and `setPlan` carry
+the two real rungs. The held callers are `packToBudget`'s trimming loops, its
+`overBudget` flag, and the fill loop's `rampedMinutes` check. `durationMin`, the
+number the card shows, prices the real, shorter warm-up. The card's "over the
+main-work budget" warning is driven by the held `overBudget` flag, so it fires
+on exactly the sessions v78 warned on, even though the displayed duration is
+now shorter. The hold ends with the next project, the session-composition
+rebuild. `tests/work-held.test.mjs` pins the result against
+`tests/fixtures/work-v78.json` (captured from v78).
+
+**Measured** (`[measured]`, seeds 1-300 per cell, `now` fixed, fresh profile at
+ramp week 1 or 5; v78 = commit 7bdbfdd run in a temporary worktree; mean over
+the 300 sessions; working sets counted from `setPlan` work entries, else
+`block.sets`). Working sets are identical in every cell. Only the displayed
+duration moves, and only on the three days with loaded warm-ups; the longest
+session fell or held in every cell (max-strength week 5: 67 to 64 min). The
+70-minute cap cannot be broken by this change, since fewer sets only shorten.
+
+| Day type, ramp week | v78 mean durationMin | v79 mean durationMin | Working sets, v78 = v79 |
+|---|---|---|---|
+| max-strength, week 1 | 45.68 | 42.32 | 18.78 |
+| max-strength, week 5 | 62.06 | 56.37 | 23.33 |
+| power, week 1 | 41.34 | 39.05 | 20.68 |
+| power, week 5 | 60.64 | 57.17 | 29.16 |
+| hypertrophy, week 1 | 36.28 | 34.26 | 18.02 |
+| hypertrophy, week 5 | 60.22 | 57.74 | 28.24 |
+| aerobic-steady, weeks 1 / 5 | 32.74 / 52.13 | unchanged | 14.37 / 15.83 |
+| interval, weeks 1 / 5 | 32.81 / 51.45 | unchanged | 17.17 / 20.97 |
+| sprint, weeks 1 / 5 | 34.52 / 51.84 | unchanged | 19.54 / 26.57 |
+| plyometric, weeks 1 / 5 | 28.96 / 39.35 | unchanged | 18.80 / 23.57 |
 
 ### 4.4 The exercise count becomes a residual
 
