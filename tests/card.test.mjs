@@ -434,6 +434,21 @@ test('ten bars render ten bars', () => {
     .querySelectorAll('.stair-bar').length, 10);
 });
 
+// Saved days from v78 or earlier carry the old ladder (up to 8 warm-ups and 8
+// work sets, measured max 13 bars). They get is-dense so the labels shrink.
+test('a 13-bar block from an old saved day renders 13 bars and is-dense', () => {
+  const plan = [];
+  for (let i = 0; i < 5; i++) plan.push(rung('warmup', 3, 0.3 + i * 0.1));
+  for (let i = 0; i < 8; i++) plan.push(rung('work', 3, 0.7));
+  const stair = frontOf({ ...STAIR_BLOCK, setPlan: plan }).querySelector('.stair');
+  assert.equal(stair.querySelectorAll('.stair-bar').length, 13);
+  assert.ok(stair.classList.contains('is-dense'));
+});
+
+test('ten bars or fewer are not dense', () => {
+  assert.ok(!frontOf(STAIR_BLOCK).querySelector('.stair').classList.contains('is-dense'));
+});
+
 // Everything that is not a loaded block must read exactly as it did. These
 // strings were captured from the card before the staircase existed.
 test('non-loaded cards read exactly as before the staircase', () => {

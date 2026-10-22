@@ -300,8 +300,13 @@ function stairEl(block, bars) {
   // The bars are a picture; the two text lines they replaced are the
   // description, so a screen reader still gets the whole prescription.
   const label = [warmupLine(block), workLine(block)].filter(Boolean).join('; ');
+  // More than ten bars only happens on days saved before v79 (old ladder);
+  // is-dense shrinks the labels so they cannot collide. design spec §5.
+  const cls = ['stair'];
+  if (block.rampLimited || block.ceilingLimited) cls.push('is-capped');
+  if (bars.length > 10) cls.push('is-dense');
   return el('div', {
-    class: block.rampLimited || block.ceilingLimited ? 'stair is-capped' : 'stair',
+    class: cls.join(' '),
     role: 'img',
     'aria-label': label
   }, cols);

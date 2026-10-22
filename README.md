@@ -506,7 +506,7 @@ anchors on (Ribeiro et al. 2020, IJERPH 17:6882, n = 40 trained men) found an
 effective warm-up of two sets, 40% then 80% of the training load, and that the
 heavy set is what mattered; a 29-person crossover preprint found more sets did
 not beat fewer, and a 2024 Stronger by Science summary advises one to two sets,
-heavier first. No trial tests more than two against two, so the old 2-5 range
+heavier first. No trial found tests more than two against two, so the old 2-5 range
 was convention. Every loaded lift now gets one light set (0.30 of its max) and
 one heavy set (80% of the working load, or one body-region jump below it if
 that is heavier, which keeps the last step inside the sourced band near maximal

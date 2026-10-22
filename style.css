@@ -236,6 +236,17 @@ body {
 
 .stair-reps { font-weight: 700; }
 
+/* Ten bars is the most a v79 card draws, but calendar days saved under v78 or
+   earlier still carry the old warm-up ladder: up to 13 bars (measured), and
+   16 must fit. At 320 px that is under 15 px a column, so the labels drop to
+   0.5rem and clip rather than ever run into a neighbour.
+   docs/superpowers/specs/2026-10-22-warmup-and-staircase-card-design.md
+   section 5; pre-v79 history is the source of the extra bars. */
+.stair.is-dense { gap: 2px; }
+.stair.is-dense .stair-reps,
+.stair.is-dense .stair-mult { font-size: 0.5rem; }
+.stair.is-dense .stair-mult { overflow: hidden; text-overflow: clip; }
+
 .stair-mult {
   margin-top: 3px;
   text-align: center;
