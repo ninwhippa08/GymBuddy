@@ -108,7 +108,7 @@ browser's `localStorage` under a single key, which is why the backup exists.
 
 ## Repository map
 
-Everything a grader needs to read is in four folders. There is no framework, no
+Everything worth reading is in four folders. There is no framework, no
 package manager, and no generated code — every file here was written by hand.
 
 ```
