@@ -77,6 +77,29 @@ would assert the new code against itself, the mistake `full-volume-v77.json`
 was recaptured to avoid. If it must be rebuilt, check out `eaf4f92` in a
 worktree and run `CAPTURE_WORK=1 node --test tests/work-held.test.mjs` there.
 
+## `nonlifting-v79.json`
+
+`generate()` output for every day type that declares no `targets` --
+`aerobic-steady`, `interval`, `sprint`, `plyometric` and `mobility` -- at ramp
+weeks 1 and 5, seeds 1-20 (200 sessions), keyed `fixture[dayType][week][seed]`.
+Each value is `{ blocks, durationMin }`, where `blocks` is
+`s.blocks.map(b => [b.slot, b.exerciseId, b.sets, b.reps ?? null, b.durationMin ?? null])`.
+Weeks use the same `atWeek(w)` and `now: 1e12` as `tests/ramp-budget.test.mjs`.
+
+Captured from `00dafd7` (v79's behaviour; the commits after `22cd07c` only touch
+docs) with `CAPTURE_NONLIFTING=1 node --test tests/compose.test.mjs`, BEFORE
+any line of the session-composition change was written.
+
+Why it exists: `docs/superpowers/specs/2026-10-22-session-composition-design.md`
+changes how lifting sessions are composed and lists the non-lifting day types
+as a non-goal -- unchanged, including their `packToBudget` call. The fill loop
+and the packer they share are exactly what that change edits, so "unchanged"
+can only be shown against output from before it. Read by
+`'non-lifting day types are unchanged'` in `tests/compose.test.mjs`.
+
+**Never regenerate this from a tree that carries the composition change.** If
+it must be rebuilt, check out `00dafd7` in a worktree and run the capture there.
+
 ## Playlist fixtures
 
 Title lists pulled from YouTube channels, kept so `tools/playlist-diff.mjs`

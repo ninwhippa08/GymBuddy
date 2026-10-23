@@ -111,6 +111,7 @@ test('full volume is a no-op', () => {
 import { readFileSync } from 'node:fs';
 import { generate, countsTowardVolume } from '../js/generator.js';
 import { RAMP } from '../js/rules.js';
+import { TEMPLATES } from '../js/templates.js';
 
 const LIB = JSON.parse(
   readFileSync(new URL('../data/exercises.json', import.meta.url), 'utf8')
@@ -270,15 +271,41 @@ test('full volume is unchanged, block for block', () => {
   const fixture = JSON.parse(
     readFileSync(new URL('../tests/fixtures/full-volume-v77.json', import.meta.url), 'utf8')
   );
+  //
+  // NARROWED by the session-composition change. Optional slots are now
+  // admitted by weekly need and per-session dose, not minutes
+  // (docs/superpowers/specs/2026-10-22-session-composition-design.md §4.2),
+  // and §4.4 says outright that the full-volume session changes -- so the
+  // OPTIONAL blocks are no longer v77's, by design, and are left out here.
+  // The required blocks are filled before any optional slot is reached, so
+  // their slots, order and reps are still v77's exactly. Their sets may only
+  // go UP: the packer used to shave a required set to make room for optional
+  // work, and the spec's anti-goal is that no required working set is removed
+  // on a lifting day. Measured 40 seeds x 3 day types at this change: 1
+  // required block differs (hypertrophy seed 33, slot A 3 -> 4 sets), none
+  // lower. And the ramp itself -- what this test was written for -- must
+  // still cut nothing at full volume: budget equals drawn.
+  const required = new Map(LIFTING.map(d =>
+    [d, new Set(TEMPLATES[d].filter(sl => !sl.optional).map(sl => sl.slot))]));
   for (const dayType of LIFTING) {
     for (let seed = 1; seed <= 40; seed++) {
       const s = generate({ library: LIB, profile: atWeek(5), history: [], soreness: {},
                            dayType, seed, now: NOW });
-      assert.deepEqual(
-        s.blocks.map(x => [x.slot, x.sets, x.reps,
-                            x.footContacts == null ? null : x.footContacts,
-                            x.sprintMeters == null ? null : x.sprintMeters]),
-        fixture[dayType][String(seed)]);
+      const req = required.get(dayType);
+      const got = s.blocks.filter(x => req.has(x.slot));
+      const want = fixture[dayType][String(seed)].filter(([slot]) => req.has(slot));
+      assert.deepEqual(got.map(x => [x.slot, x.reps]), want.map(([slot, , reps]) => [slot, reps]),
+        `${dayType} seed ${seed}`);
+      got.forEach((x, i) => {
+        assert.ok(x.sets >= want[i][1],
+          `${dayType} seed ${seed} slot ${x.slot}: ${x.sets} sets, v77 had ${want[i][1]}`);
+        // The counter-desync net, kept wherever the set count is unchanged.
+        if (x.sets === want[i][1]) {
+          assert.deepEqual([x.footContacts ?? null, x.sprintMeters ?? null], want[i].slice(3),
+            `${dayType} seed ${seed} slot ${x.slot}: counters`);
+        }
+      });
+      assert.equal(s.rampSets.budget, s.rampSets.drawn, `${dayType} seed ${seed}`);
     }
   }
 });

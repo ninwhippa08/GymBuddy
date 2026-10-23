@@ -348,7 +348,30 @@ export const VOLUME = Object.freeze({
   // PATTERN stands in for muscle because it is the one grouping every entry
   // carries exactly once -- an approximation, and stated as one. Measured
   // before the cap: median 5-6, p95 8-9, max 13 direct sets on one pattern.
-  SETS_PER_PATTERN_PER_SESSION: 10
+  SETS_PER_PATTERN_PER_SESSION: 10,
+  // How many direct sets ONE session may put on a pattern before an optional
+  // slot stops adding to it -- the per-session dose of the admission rule.
+  // docs/superpowers/specs/2026-10-22-session-composition-design.md §3, §4.2.
+  //
+  // Remmert, Pelland, Robinson, Hinson & Zourdos (2025), "Is There Too Much of
+  // a Good Thing? Meta-Regressions of the Effect of Per-Session Volume on
+  // Hypertrophy and Strength", SportRxiv PREPRINT, NOT peer reviewed. Its
+  // point of undetectable outcome superiority (PUOS) -- where one more set no
+  // longer has a >50% chance of a detectably larger gain -- is ~2 direct sets
+  // per session for strength and ~11 fractional sets for hypertrophy, per
+  // measured muscle, and the authors say to read it cautiously. It marks where
+  // detectable BENEFIT stops, not where harm starts. Same group as the Pelland
+  // figures in SETS_PER_PATTERN_PER_WEEK above.
+  //
+  // strength 2       [corroborated] the PUOS (preprint)
+  // hypertrophy 10   [verified]     SETS_PER_PATTERN_PER_SESSION reused -- the
+  //                                 stricter of IUSCA's 10 and the PUOS's 11.
+  //                                 Choosing the stricter is the builder's
+  //                                 call, not the source's (spec §4.2).
+  // Keyed by GOAL, not day type: generator.js sessionGoal() maps max-strength
+  // and power to strength, hypertrophy to hypertrophy. Pattern stands in for
+  // muscle, as everywhere else here.
+  SESSION_DOSE: Object.freeze({ strength: 2, hypertrophy: 10 })
 });
 
 // --------------------------------------------------------------------------

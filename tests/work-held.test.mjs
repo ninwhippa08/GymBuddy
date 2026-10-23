@@ -18,7 +18,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { generate, swapBlock, makeRng } from '../js/generator.js';
-import { PHASE_1_DAY_TYPES } from '../js/templates.js';
+import { PHASE_1_DAY_TYPES, DAY_TYPES } from '../js/templates.js';
 
 const LIB = JSON.parse(
   readFileSync(new URL('../data/exercises.json', import.meta.url), 'utf8')
@@ -57,7 +57,14 @@ function capture() {
 test('working sets are what v78 built, every day type and ramp week', () => {
   if (process.env.CAPTURE_WORK === '1') { capture(); return; }
   const fixture = JSON.parse(readFileSync(FIXTURE, 'utf8'));
-  for (const dayType of PHASE_1_DAY_TYPES) {
+  // LIFTING DAY TYPES LEFT OUT since the session-composition change. Their
+  // optional slots are now admitted by weekly need and per-session dose
+  // (docs/superpowers/specs/2026-10-22-session-composition-design.md §4.2), so
+  // their work differs from v78's BY DESIGN, and spec §5 ends this file's
+  // purpose ("v79 must not change work") -- the next task deletes it with the
+  // hold. Until then it still pins the day types §4 does not touch.
+  const lifting = d => (DAY_TYPES[d].targets || []).length > 0;
+  for (const dayType of PHASE_1_DAY_TYPES.filter(d => !lifting(d))) {
     for (const week of WEEKS) {
       for (const seed of SEEDS) {
         assert.deepEqual(session(dayType, week, seed).blocks.map(workPrint),

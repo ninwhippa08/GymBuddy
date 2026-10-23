@@ -625,6 +625,60 @@ export function patternDebt(pattern, dayType, state) {
   return Math.max(0, weeklySetTarget(dayType) - done);
 }
 
+// THE ADMISSION RULE, spec 2026-10-22-session-composition-design.md §4. On a
+// lifting day an optional slot is taken by weekly need (§4.1), per-session
+// dose (§4.2) and count (§4.3) -- never by how many minutes are left.
+
+// Which per-session dose a day type answers to. Power is dosed as strength:
+// its loaded work is heavy, low-rep and CNS-limited, and NO dose-response
+// literature exists for power itself (see SETS_PER_PATTERN_PER_WEEK's power
+// row). null for every day type without `targets` -- they have no session dose
+// because §4 does not apply to them.
+const SESSION_GOALS = Object.freeze({
+  'max-strength': 'strength', power: 'strength', hypertrophy: 'hypertrophy'
+});
+export function sessionGoal(dayType) {
+  return SESSION_GOALS[dayType] ?? null;
+}
+
+// Direct working sets this session already carries on `pattern`. Over blocks
+// passing countsTowardVolume -- the line patternSets, cnsLoad and the ramp
+// budget all ride on -- so prep, core and cool-down never count. The fill loop
+// calls this on the sets as DRAWN: rampToBudget runs after the fill, and a dose
+// read off ramped counts would let a ramp week admit more movements to make up
+// the sets the ramp took away. Direct only, like patternDebt (plan-07
+// decision 1: the library has no indirect map).
+export function sessionSets(pattern, blocks) {
+  let n = 0;
+  for (const b of blocks) {
+    if (countsTowardVolume(b) && b.pattern === pattern) n += b.sets;
+  }
+  return n;
+}
+
+// The patterns an optional slot may still be filled on. Empty means skip it.
+//
+// Candidates are the slot's own patterns, or every target when it has none
+// (`patterns: null` serves every target, as the fill loop has always read it),
+// and in both cases ONLY targets: a pattern the day type does not count, like
+// `carry` or `rotate`, owes no weekly debt by definition, so it cannot be what
+// earns an optional slot its place. Then:
+//   §4.1 weekly need -- patternDebt > 0, from history only;
+//   §4.2 session dose -- sessionSets < VOLUME.SESSION_DOSE[goal], from this
+//        session only.
+// Contacts-mode slots skip §4.2 (power slot E, "second explosive expression").
+// They are dosed in ground contacts, not sets, and slot A already puts 3 sets
+// on jump/throw, so a set-based dose of 2 would remove slot E on every power
+// day. They still need §4.1 and §4.3. spec §4.2, the builder's call.
+export function qualifyingPatterns(slot, dayType, state, blocks) {
+  const targets = (DAY_TYPES[dayType] && DAY_TYPES[dayType].targets) || [];
+  const candidates = (slot.patterns ?? targets).filter(p => targets.includes(p));
+  const owed = candidates.filter(p => patternDebt(p, dayType, state) > 0);
+  if (slot.mode === 'contacts') return owed;
+  const dose = VOLUME.SESSION_DOSE[sessionGoal(dayType)];
+  return owed.filter(p => sessionSets(p, blocks) < dose);
+}
+
 export function fillSlot(slot, library, ctx, rng) {
   const pool = eligibleFor(slot, library, ctx);
   if (pool.length === 0) return null;
@@ -2195,9 +2249,11 @@ export function generate({
   const zoneBySlot = {};
   const unfilled = [];
   // §4.4: coverage drives the count up, time bounds it above. A required slot
-  // is always taken. An optional slot is taken only while some pattern it
-  // could serve still owes volume this week, and only while the main work
-  // still fits -- a session that does not fit is not a session.
+  // is always taken. An optional slot is taken only for a pattern it could
+  // serve that still owes volume this week AND is still under its per-session
+  // dose (qualifyingPatterns; composition spec §4.1-4.2), and only while the
+  // main work still fits -- a session that does not fit is not a session.
+  // (The minute check below is removed by the composition spec's next task.)
   //
   // `patterns: null` means "any pattern this tier and modality allow" (slots
   // MAX_STRENGTH B/C, POWER D, HYPERTROPHY B/C/E all use it), so such a slot
@@ -2222,11 +2278,22 @@ export function generate({
     // opt-in does not exist yet. When it lands this becomes a profile read and
     // nothing else here changes.
     if (slot.requiresMeasuredGround) continue;
+    // The slot as drawn. Only an optional slot on a lifting day is narrowed.
+    let fill = slot;
+    let admitted = null;
     if (slot.optional && targets.length) {
-      const serves = slot.patterns
-        ? slot.patterns.filter(p => targets.includes(p))
-        : targets;
-      if (!serves.some(p => patternDebt(p, chosen, state) > 0)) continue;
+      // §4.1 + §4.2 of the composition spec: weekly need AND the per-session
+      // dose, read against the blocks already taken. It used to ask only
+      // whether SOME pattern the slot could serve owed weekly volume, and then
+      // drew from all of them -- so a slot admitted for pull-h could fill on a
+      // squat the session already held four sets of, or on `carry`, which no
+      // lifting day counts. Now the slot is narrowed to exactly the patterns
+      // that earned it, the same narrowing fillMatched does to a prep group's
+      // `targets`, so the draw cannot land on one that did not qualify.
+      // docs/superpowers/specs/2026-10-22-session-composition-design.md §4.2.
+      admitted = qualifyingPatterns(slot, chosen, state, blocks);
+      if (!admitted.length) continue;
+      fill = { ...slot, patterns: admitted };
       if (blocks.length >= TIME.MAX_MAIN_SLOTS) break;
       // Coverage may not spend what the return ramp saved. The ramp cuts sets
       // per exercise to hold total load down (basis §3, "the governing
@@ -2277,8 +2344,21 @@ export function generate({
       // Held at v78's warm-up price (TEMPORARY, spec §4): otherwise the
       // shorter warm-up would let this loop add a movement v78 did not.
       if (estimateMinutes(blocks, { held: true }) >= rampedMinutes) break;
+      // A pattern that qualifies on paper but that this slot has nothing to
+      // draw on did not really survive, and §4.2 says a slot with no survivor
+      // is SKIPPED -- not reported. Found by tests/recency.test.mjs: power slot
+      // D (hypertrophy-modality accessories, `patterns: null`) narrowed to
+      // ['throw'] once hinge and push-h had their two sets and the week had
+      // paid squat, pull-h and jump, and no hypertrophy throw exists -- so the
+      // card said "no eligible exercise for slot D" about a slot nothing had
+      // asked for. Only the narrowing's own emptiness is silent: if the
+      // UNNARROWED slot is empty too (equipment, soreness), the warning stands
+      // exactly as before. eligibleFor draws no randomness, so this costs no
+      // seeded session anything.
+      if (!eligibleFor(fill, library, ctx).length &&
+          eligibleFor(slot, library, ctx).length) continue;
     }
-    let exercise = fillSlot(slot, library, ctx, rng);
+    let exercise = fillSlot(fill, library, ctx, rng);
 
     // A REQUIRED slot that comes back empty is retried across every tier
     // before the day type is abandoned. Only `tier` widens: patterns,
@@ -2286,7 +2366,9 @@ export function generate({
     // be skipped as they always were. design-equipment-and-swap.md §4.2.
     let tierRelaxed = false;
     if (!exercise && !slot.optional) {
-      exercise = fillSlot({ ...slot, tier: ALL_TIERS }, library, ctx, rng);
+      // `fill`, not `slot`: identical here (only optional slots are narrowed),
+      // but a widened retry must never widen the patterns back out.
+      exercise = fillSlot({ ...fill, tier: ALL_TIERS }, library, ctx, rng);
       tierRelaxed = Boolean(exercise);
     }
 
@@ -2301,6 +2383,12 @@ export function generate({
     // Flagged, never silent: the athlete's standing rule is that the app says
     // when it changed something. design §1.2.
     if (tierRelaxed) block.tierRelaxed = true;
+    // What qualified when this block was admitted. tests/compose.test.mjs
+    // checks the drawn pattern against it: replaying admission from the
+    // finished session cannot be exact, because the ramp, the packer and the
+    // pattern cap all change set counts (and the packer can drop a block)
+    // after the dose was read. Diagnostic only -- js/ui.js never prints it.
+    if (admitted) block.admittedPatterns = admitted;
     blocks.push(block);
   }
 
