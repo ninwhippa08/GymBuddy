@@ -8,13 +8,15 @@
 //   node tools/measure.mjs ceiling            which load cap binds, and what it clips
 //   node tools/measure.mjs veto [--without id]  48h veto rate, and bisection
 //   node tools/measure.mjs ramp               what each ramp week delivers
+//   node tools/measure.mjs compose [seeds]    what a lifting session is made of, by week
+//   node tools/measure.mjs clock [seeds]      worst-case minutes on the four clocked days
 //
 // Prints and writes nothing else. Every number the design docs quote from a
 // sweep came from one of these, and each was rebuilt from scratch more than
 // once before it was worth keeping -- which is the same reason
 // tools/playlist-diff.mjs exists.
 //
-// WHY THESE SEVEN. Each one answered a question that reasoning had got wrong:
+// WHY THESE NINE. Each one answered a question that reasoning had got wrong:
 //
 //   reach     §25 -- 13 entries the app owned and could never prescribe.
 //   daytypes  §31 -- no day type arrives more often than every 5.3 sessions,
@@ -35,13 +37,23 @@
 //             ramp ASKED for from what the session's fill loop and the clock
 //             let it DELIVER -- see the comment on `ramp()` below.
 //
+//   compose   2026-10-22 -- lifting days lost their clock (spec §1, §5), so
+//             session size is now decided by weekly debt, session dose and
+//             count caps alone. Nothing bounded it by construction any more,
+//             and the ramp's promise ("week w delivers RAMP[w].volume of week
+//             5") stopped being implied by a shared minute ceiling. This
+//             sweep states both as measured numbers and gates the ramp (§4.4).
+//   clock     2026-10-22 -- FLOOR_OVERRUN_ALLOWANCE_MIN was derived while
+//             lifting days dominated the worst case. They no longer do, so the
+//             four days that still have a clock are re-measured on their own.
+//
 // COST: the sweeps run thousands of sessions and take tens of seconds. That is
 // the point. A number quoted in a design doc should cost something.
 
 import { readFileSync } from 'node:fs';
 import { generate, buildState, proposeDayType, countsTowardVolume } from '../js/generator.js';
 import { TEMPLATES, PREP_BLOCK, COOLDOWN_BLOCK, PHASE_1_DAY_TYPES } from '../js/templates.js';
-import { RAMP } from '../js/rules.js';
+import { RAMP, TIME } from '../js/rules.js';
 
 const LIB = JSON.parse(
   readFileSync(new URL('../data/exercises.json', import.meta.url), 'utf8')
@@ -263,13 +275,15 @@ function veto(without, seeds = 60) {
 //                     the card, and the clipped one, because week 5's own
 //                     denominator is trimmed by that same fixed clock.
 //
-// Neither `rampedSlots` nor `rampedMinutes` (the two fill-loop caps) is
-// touched by this sweep or by anything it measures. Task 3 already measured
-// removing either one: every day type OVERSHOOTS at every ramp week, with
-// max-strength week 4 reaching 102% of full volume (task-3-report.md,
-// configurations ii/iii, 300 seeds/cell) -- so both caps stay, and this
-// sweep exists to make their COMBINED effect on delivered volume legible,
-// not to argue for loosening them.
+// `rampedMinutes` (the minute-based fill-loop cap) was REMOVED in v80 (spec
+// §4.3-§4.4): lifting days no longer have a clock, so the ramp's promise is
+// held by dose and count (`rampedSlots`, the session dose) and is checked per
+// week by `compose`, not here. The "packToBudget trims week 5" reasoning
+// above describes v79; on v80 lifting days `packToBudget` is not called, and
+// `delivered/drawn` here reflects the ten-per-pattern cap and the ramp budget
+// only. Task 3's old finding that removing a cap makes every day type
+// overshoot (max-strength week 4 at 102%) was measured under v79 rules and is
+// not evidence about v80.
 function ramp(seeds = 3000) {
   const DAYS = ['max-strength', 'power', 'hypertrophy'];
   for (const dayType of DAYS) {
@@ -324,13 +338,86 @@ function ramp(seeds = 3000) {
   console.log('by a week-5 total the SAME fixed clock has already cut down -- so');
   console.log('vs-full(wk5) is the one that flatters week 4 and buries week 1, not the');
   console.log('other two.');
-  console.log('\nHYPERTROPHY WEEK 1: two mechanisms compound, not one. The fill-loop caps');
-  console.log('(rampedSlots/rampedMinutes) cut how many exercises a ramped session');
-  console.log('carries, THEN the session set budget cuts the sets inside the exercises');
-  console.log('that survive. Neither cap is touched here -- task-3-report.md measured');
-  console.log('that widening either makes every day type overshoot instead, max-strength');
-  console.log('week 4 reaching 102% of full volume.');
+  console.log('\nHYPERTROPHY WEEK 1: two mechanisms compound, not one. rampedSlots cuts');
+  console.log('how many exercises a ramped session carries, THEN the session set budget');
+  console.log('cuts the sets inside the exercises that survive. rampedMinutes, the');
+  console.log('second fill-loop cap, was removed in v80 (spec §4.3-§4.4) along with the');
+  console.log('lifting-day clock; `compose` is the sweep that gates the ramp now.');
 }
+
+// compose -- spec 2026-10-22 §4.4, §6. What a lifting session is made of, by
+// ramp week, and the ramp gate. Profiles are built exactly as ramp() builds
+// them. The gate: week w mean sets / week-5 mean sets must not exceed
+// RAMP[w-1].volume. Percentages are ratios of MEANS, over the same seeds.
+function compose(seeds = 300) {
+  const mean = a => a.reduce((x, y) => x + y, 0) / (a.length || 1);
+  const p90 = a => { const x = [...a].sort((p, q) => p - q); return x[Math.min(x.length - 1, Math.floor(0.9 * x.length))]; };
+  let anyOver = false;
+  for (const dayType of LIFT_DAYS) {
+    const rows = [1, 2, 3, 4, 5].map(week => {
+      const profile = { returnDate: iso(Date.now() - ((week - 1) * 7 + 3) * DAY) };
+      const ex = [], sets = [], dur = [], cns = [], perPat = {};
+      for (let seed = 1; seed <= seeds; seed++) {
+        const s = generate({ library: LIB, profile, history: [], soreness: {},
+                             dayType, seed, now: Date.now() });
+        const work = s.blocks.filter(countsTowardVolume);
+        ex.push(work.length);
+        sets.push(work.reduce((a, b) => a + b.sets, 0));
+        dur.push(s.durationMin);
+        cns.push(s.cnsLoad);
+        for (const [p, n] of Object.entries(s.patternSets || {})) (perPat[p] ||= []).push(n);
+      }
+      // A pattern absent from a session contributes 0 to that session's mean.
+      for (const p of Object.keys(perPat)) while (perPat[p].length < seeds) perPat[p].push(0);
+      return { week, ex, sets, dur, cns, perPat };
+    });
+    const wk5 = mean(rows[4].sets);
+    console.log(`\n=== ${dayType} (n=${seeds} per week) ===`);
+    console.log('wk  exercises  sets   dur mean  p90  max   cns   RAMP   sets/wk5  gate');
+    for (const r of rows) {
+      const ratio = mean(r.sets) / wk5, cap = RAMP[r.week - 1].volume;
+      const over = ratio > cap + 1e-9;
+      if (over) anyOver = true;
+      console.log(
+        `${r.week}   ${mean(r.ex).toFixed(2).padStart(8)}  ${mean(r.sets).toFixed(2).padStart(5)}  ` +
+        `${mean(r.dur).toFixed(1).padStart(8)}  ${String(p90(r.dur)).padStart(3)}  ${String(Math.max(...r.dur)).padStart(3)}  ` +
+        `${mean(r.cns).toFixed(2).padStart(5)}  ${(cap * 100).toFixed(0).padStart(3)}%  ` +
+        `${(100 * ratio).toFixed(1).padStart(7)}%  ${over ? 'OVER' : 'PASS'}`);
+    }
+    console.log('  sets per pattern (mean/max), weeks 1-5:');
+    const pats = [...new Set(rows.flatMap(r => Object.keys(r.perPat)))].sort();
+    for (const p of pats) {
+      console.log('    ' + p.padEnd(14) + rows.map(r => {
+        const a = r.perPat[p] || [0];
+        return `${mean(a).toFixed(1)}/${Math.max(...a)}`.padStart(8);
+      }).join(''));
+    }
+  }
+  console.log(anyOver ? '\nRAMP GATE: OVER -- a ramp week delivers more than its column promises.'
+                      : '\nRAMP GATE: PASS on every lifting day type and week.');
+  console.log('\nSets = working sets on blocks passing countsTowardVolume (the line');
+  console.log('patternSets and cnsLoad ride on). durationMin is the card\'s own number.');
+}
+
+// clock -- worst-case durationMin on the four days that still have a clock
+// (aerobic-steady, interval, sprint, plyometric), full volume (no returnDate),
+// seeds 1..N, same call shape as tests/session.test.mjs's duration sweep.
+function clock(seeds = 3000) {
+  const allowance = TIME.GYM_SESSION_TOTAL_MIN + TIME.FLOOR_OVERRUN_ALLOWANCE_MIN;
+  console.log(`n=${seeds} per day type; ceiling = ${TIME.GYM_SESSION_TOTAL_MIN} + ${TIME.FLOOR_OVERRUN_ALLOWANCE_MIN} = ${allowance} min\n`);
+  console.log('day type          mean   max   at seed  vs ceiling');
+  for (const dayType of PHASE_1_DAY_TYPES.filter(d => !LIFT_DAYS.includes(d))) {
+    let sum = 0, worst = -1, at = 0;
+    for (let seed = 1; seed <= seeds; seed++) {
+      const s = generate({ library: LIB, dayType, seed, now: 1e12 });
+      sum += s.durationMin;
+      if (s.durationMin > worst) { worst = s.durationMin; at = seed; }
+    }
+    const d = worst - allowance;
+    console.log(`${dayType.padEnd(16)} ${(sum / seeds).toFixed(1).padStart(5)} ${String(worst).padStart(5)} ${String(at).padStart(9)}  ${d <= 0 ? 'within' : 'OVER'} (${d >= 0 ? '+' : ''}${d})`);
+  }
+}
+const LIFT_DAYS = ['max-strength', 'power', 'hypertrophy'];
 
 // --------------------------------------------------------------------------
 
@@ -339,13 +426,17 @@ const argOf = f => { const i = rest.indexOf(f); return i === -1 ? null : rest[i 
 const CMDS = { reach, daytypes, gaps, ceiling,
                repeats: () => repeats(rest.find(a => !a.startsWith('--'))),
                veto: () => veto(argOf('--without')),
-               ramp: () => ramp(rest[0] ? Number(rest[0]) : undefined) };
+               ramp: () => ramp(rest[0] ? Number(rest[0]) : undefined),
+               compose: () => compose(rest[0] ? Number(rest[0]) : undefined),
+               clock: () => clock(rest[0] ? Number(rest[0]) : undefined) };
 
 if (!CMDS[cmd]) {
-  console.error('usage: measure.mjs <reach|daytypes|repeats|gaps|ceiling|veto|ramp>');
+  console.error('usage: measure.mjs <reach|daytypes|repeats|gaps|ceiling|veto|ramp|compose|clock>');
   console.error('  repeats [pattern]     e.g. repeats sprint');
   console.error('  veto [--without id]   bisect which entry moved a CNS ratchet');
   console.error('  ramp [seeds]          default 3000/cell; pass a small number to smoke-test');
+  console.error('  compose [seeds]       default 300/cell; lifting-day makeup by week + the ramp gate');
+  console.error('  clock [seeds]         default 3000/day type; worst-case minutes on clocked days');
   process.exit(2);
 }
 CMDS[cmd]();
