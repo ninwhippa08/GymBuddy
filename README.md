@@ -325,7 +325,7 @@ deadlifts followed by 4×11 pause squats, who said the counts were not grounded
 in the movement. Measured over 3,000 sessions per day type, 34–37% of loaded
 sets had asked for more than a true N-rep max, and 6.5–15.7% of heavy days
 paired two heavy squat/hinge lifts; both now read zero, with no session longer
-than before (worst 67 min). Reps were never fitted to the clock — packing only
+than before (worst 67 min, as of v78; non-lifting days only since v80). Reps were never fitted to the clock — packing only
 ever removes work. `docs/superpowers/specs/2026-09-16-rep-method-design.md`.
 
 **Zero dependencies, by requirement.** No npm, no bundler, no framework, no
@@ -475,7 +475,8 @@ gym sessions** while reporting the block packed. Repricing the core rep first
 tagged `[unverified]`) paid for most of the fix; `COOLDOWN_MIN` 12 → 14 spent
 one measured minute for the rest. The third set now survives on 75% of
 sessions, the warning fires on **0 of 70,000**, and the worst session is 67 min
-against the athlete's stated 70. `docs/design-mobility-and-warmup.md` §11.
+against the athlete's stated 70 (as of then; that limit applies to non-lifting
+days only since v80). `docs/design-mobility-and-warmup.md` §11.
 
 **Sources are tagged, including the weak ones.** `docs/programming-basis.md`
 marks each number `[verified]`, `[corroborated]`, `[unverified]`, or
