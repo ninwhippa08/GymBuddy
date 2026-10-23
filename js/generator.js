@@ -2366,8 +2366,11 @@ export function generate({
     // What qualified when this block was admitted. tests/compose.test.mjs
     // checks the drawn pattern against it: replaying admission from the
     // finished session cannot be exact, because the ramp and the pattern cap
-    // change set counts after the dose was read (the packer, which could also
-    // drop a block, no longer runs on lifting days -- spec §5). Diagnostic only -- js/ui.js never prints it.
+    // change set counts after the dose was read, and on a lifting day the cap
+    // can also drop an OPTIONAL block whole (Rulings J/K) whose sets fed a
+    // later admission. (The packer, which could drop blocks too, no longer
+    // runs on lifting days -- spec §5.) Diagnostic only -- js/ui.js never
+    // prints it.
     if (admitted) block.admittedPatterns = admitted;
     blocks.push(block);
   }

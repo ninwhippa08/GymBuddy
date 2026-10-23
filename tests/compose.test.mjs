@@ -196,10 +196,12 @@ test('drawPatterns: a non-target pattern is still held to the session dose', () 
 
 // `admittedPatterns` is the DRAW set (drawPatterns) the slot was narrowed to.
 // Replay from s.blocks cannot be exact: rampToBudget shaves sets after the
-// fill (the dose is read on PRE-ramp counts) and capPatternSets shaves
-// again. (packToBudget, which could drop an optional block whose sets fed a
-// later admission, no longer runs on lifting days -- spec §5.) So the fill loop records what qualified at the moment each optional
-// block was admitted, and this checks the drawn exercise is on one of them.
+// fill (the dose is read on PRE-ramp counts), and capPatternSets shaves
+// again -- and on a lifting day can drop an optional block whole (Rulings
+// J/K) whose sets fed a later admission. (packToBudget, which could also drop
+// one, no longer runs on lifting days -- spec §5.) So the fill loop records
+// what qualified at the moment each optional block was admitted, and this
+// checks the drawn exercise is on one of them.
 // The record is never rendered (js/ui.js names the fields it prints).
 const order = (dayType, slot) => TEMPLATES[dayType].findIndex(sl => sl.slot === slot);
 test('an optional block is always on a qualifying pattern', () => {
@@ -275,21 +277,41 @@ test('nothing trims a lifting session', () => {
 // fields it prints). After that only two steps may touch a set count:
 // capPatternSets (a dose rule, spec §2 keeps it) and pairAntagonists (which
 // only groups). So the test rebuilds the shaped session from the finished
-// one -- every block carrying `shapedSets`, in template order (the order the
-// fill loop pushed them, which capPatternSets breaks ties on), with `sets`
-// and its work entries restored -- runs the exported capPatternSets on it,
-// and requires every REQUIRED block to come out exactly as the card has it.
-// Any other step removing a set (the packer, a clock of any kind) shows up as
-// a required block carrying fewer sets than that. A dropped block shows up as
-// a count mismatch. More sets than v78 is intended: the packer used to shave
-// required sets on long max-strength days.
+// one -- every REQUIRED block carrying `shapedSets`, in template order, with
+// `sets` and its work entries restored -- runs the exported capPatternSets on
+// those alone (Ruling K: the only permitted loss is required work alone over
+// the cap), and requires every required block to come out exactly as the
+// card has it. Any other step removing a set (the packer, a clock of any
+// kind, optional work) shows up as a required block carrying fewer sets.
+//
+// Template order IS the shaped order the live cap breaks ties on: the fill
+// loop walks TEMPLATES[dayType] in order and pushes each filled slot, and
+// nothing reorders before the cap (orderSession runs later). The test pins
+// the one thing that reading needs -- slot ids unique per template, so
+// findIndex is a total order.
+//
+// A REMOVED required block cannot be seen by the set comparison (it is not in
+// s.blocks to compare), so presence is asserted separately: every required
+// template slot that the session does not list in `unfilled` (and that is
+// not opt-in gated, `requiresMeasuredGround`) must be on the card.
+//
+// More sets than v78 is intended: the packer used to shave required sets on
+// long max-strength days.
 test('required working sets survive to the card', () => {
   let required = 0;
   for (const dayType of LIFTING) {
+    const ids = TEMPLATES[dayType].map(sl => sl.slot);
+    assert.equal(new Set(ids).size, ids.length, `${dayType}: template slot ids are not unique`);
     for (let week = 1; week <= 5; week++) {
       for (let seed = 1; seed <= 100; seed++) {
         const s = session(dayType, week, seed);
         const tag = `${dayType} w${week} s${seed}`;
+        const unfilled = new Set(s.unfilled.map(u => u.slot));
+        const onCard = new Set(s.blocks.map(b => b.slot));
+        for (const sl of TEMPLATES[dayType]) {
+          if (sl.optional || sl.requiresMeasuredGround || unfilled.has(sl.slot)) continue;
+          assert.ok(onCard.has(sl.slot), `${tag}: required slot ${sl.slot} was removed`);
+        }
         const main = s.blocks.filter(b => G.countsTowardVolume(b));
         assert.ok(main.length && main.every(b => Number.isInteger(b.shapedSets)),
           `${tag}: main-work block without shapedSets`);
