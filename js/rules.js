@@ -935,6 +935,11 @@ export const TIME = Object.freeze({
   // the fill loop's rampedSlots) is now one of the things that does bind,
   // beside weekly need and the session dose. session-composition spec §4.3.
   MAX_MAIN_SLOTS: 8,
+  // v80: read only for NON-lifting day types now -- packToBudget's default
+  // budget and finalise()'s "over the N min main-work budget" warning. Lifting
+  // days (max-strength, power, hypertrophy) never consult it: no time limit,
+  // athlete's decision 2026-10-22. MAX_MAIN_SLOTS above is read by the fill
+  // loop on every day type, with rampedSlots.
   MAIN_WORK_MAX_MIN: 49,
   // Mandatory, never randomised out. Prep is capped by the drill dose rather
   // than by this figure; it is here so the three budgets can be seen to sum.
@@ -1250,5 +1255,12 @@ export const TIME = Object.freeze({
   // 67 and no change here, against all four days for 70 -- and chose all four.
   // The limit is met and not exceeded. It has no room left in it, so the next
   // thing that adds session time has to buy its minutes before it spends them.
+  //
+  // 2026-10-22 (v80), [measured]: the ceiling below now applies to the
+  // NON-lifting day types only (lifting days have no time limit). Worst case
+  // seen, node tools/measure.mjs clock 3000, full volume, now=1e12: 66 min
+  // (interval seed 768, sprint seed 796); aerobic-steady 65, plyometric 48.
+  // 3000 seeds is fewer than the 10000 above, so 66 is a lower bound. Constant
+  // unchanged.
   FLOOR_OVERRUN_ALLOWANCE_MIN: 10
 });

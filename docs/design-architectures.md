@@ -680,7 +680,19 @@ minutes, which is a change to §4.4's decision rule and was not taken here.
 Decided with the athlete 2026-09-06.
 
 **`rampedMinutes` outlived the reason it was written for, and stays anyway —
-measured 2026-09-19, `sw.js` v78.** `docs/superpowers/specs/2026-09-17-ramp-set-budget-design.md`
+measured 2026-09-19, `sw.js` v78. REMOVED 2026-10-22, `sw.js` v80** (below the
+original text, which is kept as written). On lifting days the fill loop no
+longer asks how many minutes a session is worth: optional slots are admitted by
+weekly need, per-session dose and count, and `packToBudget` is not called, so
+`rampedMinutes` has nothing left to guard. `rampedSlots` stays: a count, not a
+clock. The ramp is still bounded, by `rampToBudget` and the count; measured at
+1,000 seeds per cell it overshoots the `RAMP` column by at most one point on
+max-strength weeks 2 and 3 and power weeks 2 and 4, which the athlete accepted
+(`docs/programming-basis.md`, section 2). The v78 sweep that argued for keeping
+it ran with a minute budget in force; that budget is what the athlete retired
+("don't set a limit"). Spec: `docs/superpowers/specs/2026-10-22-session-composition-design.md`.
+
+The v78 entry as written: `docs/superpowers/specs/2026-09-17-ramp-set-budget-design.md`
 §4 moved sets out of `prescribe()`'s per-block scaling entirely: the fill loop
 now draws every block at full template dose, and only a session-level budget
 (`rampToBudget()`) removes sets afterward. That means `estimateMinutes(blocks)`

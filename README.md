@@ -208,9 +208,29 @@ file is the authoritative version; this is the summary.
 | 6 | FILL | Chooses an actual exercise for each slot in the template — and on a max-strength or hypertrophy day, **never a second heavy squat or deadlift-type lift** |
 | 7 | PRESCRIBE | Reps from **what the exercise is**, then reps in reserve, then the load those two imply — or foot contacts, or minutes |
 | 7b | RAMP BUDGET | Spends the return ramp's percentage once, as a session-level set budget across the working blocks it drew at full dose — not as a per-block multiplier |
-| 8 | PACK | Estimates duration and trims optional slots to the main-work budget, caps any movement pattern at **ten sets**, then pairs opposing lifts into supersets |
+| 8 | PACK | Caps any movement pattern at **ten sets**, then pairs opposing lifts into supersets. On endurance, sprint and jump days it also still trims to the main-work time budget; on lifting days it does not (see below) |
 | 9 | PREP / COOL | Appends the dynamic warm-up and the static cool-down plus core, both **matched to the patterns the day actually trains**, then packs each to its budget |
 | 10 | ORDER | Enforces the fixed sequence: prep first, cool-down last — **core before the static stretches**, which close the session — and a superset's two halves adjacent |
+
+**How a lifting session is built (v80).** On max-strength, power and hypertrophy
+days the clock no longer decides what goes in. Each optional exercise slot is
+taken only if three things hold: you are behind on that movement pattern this
+week, the pattern has not already had its dose in this session (2 sets for
+strength and power days, 10 for hypertrophy), and the session has not hit its
+exercise-count cap. Required work is never trimmed. If a pattern would pass ten
+sets, optional exercises go first. Endurance, sprint and jump days are
+unchanged and still have their time budget.
+
+**There is no time limit on lifting days, on purpose.** You decided on
+2026-10-22: "don't set a limit … I want to test the new method. Then we can see
+if the workouts created are too much for me." The sessions that come out are
+about 75 minutes at full volume (measured, 1,000 seeds per cell, mean
+74.6 to 76.2 across the three lifting types in week 5), and the longest seen
+was 99 minutes (max-strength, week 5, measured in 1,000 and in 3,000 seeds).
+If they turn out to be too much, the fix is a composition rule, not a clock.
+The per-session dose comes from a 2025 preprint that has not been peer
+reviewed (Remmert et al.), so treat it as the best available number, not a
+settled one.
 
 Two ideas hold the design together:
 
@@ -229,12 +249,13 @@ Two ideas hold the design together:
 node --test tests/*.test.mjs
 ```
 
-684 tests, using only Node's built-in `node:test` and `node:assert/strict`.
+696 tests, using only Node's built-in `node:test` and `node:assert/strict`.
 There is no `package.json` and nothing to install.
 
 They are not only unit tests. Several are **sweeps**: they generate sessions in
 bulk across profiles and histories and assert a property holds for every one —
-that no gym session exceeds 70 minutes, that neither load ceiling — the
+that no endurance, sprint or jump session exceeds 70 minutes (lifting days
+have no limit since v80), that neither load ceiling — the
 return ramp’s nor the standing one — is ever exceeded by any set the card
 prints, that every movement pattern is eventually covered, that no
 exercise is ever prescribed without the equipment it needs. The largest sweep
@@ -513,14 +534,23 @@ that is heavier, which keeps the last step inside the sourced band near maximal
 work). The loaded card shows the working multiplier large with every set drawn
 as a bar underneath, warm-ups grey and working sets in colour, in place of a
 `sets` line and a `warm-up` line of numbers. **Decided by the athlete: the time
-this frees does not buy more work.** The session's time budget still prices the
-old, longer warm-up (a temporary hold that ends with the planned rebuild of how
-a session is composed), so working sets are exactly v78's while the displayed
-duration drops. Measured over seeds 1-300 at ramp weeks 1 and 5: working sets
+this frees does not buy more work.** The session's time budget priced the old,
+longer warm-up for one version (a temporary hold); **v80 ended it**, because
+lifting days no longer have a time budget, so the shorter warm-up simply shows
+as a shorter card. Measured over seeds 1-300 at ramp weeks 1 and 5 (while the hold was in place): working sets
 identical on every day type; mean displayed duration down 2.0 to 5.7 minutes on
 max-strength, power and hypertrophy days, unchanged on the others.
 `docs/design-mobility-and-warmup.md` section 2.3 and 4.3,
 `docs/superpowers/specs/2026-10-22-warmup-and-staircase-card-design.md`.
+
+**Sessions are built from the work, not the clock (v80).** See "How a lifting
+session is built" above. One consequence you accepted on 2026-10-22 ("accept
+it, keep going"): the return ramp overshoots its printed column by at most one
+percentage point on a few weeks (max-strength weeks 2 and 3, power weeks 2 and
+4), because the exercise count is the same from week 2 on and only the sets
+change. Week 1 lands at about 40% of a full session on max-strength and power days (34% on hypertrophy) against a printed 50%.
+v79 failed the same check on more weeks. Measured, 1,000 seeds per cell.
+`docs/programming-basis.md` section 2, `docs/superpowers/specs/2026-10-22-session-composition-design.md`.
 
 ---
 

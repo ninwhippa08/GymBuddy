@@ -590,7 +590,7 @@ worst-case line ran to 82 characters, which wraps mid-step on the phone. The
 collapse is a value comparison, not a `technical === 3` special case; worst
 case is now 73 characters.
 
-#### v79 (2026-10-22): two rungs, and a temporary pricing hold
+#### v79 (2026-10-22): two rungs, and a temporary pricing hold (hold ENDED in v80)
 
 **The rule (supersedes the step-count paragraph and table above).** Below
 `WARMUP.FLOOR` (0.50) there is still no warm-up. Otherwise exactly two rungs:
@@ -607,7 +607,12 @@ repetition is what the prep block already provides (a builder's call, not the
 athlete's). Examples, lower body: working 0.80 gives 0.30 x 8 then 0.65 x 3;
 0.90 gives 0.30 x 8 then 0.75 x 2; 0.95 gives 0.30 x 8 then 0.80 x 2.
 
-**The temporary pricing hold.** Two fewer warm-up sets frees time, and the
+**The temporary pricing hold. ENDED 2026-10-22 in v80: `legacyWarmup`,
+`budgetWarmupReps`, `estimateMinutes({ held })` and `tests/work-held.test.mjs`
+are deleted. Lifting days have no minute budget any more (athlete: "don't set a
+limit"), so nothing prices the warm-up for admission or trimming, and the card's
+`durationMin` is the real, shorter figure. Non-lifting days never carried a
+hold. The text below is the v79 record, kept as written.** Two fewer warm-up sets frees time, and the
 generator fills the clock (the optional-slot loop stops at a minutes check;
 `packToBudget` trims to `MAIN_WORK_MAX_MIN`), so the saving would have leaked
 into working sets. The athlete ruled (2026-10-22): **the freed time does not

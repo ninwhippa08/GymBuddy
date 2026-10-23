@@ -272,6 +272,73 @@ measured.
    strength and is `[corroborated]`, not measured. A single shared target
    prescribed max-strength roughly 2.5× the volume that buys anything.
 
+### The admission rule on lifting days — v80, 2026-10-22
+
+On max-strength, power and hypertrophy days an optional slot is admitted by
+three tests and nothing else: **weekly need** (some pattern it can serve is
+behind its weekly target), **per-session dose** (that pattern has fewer direct
+working sets in this session than `VOLUME.SESSION_DOSE`: strength and power 2,
+hypertrophy 10), and **count** (`MAX_MAIN_SLOTS` 8 and `rampedSlots`). No minute
+check, no `packToBudget`, no pricing hold. `capPatternSets` on these days takes
+optional sets first, then drops optional blocks, and shaves required work only
+when required work alone exceeds ten sets on a pattern. Power's contacts slot
+is exempt from the dose (it is dosed in ground contacts). Non-lifting days are
+unchanged.
+
+**Source for the dose.** Remmert, Pelland, Robinson, Hinson & Zourdos (2025),
+*Is There Too Much of a Good Thing? Meta-Regressions of the Effect of
+Per-Session Volume on Hypertrophy and Strength*, SportRxiv preprint, **not peer
+reviewed**. Point of undetectable outcome superiority: about 2 direct sets per
+session for strength, about 11 fractional sets for hypertrophy, per muscle.
+`[corroborated]`. The 10 for hypertrophy is the existing per-pattern session
+cap, the stricter of 10 and 11 (my call). The 2 is the preprint's number. The
+evidence gives no whole-session limit, so session size is set by weekly need,
+dose and the count cap, and by the athlete's own feedback.
+
+**Decision (athlete, 2026-10-22): no time limit on lifting days.** "Don't set a
+limit ... I want to test the new method. Then we can see if the workouts
+created are too much for me." The 70-minute requirement is retired for lifting
+days; if sessions prove too long the fix is a composition rule, never a clock.
+
+**Measured result** (`node tools/measure.mjs compose`, `[measured]`, 1,000
+seeds per cell, fresh profile at each ramp week, `now` fixed; the 3,000-seed
+run gives the same verdicts to within 0.2 minutes and 0.1 sets):
+
+| Day type | Week | Exercises | Sets | Mean min | p90 | Max | Sets / week-5 | RAMP |
+|---|---|---|---|---|---|---|---|---|
+| max-strength | 1 | 4.00 | 7.24 | 46.2 | 50 | 55 | 40.4% | 50% |
+| max-strength | 2 | 5.59 | 12.65 | 62.2 | 68 | 78 | 70.5% | 70% |
+| max-strength | 3 | 5.59 | 14.36 | 66.5 | 74 | 86 | 80.0% | 80% |
+| max-strength | 4 | 5.59 | 16.05 | 70.3 | 78 | 91 | 89.5% | 90% |
+| max-strength | 5 | 5.59 | 17.94 | 76.2 | 85 | 99 | 100% | 100% |
+| power | 1 | 4.00 | 9.50 | 44.1 | 47 | 52 | 41.0% | 50% |
+| power | 2 | 5.57 | 16.31 | 60.8 | 67 | 74 | 70.4% | 70% |
+| power | 3 | 5.57 | 18.54 | 64.8 | 71 | 78 | 80.0% | 80% |
+| power | 4 | 5.57 | 21.10 | 69.9 | 77 | 84 | 91.0% | 90% |
+| power | 5 | 5.57 | 23.18 | 74.6 | 82 | 89 | 100% | 100% |
+| hypertrophy | 1 | 5.00 | 7.73 | 41.7 | 45 | 51 | 34.5% | 50% |
+| hypertrophy | 2 | 6.00 | 12.32 | 52.2 | 56 | 61 | 54.9% | 70% |
+| hypertrophy | 3 | 6.00 | 13.96 | 55.5 | 60 | 65 | 62.2% | 80% |
+| hypertrophy | 4 | 7.00 | 17.95 | 64.6 | 70 | 80 | 80.0% | 90% |
+| hypertrophy | 5 | 8.00 | 22.43 | 75.2 | 81 | 93 | 100% | 100% |
+
+Full-volume (week 5) sessions average 74.6 to 76.2 minutes; the longest seen is
+99 (max-strength, 1,000 and 3,000 seeds). For comparison, v79 at the same 1,000
+seeds had week-5 means of 56.5, 57.2 and 57.5 minutes with 3.1 to 5.2
+exercises. Sets are working sets on blocks that count toward volume.
+
+**The ramp overshoots by up to one point, and that was accepted.** Strict test:
+week mean sets divided by week-5 mean sets must not exceed the `RAMP` column.
+It is over on max-strength weeks 2 and 3 (70.5%, 80.04%) and power weeks 2 and 4
+(70.4%, 91.0%) by 0.0 to 1.0 points, stable across 1,000 and 3,000 seeds. Cause:
+the exercise count is flat from week 2, so only sets vary with the ramp. The
+athlete decided "accept it, keep going" (2026-10-22). Week 1 delivers about
+40% on max-strength and power against a printed 50%; hypertrophy week 1 to 3
+deliver 34 to 62% against 50 to 80%, the known undershoot (README, "the ramp
+delivers less than it prints"). v79 failed the same check on more weeks
+(max-strength weeks 1 to 4, power and hypertrophy week 4; 1,000 seeds). So
+this is not a regression in kind.
+
 ---
 
 ## 3. Return from inactivity — the governing constraint
@@ -557,6 +624,12 @@ in place, the same way this file's other re-derivations (discrepancy 7's
 `FLOOR_OVERRUN_ALLOWANCE_MIN` history, immediately below) are recorded as
 dated addenda rather than silently overwritten. Every other row in this table
 still matches `rules.js`.
+
+**Superseded for lifting days, 2026-10-22 (v80):** max-strength, power and
+hypertrophy days have no main-work or total time limit; see "The admission rule
+on lifting days" in section 2. `MAIN_WORK_MAX_MIN` still governs the other day
+types. Their measured worst case is 66 minutes (`[measured]`, 3,000 seeds per
+day type, interval seed 768 and sprint seed 796) against the 70 minute ceiling.
 
 Running / cardio remains **uncapped** — prescribed by distance, time, or
 interval structure, not by a minute budget.

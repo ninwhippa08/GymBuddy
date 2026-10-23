@@ -8,4 +8,4 @@
 // while v75 was live, and his feedback on it re-reported two fixed defects.
 // design-mobility-and-warmup.md §14.
 
-export const APP_VERSION = 'v79';
+export const APP_VERSION = 'v80';
