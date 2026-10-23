@@ -679,6 +679,28 @@ export function qualifyingPatterns(slot, dayType, state, blocks) {
   return owed.filter(p => sessionSets(p, blocks) < dose);
 }
 
+// What an ADMITTED optional slot is narrowed to before it is drawn. Not the
+// same list as qualifyingPatterns: that one decides WHETHER the slot is taken
+// (§4.1 asks only that SOME target pattern owe volume), this one decides what
+// it may be filled with. The first version narrowed to the qualifying targets
+// and so quietly deleted every non-target pattern from the draw -- carry from
+// max-strength D and hypertrophy D, rotate from hypertrophy D and H -- which
+// no clause of the spec asks for. Controller ruling, 2026-10-22, Task 1 fix.
+//
+// So: the slot's own patterns, minus the TARGET patterns failing §4.1 or
+// §4.2. A non-target pattern has no weekly target to owe, so it answers to
+// the session dose alone (contacts slots exempt from that, as above). A
+// `patterns: null` slot is unchanged: it draws the qualifying targets.
+export function drawPatterns(slot, dayType, state, blocks) {
+  const qualifying = qualifyingPatterns(slot, dayType, state, blocks);
+  if (!slot.patterns) return qualifying;
+  const targets = (DAY_TYPES[dayType] && DAY_TYPES[dayType].targets) || [];
+  const dose = VOLUME.SESSION_DOSE[sessionGoal(dayType)];
+  return slot.patterns.filter(p => targets.includes(p)
+    ? qualifying.includes(p)
+    : slot.mode === 'contacts' || sessionSets(p, blocks) < dose);
+}
+
 export function fillSlot(slot, library, ctx, rng) {
   const pool = eligibleFor(slot, library, ctx);
   if (pool.length === 0) return null;
@@ -2286,13 +2308,14 @@ export function generate({
       // dose, read against the blocks already taken. It used to ask only
       // whether SOME pattern the slot could serve owed weekly volume, and then
       // drew from all of them -- so a slot admitted for pull-h could fill on a
-      // squat the session already held four sets of, or on `carry`, which no
-      // lifting day counts. Now the slot is narrowed to exactly the patterns
-      // that earned it, the same narrowing fillMatched does to a prep group's
-      // `targets`, so the draw cannot land on one that did not qualify.
+      // squat the session already held four sets of. Now a slot is ADMITTED
+      // only when some target pattern qualifies, and DRAWN from its patterns
+      // minus the targets that failed (drawPatterns: non-targets like carry
+      // stay, held to the dose), the same narrowing fillMatched does to a
+      // prep group's `targets`.
       // docs/superpowers/specs/2026-10-22-session-composition-design.md §4.2.
-      admitted = qualifyingPatterns(slot, chosen, state, blocks);
-      if (!admitted.length) continue;
+      if (!qualifyingPatterns(slot, chosen, state, blocks).length) continue;
+      admitted = drawPatterns(slot, chosen, state, blocks);
       fill = { ...slot, patterns: admitted };
       if (blocks.length >= TIME.MAX_MAIN_SLOTS) break;
       // Coverage may not spend what the return ramp saved. The ramp cuts sets

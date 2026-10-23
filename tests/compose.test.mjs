@@ -152,10 +152,49 @@ test('qualifyingPatterns: a pattern with no weekly debt never qualifies', () => 
     ['throw']);
 });
 
+// drawPatterns: what an ADMITTED slot is narrowed to. Controller ruling after
+// Task 1: §4.1 asks only that SOME target pattern owe weekly volume, so a
+// slot's non-target patterns (carry, rotate) stay drawable -- subject to the
+// session dose alone -- and only the TARGET patterns failing 4.1/4.2 are cut.
+test('drawPatterns keeps non-target patterns once a target pattern admits the slot', () => {
+  // `lunge` is a hypertrophy target (not a max-strength one), `carry` is
+  // neither, so this is hypertrophy slot D's shape cut to two patterns.
+  const slot = { patterns: ['lunge', 'carry'], mode: 'load' };
+  assert.deepEqual(G.qualifyingPatterns(slot, 'hypertrophy', EMPTY, []), ['lunge']);
+  assert.deepEqual(G.drawPatterns(slot, 'hypertrophy', EMPTY, []), ['lunge', 'carry']);
+  // Lunge paid for the week: no target pattern admits the slot, so it is not
+  // admitted, and carry alone cannot earn it a place.
+  const paid = { patternSets: { lunge: 10 } };
+  assert.deepEqual(G.qualifyingPatterns(slot, 'hypertrophy', paid, []), []);
+  // Lunge at its dose: the target is cut from the draw, carry stays.
+  assert.deepEqual(G.drawPatterns({ patterns: ['lunge', 'hinge', 'carry'], mode: 'load' },
+                                  'hypertrophy', EMPTY, [load('lunge', 10)]), ['hinge', 'carry']);
+});
+
+test('drawPatterns: a non-target pattern is still held to the session dose', () => {
+  const slot = { patterns: ['lunge', 'hinge', 'pull-h', 'carry'], mode: 'load' };
+  assert.deepEqual(G.drawPatterns(slot, 'max-strength', EMPTY, []),
+    ['lunge', 'hinge', 'pull-h', 'carry']);
+  // Two carry sets already: a strength day's dose of 2 is spent on carry.
+  assert.deepEqual(G.drawPatterns(slot, 'max-strength', EMPTY, [load('carry', 2)]),
+    ['lunge', 'hinge', 'pull-h']);
+  // A target with no weekly debt is cut; a non-target never has debt to pay.
+  assert.deepEqual(G.drawPatterns(slot, 'max-strength', { patternSets: { 'pull-h': 4 } }, []),
+    ['lunge', 'hinge', 'carry']);
+  // Contacts slots stay exempt from the dose, for non-targets too.
+  assert.deepEqual(G.drawPatterns({ patterns: ['jump', 'sprint'], mode: 'contacts' }, 'power', EMPTY,
+    [{ mode: 'contacts', role: 'potentiation', pattern: 'sprint', sets: 3 }]), ['jump', 'sprint']);
+  // `patterns: null` is unchanged: the qualifying targets.
+  assert.deepEqual(G.drawPatterns({ patterns: null, mode: 'load' }, 'max-strength', EMPTY,
+    [load('squat', 4, 'main lift')]), G.qualifyingPatterns({ patterns: null, mode: 'load' },
+    'max-strength', EMPTY, [load('squat', 4, 'main lift')]));
+});
+
 // --------------------------------------------------------------------------
 // The fill loop admits only on a qualifying pattern (spec §4.2)
 // --------------------------------------------------------------------------
 
+// `admittedPatterns` is the DRAW set (drawPatterns) the slot was narrowed to.
 // Replay from s.blocks cannot be exact: rampToBudget shaves sets after the
 // fill (the dose is read on PRE-ramp counts), packToBudget can still drop an
 // optional block whose sets fed a later admission, and capPatternSets shaves
@@ -163,21 +202,27 @@ test('qualifyingPatterns: a pattern with no weekly debt never qualifies', () => 
 // block was admitted, and this checks the drawn exercise is on one of them.
 // The record is never rendered (js/ui.js names the fields it prints).
 test('an optional block is always on a qualifying pattern', () => {
-  let optional = 0;
+  let optional = 0, offTarget = 0;
   for (const dayType of LIFTING) {
     for (let week = 1; week <= 5; week++) {
       for (let seed = 1; seed <= 100; seed++) {
         const s = session(dayType, week, seed);
         for (const b of s.blocks.filter(b => b.optional && G.countsTowardVolume(b))) {
           optional++;
+          if (!DAY_TYPES[dayType].targets.includes(b.pattern)) offTarget++;
           assert.ok(Array.isArray(b.admittedPatterns) && b.admittedPatterns.length,
             `${dayType} w${week} s${seed} slot ${b.slot}: no admission record`);
           assert.ok(b.admittedPatterns.includes(b.pattern),
             `${dayType} w${week} s${seed} slot ${b.slot}: ${b.pattern} not in [${b.admittedPatterns}]`);
-          assert.ok(DAY_TYPES[dayType].targets.includes(b.pattern));
+          // Admission needs a qualifying TARGET pattern in the draw set.
+          assert.ok(b.admittedPatterns.some(p => DAY_TYPES[dayType].targets.includes(p)),
+            `${dayType} w${week} s${seed} slot ${b.slot}: admitted with no target pattern`);
         }
       }
     }
   }
   assert.ok(optional > 0, 'the sweep reached no optional block');
+  // And the narrowing does not delete the slots' non-target patterns: carry
+  // and rotate are still drawn somewhere in 1,500 sessions.
+  assert.ok(offTarget > 0, 'no optional block drew a non-target pattern (carry, rotate)');
 });
