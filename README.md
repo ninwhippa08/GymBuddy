@@ -494,8 +494,9 @@ week 4's promised 10% cut delivered nothing at all (`round(3 × 0.9) = 3`). v78
 moves the ramp to a session-level set budget instead: `rampToBudget()` takes
 `budget = round(drawn × volume)` over the session's working sets and hands out
 the difference from full dose by largest fractional remainder. Every week now
-differs, and week 4 now cuts its own sets (though the session clock trims
-week 5 often enough that the two still end up close in size; spec §10.3):
+differs, and week 4 now cuts its own sets (though, as of v78, the session
+clock trimmed week 5 often enough that the two still ended up close in size;
+spec §10.3. v80 removed the clock on lifting days):
 
 | | wk 1 | wk 2 | wk 3 | wk 4 | wk 5 |
 |---|---|---|---|---|---|
@@ -511,11 +512,15 @@ session holds, at any volume, so the replacement now keeps the set count of
 the block it replaced.
 
 **What the budget does not reach: a coverage-heavy day still feels smaller
-than its own percentage.** The budget is met (hypertrophy week 1 asks for
+than its own percentage.** (As of v79:) the budget is met (hypertrophy week 1 asks for
 52.5% and gets 52.6%), but the fill loop's own ramp caps also cut the number
-of working blocks a low-week session carries — hypertrophy goes from 5.17
-blocks at week 5 to 3.02 at week 1 — so the share of full volume that reaches
-the athlete is **~34%**, not the 50% the card prints. Shown this on
+of working blocks a low-week session carries — hypertrophy went from 5.17
+blocks at week 5 to 3.02 at week 1 — so the share of full volume that reached
+the athlete was **~34%**, not the 50% the card prints. In v80 the shortfall
+remains for a different reason: hypertrophy goes from 8.00 blocks at week 5 to
+5.00 at week 1 (the count cap scales with the ramp, and the dose and weekly-need
+tests admit fewer slots), and delivers 34.5% of week 5's sets (measured, 1,000
+seeds per cell). Shown this on
 2026-09-19, he chose to record it rather than engineer it away, and declined
 both raising the early-week exercise floor and changing what the card prints.
 `docs/design-mobility-and-warmup.md` §13.4, `docs/design-architectures.md`
@@ -957,7 +962,8 @@ generated session** — built by the template, asserted by three tests, and thro
 away before reaching the screen. Every one of those tests called the builder
 directly; none asked what the app returns. Restoring them cost nothing. The
 balance stage cost three minutes, and the athlete spent them knowingly: the
-worst session is now 70, which is the stated limit exactly and leaves no margin.
+worst session is now 70, which is the stated limit exactly and leaves no margin
+(as of then; non-lifting days only since v80, where the measured worst is 66).
 `docs/design-library-expansion.md` §22.
 
 **The sixth pull was mined against the measurement's advice, and the
