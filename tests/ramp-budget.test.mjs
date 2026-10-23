@@ -247,7 +247,7 @@ test('no session is emptied, and none is left at every floor by accident', () =>
   }
 });
 
-test('full volume is unchanged, block for block', () => {
+test('required full-volume work is v77 work, and the ramp cuts nothing at week 5', () => {
   // The ramp is the only thing this touches. A fully recovered athlete's
   // session must be what v77 built -- pinned in tests/fixtures/full-volume-v77.json
   // rather than compared against a second live call, because two live

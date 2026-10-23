@@ -18,7 +18,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { generate, swapBlock, makeRng } from '../js/generator.js';
-import { PHASE_1_DAY_TYPES, DAY_TYPES } from '../js/templates.js';
+import { PHASE_1_DAY_TYPES, DAY_TYPES, TEMPLATES } from '../js/templates.js';
 
 const LIB = JSON.parse(
   readFileSync(new URL('../data/exercises.json', import.meta.url), 'utf8')
@@ -57,18 +57,23 @@ function capture() {
 test('working sets are what v78 built, every day type and ramp week', () => {
   if (process.env.CAPTURE_WORK === '1') { capture(); return; }
   const fixture = JSON.parse(readFileSync(FIXTURE, 'utf8'));
-  // LIFTING DAY TYPES LEFT OUT since the session-composition change. Their
-  // optional slots are now admitted by weekly need and per-session dose
-  // (docs/superpowers/specs/2026-10-22-session-composition-design.md §4.2), so
-  // their work differs from v78's BY DESIGN, and spec §5 ends this file's
-  // purpose ("v79 must not change work") -- the next task deletes it with the
-  // hold. Until then it still pins the day types §4 does not touch.
+  // LIFTING DAY TYPES: REQUIRED SLOTS ONLY since the session-composition
+  // change. Their optional slots are now admitted by weekly need and
+  // per-session dose (docs/superpowers/specs/2026-10-22-session-composition-design.md
+  // §4.2), so the OPTIONAL work differs from v78's by design. The required
+  // slots are filled before any optional one is reached and nothing in §4
+  // touches them, so their full workPrint must still be v78's -- checked at
+  // this change: 900 required blocks, 0 differences. Spec §5 ends this file's
+  // purpose ("v79 must not change work"); the next task deletes it with the
+  // hold. Non-lifting day types are still compared whole.
   const lifting = d => (DAY_TYPES[d].targets || []).length > 0;
-  for (const dayType of PHASE_1_DAY_TYPES.filter(d => !lifting(d))) {
+  for (const dayType of PHASE_1_DAY_TYPES) {
+    const required = new Set(TEMPLATES[dayType].filter(sl => !sl.optional).map(sl => sl.slot));
+    const keep = lifting(dayType) ? (row => required.has(row[0])) : (() => true);
     for (const week of WEEKS) {
       for (const seed of SEEDS) {
-        assert.deepEqual(session(dayType, week, seed).blocks.map(workPrint),
-          fixture[dayType][week][seed], `${dayType} week ${week} seed ${seed}`);
+        assert.deepEqual(session(dayType, week, seed).blocks.map(workPrint).filter(keep),
+          fixture[dayType][week][seed].filter(keep), `${dayType} week ${week} seed ${seed}`);
       }
     }
   }

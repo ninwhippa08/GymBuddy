@@ -10,7 +10,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { generate } from '../js/generator.js';
-import { DAY_TYPES } from '../js/templates.js';
+import { DAY_TYPES, TEMPLATES } from '../js/templates.js';
 
 const LIB = JSON.parse(
   readFileSync(new URL('../data/exercises.json', import.meta.url), 'utf8')
@@ -201,6 +201,7 @@ test('drawPatterns: a non-target pattern is still held to the session dose', () 
 // again. So the fill loop records what qualified at the moment each optional
 // block was admitted, and this checks the drawn exercise is on one of them.
 // The record is never rendered (js/ui.js names the fields it prints).
+const order = (dayType, slot) => TEMPLATES[dayType].findIndex(sl => sl.slot === slot);
 test('an optional block is always on a qualifying pattern', () => {
   let optional = 0, offTarget = 0;
   for (const dayType of LIFTING) {
@@ -209,6 +210,21 @@ test('an optional block is always on a qualifying pattern', () => {
         const s = session(dayType, week, seed);
         for (const b of s.blocks.filter(b => b.optional && G.countsTowardVolume(b))) {
           optional++;
+          // A NECESSARY condition on the dose's input, independent of what the
+          // loop recorded: the sets FINALLY on this pattern from earlier
+          // template slots are a lower bound on what the fill loop counted
+          // (the ramp, packer and pattern cap only ever remove), so they too
+          // must be under the dose. Catches a wrong `blocks` passed to the
+          // helpers, which admittedPatterns alone cannot see.
+          if (b.mode !== 'contacts' && DAY_TYPES[dayType].targets.includes(b.pattern)) {
+            const here = order(dayType, b.slot);
+            const before = s.blocks
+              .filter(x => G.countsTowardVolume(x) && x.pattern === b.pattern &&
+                           order(dayType, x.slot) < here)
+              .reduce((a, x) => a + x.sets, 0);
+            assert.ok(before < VOLUME.SESSION_DOSE[G.sessionGoal(dayType)],
+              `${dayType} w${week} s${seed} slot ${b.slot}: ${before} earlier ${b.pattern} sets`);
+          }
           if (!DAY_TYPES[dayType].targets.includes(b.pattern)) offTarget++;
           assert.ok(Array.isArray(b.admittedPatterns) && b.admittedPatterns.length,
             `${dayType} w${week} s${seed} slot ${b.slot}: no admission record`);

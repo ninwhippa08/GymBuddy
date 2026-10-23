@@ -29,7 +29,7 @@ via `dropWorkingSet` without either counter following. `rampToBudget` is a
 no-op at full volume, but `packToBudget` and `capPatternSets` are not, so a
 contacts block shaved by either at full volume would drift here too -- this
 40-seed sample just does not happen to exercise that path (checked directly:
-'full volume is unchanged, block for block' stayed green with the fix
+'full volume is unchanged, block for block' (since renamed 'required full-volume work is v77 work, and the ramp cuts nothing at week 5') stayed green with the fix
 reverted). The comprehensive guard, run across all five ramp weeks
 ('footContacts and sprintMeters track delivered sets, not drawn ones'), is
 what actually caught the bug; this widening is a second, independent net for
