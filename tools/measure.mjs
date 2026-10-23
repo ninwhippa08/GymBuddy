@@ -258,10 +258,11 @@ function veto(without, seeds = 60) {
 // against what it promised.
 //
 // THREE ratios, not one, because "vs full volume" alone flatters week 4 and
-// buries week 1. `packToBudget`'s clock ceiling is fixed and never ramped --
-// it trims week 5 far more often than any ramped week (task-3-report.md, 300
-// seeds/cell: week 5 trimmed in 109-244/300, week 4 in 1-7/300), so week 5's
-// OWN delivered total is itself cut down before anything divides by it.
+// buries week 1. Under v79 `packToBudget`'s clock ceiling was fixed and never
+// ramped -- it trimmed week 5 far more often than any ramped week
+// (task-3-report.md, 300 seeds/cell: week 5 trimmed in 109-244/300, week 4 in
+// 1-7/300), so week 5's own delivered total was cut down before anything
+// divided by it. Since v80 the clock applies to non-lifting days only.
 // `session.rampSets = { drawn, budget, delivered }` (finalise(),
 // generator.js) lets this sweep state the other two ratios exactly instead
 // of inferring them:
@@ -269,11 +270,12 @@ function veto(without, seeds = 60) {
 //   budget/drawn      what the ramp ASKED for, per session -- tracks RAMP's
 //                     own column almost exactly, because budget is just
 //                     round(drawn x RAMP[week-1].volume).
-//   delivered/drawn   what SURVIVED the clock ceiling and the ten-per-
-//                     pattern cap, on top of that ask.
+//   delivered/drawn   what SURVIVED the ten-per-pattern cap (and
+//                     block floors), on top of that ask. No clock on v80
+//                     lifting days.
 //   delivered/wk5     "share of full volume" -- the one the athlete feels on
-//                     the card, and the clipped one, because week 5's own
-//                     denominator is trimmed by that same fixed clock.
+//                     the card; week 5's denominator is itself the delivered
+//                     total, so it moves with the same cap.
 //
 // `rampedMinutes` (the minute-based fill-loop cap) was REMOVED in v80 (spec
 // §4.3-§4.4): lifting days no longer have a clock, so the ramp's promise is
@@ -333,11 +335,10 @@ function ramp(seeds = 3000) {
     }
   }
   console.log('\nThe three ratios differ because budget/drawn is what the ramp asked for,');
-  console.log('delivered/drawn is what survived the clock ceiling and the ten-per-');
-  console.log('pattern cap on top of that ask, and vs-full(wk5) additionally divides');
-  console.log('by a week-5 total the SAME fixed clock has already cut down -- so');
-  console.log('vs-full(wk5) is the one that flatters week 4 and buries week 1, not the');
-  console.log('other two.');
+  console.log('delivered/drawn is what survived the ten-per-pattern cap on top of that');
+  console.log('ask (no clock on these lifting days since v80), and vs-full(wk5)');
+  console.log('additionally divides by the week-5 delivered total -- so vs-full(wk5)');
+  console.log('is the one that can flatter week 4 and bury week 1, not the other two.');
   console.log('\nHYPERTROPHY WEEK 1: two mechanisms compound, not one. rampedSlots cuts');
   console.log('how many exercises a ramped session carries, THEN the session set budget');
   console.log('cuts the sets inside the exercises that survive. rampedMinutes, the');

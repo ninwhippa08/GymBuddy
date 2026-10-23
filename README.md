@@ -217,8 +217,10 @@ days the clock no longer decides what goes in. Each optional exercise slot is
 taken only if three things hold: you are behind on that movement pattern this
 week, the pattern has not already had its dose in this session (2 sets for
 strength and power days, 10 for hypertrophy), and the session has not hit its
-exercise-count cap. Required work is never trimmed. If a pattern would pass ten
-sets, optional exercises go first. Endurance, sprint and jump days are
+exercise-count cap. Required work is never trimmed to make room for anything else; only if the
+required exercises alone put more than ten sets on one muscle group is the
+biggest one shortened. If a pattern would pass ten sets, optional exercises go
+first. Endurance, sprint and jump days are
 unchanged and still have their time budget.
 
 **There is no time limit on lifting days, on purpose.** You decided on

@@ -184,7 +184,8 @@ test('drawPatterns: a non-target pattern is still held to the session dose', () 
   // Contacts slots stay exempt from the dose, for non-targets too.
   assert.deepEqual(G.drawPatterns({ patterns: ['jump', 'sprint'], mode: 'contacts' }, 'power', EMPTY,
     [{ mode: 'contacts', role: 'potentiation', pattern: 'sprint', sets: 3 }]), ['jump', 'sprint']);
-  // `patterns: null` is unchanged: the qualifying targets.
+  // `patterns: null` draws the qualifying targets only. Not the v79 behaviour
+  // (any tier-allowed pattern, non-targets included); open question for the athlete.
   assert.deepEqual(G.drawPatterns({ patterns: null, mode: 'load' }, 'max-strength', EMPTY,
     [load('squat', 4, 'main lift')]), G.qualifyingPatterns({ patterns: null, mode: 'load' },
     'max-strength', EMPTY, [load('squat', 4, 'main lift')]));

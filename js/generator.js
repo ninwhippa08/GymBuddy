@@ -690,7 +690,10 @@ export function qualifyingPatterns(slot, dayType, state, blocks) {
 // So: the slot's own patterns, minus the TARGET patterns failing §4.1 or
 // §4.2. A non-target pattern has no weekly target to owe, so it answers to
 // the session dose alone (contacts slots exempt from that, as above). A
-// `patterns: null` slot is unchanged: it draws the qualifying targets.
+// `patterns: null` slot draws only the qualifying TARGET patterns. That is NOT
+// unchanged from v79: there a null-pattern optional slot could draw any pattern
+// the tier allowed, non-targets (carry, rotate, lunge) included. Whether v80
+// should keep that narrowing is an open product question for the athlete.
 export function drawPatterns(slot, dayType, state, blocks) {
   const qualifying = qualifyingPatterns(slot, dayType, state, blocks);
   if (!slot.patterns) return qualifying;
@@ -2245,12 +2248,13 @@ export function generate({
   const blocks = [];
   const zoneBySlot = {};
   const unfilled = [];
-  // §4.4: coverage drives the count up, time bounds it above. A required slot
-  // is always taken. An optional slot is taken only for a pattern it could
-  // serve that still owes volume this week AND is still under its per-session
-  // dose (qualifyingPatterns; composition spec §4.1-4.2), and only while the
-  // main work still fits -- a session that does not fit is not a session.
-  // (The minute check below is removed by the composition spec's next task.)
+  // v80, §4: on a lifting day coverage drives the count and the counts bound
+  // it; no minutes are consulted. A required slot is always taken. An optional
+  // slot is admitted by weekly need (a pattern it could serve still owes
+  // volume this week) + per-session dose (that pattern is still under its
+  // dose) -- qualifyingPatterns, composition spec §4.1-4.2 -- + the count caps
+  // (MAX_MAIN_SLOTS, and rampedSlots in a ramp week; §4.3). See
+  // docs/superpowers/specs/2026-10-22-session-composition-design.md §4.
   //
   // `patterns: null` means "any pattern this tier and modality allow" (slots
   // MAX_STRENGTH B/C, POWER D, HYPERTROPHY B/C/E all use it), so such a slot
