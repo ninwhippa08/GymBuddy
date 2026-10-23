@@ -4,7 +4,7 @@
 // body-region jump below it, whichever is heavier.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildWarmup, legacyWarmup } from '../js/generator.js';
+import { buildWarmup } from '../js/generator.js';
 import { WARMUP } from '../js/rules.js';
 
 const pcts = ladder => ladder.map(s => Math.round(s.pct * 100) / 100);
@@ -90,48 +90,6 @@ test('a missing technical rating is treated as the plain progression', () => {
 
 test('every step is marked as a warm-up', () => {
   for (const s of buildWarmup(0.85, plain)) assert.equal(s.kind, 'warmup');
-});
-
-// --------------------------------------------------------------------------
-// Pricing hold. legacyWarmup is v78's ladder, kept ONLY so the time budget
-// prices a loaded block's warm-up as v78 did and the freed minutes cannot buy
-// working sets (spec §4, the athlete's ruling). These are v78's ladder tests,
-// retargeted: they pin what the hold prices. They go when the hold goes.
-// --------------------------------------------------------------------------
-
-test('pricing hold: the step count falls out of the gap, so heavier means longer', () => {
-  assert.equal(legacyWarmup(0.55, plain).length, 2);
-  assert.equal(legacyWarmup(0.65, plain).length, 3);
-  assert.equal(legacyWarmup(0.80, plain).length, 4);
-  // ceil(0.60 / 0.15) = 4. §4.3's table says 5 for this row and is wrong --
-  // see decision 3 in plan-05. Every jump here is exactly 0.15, none larger.
-  assert.equal(legacyWarmup(0.90, plain).length, 4);
-});
-
-test('pricing hold: no jump between steps, or into the work, exceeds MAX_JUMP', () => {
-  for (const working of [0.52, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]) {
-    const stops = [...legacyWarmup(working, plain).map(s => s.pct), working];
-    for (let i = 1; i < stops.length; i++) {
-      const jump = stops[i] - stops[i - 1];
-      assert.ok(jump <= WARMUP.MAX_JUMP + 1e-9,
-        `working ${working}: jump of ${jump.toFixed(3)} from ${stops[i - 1]}`);
-    }
-  }
-});
-
-test('pricing hold: the 0.80 ladder is the worked example from §2.3', () => {
-  assert.deepEqual(pcts(legacyWarmup(0.80, plain)), [0.3, 0.43, 0.55, 0.68]);
-});
-
-test('pricing hold: an Olympic lift gets an extra technique set and never eights', () => {
-  const oly = legacyWarmup(0.80, { technical: 3 });
-  const bar = legacyWarmup(0.80, { technical: 1 });
-  assert.equal(oly.length, bar.length + 1);
-  assert.equal(oly[0].pct, WARMUP.START);
-  assert.equal(oly[1].pct, WARMUP.START, 'the extra set is a second one at the start');
-  for (const s of oly) {
-    assert.ok(s.reps <= WARMUP.TECHNICAL_REP_CAP, `${s.reps} reps of a technical lift`);
-  }
 });
 
 import { readFileSync } from 'node:fs';
@@ -382,42 +340,18 @@ test('no generated session prescribes a ramp for fewer than two working sets', (
 // so one constant could not be right for both.
 //
 // Since v79 the band only governs the jump INTO the work (pinned above in
-// 'the jump into the work stays inside the body-region band'). The two
-// rung-count tests below are v78 ladder tests and now pin the pricing hold.
+// 'the jump into the work stays inside the body-region band'). v78's
+// rung-count tests pinned the v79 pricing hold and went with it (composition
+// spec §5).
 // --------------------------------------------------------------------------
 
 const upper = { technical: 1, pattern: 'push-h' };
 const lower = { technical: 1, pattern: 'squat' };
 
-test('pricing hold: an upper-body lift ramps in smaller steps than a lower-body one', () => {
-  const bench = legacyWarmup(0.85, upper);
-  const squat = legacyWarmup(0.85, lower);
-  assert.ok(bench.length > squat.length,
-    `bench took ${bench.length} steps and squat ${squat.length} -- the upper-body ` +
-    `band tops out at 10%, so the bench ladder must have more rungs`);
-});
-
-test('pricing hold: no upper-body jump, or jump into the work, exceeds the upper band', () => {
-  for (const working of [0.55, 0.65, 0.75, 0.85, 0.95]) {
-    const rungs = [...legacyWarmup(working, upper).map(s => s.pct), working];
-    for (let i = 1; i < rungs.length; i++) {
-      const jump = rungs[i] - rungs[i - 1];
-      // 0.10 is written out rather than read from WARMUP: this test pins the
-      // SOURCED ceiling of the 5-10% upper-body band, so widening the constant
-      // must break it. Asserting against the constant would only prove the
-      // code agrees with itself.
-      assert.ok(jump <= 0.10 + 1e-9,
-        `working ${working}: a jump of ${jump.toFixed(3)} exceeds the 10% upper-body band`);
-    }
-  }
-});
-
 test('lower-body and unclassified lifts keep the wider band', () => {
   // The default must stay the wider number: a movement the taxonomy has not
   // classified is never over-ramped on the strength of a missing field.
   assert.deepEqual(pcts(buildWarmup(0.80, lower)), pcts(buildWarmup(0.80, plain)));
-  // The rung count is the hold's: lower 0.90 bridges 0.60 in four 0.15 steps.
-  assert.equal(legacyWarmup(0.90, lower).length, 4);
 });
 
 // --------------------------------------------------------------------------

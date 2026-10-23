@@ -42,8 +42,8 @@ The user declined confirmation prompts; the residual drift is documented in §6.
 | Constraint | Value | Source |
 |---|---|---|
 | Sessions per week | 1–3, irregular | user |
-| Gym session total | ≤ 70 min | user — enforced by a test as of 2026-08-31, see `tests/session.test.mjs`'s spec.md:36 sweep |
-| Gym main work | ≤ 45 min, raised to ≤ 50 min 2026-08-31 | user — see `TIME.MAIN_WORK_MAX_MIN` in `js/rules.js` and design §8 open question 9 for why |
+| Gym session total | ≤ 70 min on non-lifting day types. **Retired for lifting days (max-strength, power, hypertrophy) 2026-10-22**: no time limit at all — "don't set a limit … I want to test the new method. Then we can see if the workouts created are too much for me." | user — enforced by a test as of 2026-08-31, see `tests/session.test.mjs`'s spec.md:36 sweep (non-lifting day types only since 2026-10-22); retirement: `docs/superpowers/specs/2026-10-22-session-composition-design.md` §1, §5 |
+| Gym main work | ≤ 45 min, raised to ≤ 50 min 2026-08-31 (49 since 2026-09-04); not applied to lifting days since 2026-10-22, same decision as the row above | user — see `TIME.MAIN_WORK_MAX_MIN` in `js/rules.js` and design §8 open question 9 for why |
 | Mobility + core | every gym session, ~25 min | user |
 | Running/cardio duration | uncapped | user |
 | Load prescription | `× PR` only, never absolute weight | user |

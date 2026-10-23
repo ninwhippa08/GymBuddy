@@ -241,8 +241,10 @@ export const HEAVY_LOWER_PATTERNS = Object.freeze(['squat', 'hinge']);
 //
 // Two rungs from these, never tabulated: START, then HEAVY_RUNG x working or
 // one MAX_JUMP below the work, whichever is heavier. Until v79 the step count
-// was ceil((workingPct - START) / MAX_JUMP), 2-5 sets; that ladder survives
-// only as generator.js legacyWarmup, a temporary pricing hold.
+// was ceil((workingPct - START) / MAX_JUMP), 2-5 sets. v79 kept that ladder
+// as a pricing-only hold (generator.js legacyWarmup) so the shorter warm-up
+// could not buy working sets; removed 2026-10-22 with the clock on lifting
+// days (session-composition spec §5).
 export const WARMUP = Object.freeze({
   // Where every ladder starts, as a fraction of the movement's own max.
   // Ribeiro et al. 2020's effective progressive warm-up began at 40% of the
@@ -793,12 +795,21 @@ export const TIME = Object.freeze({
   // 70 -> 60. The whole saving comes from dosing mobility correctly; main work
   // is untouched. design 5.
   GYM_SESSION_TOTAL_MIN: 60,
-  // v79 NOTE on every warm-up-driven number below: packing is priced at the
-  // v78 ladder (a temporary hold, generator.js legacyWarmup), so the working
-  // sets and the packing derivations stand as measured. The minutes and
-  // "max session" figures are PRE-v79 DISPLAYED durations; the card now shows
-  // a shorter session (measured over seeds 1-300: -2 to -6 min mean per
-  // loaded day type, design-mobility-and-warmup.md §4.3).
+  // 2026-10-22 NOTE on everything below: LIFTING day types (those with
+  // `targets`: max-strength, power, hypertrophy) have no minute budget any
+  // more -- no MAIN_WORK_MAX_MIN trim, no 70 min ceiling. The athlete: "don't
+  // set a limit … I want to test the new method. Then we can see if the
+  // workouts created are too much for me." docs/superpowers/specs/
+  // 2026-10-22-session-composition-design.md §1, §5. The derivations below
+  // were taken when the clock bound lifting days too; they still govern the
+  // other day types, and the lifting-day figures in them are history.
+  //
+  // v79 NOTE on every warm-up-driven number below: the minutes and "max
+  // session" figures are PRE-v79 DISPLAYED durations; the card now shows a
+  // shorter session (measured over seeds 1-300: -2 to -6 min mean per loaded
+  // day type, design-mobility-and-warmup.md §4.3). Until 2026-10-22 packing
+  // was priced at the v78 ladder (a pricing hold), so the packing derivations
+  // stood as measured; the hold went with the clock on lifting days.
   //
   // 45 -> 50 [measured], 2026-08-31. The warm-up ramp (design-mobility-and-
   // warmup.md §4.3) is real time on the clock that packToBudget cannot trim --
@@ -920,6 +931,9 @@ export const TIME = Object.freeze({
   // templates or the budget could push a session past the athlete's stated
   // 70 min (spec.md:36) in a way trimming cannot rescue. If it ever starts
   // binding, LOWER IT -- never widen the limit.
+  // 2026-10-22: on LIFTING days there is no time any more, so this count (with
+  // the fill loop's rampedSlots) is now one of the things that does bind,
+  // beside weekly need and the session dose. session-composition spec §4.3.
   MAX_MAIN_SLOTS: 8,
   MAIN_WORK_MAX_MIN: 49,
   // Mandatory, never randomised out. Prep is capped by the drill dose rather
@@ -1039,9 +1053,10 @@ export const TIME = Object.freeze({
   // This number moves with the pool. Expect to re-derive it again as the
   // remaining pools are closed. design-library-expansion.md.
   //
-  // (v79: the sweeps below were taken before the two-set warm-up; their packing
-  // outcomes still hold because pricing is held, their displayed minutes are
-  // pre-v79.)
+  // (v79: the sweeps below were taken before the two-set warm-up; their
+  // displayed minutes are pre-v79. Their worst cases are lifting days, which
+  // since 2026-10-22 this allowance no longer bounds -- see the NOTE at the top
+  // of TIME.)
   //
   // RE-DERIVED 2026-08-31, held at 5. Task 6 priced buildWarmup's warm-up
   // ladder into estimateMinutes and packToBudget (plan-05 tasks 1-5) and

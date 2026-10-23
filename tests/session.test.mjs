@@ -3,7 +3,17 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { generate, countsTowardVolume, estimateMinutes } from '../js/generator.js';
 import { TIME, SESSION_ORDER } from '../js/rules.js';
-import { PHASE_1_DAY_TYPES } from '../js/templates.js';
+import { PHASE_1_DAY_TYPES, DAY_TYPES } from '../js/templates.js';
+
+// Lifting day types -- the ones that declare `targets` -- have NO time limit
+// since 2026-10-22. The athlete: "don't set a limit … I want to test the new
+// method. Then we can see if the workouts created are too much for me." The
+// duration ceilings below therefore hold the other day types only; a lifting
+// day's anti-goal (no required working set shaved) is asserted instead, in
+// tests/compose.test.mjs. docs/superpowers/specs/2026-10-22-session-
+// composition-design.md §1, §5.
+const LIFTING = dt => !!(DAY_TYPES[dt].targets && DAY_TYPES[dt].targets.length);
+const CLOCKED_DAY_TYPES = PHASE_1_DAY_TYPES.filter(dt => !LIFTING(dt));
 
 const LIB = JSON.parse(
   readFileSync(new URL('../data/exercises.json', import.meta.url), 'utf8')
@@ -95,7 +105,8 @@ test('no drill is ever dosed in minutes and no stretch in reps', () => {
 // allowance is that measured overrun, not a designed number, so this test
 // checks the real ceiling rather than the unattainable 60.
 test('no session exceeds 60 minutes plus the measured floor-overrun allowance', () => {
-  for (const s of sessions) {
+  // Lifting days excluded: their limit is retired (spec §1, §5; see top).
+  for (const s of sessions.filter(s => !LIFTING(s.dayType))) {
     assert.ok(
       s.durationMin <= TIME.GYM_SESSION_TOTAL_MIN + TIME.FLOOR_OVERRUN_ALLOWANCE_MIN,
       `${s.dayType}/${s.seed} ran ${s.durationMin} min`);
@@ -114,8 +125,10 @@ test('no session exceeds 60 minutes plus the measured floor-overrun allowance', 
 // power/seed 7919, which a 1000-seed sweep never reaches, so the test passed
 // against a stale 4 min allowance. A ceiling test that cannot reach the seed
 // producing the ceiling is not a test. The seed count must stay >= the one
-// the allowance was derived from -- currently 10000 x the 7 PHASE_1_DAY_TYPES
-// = 70,000.
+// the allowance was derived from -- 10000 per day type. Since 2026-10-22 the
+// sweep covers only the day types that still have a clock (4 of the 7
+// PHASE_1_DAY_TYPES = 40,000); the worst case it was widened for (power/seed
+// 7919) is a lifting day and is no longer bounded. Spec §1, §5.
 // It costs about 7s of the suite's ~9s; that is the price of the number
 // being measured rather than asserted.
 //
@@ -126,7 +139,9 @@ let _durationSweepWorst = null;
 function durationSweepWorst() {
   if (_durationSweepWorst) return _durationSweepWorst;
   let worst = { durationMin: -1, dayType: null, seed: null };
-  for (const dayType of PHASE_1_DAY_TYPES) {
+  // Lifting days excluded since 2026-10-22: their limit is retired (spec §1,
+  // §5; see top). The seed count per day type is unchanged.
+  for (const dayType of CLOCKED_DAY_TYPES) {
     for (let seed = 1; seed <= 10000; seed++) {
       const s = generate({ library: LIB, dayType, seed, now: 1e12 });
       if (s.durationMin > worst.durationMin) {
@@ -156,6 +171,8 @@ test('duration sweep (10000 seeds x day type): observed maximum stays within the
 // could widen the ceiling test above without anyone re-checking it against
 // what the athlete actually agreed to. This test exists so that check cannot
 // be silently skipped. Same sweep as above, memoised.
+// RETIRED FOR LIFTING DAYS 2026-10-22 by the athlete's own decision (see top
+// and docs/spec.md's requirements table); it still binds every other day type.
 test('no generated session exceeds the athlete\'s stated 70-minute session limit (spec.md:36)', () => {
   const worst = durationSweepWorst();
   assert.ok(worst.durationMin <= 70,

@@ -18,7 +18,10 @@
 //               'time'     duration and an effort word (terrain-agnostic, 9.1)
 //   sets/reps inclusive [min, max] ranges the generator jitters within
 //   restSec   inclusive [min, max] range
-//   optional  the PACK step drops these first when trimming to 45 min
+//   optional  on a lifting day (one with `targets`), admitted only by weekly
+//             need, the session dose and the slot count -- never by minutes
+//             (session-composition spec §4-§5); on the other day types the
+//             PACK step drops these first when trimming to MAIN_WORK_MAX_MIN
 
 import { ZONES, MODALITIES, MOBILITY_DOSE, BALANCE_DOSE } from './rules.js';
 

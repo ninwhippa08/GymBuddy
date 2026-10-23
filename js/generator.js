@@ -773,55 +773,6 @@ export function buildWarmup(workingPct, exercise = {}) {
   return [step(WARMUP.START), step(heavy)];
 }
 
-// TEMPORARY HOLD -- PRICING ONLY. Never printed, never put in a setPlan.
-// This is v78's buildWarmup, verbatim apart from its name. The athlete decided
-// (2026-10-22) that the time two fewer warm-up sets frees must NOT buy working
-// sets: a session is built from intensity and combinations, time is a
-// ceiling. The packer and the optional-slot loop do fill the clock, so they
-// keep pricing a loaded block's warm-up at this ladder's cost
-// (block.budgetWarmupReps, estimateMinutes({ held: true })), which leaves every
-// packing decision unchanged by construction. tests/work-held.test.mjs pins
-// the result. Removed by the session-composition rebuild. spec §4.
-//
-// v78's comment, kept with the body it describes: the ladder into a working
-// set. Steps only -- no displayMultiplier, because only prescribe() knows
-// what the working set actually prints, and every step is scaled against
-// that. plan-05 decision 2.
-export function legacyWarmup(workingPct, exercise = {}) {
-  if (workingPct < WARMUP.FLOOR) return [];
-  const gap = workingPct - WARMUP.START;
-  if (gap <= 0) return [];
-
-  // The 1e-9 guard absorbs float slop from the `workingPct - START`
-  // subtraction (e.g. 0.90 - 0.30 = 0.6000000000000001 in IEEE-754), which
-  // would otherwise push an exact-multiple gap one rung past its true count.
-  const maxJump = WARMUP.UPPER_BODY_PATTERNS.includes(exercise.pattern)
-    ? WARMUP.MAX_JUMP_UPPER
-    : WARMUP.MAX_JUMP;
-  const count = Math.ceil(gap / maxJump - 1e-9);
-  const spacing = gap / count;
-  const technical = exercise.technical || 1;
-  const cap = technical === 3 ? WARMUP.TECHNICAL_REP_CAP : Infinity;
-
-  const steps = [];
-  for (let i = 0; i < count; i++) {
-    const pct = WARMUP.START + spacing * i;
-    steps.push({ kind: 'warmup', reps: Math.min(repsForStep(pct), cap), pct });
-  }
-
-  // An extra set AT the start, not an extra rung -- adding to `count` would
-  // respace the whole ladder. Technical work wants more repetition at light
-  // load, not a different shape. design §4.3.
-  if (technical === 3) {
-    steps.unshift({
-      kind: 'warmup',
-      reps: Math.min(repsForStep(WARMUP.START), cap),
-      pct: WARMUP.START
-    });
-  }
-  return steps;
-}
-
 export function prescribe(slot, exercise, env, rng, state, forcedSets = null) {
   const block = {
     slot: slot.slot,
@@ -1024,11 +975,6 @@ export function prescribe(slot, exercise, env, rng, state, forcedSets = null) {
         displayMultiplier: block.displayMultiplier
       }))
     ];
-    // TEMPORARY HOLD, pricing only: the reps v78's ladder would have warmed
-    // up with. The budget checks price these instead of setPlan's two rungs,
-    // so the minutes the shorter warm-up frees cannot buy working sets --
-    // the athlete's ruling, spec §4. See legacyWarmup. Removed with it.
-    block.budgetWarmupReps = legacyWarmup(pct, exercise).map(s => s.reps);
   }
   return block;
 }
@@ -1187,7 +1133,9 @@ const ANTAGONIST_OF = Object.freeze({
 // packer keep optional blocks it would otherwise trim, and the architecture
 // would silently ADD WORK -- which design 1's scope rule forbids. Running
 // after the packer also makes an orphaned half-pair impossible, because there
-// is nothing left to drop. design-architectures.md 3.6.3.
+// is nothing left to drop. design-architectures.md 3.6.3. (Lifting days have
+// no packer since 2026-10-22, session-composition spec §5; the order stands
+// for the day types that still do.)
 export function pairAntagonists(blocks, architecture) {
   if (architecture !== 'antagonist-superset') return blocks;
 
@@ -1252,10 +1200,11 @@ const restOf = b => (b.restSec || TIME.DEFAULT_REST_SEC);
 // One block's cost in seconds. This is the body estimateMinutes always had --
 // extracted unchanged so a pair can be priced AGAINST it rather than beside it.
 //
-// `held` is the TEMPORARY pricing hold (spec §4, see legacyWarmup): the budget
-// checks pass it so a loaded block's warm-up costs what v78's ladder cost.
-// Without it -- durationMin, what the card reports -- the real setPlan is priced.
-function blockSeconds(b, held = false) {
+// One pricing, the real setPlan. v79 carried a second "held" pricing at v78's
+// warm-up ladder so a shorter warm-up could not buy working sets while the
+// clock filled lifting sessions; with no clock on lifting days the hold has
+// nothing to protect and was removed. composition spec §5.
+function blockSeconds(b) {
   if (b.mode === 'time') return (b.durationMin || 0) * 60;
   // An interval's work is its work seconds, not reps x SECONDS_PER_REP.
   // Falling through to the generic branch below priced eight 90 s efforts
@@ -1296,12 +1245,9 @@ function blockSeconds(b, held = false) {
   sec += b.sets * restOf(b);
   // The ramp is real time on the clock. Its sets are short and its rests
   // shorter, but four warm-up sets before a heavy squat is minutes, and the
-  // budget has to see them or packToBudget trims the wrong thing. "Four" is
-  // true of the HELD pricing only (v78's ladder, budgetWarmupReps); the real
-  // setPlan carries two rungs since v79, and that is what durationMin prices.
-  const warmupReps = held && b.budgetWarmupReps
-    ? b.budgetWarmupReps
-    : (b.setPlan || []).filter(s => s.kind === 'warmup').map(s => s.reps);
+  // budget has to see them or packToBudget trims the wrong thing. Since v79
+  // the setPlan carries two rungs, not four.
+  const warmupReps = (b.setPlan || []).filter(s => s.kind === 'warmup').map(s => s.reps);
   for (const r of warmupReps) {
     sec += r * secPerRep * sides;
     sec += TIME.WARMUP_REST_SEC;
@@ -1316,20 +1262,19 @@ function blockSeconds(b, held = false) {
 // plus the rest the paired schedule actually takes. Pricing it as a fresh sum
 // would put the WORK estimate at risk for no gain -- and the work estimate is
 // what the whole time budget is built on. design-architectures 3.6.3.
-function pairSeconds(a, b, held = false) {
+function pairSeconds(a, b) {
   const R = a.groupRounds;
   const straightRest = a.sets * restOf(a) + b.sets * restOf(b);
   const pairedRest = R * Math.max(restOf(a), restOf(b))
     + (a.sets - R) * restOf(a)
     + (b.sets - R) * restOf(b);
-  return blockSeconds(a, held) + blockSeconds(b, held) - straightRest + pairedRest;
+  return blockSeconds(a) + blockSeconds(b) - straightRest + pairedRest;
 }
 
-// `held`: price warm-ups at v78's ladder (TEMPORARY, spec §4). Only the
-// decisions that fill the clock pass it: packToBudget's trimming loops AND its
-// overBudget flag, and the optional-slot fill loop's rampedMinutes check.
-// durationMin, what the card shows, does not. See blockSeconds.
-export function estimateMinutes(blocks, { held = false } = {}) {
+// The session's clock time, priced from the real setPlan. What the card shows
+// as durationMin, and what packToBudget trims against on the day types that
+// still have a main-work budget (not lifting days, composition spec §5).
+export function estimateMinutes(blocks) {
   let sec = 0;
   const priced = new Set();
   for (const b of blocks) {
@@ -1338,13 +1283,13 @@ export function estimateMinutes(blocks, { held = false } = {}) {
       const partner = blocks.find(x => x !== b && x.group === b.group);
       if (partner) {
         priced.add(b.group);
-        sec += pairSeconds(b, partner, held);
+        sec += pairSeconds(b, partner);
         continue;
       }
       // A group with one member is a bug elsewhere, not a reason to misprice
       // it here: fall through and charge it as the straight block it is.
     }
-    sec += blockSeconds(b, held);
+    sec += blockSeconds(b);
   }
   return Math.round(sec / 60);
 }
@@ -1691,10 +1636,7 @@ export function packToBudget(blocks, budgetMin = TIME.MAIN_WORK_MAX_MIN, opts = 
   // Without a dayType there is no debt to read and the old last-first order
   // stands, which is what every other caller and test relies on.
   const { dayType, state } = opts;
-  // { held: true } throughout: the packer prices warm-ups at v78's ladder so
-  // the shorter warm-up cannot buy back a set it would have shaved. TEMPORARY
-  // pricing hold, spec §4; see legacyWarmup.
-  const minutes = bs => estimateMinutes(bs, { held: true });
+  const minutes = estimateMinutes;
   while (minutes(out) > budgetMin) {
     const optional = out
       .map((b, i) => ({ b, i }))
@@ -1723,23 +1665,56 @@ export function packToBudget(blocks, budgetMin = TIME.MAIN_WORK_MAX_MIN, opts = 
 }
 
 // IUSCA 2021 caps per-session volume at ~10 sets per muscle; pattern stands in
-// for muscle (rules.js VOLUME). Runs AFTER packToBudget, so it only ever removes
-// what the clock already allowed. Same lever and floors as the packer: one
-// working set at a time from the pattern's biggest block, never below two on a
-// ramped block, and the matching setPlan work entry goes with it.
-export function capPatternSets(blocks, cap = VOLUME.SETS_PER_PATTERN_PER_SESSION) {
-  const out = blocks.slice();
+// for muscle (rules.js VOLUME). Runs AFTER packToBudget where there is one, so
+// it only ever removes what the clock already allowed; on a lifting day, which
+// has no clock since 2026-10-22, it is the only step after the ramp that
+// removes a set (session-composition spec §5). A dose rule, not a clock rule.
+// Same lever and floors as the packer: one working set at a time from the
+// pattern's biggest block, never below two on a ramped block, and the matching
+// setPlan work entry goes with it.
+//
+// `protectRequired` (lifting days): a block from a REQUIRED template slot is
+// never touched -- spec §2's anti-goal, "Any required working set is removed
+// or shaved on a lifting day", outranks the cap (controller Ruling J,
+// 2026-10-22). With no clock, an optional block admitted under the dose (the
+// pattern at 9 of 10) can take the pattern to 11, and the old cap then shaved
+// the biggest block, which on a tie was required: hypertrophy week 5 seed 40,
+// slot A 3 -> 2, 7 of 1,500 lifting sessions. So the cap takes sets from the
+// OPTIONAL blocks on the pattern, largest first, down to setFloor; if the
+// pattern is still over, it drops an optional block whole (the last one in
+// template order, the template's lowest priority). Only when every optional
+// block on the pattern is gone and REQUIRED work alone is still over the cap
+// are required blocks shaved, by the old rule -- what v79 already did in that
+// case, and the only way the sourced IUSCA cap can hold when the template's
+// own draw exceeds it (max-strength pull-v drew 6+4+3 = 13; 9 of 4,500
+// lifting sessions). An optional block never costs a required set
+// (controller Ruling K, 2026-10-22).
+// "Required" is read off `block.optional`, which prescribe() copies from the
+// template slot. Without the option (every other day type) the behaviour is
+// exactly what it was.
+export function capPatternSets(blocks, cap = VOLUME.SETS_PER_PATTERN_PER_SESSION,
+                               { protectRequired = false } = {}) {
+  let out = blocks.slice();
   const direct = b => b.mode === 'load' || b.mode === 'reps';
   const setsOf = p => out.filter(b => direct(b) && b.pattern === p)
                          .reduce((a, b) => a + b.sets, 0);
+  const shavable = b => !protectRequired || b.optional;
   for (const pattern of new Set(out.filter(direct).map(b => b.pattern))) {
     let guard = 0;
     while (setsOf(pattern) > cap && guard++ < 100) {
       const target = out
+        .filter(b => direct(b) && b.pattern === pattern && shavable(b) && b.sets > setFloor(b))
+        .sort((a, b) => b.sets - a.sets)[0];
+      if (target) { dropWorkingSet(target); continue; }
+      if (!protectRequired) break;
+      const victim = out.filter(b => direct(b) && b.pattern === pattern && b.optional).pop();
+      if (victim) { out = out.filter(b => b !== victim); continue; }
+      // Required work alone is over the cap: the old rule, on what is left.
+      const required = out
         .filter(b => direct(b) && b.pattern === pattern && b.sets > setFloor(b))
         .sort((a, b) => b.sets - a.sets)[0];
-      if (!target) break;
-      dropWorkingSet(target);
+      if (!required) break;
+      dropWorkingSet(required);
     }
   }
   return out;
@@ -2318,55 +2293,37 @@ export function generate({
       admitted = drawPatterns(slot, chosen, state, blocks);
       fill = { ...slot, patterns: admitted };
       if (blocks.length >= TIME.MAX_MAIN_SLOTS) break;
-      // Coverage may not spend what the return ramp saved. The ramp cuts sets
-      // per exercise to hold total load down (basis §3, "the governing
-      // constraint"), which frees minutes inside the same budget -- and
-      // coverage, knowing nothing about the ramp, bought MORE exercises with
-      // them: measured at +35% working sets on a return-week-1 max-strength
-      // day and +48% on hypertrophy, with cnsLoad reaching 12.2 against the
-      // 5-11 range CNS_VETO_THRESHOLD was calibrated on. The ramp's own volume
-      // multiplier scales the ceiling coverage may fill to, so the saving
-      // stays saved. At week 5 the multiplier is 1.00 and this is a no-op, so
-      // full-volume behaviour is exactly §4.4 as designed. Decided by the
-      // athlete 2026-09-01; plan-07 Task 6b, not in the written plan -- it
-      // came out of the before/after measurement.
-      // Scaling the TIME budget was the first attempt and it overshot: it cut
-      // work that existed before coverage did, taking return-week-1
-      // max-strength from 4.00 exercises to 3.02 and 8.2 working sets to 6.7.
-      // The ramp is meant to hold load DOWN, not to shrink the session below
-      // what it already was. Capping the COUNT is the honest reading -- how
-      // many movements the day may carry scales with the ramp, while the work
-      // inside each one is already governed by the ramp's own volume
-      // multiplier.
+      // What bounds a lifting session: weekly need and the session dose
+      // (above), and the COUNT here -- MAX_MAIN_SLOTS and rampedSlots. No
+      // minute budget. The athlete, 2026-10-22: "don't set a limit … I want
+      // to test the new method. Then we can see if the workouts created are
+      // too much for me." composition spec §1, §4.3, §5.
+      //
+      // The count is ramped because the return ramp cuts sets per exercise to
+      // hold total load down (basis §3, "the governing constraint"), and
+      // coverage, knowing nothing about the ramp, used to spend what that
+      // freed on MORE exercises: measured at +35% working sets on a
+      // return-week-1 max-strength day and +48% on hypertrophy, with cnsLoad
+      // reaching 12.2 against the 5-11 range CNS_VETO_THRESHOLD was calibrated
+      // on. The ramp's own volume multiplier scales how many movements the
+      // day may carry; at week 5 it is 1.00 and this is a no-op. Decided by
+      // the athlete 2026-09-01; plan-07 Task 6b.
       // Floored at the slots this template carried BEFORE coverage existed --
       // the ones whose role is not a `coverage:` role. Without the floor the
-      // cap cut below the old baseline too: return-week-1 hypertrophy went
-      // from 5 exercises to 4 and 9.0 working sets to 7.5. The ramp holds load
-      // down; it must not quietly shrink a day below what it already was.
+      // cap cut below the old baseline: return-week-1 hypertrophy went from 5
+      // exercises to 4 and 9.0 working sets to 7.5. The ramp holds load down;
+      // it must not quietly shrink a day below what it already was.
+      //
+      // REMOVED 2026-10-22: a second, minute-based guard (`rampedMinutes`,
+      // MAIN_WORK_MAX_MIN x ramp volume) that until then was the one that
+      // actually decided. With the clock gone the ramp's promise is held by
+      // dose and count, and measured per week (spec §4.4).
       const baseSlots = template.filter(sl => !/^coverage:/.test(sl.role || '')).length;
       const rampedSlots = Math.max(
         baseSlots,
         Math.round(TIME.MAX_MAIN_SLOTS * rampRow(state.rampWeek).volume)
       );
       if (blocks.length >= rampedSlots) break;
-      // AND THE MINUTES ARE RAMPED TOO. This is the guard that actually
-      // decides, and until 2026-09-06 it was the one nobody scaled. The ramp
-      // cuts sets per exercise, so every block costs FEWER minutes, so a fixed
-      // 49 min ceiling stops binding exactly when the ramp is working hardest
-      // -- and coverage spends the freed time on more movements until the debt
-      // is paid. Measured on v54: max-strength ramp week 2 delivered 11.39
-      // working sets against 10.36 at full volume, 110% of the volume a fully
-      // recovered athlete gets, from a week the ramp prices at 70%.
-      //
-      // Scaling the time budget was tried once before and overshot (see the
-      // note above: return-week-1 max-strength fell to 3.02 exercises). That
-      // attempt scaled the budget GLOBALLY, so packToBudget trimmed required
-      // work with it. This one is inside the optional-slot branch and touches
-      // nothing a session is obliged to deliver. design-architectures.md 7.
-      const rampedMinutes = TIME.MAIN_WORK_MAX_MIN * rampRow(state.rampWeek).volume;
-      // Held at v78's warm-up price (TEMPORARY, spec §4): otherwise the
-      // shorter warm-up would let this loop add a movement v78 did not.
-      if (estimateMinutes(blocks, { held: true }) >= rampedMinutes) break;
       // A pattern that qualifies on paper but that this slot has nothing to
       // draw on did not really survive, and §4.2 says a slot with no survivor
       // is SKIPPED -- not reported. Found by tests/recency.test.mjs: power slot
@@ -2408,9 +2365,9 @@ export function generate({
     if (tierRelaxed) block.tierRelaxed = true;
     // What qualified when this block was admitted. tests/compose.test.mjs
     // checks the drawn pattern against it: replaying admission from the
-    // finished session cannot be exact, because the ramp, the packer and the
-    // pattern cap all change set counts (and the packer can drop a block)
-    // after the dose was read. Diagnostic only -- js/ui.js never prints it.
+    // finished session cannot be exact, because the ramp and the pattern cap
+    // change set counts after the dose was read (the packer, which could also
+    // drop a block, no longer runs on lifting days -- spec §5). Diagnostic only -- js/ui.js never prints it.
     if (admitted) block.admittedPatterns = admitted;
     blocks.push(block);
   }
@@ -2421,16 +2378,37 @@ export function generate({
     rampToBudget(blocks, env.volumeMultiplier);
   const shaped = applyArchitecture(budgeted, architecture, zoneBySlot,      // 7a
                                    env.pctCeiling);
-  const packed = packToBudget(shaped, TIME.MAIN_WORK_MAX_MIN,           // 8
-                              { dayType: chosen, state });
+  // The set count the ramp and the architecture left, before anything later
+  // can touch it. tests/compose.test.mjs 'required working sets survive to
+  // the card' rebuilds the session from it to prove no later step but the
+  // pattern cap removes a set on a lifting day (spec §2 anti-goal). A plain
+  // number copied now, because dropWorkingSet mutates the block in place.
+  // Diagnostic only -- js/ui.js never prints it. Lifting days only, so the
+  // other day types' blocks stay byte-identical (spec §2 non-goals).
+  if (targets.length) for (const b of shaped) if (countsTowardVolume(b)) b.shapedSets = b.sets;
+  // 8. The clock. NOT on a lifting day: there the session is composed from
+  // weekly need, the session dose and the count (fill loop above), and
+  // nothing drops or shaves work for time. The athlete, 2026-10-22: "don't
+  // set a limit … I want to test the new method. Then we can see if the
+  // workouts created are too much for me." If sessions prove too long the fix
+  // is a composition rule, never a clock. composition spec §1, §5.
+  // The other day types keep their main-work budget unchanged (spec §2).
+  const packed = targets.length
+    ? { blocks: shaped, trimmedSlots: [], overBudget: false }
+    : packToBudget(shaped, TIME.MAIN_WORK_MAX_MIN, { dayType: chosen, state });
   // 8b. AFTER the packer, never before -- design-architectures.md 3.6.3.
   // Pairing first would shorten the estimate the packer trims against, so a
   // superset would quietly buy back optional blocks and CHANGE THE WORK,
   // which design 1's scope rule forbids. It also means there is nothing left
-  // to drop, so a half-pair cannot be orphaned.
-  // 8a. Ten direct sets per pattern, after the packer so it only ever removes
-  // what the clock already allowed. rules.js VOLUME.SETS_PER_PATTERN_PER_SESSION.
-  const capped = capPatternSets(packed.blocks);
+  // to drop, so a half-pair cannot be orphaned. (On a lifting day there is no
+  // packer, so nothing can split a pair either way.)
+  // 8a. Ten direct sets per pattern. A dose rule, not a clock rule, so it runs
+  // on every day type; after the packer where there is one, so it only ever
+  // removes what the clock already allowed. rules.js
+  // VOLUME.SETS_PER_PATTERN_PER_SESSION.
+  // Lifting days: the cap never touches a required block (Ruling J, spec §2).
+  const capped = capPatternSets(packed.blocks, VOLUME.SETS_PER_PATTERN_PER_SESSION,
+                                { protectRequired: targets.length > 0 });
   const paired = pairAntagonists(capped, architecture);
   // `paired` is the main work as it will actually be performed, after the
   // packer has dropped or shaved anything that did not fit. Prepping work the
@@ -2494,7 +2472,13 @@ function finalise({ chosen, env, architecture, proposal, ordered, packed, preppe
   }
 
   const warnings = [];
-  if (packed.overBudget) warnings.push('over the 45 min main-work budget after trimming');
+  // Cannot fire on a lifting day (no packer there, composition spec §5).
+  // Read off the constant: it said "45 min" for months after the budget moved
+  // 45 -> 50 -> 49 (rules.js MAIN_WORK_MAX_MIN), the same stale-string failure
+  // the cool-down warning below was fixed for.
+  if (packed.overBudget) {
+    warnings.push(`over the ${TIME.MAIN_WORK_MAX_MIN} min main-work budget after trimming`);
+  }
   // Flagged, never silent -- design §1.2. The cool-down's overrun has always
   // been announced; the prep's was not, because nothing was measuring it.
   if (prepped && prepped.overBudget) {
