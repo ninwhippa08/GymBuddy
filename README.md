@@ -325,8 +325,8 @@ deadlifts followed by 4×11 pause squats, who said the counts were not grounded
 in the movement. Measured over 3,000 sessions per day type, 34–37% of loaded
 sets had asked for more than a true N-rep max, and 6.5–15.7% of heavy days
 paired two heavy squat/hinge lifts; both now read zero, with no session longer
-than before (worst 67 min, as of v78; non-lifting days only since v80). Reps were never fitted to the clock — packing only
-ever removes work. `docs/superpowers/specs/2026-09-16-rep-method-design.md`.
+than before (worst 67 min, as of v78; non-lifting days only since v80). Reps
+were never fitted to the clock — packing only ever removes work. `docs/superpowers/specs/2026-09-16-rep-method-design.md`.
 
 **Zero dependencies, by requirement.** No npm, no bundler, no framework, no
 transpiler, no CSS preprocessor. Every line in `js/`, `tests/` and `style.css`
@@ -512,16 +512,14 @@ session holds, at any volume, so the replacement now keeps the set count of
 the block it replaced.
 
 **What the budget does not reach: a coverage-heavy day still feels smaller
-than its own percentage.** (As of v79:) the budget is met (hypertrophy week 1 asks for
-52.5% and gets 52.6%), but the fill loop's own ramp caps also cut the number
-of working blocks a low-week session carries — hypertrophy went from 5.17
+than its own percentage.** In v79 the budget was met (hypertrophy week 1 asked
+for 52.5% and got 52.6%), but the fill loop's own ramp caps also cut the number
+of working blocks a low-week session carried — hypertrophy went from 5.17
 blocks at week 5 to 3.02 at week 1 — so the share of full volume that reached
 the athlete was **~34%**, not the 50% the card prints. In v80 the shortfall
-remains for a different reason: hypertrophy goes from 8.00 blocks at week 5 to
-5.00 at week 1 (the count cap scales with the ramp, and the dose and weekly-need
-tests admit fewer slots), and delivers 34.5% of week 5's sets (measured, 1,000
-seeds per cell). Shown this on
-2026-09-19, he chose to record it rather than engineer it away, and declined
+still occurs: hypertrophy goes from 8.00 blocks at week 5 to 5.00 at week 1 and
+delivers 34.5% of week 5's sets (measured, 1,000 seeds per cell; the cause in
+v80 has not been measured). Shown this on 2026-09-19, he chose to record it rather than engineer it away, and declined
 both raising the early-week exercise floor and changing what the card prints.
 `docs/design-mobility-and-warmup.md` §13.4, `docs/design-architectures.md`
 §7.4.
@@ -974,7 +972,8 @@ recommendation was to author nothing. Overruled, it produced **eleven entries**
 — two wrist movements, a bodyweight squat the library had never had, a squat
 thrust, a jumping jack, a bench dip, a high cable curl, two planks, a supine
 rotation drill and a neck stretch. All eleven are drawn in a 4,900-session
-sweep, the worst session stays at 68 minutes, and **no shortfall moved**, which
+sweep, the worst session stays at 68 minutes (as of then; non-lifting days only since
+v80), and **no shortfall moved**, which
 is what the pre-flight predicted. One thing it got wrong is worth more than the
 rest: the neck stretch was nearly declined as outside the joint vocabulary, and
 `neck` has been in that vocabulary since the soreness map was built, held by
@@ -1120,7 +1119,8 @@ and the shoulder and knee both hold nearly thirty options. Overruled, it
 produced a kettlebell halo, a banded terminal knee extension, a bench reverse
 hyper and a kneeling jump — each watched on video before authoring, each probed
 against all 48 slots first, and all four drawn in a 5,600-session sweep with the
-worst session unchanged at 68 minutes.
+worst session unchanged at 68 minutes (as of then; non-lifting days only since
+v80).
 
 **The large decision was what got declined.** Roughly 360 titles were bar and
 ring gymnastics, the one family this library genuinely lacks. It was declined
