@@ -15,3 +15,6 @@ skills-lock.json
 .superpowers/
 .tmp/
 *.pptx
+
+# Desk-review feedback (tools/review-server.mjs). His comments, never published.
+.reviews/

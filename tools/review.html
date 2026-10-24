@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>GymBuddy Desk Review</title>
+<!-- The app's own stylesheet, so the card looks exactly as it does on the
+     phone. The review panel's few extra rules are below. -->
+<link rel="stylesheet" href="../style.css">
+<style>
+  body { background: #0d0f12; }
+  .review-layout { display: grid; gap: 24px; max-width: 1100px; margin: 0 auto; padding: 16px; }
+  @media (min-width: 900px) { .review-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
+  .review-panel { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow: auto; }
+  .review-panel h2 { margin: 0 0 4px; font-size: 1.1rem; }
+  .review-panel .sim { opacity: .75; font-size: .9rem; margin: 0 0 16px; }
+  .review-panel fieldset { border: 1px solid #2a2f37; border-radius: 10px; margin: 0 0 14px; padding: 10px 12px; }
+  .review-panel legend { padding: 0 6px; font-weight: 600; }
+  .review-panel label { display: inline-flex; gap: 6px; align-items: center; margin: 4px 12px 4px 0; }
+  .review-panel textarea, .review-panel input[type=text], .review-panel select, .review-panel input[type=date] {
+    width: 100%; box-sizing: border-box; background: #161a20; color: inherit;
+    border: 1px solid #2a2f37; border-radius: 8px; padding: 8px; font: inherit; margin-top: 4px;
+  }
+  .review-panel textarea { min-height: 70px; resize: vertical; }
+  .move-row { border-top: 1px solid #20252c; padding: 8px 0; }
+  .move-row:first-of-type { border-top: 0; }
+  .move-row .move-name { font-weight: 600; }
+  .move-row .move-group { opacity: .6; font-size: .8rem; margin-left: 6px; }
+  .move-row .row2 { display: grid; grid-template-columns: 180px 1fr; gap: 8px; }
+  .review-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .review-status { opacity: .75; font-size: .9rem; margin-top: 8px; }
+  .review-error { color: #ff8a80; }
+</style>
+</head>
+<body>
+<main id="app"><div class="screen"><p class="setup-copy">Loading…</p></div></main>
+<script type="module" src="review.js"></script>
+</body>
+</html>

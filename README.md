@@ -66,6 +66,28 @@ node --test tests/*.test.mjs
 Expected result: **every test passing, 0 failing.** The current count is in
 [Tests](#tests).
 
+### 4. Desk review (optional)
+
+Review generated sessions on a laptop and write down what you think of each
+one, without training them.
+
+```bash
+node tools/review-server.mjs          # then open http://127.0.0.1:8765/tools/review.html
+node tools/review-report.mjs          # summary of everything reviewed so far
+```
+
+The page builds each session with the real generator and shows the real card.
+Sessions you count as done go into a **pretend** history on a pretend calendar,
+so the next session reacts to them the way it would in the gym; "Skip" acts
+like Reroll. Nothing touches the phone app's storage. Reviews are saved to
+`.reviews/reviews.jsonl`, which is gitignored: this repo is public.
+
+What it can and cannot tell you: it is good for judging what a session is
+made of (choice of moves, order, pairing, sets on paper, cues that read
+wrong). It cannot judge how a session feels to train, how long it really takes
+or whether you recover from it, because the pretend history assumes every
+session was done exactly as written. Those still need the gym.
+
 ---
 
 ## What the app does
