@@ -298,6 +298,24 @@ test('every dose is a usable override, and only where the generator reads one', 
     assert.equal(typeof e.dose, 'object',
       `${e.id}: dose must be an object, or absent altogether`);
 
+    // The hold form, 2026-10-23: an isometric core entry whose sourced hold
+    // is far below the shared CORE_HOLD_SEC range. L-sit: tuck holds of
+    // 5-15 s for 3 sets, working toward 15-30 s (antranik.org floor L-sit
+    // progression; bodybuilding.com beginner's guide; 12minuteathlete).
+    // Copenhagen plank: 3-4 x 10-20/10-30 s to start (physitrack exercise
+    // library; julielohre.com) [corroborated, practitioner sources].
+    if ('holdSec' in e.dose) {
+      const { holdSec } = e.dose;
+      assert.ok(Array.isArray(holdSec) && holdSec.length === 2 &&
+        holdSec.every(n => Number.isInteger(n) && n > 0 && n % 5 === 0) &&
+        holdSec[0] <= holdSec[1],
+        `${e.id}: dose.holdSec must be an ascending [lo, hi] pair on the 5 s grid`);
+      // Only the core branch's isometric path reads it.
+      assert.ok(e.isometric && e.tier === 'core',
+        `${e.id} carries dose.holdSec but is not an isometric core entry, so nothing reads it`);
+      continue;
+    }
+
     const { reps, secPerRep } = e.dose;
     assert.ok(Array.isArray(reps) && reps.length === 2,
       `${e.id}: dose.reps must be an inclusive [lo, hi] pair`);
@@ -317,4 +335,24 @@ test('every dose is a usable override, and only where the generator reads one', 
     assert.ok((e.modalities || []).includes('mobility-dynamic'),
       `${e.id} carries a dose but is not mobility-dynamic, so nothing reads it`);
   }
+});
+
+// The hold dose has to reach the card, not just sit on the entry. The guard
+// above checks the field's shape; this checks the generator reads it.
+test('a hold dose on the entry is the hold the athlete is given', async () => {
+  const { generate } = await import('../js/generator.js');
+  const withDose = EX.filter(e => e.dose && e.dose.holdSec);
+  assert.ok(withDose.length > 0, 'no entry carries a hold dose');
+  let seen = 0;
+  for (let seed = 1; seed <= 3000 && seen < 20; seed++) {
+    const s = generate({ library: EX, profile: { banned: [] }, history: [], seed, now: 1e12 });
+    for (const b of s.blocks) {
+      const e = withDose.find(x => x.id === b.exerciseId);
+      if (!e) continue;
+      seen++;
+      assert.ok(b.holdSec >= e.dose.holdSec[0] && b.holdSec <= e.dose.holdSec[1],
+        `${e.id}: ${b.holdSec}s against a dose of ${e.dose.holdSec.join('-')}s`);
+    }
+  }
+  assert.ok(seen > 0, 'no session drew an entry with a hold dose');
 });

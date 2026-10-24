@@ -111,7 +111,11 @@ test('isometric core is dosed by time, everything else by reps', () => {
       const e = LIB.find(x => x.id === b.exerciseId);
       if (e.isometric) {
         assert.equal(b.mode, 'hold', `${b.name} is a hold, dosed as ${b.mode}`);
-        assert.ok(b.holdSec >= 30 && b.holdSec <= 45);
+        // The entry's own hold range when it has one (L-sit, Copenhagen
+        // plank, 2026-10-23), the shared 30-45 s otherwise.
+        const [lo, hi] = (e.dose && e.dose.holdSec) || [30, 45];
+        assert.ok(b.holdSec >= lo && b.holdSec <= hi,
+          `${b.name}: ${b.holdSec}s outside ${lo}-${hi}s`);
       } else {
         assert.equal(b.mode, 'reps', `${b.name} is rep work, dosed as ${b.mode}`);
         assert.ok(b.reps >= 10 && b.reps <= 15);

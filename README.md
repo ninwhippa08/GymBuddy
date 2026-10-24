@@ -245,6 +245,19 @@ biggest one shortened. If a pattern would pass ten sets, optional exercises go
 first. Endurance, sprint and jump days are
 unchanged and still have their time budget.
 
+**Five moves at most, four on a heavy day (v81).** From your first desk review,
+2026-10-23: a six-move max-strength day was "too many ... not realistic for
+me", and you asked for five, "but it still depends on intensity of what moves
+I do". So a lifting day carries at most five main exercises. If two of the
+first four are heavy lifts (squats, deadlifts, Olympic lifts: strain 3 on the
+library's 1-3 scale) the day stops at four, and a fifth exercise is never a
+heavy one. Before: max-strength 5-6 exercises / ~18 working sets / ~76 min,
+hypertrophy always 8 / ~22 / ~75. The cost is weekly volume, hypertrophy's
+most, and you took it. The card no longer prints "optional" on any exercise:
+since v80 an extra exercise is only there because the week needs it, so the
+card is the whole day. The L-sit and Copenhagen plank now hold 10-20 s rather
+than the plank's 30-45 s.
+
 **There is no time limit on lifting days, on purpose.** You decided on
 2026-10-22: "don't set a limit … I want to test the new method. Then we can see
 if the workouts created are too much for me." The sessions that come out are
@@ -273,7 +286,7 @@ Two ideas hold the design together:
 node --test tests/*.test.mjs
 ```
 
-696 tests, using only Node's built-in `node:test` and `node:assert/strict`.
+698 tests, using only Node's built-in `node:test` and `node:assert/strict`.
 There is no `package.json` and nothing to install.
 
 They are not only unit tests. Several are **sweeps**: they generate sessions in
@@ -576,7 +589,7 @@ session is built" above. One consequence you accepted on 2026-10-22 ("accept
 it, keep going"): the return ramp overshoots its printed column by at most one
 percentage point on a few weeks (max-strength weeks 2 and 3, power weeks 2 and
 4), because the exercise count is the same from week 2 on and only the sets
-change. Week 1 lands at about 40% of a full session on max-strength and power days (34% on hypertrophy) against a printed 50%.
+change. As measured for v80 (not re-measured after v81's five-move cap), week 1 lands at about 40% of a full session on max-strength and power days (34% on hypertrophy) against a printed 50%.
 v79 failed the same check on more weeks. Measured, 1,000 seeds per cell.
 `docs/programming-basis.md` section 2, `docs/superpowers/specs/2026-10-22-session-composition-design.md`.
 

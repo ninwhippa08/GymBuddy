@@ -33,6 +33,10 @@ const session = (dayType, week, seed) =>
 // deliberately outside the rotation) is held too.
 const NON_LIFTING = Object.keys(DAY_TYPES)
   .filter(d => !(DAY_TYPES[d].targets && DAY_TYPES[d].targets.length));
+// Recaptured 2026-10-23 (v81) for one cause only: copenhagen-plank gained a
+// 10-20 s hold dose, which changed 6 of the 200 mobility sessions (shorter
+// minutes, or a core set no longer trimmed). Every changed session held that
+// entry; nothing else moved. The file keeps its v79 name.
 const FIXTURE = new URL('./fixtures/nonlifting-v79.json', import.meta.url);
 const print = s => ({
   blocks: s.blocks.map(b => [b.slot, b.exerciseId, b.sets, b.reps ?? null, b.durationMin ?? null]),

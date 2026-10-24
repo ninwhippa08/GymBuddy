@@ -2013,6 +2013,7 @@
       "joints": ["hip","lumbar","shoulder"], "equipment": ["bench"], "venue": "gym",
       "cnsCost": 2, "technical": 2, "unilateral": true,
       "isometric": true,
+      "dose": { "holdSec": [10, 20] },
       "cues": ["Side plank with the top leg's inner thigh resting on a bench.","Lift the hips and the bottom leg until the body is one line.","Start with the bottom knee bent; straighten it only when that is easy."],
       "modalities": ["isolation"] },
 
@@ -2085,6 +2086,7 @@
       "joints": ["hip","lumbar","shoulder"], "equipment": ["dip-bar"], "venue": "either",
       "cnsCost": 2, "technical": 3, "unilateral": false,
       "isometric": true,
+      "dose": { "holdSec": [10, 20] },
       "cues": ["Hands on the floor or parallettes, shoulders pressed down.","Lift the hips clear and hold the legs straight out in front.","Tucked knees are the scaled version; keep the chest tall either way."],
       "modalities": ["isolation"] },
 

@@ -225,9 +225,49 @@ test('coverage still works at full volume, where the ramp has nothing to protect
   // RAMP week 5 is volume 1.00, so the scaling is a no-op there and the
   // coverage rule must be untouched -- otherwise this task would have quietly
   // reverted §4.4 instead of bounding it.
+  //
+  // 2026-10-23: the bar was "> 5" while the cap was 8. The cap is 5 now (the
+  // athlete's call, rules.js TIME.MAX_MAIN_SLOTS), so "acting at all" means
+  // coverage still adds moves past the template's three required slots.
   const counts = countsAcross({ banned: [], plyoLevel: 'beginner' }, 'hypertrophy', 1e12);
-  assert.ok(Math.max(...counts) > 5,
-    `full volume never exceeded 5 main blocks -- coverage is no longer acting at all`);
+  assert.ok(Math.max(...counts) > 3,
+    `full volume never exceeded the 3 required main blocks -- coverage is no longer acting at all`);
+});
+
+// --------------------------------------------------------------------------
+// Five moves at most, four on a heavy day -- the athlete, 2026-10-23
+// --------------------------------------------------------------------------
+
+// From a desk review of a six-move max-strength day: "six is too many", then
+// five, "but it still depends on intensity of what moves I do". rules.js TIME
+// MAX_MAIN_SLOTS / HEAVY_DAY_SLOTS / HEAVY_DAY_LIFTS / HEAVY_CNS_COST.
+test('a lifting day never carries more than five main moves, and a heavy day stops at four', () => {
+  // Read off the finished card, so in card order: orderSession moves heavy
+  // lifts first, so "the first four" in fill order are not the first four
+  // here. The rule as a property of the card: five moves only when at most
+  // one of them is heavy (four with <= 1 heavy, plus a fifth that may not be).
+  // Literal 5, not TIME.MAX_MAIN_SLOTS: the number is his, and a test that
+  // reads the constant would follow it anywhere.
+  let fives = 0, heavyDays = 0;
+  for (const dayType of ['max-strength', 'hypertrophy', 'power']) {
+    for (let seed = 1; seed <= 300; seed++) {
+      const s = generate({
+        library: LIB, profile: { banned: [], plyoLevel: 'beginner' }, history: [],
+        soreness: {}, dayType, excludeEquipment: [], seed, now: 1e12
+      });
+      const main = mainBlocks(s);
+      const heavy = main.filter(b => b.cnsCost >= TIME.HEAVY_CNS_COST).length;
+      assert.ok(main.length <= 5, `${dayType} seed ${seed}: ${main.length} main moves`);
+      if (main.length === 5) {
+        fives++;
+        assert.ok(heavy <= 1, `${dayType} seed ${seed}: five moves with ${heavy} heavy lifts`);
+      }
+      if (heavy >= 2) heavyDays++;
+    }
+  }
+  // Both branches have to be reached, or the asserts above proved nothing.
+  assert.ok(fives > 0, 'no session reached a fifth move');
+  assert.ok(heavyDays > 0, 'no session carried two heavy lifts');
 });
 
 // --------------------------------------------------------------------------

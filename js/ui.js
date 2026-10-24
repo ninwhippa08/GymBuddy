@@ -341,7 +341,11 @@ export function blockCard(block, cuesFor, onSwap) {
     ? 'walk or jog the recovery -- never stand still'
     : (restInHeader ? null : supersetRestLine(block))];
   if (block.effort && !heroIsEffort) meta.push(block.effort);
-  if (block.optional) meta.push('optional');
+  // No 'optional' tag. It once meant "do it if there's time"; since v80 an
+  // optional slot is only filled when the week needs it, so a move on the
+  // card IS the day. The athlete, 2026-10-23 desk review: "I would rather want
+  // to see something that completes the day that I have to do. do not give me
+  // options." `block.optional` stays on the block for the generator's own use.
 
   const front = el('div', { class: 'block-face is-front' }, [
     el('div', { class: 'block-head' }, [

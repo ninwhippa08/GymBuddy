@@ -572,6 +572,9 @@ export function eligibleFor(slot, library, ctx) {
     if (slot.plyoIntensity && !slot.plyoIntensity.includes(e.plyoIntensity)) {
       return false;
     }
+    // Set by the fill loop on a lifting day's last slot: the move that takes
+    // a day past TIME.HEAVY_DAY_SLOTS may not be a heavy lift. rules.js.
+    if (slot.maxCnsCost != null && e.cnsCost > slot.maxCnsCost) return false;
     // A day type's venue of `either` is a statement about the DAY -- a
     // plyometric or mobility session runs indoors or out -- so it is NOT a
     // requirement and must not be matched against the entry's own venue.
@@ -1943,11 +1946,14 @@ function prescribeMobility(group, e, rng) {
 
   // group.mode === 'core' -- resolved per exercise: a plank by time, an ab
   // wheel by reps. design 2.1.
+  // A hard hold carries its own range: 30-45 s is a plank's dose, and on an
+  // L-sit it was "insane" (the athlete, 2026-10-23 desk review). Same
+  // reasoning as the drill dose above -- a fact about the movement.
   if (e.isometric) {
     return {
       ...base, mode: 'hold',
       sets: intBetween(rng, group.sets),
-      holdSec: roundTo5(between(rng, group.holdSec)),
+      holdSec: roundTo5(between(rng, (e.dose && e.dose.holdSec) || group.holdSec)),
       reps: 1,
       restSec: intBetween(rng, group.restSec),
       effort: 'brace hard -- keep breathing'
@@ -2297,6 +2303,15 @@ export function generate({
       admitted = drawPatterns(slot, chosen, state, blocks);
       fill = { ...slot, patterns: admitted };
       if (blocks.length >= TIME.MAX_MAIN_SLOTS) break;
+      // Intensity decides whether the day gets its last move: two heavy lifts
+      // already in it and it stops; otherwise the extra move must be a light
+      // or moderate one. The athlete, 2026-10-23: five moves at most, "but it
+      // still depends on intensity of what moves I do". rules.js TIME.
+      if (blocks.length >= TIME.HEAVY_DAY_SLOTS) {
+        const heavy = blocks.filter(b => b.cnsCost >= TIME.HEAVY_CNS_COST).length;
+        if (heavy >= TIME.HEAVY_DAY_LIFTS) break;
+        fill = { ...fill, maxCnsCost: TIME.HEAVY_CNS_COST - 1 };
+      }
       // What bounds a lifting session: weekly need and the session dose
       // (above), and the COUNT here -- MAX_MAIN_SLOTS and rampedSlots. No
       // minute budget. The athlete, 2026-10-22: "don't set a limit … I want

@@ -934,7 +934,28 @@ export const TIME = Object.freeze({
   // 2026-10-22: on LIFTING days there is no time any more, so this count (with
   // the fill loop's rampedSlots) is now one of the things that does bind,
   // beside weekly need and the session dose. session-composition spec §4.3.
-  MAX_MAIN_SLOTS: 8,
+  //
+  // 8 -> 5, 2026-10-23, THE ATHLETE'S CALL FROM A DESK REVIEW. A max-strength
+  // day with six main moves: "six is too many ... doing that many moves are
+  // not realistic for me", and asked for 5 -- "but it still depends on
+  // intensity of what moves I do". Measured before the change (600 seeds per
+  // day type, ~2x/week history, past the ramp): max-strength 5-6 moves / 17.7
+  // sets / 75.7 min, hypertrophy ALWAYS 8 / 22.4 / 75.1, power 5-6 / 22.9 /
+  // 73.7. At 5: 5 / 16.3 / 71.8, 5 / 14.9 / 56.7, 5 / 21.5 / 69.7. The cost is
+  // weekly volume, hypertrophy's above all; he took it. The intensity half is
+  // the two constants below. [measured] counts; the cap itself is his decision.
+  MAX_MAIN_SLOTS: 5,
+  // ...and the intensity half. A day whose first HEAVY_DAY_SLOTS main moves
+  // already carry HEAVY_DAY_LIFTS heavy lifts (cnsCost >= HEAVY_CNS_COST: the
+  // squats, deadlifts and Olympic lifts) stops at HEAVY_DAY_SLOTS; any other
+  // day may add one more, and that one may not be heavy itself. The athlete's
+  // rule in his words above; the threshold is a product decision built on the
+  // library's own 1-3 cnsCost scale, [unverified] as physiology. Measured at
+  // decision time: two heavy lifts among the first four on 24% of
+  // max-strength days, 51% of power days, 5% of hypertrophy days.
+  HEAVY_DAY_SLOTS: 4,
+  HEAVY_DAY_LIFTS: 2,
+  HEAVY_CNS_COST: 3,
   // v80: read only for NON-lifting day types now -- packToBudget's default
   // budget and finalise()'s "over the N min main-work budget" warning. Lifting
   // days (max-strength, power, hypertrophy) never consult it: no time limit,
