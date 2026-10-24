@@ -126,6 +126,23 @@ export const COEF_PROVENANCE = {
   // band; that would be inventing a number wearing a safety costume, which is
   // this project's signature failure. Recorded as standing debt instead.
   "front-squat"                : { coef: 0.78 , of: "back-squat"      , tag: 'corroborated' },
+  // SOURCED 2026-10-24, NEW ENTRY. The athlete asked for it: "you should give
+  // me the weights in terms of a PR" on barbell work that printed only an
+  // effort cue (first desk review). Two studies tested BOTH 1RMs in the SAME
+  // subjects, which is the shape this register needs:
+  //   Barbalho et al. 2020, Int J Sports Med (PMID 31975359), n=22 well-
+  //     trained women, deep squats. Baseline squat / hip thrust, by group:
+  //     91.9 / 100.1 kg and 93.1 / 98.7 kg  ->  1.09, 1.06
+  //   Fisher et al. 2019, PeerJ (PMC6662562), n=14 trained men incl.
+  //     powerlifters. Baseline medians: 115.0 / 160.0 kg and 110.0 / 162.5
+  //     kg  ->  1.39, 1.48
+  // Both say the hip thrust 1RM is ABOVE the back squat's; they disagree on
+  // how far, and the disagreement is population (squat depth, sex, how much
+  // each lift is trained) -- discrepancy 8's lesson 3. 1.00 is BELOW every
+  // estimate rather than inside the spread, the close-grip precedent: an
+  // error here under-prescribes. He has a college squat PR and has likely
+  // never hip thrusted, which is the case the low end exists for.
+  "hip-thrust"                : { coef: 1    , of: "back-squat"      , tag: 'corroborated' },
   "pause-squat"               : { coef: 0.85 , of: "back-squat"      , tag: 'unverified' },
   "zercher-squat"             : { coef: 0.65 , of: "back-squat"      , tag: 'unverified' },
   "good-morning"              : { coef: 0.4  , of: "back-squat"      , tag: 'unverified' },

@@ -170,7 +170,7 @@
       "modalities": ["hypertrophy"] },
 
     { "id": "hip-thrust", "name": "Barbell Hip Thrust", "pattern": "hinge", "tier": "primary",
-      "loadable": false, "prRef": null, "prCoef": null,
+      "loadable": true, "prRef": "back-squat", "prCoef": 1.0,
       "joints": ["hip"], "equipment": ["barbell","bench","plates"], "venue": "gym",
       "cnsCost": 1, "technical": 1, "unilateral": false,
       "cues": ["Shoulder blades on the bench, feet flat, shins vertical at the top.","Pad the bar across your hips -- it will dig in otherwise.","Squeeze the glutes to finish and keep your ribs down.","Chin tucked: look forward, not up at the ceiling."],
@@ -3790,6 +3790,7 @@
       "loadable": false, "prRef": null, "prCoef": null,
       "joints": ["lumbar","scapula","wrist"], "equipment": ["dumbbell"], "venue": "either",
       "cnsCost": 1, "technical": 1, "unilateral": true, "derivedFrom": "suitcase-carry",
+      "dose": { "carrySec": 30 },
       "cues": ["One bell in one hand and nothing in the other.","March on the spot, driving each knee to hip height without leaning.","Stand dead upright -- do not lean away from the weight to balance it.","Same time on each side."],
       "modalities": ["hypertrophy","isolation"] },
 

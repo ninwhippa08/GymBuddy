@@ -258,6 +258,18 @@ since v80 an extra exercise is only there because the week needs it, so the
 card is the whole day. The L-sit and Copenhagen plank now hold 10-20 s rather
 than the plank's 30-45 s.
 
+**Carries are walked, and the hip thrust has a weight (v82).** Every carry used
+to print reps ("2 × 9", "leave 2 reps in reserve"); it now prints a distance,
+"3 × 30 m" (each side for one-handed carries), with "heaviest weight you can
+carry the whole way without losing posture"; the march in place is 30 s.
+The Barbell Hip Thrust is now priced off your back squat PR at 1.00×, below
+both studies that tested the two lifts on the same people (1.06-1.48×), so
+an error gives you too little weight, not too much. The other barbell
+accessories (lunge, rows, shrug, curls, skullcrusher, landmine work,
+straight-leg deadlift) still print an effort cue only: no study measured them
+against one of your six PRs, and the project does not price a lift on a ratio
+nobody measured.
+
 **There is no time limit on lifting days, on purpose.** You decided on
 2026-10-22: "don't set a limit … I want to test the new method. Then we can see
 if the workouts created are too much for me." The sessions that come out are
@@ -286,7 +298,7 @@ Two ideas hold the design together:
 node --test tests/*.test.mjs
 ```
 
-698 tests, using only Node's built-in `node:test` and `node:assert/strict`.
+699 tests, using only Node's built-in `node:test` and `node:assert/strict`.
 There is no `package.json` and nothing to install.
 
 They are not only unit tests. Several are **sweeps**: they generate sessions in

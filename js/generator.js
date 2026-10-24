@@ -28,7 +28,7 @@ import {
   CHRONIC, CHRONIC_BOOSTABLE,
   ALL_TIERS, NON_NEGOTIABLE_EQUIPMENT, EQUIPMENT_IMPLIES, MOBILITY_DOSE,
   REP_TO_PCT, LOAD_GROUPS, RIR_ZONES, GROUP_DOSED_ZONES, ONE_HEAVY_LOWER_DAY_TYPES,
-  HEAVY_LOWER_PATTERNS
+  HEAVY_LOWER_PATTERNS, CARRY
 } from './rules.js';
 
 import {
@@ -896,6 +896,16 @@ export function prescribe(slot, exercise, env, rng, state, forcedSets = null) {
     // the app has no reference max for. Prescribe by reps and effort instead.
     block.mode = 'reps';
     block.effort = block.effort || 'leave 2-3 reps in reserve';
+    // A carry is a distance (or, marched in place, a time), never reps.
+    // rules.js CARRY. The rep count stays on the block for nothing -- the
+    // card and the time estimate read carryM / carrySec instead.
+    if (exercise.pattern === 'carry') {
+      if (exercise.dose && exercise.dose.carrySec) block.carrySec = exercise.dose.carrySec;
+      else block.carryM = CARRY.METERS_PER_SET;
+      if (exercise.unilateral) block.perSide = true;
+      delete block.rir;
+      block.effort = block.carrySec ? CARRY.EFFORT_TIMED : CARRY.EFFORT;
+    }
     return block;
   }
 
@@ -1247,7 +1257,9 @@ function blockSeconds(b) {
   // drill error; rules.js CORE_SECONDS_PER_REP carries the reasoning and the
   // caveat that this one is the weakest of the three.
   const secPerRep = b.role === 'core' ? TIME.CORE_SECONDS_PER_REP : TIME.SECONDS_PER_REP;
-  sec += workReps * secPerRep * sides;
+  if (b.carryM) sec += b.sets * b.carryM * CARRY.SEC_PER_M * sides;
+  else if (b.carrySec) sec += b.sets * b.carrySec * sides;
+  else sec += workReps * secPerRep * sides;
   sec += b.sets * restOf(b);
   // The ramp is real time on the clock. Its sets are short and its rests
   // shorter, but four warm-up sets before a heavy squat is minutes, and the

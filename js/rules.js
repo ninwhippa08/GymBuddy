@@ -626,6 +626,25 @@ export const NEGLECT_CAP_DAYS = 90;
 
 export const CNS_VETO_THRESHOLD = 2;
 
+// Carries are dosed by DISTANCE, not reps. Until 2026-10-24 every carry
+// printed "3 x 12" with "leave 2 reps in reserve" -- a carry has no reps to
+// leave. Found in the athlete's first desk review (a Zercher Carry at
+// "2 x 9"). 30 m per set: inside every practitioner range found -- 20-30 m
+// heavy for strength and grip (repfitness.com), 25-100 m typical (Catalyst
+// Athletics exercise library), 30-40 m as a strong target (thebattlebunker.com)
+// [corroborated, practitioner sources]. The load is set by the distance, the
+// way a rep target sets it: too heavy if 20 m cannot be reached, too light if
+// 100 m is easy (evolve-mma.com).
+//
+// SEC_PER_M prices the walk for the time estimate only: about 1 m/s loaded,
+// [unverified] -- nothing measured it, and it decides no prescription.
+export const CARRY = Object.freeze({
+  METERS_PER_SET: 30,
+  SEC_PER_M: 1,
+  EFFORT: 'heaviest weight you can carry the whole way without losing posture',
+  EFFORT_TIMED: 'heaviest weight you can hold for the whole time without leaning'
+});
+
 // The acute account above is a 72 h horizon and cannot see a month. This is
 // the chronic one: as lifting accumulates, the low- and moderate-CNS running
 // days get more attractive. A BOOST, never a veto -- if he is fresh and has

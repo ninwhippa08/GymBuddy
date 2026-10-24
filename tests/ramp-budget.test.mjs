@@ -287,10 +287,22 @@ test('required full-volume work is v77 work, and the ramp cuts nothing at week 5
   // still cut nothing at full volume: budget equals drawn.
   const required = new Map(LIFTING.map(d =>
     [d, new Set(TEMPLATES[d].filter(sl => !sl.optional).map(sl => sl.slot))]));
+  let hipThrustSkipped = 0;
   for (const dayType of LIFTING) {
     for (let seed = 1; seed <= 40; seed++) {
       const s = generate({ library: LIB, profile: atWeek(5), history: [], soreness: {},
                            dayType, seed, now: NOW });
+      // 2026-10-24: hip-thrust became loadable (priced off the back squat;
+      // tests/coef-provenance.mjs). A loaded block draws its percentage from
+      // the rng, so every block filled after one in the same session moves
+      // off v77's stream. Three of these 120 sessions hold a hip thrust; two
+      // of them moved (hypertrophy seeds 28 and 33), nothing else did.
+      // Skipped, and counted, so the exemption cannot quietly grow.
+      if (s.blocks.some(b => b.exerciseId === 'hip-thrust')) {
+        hipThrustSkipped++;
+        assert.equal(s.rampSets.budget, s.rampSets.drawn, `${dayType} seed ${seed}`);
+        continue;
+      }
       const req = required.get(dayType);
       const got = s.blocks.filter(x => req.has(x.slot));
       const want = fixture[dayType][String(seed)].filter(([slot]) => req.has(slot));
@@ -308,6 +320,7 @@ test('required full-volume work is v77 work, and the ramp cuts nothing at week 5
       assert.equal(s.rampSets.budget, s.rampSets.drawn, `${dayType} seed ${seed}`);
     }
   }
+  assert.equal(hipThrustSkipped, 3, 'the hip-thrust exemption covers a different set of sessions now');
 });
 
 test('intervals are still ramped by prescribe, and core never was', () => {

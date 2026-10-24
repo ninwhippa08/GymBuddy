@@ -304,6 +304,15 @@ test('every dose is a usable override, and only where the generator reads one', 
     // progression; bodybuilding.com beginner's guide; 12minuteathlete).
     // Copenhagen plank: 3-4 x 10-20/10-30 s to start (physitrack exercise
     // library; julielohre.com) [corroborated, practitioner sources].
+    // The carry form, 2026-10-24: a carry marched in place is timed, not
+    // walked (rules.js CARRY). Only the carry branch of prescribe reads it.
+    if ('carrySec' in e.dose) {
+      assert.ok(Number.isInteger(e.dose.carrySec) && e.dose.carrySec > 0,
+        `${e.id}: dose.carrySec must be a positive whole number of seconds`);
+      assert.equal(e.pattern, 'carry',
+        `${e.id} carries dose.carrySec but is not a carry, so nothing reads it`);
+      continue;
+    }
     if ('holdSec' in e.dose) {
       const { holdSec } = e.dose;
       assert.ok(Array.isArray(holdSec) && holdSec.length === 2 &&
@@ -355,4 +364,25 @@ test('a hold dose on the entry is the hold the athlete is given', async () => {
     }
   }
   assert.ok(seen > 0, 'no session drew an entry with a hold dose');
+});
+
+// Carries print a distance or a time, never reps and never a rep reserve.
+// From the athlete's first desk review, a Zercher Carry at "2 x 9".
+test('every carry the generator prescribes is dosed by distance or time', async () => {
+  const { generate } = await import('../js/generator.js');
+  const { volumeLine } = await import('../js/ui.js');
+  let seen = 0, timed = 0;
+  for (const dayType of ['max-strength', 'hypertrophy']) {
+    for (let seed = 1; seed <= 600; seed++) {
+      const s = generate({ library: EX, profile: { banned: [] }, history: [], dayType, seed, now: 1e12 });
+      for (const b of s.blocks.filter(b => b.pattern === 'carry')) {
+        seen++;
+        if (b.carrySec) timed++;
+        assert.ok(b.carryM > 0 || b.carrySec > 0, `${b.exerciseId}: no distance or time`);
+        assert.ok(!('rir' in b), `${b.exerciseId}: a carry with a rep reserve`);
+        assert.match(volumeLine(b), /^\d+ × \d+ (m|s)( each side)?$/, `${b.exerciseId}: "${volumeLine(b)}"`);
+      }
+    }
+  }
+  assert.ok(seen > 0, 'no carry was prescribed');
 });

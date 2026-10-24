@@ -238,6 +238,12 @@ export function volumeLine(block) {
   if (block.mode === 'contacts' && !block.footContacts && block.sprintMeters) {
     return block.sets > 1 ? `× ${block.sets}` : '';
   }
+  // A carry is walked, not repped (rules.js CARRY): "3 × 30 m", or a time
+  // when it is marched in place. One-sided carries are done on each side.
+  if (block.carryM || block.carrySec) {
+    const each = block.carryM ? `${block.carryM} m` : `${block.carrySec} s`;
+    return `${block.sets} × ${each}${block.perSide ? ' each side' : ''}`;
+  }
   return `${block.sets} × ${block.reps}`;
 }
 
