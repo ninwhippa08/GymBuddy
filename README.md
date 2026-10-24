@@ -270,6 +270,14 @@ straight-leg deadlift) still print an effort cue only: no study measured them
 against one of your six PRs, and the project does not price a lift on a ratio
 nobody measured.
 
+**A weight without a PR is a rep max (v83).** Any move you load yourself but
+that has no PR to price it from (barbell, dumbbell, kettlebell, cable, machine,
+added plates) now says how heavy as a rep max: "2 × 4 · pick a weight you
+could do 6 times", where it used to say only "leave 2 reps in reserve". The
+number is the set's reps plus its reps in reserve, so it is the same
+prescription stated as a weight you can pick. Bodyweight, band and sled work
+keep the effort cue.
+
 **There is no time limit on lifting days, on purpose.** You decided on
 2026-10-22: "don't set a limit … I want to test the new method. Then we can see
 if the workouts created are too much for me." The sessions that come out are
@@ -298,7 +306,7 @@ Two ideas hold the design together:
 node --test tests/*.test.mjs
 ```
 
-699 tests, using only Node's built-in `node:test` and `node:assert/strict`.
+700 tests, using only Node's built-in `node:test` and `node:assert/strict`.
 There is no `package.json` and nothing to install.
 
 They are not only unit tests. Several are **sweeps**: they generate sessions in

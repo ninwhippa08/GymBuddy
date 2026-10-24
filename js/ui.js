@@ -118,7 +118,14 @@ export function loadLine(block) {
     // no reference max for -- bodyweight, machine AND dumbbell work, and 122
     // of the library's 151 non-loadable entries hold something. Printing
     // "bodyweight" over a Goblet Squat or a Barbell Hip Thrust is a wrong
-    // instruction, not a vague one. The effort cue is the prescription.
+    // instruction, not a vague one. The effort cue is the prescription --
+    // unless there is a weight to pick, and then the rep max it should be is
+    // (rules.js WEIGHTED_EQUIPMENT): "4 × 4" with "pick a weight you could
+    // do 6 times" says how heavy; "leave 2 reps in reserve" made him guess.
+    if (block.rmTarget) {
+      const [lo, hi] = block.rmTarget;
+      return `pick a weight you could do ${lo === hi ? lo : `${lo}-${hi}`} times`;
+    }
     return block.effort || 'leave 2-3 reps in reserve';
   }
   // The whole prescription in one sentence. There is no load reference for an

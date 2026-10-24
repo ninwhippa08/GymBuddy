@@ -28,7 +28,7 @@ import {
   CHRONIC, CHRONIC_BOOSTABLE,
   ALL_TIERS, NON_NEGOTIABLE_EQUIPMENT, EQUIPMENT_IMPLIES, MOBILITY_DOSE,
   REP_TO_PCT, LOAD_GROUPS, RIR_ZONES, GROUP_DOSED_ZONES, ONE_HEAVY_LOWER_DAY_TYPES,
-  HEAVY_LOWER_PATTERNS, CARRY
+  HEAVY_LOWER_PATTERNS, CARRY, WEIGHTED_EQUIPMENT
 } from './rules.js';
 
 import {
@@ -905,6 +905,12 @@ export function prescribe(slot, exercise, env, rng, state, forcedSets = null) {
       if (exercise.unilateral) block.perSide = true;
       delete block.rir;
       block.effort = block.carrySec ? CARRY.EFFORT_TIMED : CARRY.EFFORT;
+    }
+    // A weight to pick and no PR to price it: the card says which weight, as
+    // the rep max it should be. rules.js WEIGHTED_EQUIPMENT.
+    else if (block.rir &&
+             (exercise.equipment || []).some(q => WEIGHTED_EQUIPMENT.includes(q))) {
+      block.rmTarget = [reps + block.rir[0], reps + block.rir[1]];
     }
     return block;
   }

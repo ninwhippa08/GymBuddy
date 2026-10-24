@@ -386,3 +386,32 @@ test('every carry the generator prescribes is dosed by distance or time', async 
   }
   assert.ok(seen > 0, 'no carry was prescribed');
 });
+
+// A move with a weight to pick and no PR prints the rep max that weight should
+// be; a bodyweight move keeps its effort cue. The athlete, 2026-10-24: weights
+// for the barbell work the PR register cannot price. rules.js WEIGHTED_EQUIPMENT.
+test('an unpriced weighted move says which weight, as a rep max', async () => {
+  const { generate } = await import('../js/generator.js');
+  const { loadLine } = await import('../js/ui.js');
+  const { WEIGHTED_EQUIPMENT } = await import('../js/rules.js');
+  let weighted = 0, bodyweight = 0;
+  for (const dayType of ['max-strength', 'hypertrophy', 'power']) {
+    for (let seed = 1; seed <= 300; seed++) {
+      const s = generate({ library: EX, profile: { banned: [] }, history: [], dayType, seed, now: 1e12 });
+      for (const b of s.blocks.filter(b => b.mode === 'reps' && b.rir)) {
+        const e = EX.find(x => x.id === b.exerciseId);
+        const line = loadLine(b);
+        if (e.equipment.some(q => WEIGHTED_EQUIPMENT.includes(q))) {
+          weighted++;
+          const [lo, hi] = [b.reps + b.rir[0], b.reps + b.rir[1]];
+          assert.equal(line, `pick a weight you could do ${lo === hi ? lo : `${lo}-${hi}`} times`,
+            `${b.exerciseId}: ${b.sets} x ${b.reps} at ${b.rir.join('-')} in reserve printed "${line}"`);
+        } else {
+          bodyweight++;
+          assert.ok(!/pick a weight/.test(line), `${b.exerciseId} has no weight to pick: "${line}"`);
+        }
+      }
+    }
+  }
+  assert.ok(weighted > 0 && bodyweight > 0, `both branches reached: ${weighted} weighted, ${bodyweight} bodyweight`);
+});

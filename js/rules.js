@@ -638,6 +638,20 @@ export const CNS_VETO_THRESHOLD = 2;
 //
 // SEC_PER_M prices the walk for the time estimate only: about 1 m/s loaded,
 // [unverified] -- nothing measured it, and it decides no prescription.
+// Equipment that means "you choose a weight". A move with one of these and no
+// PR to price it from prints a rep-max target -- "pick a weight you could do
+// 6 times" for a set of 4 at 2 in reserve -- instead of the bare "leave 2
+// reps in reserve". The athlete, 2026-10-24, after the first desk review
+// asked for weights on barbell work the PR register cannot price
+// (tests/coef-provenance.mjs). The arithmetic is the RIR definition itself,
+// reps + reps in reserve = the rep max the weight should be, so it adds no
+// claim of its own. Bands and sleds are not here: a band has no weight to
+// pick, and a sled is pushed, not repped.
+export const WEIGHTED_EQUIPMENT = Object.freeze([
+  'barbell', 'dumbbell', 'kettlebell', 'cable', 'machine', 'plates',
+  'landmine', 'trap-bar', 'sandbag'
+]);
+
 export const CARRY = Object.freeze({
   METERS_PER_SET: 30,
   SEC_PER_M: 1,
